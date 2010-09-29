@@ -34,7 +34,8 @@ stringToHex = function(string) {
 hexToString = function(hexArray) {
   return new Buffer(hexArray).toString('utf8');
 }
-var BufferList = function() {
+
+BufferList = function() {
   this.buffers = [];
 };
 
@@ -83,4 +84,12 @@ BufferList.prototype.join = function(appendLength, char) {
     index += buffer.length;
   });
   return result;
+};
+
+BufferList.concat = function() {
+  var total = new BufferList();
+  for(var i = 0; i < arguments.length; i++) {
+    total.add(arguments[i]);
+  }
+  return total.join();
 };

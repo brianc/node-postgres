@@ -63,3 +63,10 @@ test('does complicated buffer', function() {
     .join(true,'!');
   assert.equalBuffers(buf, [33, 0, 0, 0, 0x0c, 0, 0, 0, 1, 0, 2, 33, 0]);
 });
+
+test('concats', function() {
+  var buf1 = new BufferList().addInt32(8).join(false,'!');
+  var buf2 = new BufferList().addInt16(1).join();
+  var result = BufferList.concat(buf1, buf2);
+  assert.equalBuffers(result, [33, 0, 0, 0, 8, 0, 1]);
+});
