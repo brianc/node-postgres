@@ -18,5 +18,15 @@ test('Parser on single messages', function() {
     assert.equal(result.parameterName, "client_encoding");
     assert.equal(result.parameterValue, "UTF8");
   });
+
+  test('parses normal CString', function() {
+    var result = new Parser().parseCString(Buffer([33,00]));
+    assert.equal(result,"!");
+  });
+
+  test('parses empty CString', function() {
+    var result = new Parser().parseCString(Buffer([0]));
+    assert.equal(result, '');
+  });
 });
 
