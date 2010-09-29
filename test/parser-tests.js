@@ -37,5 +37,10 @@ test('Parser on single messages', function() {
     assert.equal(result, 3);
     assert.equal(parser.offset, 4);
   });
+
+  test('parsing empty buffer returns false', function() {
+    var parser = new Parser(Buffer(0));
+    assert.equal(parser.parse(), false);
+  });
 });
 
