@@ -22,5 +22,8 @@ assert.equal(client.port, 321);
 client.port = 5432;
 client.connect();
 
-var query = client.query('create temporary table bang (id integer)');
-
+client.query('create temporary table bang (id integer)');
+client.query('insert into bang(id) VALUES(1)');
+client.query('select * from bang',function(err, results, fields) {
+  assert.equal(err, null);
+});
