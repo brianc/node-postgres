@@ -20,10 +20,7 @@ assert.equal(client.database, 'hello');
 assert.equal(client.port, 321);
 
 client.port = 5432;
-client.connect(function() {
-  console.log('connected');
-  client.query('select count(*) from items',function(result) {
-    console.log('ran query');
-  });
-});
+client.connect();
+
+var query = client.query('create temporary table bang (id integer)');
 

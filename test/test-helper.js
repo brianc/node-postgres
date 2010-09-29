@@ -23,7 +23,12 @@ test = function(name, action) {
 test.tabout = 0;
 
 stringToHex = function(string) {
-
+  var b = Buffer(string,'utf8');
+  var result = [];
+  for(var i = 0; i < b.length; i++) {
+    result.push(b[i]);
+  }
+  return result;
 };
 
 hexToString = function(hexArray) {
