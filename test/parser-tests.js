@@ -12,7 +12,11 @@ test('Parser on single messages', function() {
     var secondString = [0x55, 0x54, 0x46, 0x38, 0];
     var bytes = [0x53, 0, 0, 0, 0x19].concat(firstString).concat(secondString);
     var result = Parser.parse(Buffer(bytes));
-
+    assert.equal(result.name, 'ParameterStatus');
+    assert.equal(result.id, 'S');
+    assert.equal(result.length, 25);
+    assert.equal(result.parameterName, "client_encoding");
+    assert.equal(result.parameterValue, "UTF8");
   });
 });
 
