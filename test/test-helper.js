@@ -10,12 +10,13 @@ test = function(name, action) {
   test.tabout += 2;
   console.log(name);
   action();
+
   test.tabout -= 2;
 };
 test.tabout = 0;
 
 stringToHex = function(string) {
-  
+
 };
 
 hexToString = function(hexArray) {
