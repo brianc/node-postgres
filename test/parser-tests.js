@@ -1,57 +1,52 @@
 require(__dirname+'/test-helper');
 
+var authOkBuffer = new BufferList()
+  .addInt32(8)
+  .join(true, 'R');
 
+var paramStatusBuffer = new BufferList()
+  .addCString("client_encoding")
+  .addCString("UTF8")
+  .join(true, 'S');
+
+var backendKeyDataBuffer = new BufferList()
+  .addInt32(1)
+  .addInt32(2)
+  .join(true,'K');
+
+var readyForQueryBuffer = new BufferList()
+  .add(Buffer('I'))
+  .join(true,'Z');
+
+var expectedAuthenticationOkayMessage = {
+  name: 'AuthenticationOk',
+  id: 'R',
+  length: 8
+};
+
+var expectedParameterStatusMessage = {
+  name: 'ParameterStatus',
+  id: 'S',
+  length: 25,
+  parameterName: 'client_encoding',
+  parameterValue: 'UTF8'
+};
+
+var expectedBackendKeyDataMessage = {
+  name: 'BackendKeyData',
+  id: 'K',
+  processID: 1,
+  secretKey: 2
+};
+
+var expectedReadyForQueryMessage = {
+  name: 'ReadyForQuery',
+  id: 'Z',
+  length: 5,
+  status: 'I'
+};
 
 test('Parser on single messages', function() {
-
-  var authOkBuffer = new BufferList()
-    .addInt32(8)
-    .join(true, 'R');
-
-
-  var paramStatusBuffer = new BufferList()
-    .addCString("client_encoding")
-    .addCString("UTF8")
-    .join(true, 'S');
-
-  var backendKeyDataBuffer = new BufferList()
-    .addInt32(1)
-    .addInt32(2)
-    .join(true,'K');
-
-
-
-  var readyForQueryBuffer = new BufferList()
-    .add(Buffer('I'))
-    .join(true,'Z');
-
-  var expectedAuthenticationOkayMessage = {
-    name: 'AuthenticationOk',
-    id: 'R',
-    length: 8
-  };
-
-  var expectedParameterStatusMessage = {
-    name: 'ParameterStatus',
-    id: 'S',
-    length: 25,
-    parameterName: 'client_encoding',
-    parameterValue: 'UTF8'
-  };
-
-  var expectedBackendKeyDataMessage = {
-    name: 'BackendKeyData',
-    id: 'K',
-    processID: 1,
-    secretKey: 2
-  };
-
-  var expectedReadyForQueryMessage = {
-    name: 'ReadyForQuery',
-    id: 'Z',
-    length: 5,
-    status: 'I'
-  };
 
   test('parses AuthenticationOk message', function() {
     var result = new Parser(authOkBuffer).parse()[0];
@@ -74,17 +69,11 @@ test('Parser on single messages', function() {
   });
 
 
-  test('parses normal CString', function() {
-    var result = new Parser(Buffer([33,0])).parseCString();
-    assert.equal(result,"!");
-  });
-
-  var resultText = stringToHex("SELECT 3\0");
-  var length = resultText.length + 4;
-  var commandCompleteData = [0x43, 0, 0, 0, length].concat(resultText);
-
+  var commandCompleteBuffer = new BufferList()
+    .addCString("SELECT 3")
+    .join(true,'C');
   test('parses CommandComplete message', function() {
-    var result = new Parser(Buffer(commandCompleteData)).parse()[0];
+    var result = new Parser(commandCompleteBuffer).parse()[0];
     assert.same(result, {
       length: 13,
       id: 'C',
@@ -92,28 +81,45 @@ test('Parser on single messages', function() {
     });
   });
 
-  var packet = {
-    BYTE: 'T',
-    LENGTH: null,
-    INT16: 0
-  };
-
-  var x = [0x54, 0, 0, 0, 26, 0, 1, 33, 0, 0, 0, 0, 2, 0, 3, 0, 0, 0, 4, 0, 5, 0, 6, 0, 0];
+  var emptyRowDescriptionBuffer = new BufferList()
+    .addInt16(0) //number of fields
+    .join(true,'T');
   test('parses RowDescriptions', function() {
 
     test('parses empty row description', function() {
-      var buffer = Buffer([0x54, 0, 0, 0, 6, 0, 0]);
-      var result = new Parser(buffer).parse()[0];
+      var result = new Parser(emptyRowDescriptionBuffer).parse()[0];
       assert.same(result, {
         name: 'RowDescription',
         id: 'T',
         length: 6,
-        rowCount: 0
+        fieldCount: 0
       });
-      assert.equal(result.rows.length, 0);
+      assert.equal(result.fields.length, 0);
+    });
+
+    var oneRowDescBuff = new BufferList()
+      .addInt16(1)
+      .addCString('id') //field name
+      .addInt32(1) //table id
+      .addInt16(2) //attribute of column number
+      .addInt32(3) //objectId of field's data type
+      .addInt16(4) //datatype size
+      .addInt32(5) //type modifier
+      .addInt32(0) //format code, 0 => text
+      .join(true,'T');
+    console.log(oneRowDescBuff);
+    test('parses single row description',function() {
+      var result = new Parser(oneRowDescBuff).parse()[0];
+      assert.same(result, {
+        name: 'RowDescription',
+        id: 'T',
+        length: 29,
+        fieldCount: 1
+      });
     });
 
   });
+
 
 
   test('parses empty CString', function() {
