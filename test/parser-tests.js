@@ -13,35 +13,42 @@ test('Parser on single messages', function() {
   
   test('parses AuthenticationOk message', function() {
     var result = new Parser(authenticationOkBuffer).parse();
-    assert.equal(result.name, 'AuthenticationOk');
-    assert.equal(result.id, 'R');
-    assert.equal(result.length, 8);
+    assert.same(result, {
+      name: 'AuthenticationOk',
+      id: 'R',
+      length: 8
+    });
   });
 
   test('parses ParameterStatus message', function() {
     var result = new Parser(parameterStatusBuffer).parse();
-    assert.equal(result.name, 'ParameterStatus');
-    assert.equal(result.id, 'S');
-    assert.equal(result.length, 25);
-    assert.equal(result.parameterName, "client_encoding");
-    assert.equal(result.parameterValue, "UTF8");
+    assert.same(result, {
+      name: 'ParameterStatus',
+      id: 'S',
+      length: 25,
+      parameterName: 'client_encoding',
+      parameterValue: 'UTF8'
+    });
   });
 
   test('parses BackendKeyData message', function() {
     var result = new Parser(backendKeyDataBuffer).parse();
-    assert.equal(result.name, 'BackendKeyData');
-    assert.equal(result.id, 'K');
-    assert.equal(result.length, 12);
-    assert.equal(result.processID, 1);
-    assert.equal(result.secretKey, 2);
+    assert.same(result, {
+      name: 'BackendKeyData',
+      id: 'K',
+      processID: 1,
+      secretKey: 2
+    });
   });
 
   test('parses ReadyForQuery message', function() {
     var result = new Parser(readyForQueryBuffer).parse();
-    assert.equal(result.name, 'ReadyForQuery');
-    assert.equal(result.id, 'Z');
-    assert.equal(result.length, 5);
-    assert.equal(result.status, 'I');
+    assert.same(result, {
+      name: 'ReadyForQuery',
+      id: 'Z',
+      length: 5,
+      status: 'I'
+    });
   });
 
   test('parses normal CString', function() {
