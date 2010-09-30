@@ -10,45 +10,54 @@ test('Parser on single messages', function() {
   var backendKeyDataBuffer = Buffer([0x4b, 0, 0, 0, 0x0c, 0, 0, 0, 1, 0, 0, 0, 2]);
 
   var readyForQueryBuffer = Buffer([0x5a, 0, 0, 0, 5, 'I'.charCodeAt(0)])
-  
-  test('parses AuthenticationOk message', function() {
-    var result = new Parser(authenticationOkBuffer).parse();
-    assert.same(result, {
-      name: 'AuthenticationOk',
-      id: 'R',
-      length: 8
-    });
-  });
 
-  test('parses ParameterStatus message', function() {
-    var result = new Parser(parameterStatusBuffer).parse();
-    assert.same(result, {
+
+  var expectedAuthenticationOkayMessage = {
+    name: 'AuthenticationOk',
+    id: 'R',
+    length: 8
+  };
+  
+  var expectedParameterStatusMessage = {
       name: 'ParameterStatus',
       id: 'S',
       length: 25,
       parameterName: 'client_encoding',
       parameterValue: 'UTF8'
-    });
-  });
+  };
 
-  test('parses BackendKeyData message', function() {
-    var result = new Parser(backendKeyDataBuffer).parse();
-    assert.same(result, {
+  var expectedBackendKeyDataMessage = {
       name: 'BackendKeyData',
       id: 'K',
       processID: 1,
       secretKey: 2
-    });
-  });
+  };
 
-  test('parses ReadyForQuery message', function() {
-    var result = new Parser(readyForQueryBuffer).parse();
-    assert.same(result, {
+  var expectedReadyForQueryMessage = {
       name: 'ReadyForQuery',
       id: 'Z',
       length: 5,
       status: 'I'
-    });
+  };
+
+  test('parses AuthenticationOk message', function() {
+    var result = new Parser(authenticationOkBuffer).parse();
+    assert.same(result, expectedAuthenticationOkayMessage);
+  });
+
+  test('parses ParameterStatus message', function() {
+    var result = new Parser(parameterStatusBuffer).parse();
+    assert.same(result, expectedParameterStatusMessage);
+  });
+
+  test('parses BackendKeyData message', function() {
+    var result = new Parser(backendKeyDataBuffer).parse();
+    assert.same(result, expectedBackendKeyDataMessage);
+  });
+
+  test('parses ReadyForQuery message', function() {
+    var result = new Parser(readyForQueryBuffer).parse();
+    assert.same(result, expectedReadyForQueryMessage);
   });
 
   test('parses normal CString', function() {
