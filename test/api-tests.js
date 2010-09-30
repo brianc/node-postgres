@@ -6,14 +6,17 @@ assert.equal(client.user, null);
 assert.equal(client.database, null);
 assert.equal(client.port, 5432);
 
+var user = 'brian';
+var database = 'hello';
+
 var client = new Client({
-  user: 'brian',
-  database: 'pgjstest',
+  user: 'briancarlson',
+  database: 'hello',
   port: 321
 });
 
-assert.equal(client.user, 'brian');
-assert.equal(client.database, 'pgjstest');
+assert.equal(client.user, 'briancarlson');
+assert.equal(client.database, 'hello');
 assert.equal(client.port, 321);
 
 client.port = 5432;
