@@ -41,22 +41,22 @@ test('Parser on single messages', function() {
   };
 
   test('parses AuthenticationOk message', function() {
-    var result = new Parser(authenticationOkBuffer).parse();
+    var result = new Parser(authenticationOkBuffer).parse()[0];
     assert.same(result, expectedAuthenticationOkayMessage);
   });
 
   test('parses ParameterStatus message', function() {
-    var result = new Parser(parameterStatusBuffer).parse();
+    var result = new Parser(parameterStatusBuffer).parse()[0];
     assert.same(result, expectedParameterStatusMessage);
   });
 
   test('parses BackendKeyData message', function() {
-    var result = new Parser(backendKeyDataBuffer).parse();
+    var result = new Parser(backendKeyDataBuffer).parse()[0];
     assert.same(result, expectedBackendKeyDataMessage);
   });
 
   test('parses ReadyForQuery message', function() {
-    var result = new Parser(readyForQueryBuffer).parse();
+    var result = new Parser(readyForQueryBuffer).parse()[0];
     assert.same(result, expectedReadyForQueryMessage);
   });
 
