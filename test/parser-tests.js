@@ -1,5 +1,8 @@
 require(__dirname+'/test-helper');
 
+var PARSE = function(buffer) {
+  return new Parser(buffer).parse();
+};
 
 var authOkBuffer = new BufferList()
   .addInt32(8)
@@ -50,22 +53,22 @@ var expectedReadyForQueryMessage = {
 
 test('Parser on single messages', function() {
   test('parses AuthenticationOk message', function() {
-    var result = new Parser(authOkBuffer).parse()[0];
+    var result = PARSE(authOkBuffer)[0];
     assert.same(result, expectedAuthenticationOkayMessage);
   });
 
   test('parses ParameterStatus message', function() {
-    var result = new Parser(paramStatusBuffer).parse()[0];
+    var result = PARSE(paramStatusBuffer)[0];
     assert.same(result, expectedParameterStatusMessage);
   });
 
   test('parses BackendKeyData message', function() {
-    var result = new Parser(backendKeyDataBuffer).parse()[0];
+    var result = PARSE(backendKeyDataBuffer)[0];
     assert.same(result, expectedBackendKeyDataMessage);
   });
 
   test('parses ReadyForQuery message', function() {
-    var result = new Parser(readyForQueryBuffer).parse()[0];
+    var result = PARSE(readyForQueryBuffer)[0];
     assert.same(result, expectedReadyForQueryMessage);
   });
 
@@ -74,7 +77,7 @@ test('Parser on single messages', function() {
     .addCString("SELECT 3")
     .join(true,'C');
   test('parses CommandComplete message', function() {
-    var result = new Parser(commandCompleteBuffer).parse()[0];
+    var result = PARSE(commandCompleteBuffer)[0];
     assert.same(result, {
       length: 13,
       id: 'C',
@@ -88,7 +91,7 @@ test('Parser on single messages', function() {
   test('parses RowDescriptions', function() {
 
     test('parses empty row description', function() {
-      var result = new Parser(emptyRowDescriptionBuffer).parse()[0];
+      var result = PARSE(emptyRowDescriptionBuffer)[0];
       assert.same(result, {
         name: 'RowDescription',
         id: 'T',
@@ -114,7 +117,7 @@ test('Parser on single messages', function() {
       .join(true,'T');
 
     test('parses single row description',function() {
-      var result = new Parser(oneRowDescBuff).parse()[0];
+      var result = PARSE(oneRowDescBuff)[0];
       assert.same(result, {
         name: 'RowDescription',
         id: 'T',
@@ -141,7 +144,7 @@ test('Parser on single messages', function() {
       twoRowDesc = addRow(twoRowDesc, 'whoah', 10);
       twoRowBuf = twoRowDesc.join(true, 'T');
 
-      var result = new Parser(twoRowBuf).parse()[0];
+      var result = PARSE(twoRowBuf)[0];
       assert.same(result, {
         name: 'RowDescription',
         id: 'T',
@@ -173,25 +176,20 @@ test('Parser on single messages', function() {
 
     });
 
-
   });
 
+//   test('parses raw data row buffers', function() {
+//     var emptyRow = new BufferList()
+//       .addInt16(0)
+//       .join(true, 'D');
+//     test('parses empty data row', function() {
+//       var result = PARSE(emptyRow)[0];
+//     });
+//   });
 
-
-  test('parses empty CString', function() {
-    var result = new Parser(Buffer([0])).parseCString();
-    assert.equal(result, '');
-  });
-
-  test('parses length', function() {
-    var parser = new Parser(Buffer([0,0,0,3]));
-    var result = parser.parseLength();
-    assert.equal(result, 3);
-    assert.equal(parser.offset, 4);
-  });
 
   test('parsing empty buffer returns false', function() {
-    var parser = new Parser(Buffer(0));
-    assert.equal(parser.parse(), false);
+    var parser = PARSE(Buffer(0));
+    assert.equal(parser, false);
   });
 });
