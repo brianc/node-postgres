@@ -184,13 +184,29 @@ test('Parser on single messages', function() {
   });
 
   test('parses raw data row buffers', function() {
+
     var emptyRow = new BufferList()
       .addInt16(0)
       .join(true, 'D');
+
     test('parses empty data row', function() {
       var result = PARSE(emptyRow)[0];
-      assert.equal(result.columnCount, 0);
+      assert.equal(result.fieldCount, 0);
+      assert.equal(result.fields.length, 0);
     });
+
+    var oneField = new BufferList()
+      .addInt16(1) //number of fields
+      .addInt32(5) //length of bytes of fields
+      .addCString('test')
+      .join(true, 'D');
+
+    test('parses single field data row', function() {
+      var result = PARSE(oneField)[0];
+      assert.equal(result.fieldCount, 1);
+      assert.equal(result.fields[0], "test\0");
+    });
+
   });
 
   test('parsing empty buffer returns false', function() {
