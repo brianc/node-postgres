@@ -98,7 +98,6 @@ test('Parser on single messages', function() {
       assert.equal(result.fields.length, 0);
     });
 
-
     var addRow = function(bufferList, name, offset) {
       return bufferList.addCString(name) //field name
         .addInt32(offset++) //table id
@@ -108,7 +107,6 @@ test('Parser on single messages', function() {
         .addInt32(offset++) //type modifier
         .addInt16(0) //format code, 0 => text
     };
-
 
     var oneRowDescBuff = new BufferList()
       .addInt16(1);
