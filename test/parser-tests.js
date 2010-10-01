@@ -76,6 +76,7 @@ test('Parser on single messages', function() {
   var commandCompleteBuffer = new BufferList()
     .addCString("SELECT 3")
     .join(true,'C');
+
   test('parses CommandComplete message', function() {
     var result = PARSE(commandCompleteBuffer)[0];
     assert.same(result, {
@@ -88,6 +89,7 @@ test('Parser on single messages', function() {
   var emptyRowDescriptionBuffer = new BufferList()
     .addInt16(0) //number of fields
     .join(true,'T');
+
   test('parses RowDescriptions', function() {
 
     test('parses empty row description', function() {
@@ -98,7 +100,9 @@ test('Parser on single messages', function() {
         length: 6,
         fieldCount: 0
       });
+
       assert.equal(result.fields.length, 0);
+
     });
 
     var addRow = function(bufferList, name, offset) {
@@ -124,6 +128,7 @@ test('Parser on single messages', function() {
         length: 27,
         fieldCount: 1
       });
+
       assert.equal(result.fields.length, 1);
 
       assert.same(result.fields[0], {
@@ -135,6 +140,7 @@ test('Parser on single messages', function() {
         dataTypeModifier: 5,
         format: 'text'
       });
+
     });
 
     test('parses two row descriptions', function() {
@@ -173,7 +179,6 @@ test('Parser on single messages', function() {
         format: 'text'
       });
 
-
     });
 
   });
@@ -188,9 +193,9 @@ test('Parser on single messages', function() {
     });
   });
 
-
   test('parsing empty buffer returns false', function() {
     var parser = PARSE(Buffer(0));
     assert.equal(parser, false);
   });
+
 });
