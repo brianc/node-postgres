@@ -1,5 +1,6 @@
 require(__dirname+'/test-helper');
 
+
 var authOkBuffer = new BufferList()
   .addInt32(8)
   .join(true, 'R');
@@ -46,8 +47,8 @@ var expectedReadyForQueryMessage = {
   status: 'I'
 };
 
-test('Parser on single messages', function() {
 
+test('Parser on single messages', function() {
   test('parses AuthenticationOk message', function() {
     var result = new Parser(authOkBuffer).parse()[0];
     assert.same(result, expectedAuthenticationOkayMessage);
@@ -98,16 +99,22 @@ test('Parser on single messages', function() {
     });
 
 
+    var addRow = function(bufferList, name, offset) {
+      return bufferList.addCString(name) //field name
+        .addInt32(offset++) //table id
+        .addInt16(offset++) //attribute of column number
+        .addInt32(offset++) //objectId of field's data type
+        .addInt16(offset++) //datatype size
+        .addInt32(offset++) //type modifier
+        .addInt16(0) //format code, 0 => text
+    };
+
+
     var oneRowDescBuff = new BufferList()
-      .addInt16(1)
-      .addCString('id') //field name
-      .addInt32(1) //table id
-      .addInt16(2) //attribute of column number
-      .addInt32(3) //objectId of field's data type
-      .addInt16(4) //datatype size
-      .addInt32(5) //type modifier
-      .addInt16(0) //format code, 0 => text
+      .addInt16(1);
+    oneRowDescBuff = addRow(oneRowDescBuff, 'id', 1)
       .join(true,'T');
+
     test('parses single row description',function() {
       var result = new Parser(oneRowDescBuff).parse()[0];
       assert.same(result, {
@@ -116,7 +123,58 @@ test('Parser on single messages', function() {
         length: 27,
         fieldCount: 1
       });
+      assert.equal(result.fields.length, 1);
+
+      assert.same(result.fields[0], {
+        name: 'id',
+        tableID: 1,
+        columnID: 2,
+        dataType: 3,
+        dataTypeSize: 4,
+        dataTypeModifier: 5,
+        format: 'text'
+      });
     });
+
+    test('parses two row descriptions', function() {
+      var twoRowDesc = new BufferList()
+        .addInt16(2);
+      twoRowDesc = addRow(twoRowDesc, 'bang', 1);
+      twoRowDesc = addRow(twoRowDesc, 'whoah', 10);
+      twoRowBuf = twoRowDesc.join(true, 'T');
+
+      var result = new Parser(twoRowBuf).parse()[0];
+      assert.same(result, {
+        name: 'RowDescription',
+        id: 'T',
+        length: 53,
+        fieldCount: 2
+      });
+      assert.equal(result.fields.length, 2);
+
+      assert.same(result.fields[0], {
+        name: 'bang',
+        tableID: 1,
+        columnID: 2,
+        dataType: 3,
+        dataTypeSize: 4,
+        dataTypeModifier: 5,
+        format: 'text'
+      });
+
+      assert.same(result.fields[1], {
+        name: 'whoah',
+        tableID: 10,
+        columnID: 11,
+        dataType: 12,
+        dataTypeSize: 13,
+        dataTypeModifier: 14,
+        format: 'text'
+      });
+
+
+    });
+
 
   });
 
@@ -139,4 +197,3 @@ test('Parser on single messages', function() {
     assert.equal(parser.parse(), false);
   });
 });
-
