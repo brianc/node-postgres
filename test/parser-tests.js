@@ -97,6 +97,7 @@ test('Parser on single messages', function() {
       assert.equal(result.fields.length, 0);
     });
 
+
     var oneRowDescBuff = new BufferList()
       .addInt16(1)
       .addCString('id') //field name
@@ -105,15 +106,14 @@ test('Parser on single messages', function() {
       .addInt32(3) //objectId of field's data type
       .addInt16(4) //datatype size
       .addInt32(5) //type modifier
-      .addInt32(0) //format code, 0 => text
+      .addInt16(0) //format code, 0 => text
       .join(true,'T');
-    console.log(oneRowDescBuff);
     test('parses single row description',function() {
       var result = new Parser(oneRowDescBuff).parse()[0];
       assert.same(result, {
         name: 'RowDescription',
         id: 'T',
-        length: 29,
+        length: 27,
         fieldCount: 1
       });
     });
