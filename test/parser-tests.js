@@ -178,14 +178,15 @@ test('Parser on single messages', function() {
 
   });
 
-//   test('parses raw data row buffers', function() {
-//     var emptyRow = new BufferList()
-//       .addInt16(0)
-//       .join(true, 'D');
-//     test('parses empty data row', function() {
-//       var result = PARSE(emptyRow)[0];
-//     });
-//   });
+  test('parses raw data row buffers', function() {
+    var emptyRow = new BufferList()
+      .addInt16(0)
+      .join(true, 'D');
+    test('parses empty data row', function() {
+      var result = PARSE(emptyRow)[0];
+      assert.equal(result.columnCount, 0);
+    });
+  });
 
 
   test('parsing empty buffer returns false', function() {
