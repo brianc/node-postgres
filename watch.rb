@@ -1,17 +1,13 @@
 #watch file
-
-def run_parser_tests
-  system("node test/parser-tests.js")
-  puts ""
-  puts("#{Time.now} waiting...")
-  puts ""
+def run_test_file(f)
+  puts "running #{f}"
+  system "node #{f}"
+  puts "done"
 end
-
 watch('lib/(.*)\.js') { |md|
-  puts "lib changed"
-  run_parser_tests
+  puts Dir["test/*.js"].each { |f| run_test_file(f) }
 }
 
 watch('test/(.*)\.js') { |md|
-  system("node #{md}");
+  run_test_file(md)
 }
