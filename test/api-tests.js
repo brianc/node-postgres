@@ -23,6 +23,17 @@ client2.on('ReadyForQuery', function() {
   client2.disconnect();
 });
 
+var client3 = makeClient();
+client3.connect();
+client3.on('ReadyForQuery', function() {
+  console.log('client3 ready for query');
+  var query = client3.query('create temporary table bang (id integer)');
+  query.on('end', function() {
+    client3.disconnect();
+  });
+
+});
+
 // client.query('create temporary table bang (id integer)');
 // client.query('insert into bang(id) VALUES(1)');
 // client.query('select * from bang',function(err, results, fields) {
