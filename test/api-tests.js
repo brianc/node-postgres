@@ -1,15 +1,12 @@
 require(__dirname+"/test-helper");
 
-//defaults
-
-
 var client = new Client({
   user: 'brian',
   database: 'pgjstest'
 });
+
 client.connect();
 client.on('ReadyForQuery', function() {
-  assert.ok(true, 'Connected');
   client.disconnect();
 });
 
