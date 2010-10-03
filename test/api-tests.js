@@ -1,13 +1,26 @@
 require(__dirname+"/test-helper");
 
-var client = new Client({
-  user: 'brian',
-  database: 'pgjstest'
+//little helper to make a
+//fresh client to the test DB
+var makeClient = function() {
+  return new Client({
+    user: 'brian',
+    database: 'pgjstest'
+  });
+};
+
+var client1 = makeClient();
+client1.connect();
+client1.on('ReadyForQuery', function() {
+  console.log('client1 ready for query');
+  client1.disconnect();
 });
 
-client.connect();
-client.on('ReadyForQuery', function() {
-  client.disconnect();
+var client2 = makeClient();
+client2.connect();
+client2.on('ReadyForQuery', function() {
+  console.log('client2 ready for query');
+  client2.disconnect();
 });
 
 // client.query('create temporary table bang (id integer)');
