@@ -13,6 +13,5 @@ watch('lib/(.*)\.js') { |md|
 }
 
 watch('test/(.*)\.js') { |md|
-  puts "test changed"
-  run_parser_tests
+  system("node #{md}");
 }
