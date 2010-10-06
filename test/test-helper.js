@@ -2,6 +2,7 @@ sys = require('sys');
 assert = require('assert');
 Client = require(__dirname+"/../lib/").Client;
 Parser = require(__dirname+"/../lib/").Parser;
+EventEmitter = require('events').EventEmitter;
 
 assert.same = function(actual, expected) {
   for(var key in expected) {
