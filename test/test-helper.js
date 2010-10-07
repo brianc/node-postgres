@@ -94,3 +94,12 @@ BufferList.concat = function() {
   }
   return total.join();
 };
+
+MemoryStream = function() {
+  EventEmitter.call(this);
+};
+
+sys.inherits(MemoryStream, EventEmitter);
+
+var p = MemoryStream.prototype;
+
