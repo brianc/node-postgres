@@ -1,5 +1,5 @@
 require(__dirname+'/test-helper');
-
+var buffers = require(__dirname+'/test-buffers');
 var PARSE = function(buffer) {
   return new Parser(buffer).parse();
 };
@@ -18,9 +18,7 @@ var backendKeyDataBuffer = new BufferList()
   .addInt32(2)
   .join(true,'K');
 
-var readyForQueryBuffer = new BufferList()
-  .add(Buffer('I'))
-  .join(true,'Z');
+var readyForQueryBuffer = buffers.readyForQuery;
 
 var commandCompleteBuffer = new BufferList()
   .addCString("SELECT 3")

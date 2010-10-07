@@ -1,4 +1,5 @@
 require(__dirname+'/test-helper');
+var buffers = require(__dirname+'/test-buffers');
 
 test('client can take existing stream', function() {
   var stream = new MemoryStream();
@@ -43,4 +44,15 @@ test('using opened stream', function() {
   test('does not call open', function() {
     client.connect();
   });
+});
+
+test('query queue', function() {
+  var stream = new MemoryStream();
+  stream.readyState = 'open';
+  var client = new Client({stream: stream});
+  client.query('select * from bang');
+  assert.empty(stream.packets);
+  
+  stream.emit('data', buffers.ReadyForQuery);
+  assert.equal(stream.packets.length, 1);
 });

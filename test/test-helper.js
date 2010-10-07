@@ -10,6 +10,10 @@ assert.same = function(actual, expected) {
   }
 };
 
+assert.empty = function(actual) {
+  assert.equal(actual.length, 0);
+};
+
 
 test = function(name, action) {
   for(var i = 0; i < test.tabout; i++) {
@@ -97,9 +101,9 @@ BufferList.concat = function() {
 
 MemoryStream = function() {
   EventEmitter.call(this);
+  this.packets = [];
 };
 
 sys.inherits(MemoryStream, EventEmitter);
 
 var p = MemoryStream.prototype;
-
