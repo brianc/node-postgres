@@ -53,6 +53,6 @@ test('query queue', function() {
   client.query('select * from bang');
   assert.empty(stream.packets);
   
-  stream.emit('data', buffers.ReadyForQuery);
+  stream.emit('data', buffers.readyForQuery());
   assert.equal(stream.packets.length, 1);
 });

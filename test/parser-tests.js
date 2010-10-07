@@ -4,21 +4,14 @@ var PARSE = function(buffer) {
   return new Parser(buffer).parse();
 };
 
-var authOkBuffer = new BufferList()
-  .addInt32(8)
-  .join(true, 'R');
-
-var paramStatusBuffer = new BufferList()
-  .addCString("client_encoding")
-  .addCString("UTF8")
-  .join(true, 'S');
+var authOkBuffer =  buffers.authenticationOk();
+var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8');
+var readyForQueryBuffer = buffers.readyForQuery();
 
 var backendKeyDataBuffer = new BufferList()
   .addInt32(1)
   .addInt32(2)
   .join(true,'K');
-
-var readyForQueryBuffer = buffers.readyForQuery;
 
 var commandCompleteBuffer = new BufferList()
   .addCString("SELECT 3")
