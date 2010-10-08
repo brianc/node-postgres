@@ -50,9 +50,17 @@ test('query queue', function() {
   var stream = new MemoryStream();
   stream.readyState = 'open';
   var client = new Client({stream: stream});
-  client.query('select * from bang');
+  test('new client has empty queue', function() {
+    assert.empty(client.queryQueue);
+  });
+
+  test('calling query queues the query object', function() {
+    var query = client.query('select * from bang');
+    assert.length(client.queryQueue, 1);
+  });
+
   assert.empty(stream.packets);
-  
+
   stream.emit('data', buffers.readyForQuery());
-  assert.equal(stream.packets.length, 1);
+  assert.length(stream.packets, 1);
 });
