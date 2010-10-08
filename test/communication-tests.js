@@ -1,4 +1,5 @@
 require(__dirname+'/test-helper');
+
 var buffers = require(__dirname+'/test-buffers');
 
 test('client can take existing stream', function() {
@@ -47,9 +48,16 @@ test('using opened stream', function() {
 });
 
 test('query queue', function() {
+
   var stream = new MemoryStream();
+
   stream.readyState = 'open';
-  var client = new Client({stream: stream});
+
+  var client = new Client({
+    stream: stream
+  });
+  client.connect();
+
   test('new client has empty queue', function() {
     assert.empty(client.queryQueue);
   });
@@ -59,8 +67,11 @@ test('query queue', function() {
     assert.length(client.queryQueue, 1);
   });
 
-  assert.empty(stream.packets);
+  test('sends query after stream emits ready for query packet', function() {
+    assert.empty(stream.packets);
+    var handled = stream.emit('data', buffers.readyForQuery());
+    assert.ok(handled, "Stream should have had data handled");
+    assert.length(stream.packets, 1);
+  });
 
-  stream.emit('data', buffers.readyForQuery());
-  assert.length(stream.packets, 1);
 });

@@ -110,3 +110,7 @@ MemoryStream = function() {
 sys.inherits(MemoryStream, EventEmitter);
 
 var p = MemoryStream.prototype;
+
+p.write = function(packet) {
+  this.packets.push(packet);
+};
