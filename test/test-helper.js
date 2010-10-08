@@ -11,9 +11,12 @@ assert.same = function(actual, expected) {
 };
 
 assert.empty = function(actual) {
-  assert.equal(actual.length, 0);
+  assert.length(actual, 0);
 };
 
+assert.length = function(actual, expectedLength) {
+  assert.equal(actual.length, expectedLength);
+};
 
 test = function(name, action) {
   for(var i = 0; i < test.tabout; i++) {
