@@ -63,7 +63,7 @@ test('query queue', function() {
   });
 
   test('calling query queues the query object', function() {
-    var query = client.query('select * from bang');
+    var query = client.query('!');
     assert.length(client.queryQueue, 1);
   });
 
@@ -72,6 +72,7 @@ test('query queue', function() {
     var handled = stream.emit('data', buffers.readyForQuery());
     assert.ok(handled, "Stream should have had data handled");
     assert.length(stream.packets, 1);
+    assert.equalBuffers(stream.packets[0], [0x51,0,0,0,5,33])
   });
 
 });
