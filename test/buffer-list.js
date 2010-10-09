@@ -56,3 +56,5 @@ BufferList.concat = function() {
   }
   return total.join();
 };
+
+module.exports = BufferList;
