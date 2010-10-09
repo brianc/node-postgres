@@ -7,15 +7,8 @@ var PARSE = function(buffer) {
 var authOkBuffer =  buffers.authenticationOk();
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8');
 var readyForQueryBuffer = buffers.readyForQuery();
-
-var backendKeyDataBuffer = new BufferList()
-  .addInt32(1)
-  .addInt32(2)
-  .join(true,'K');
-
-var commandCompleteBuffer = new BufferList()
-  .addCString("SELECT 3")
-  .join(true,'C');
+var backendKeyDataBuffer = buffers.backendKeyData(1,2);
+var commandCompleteBuffer = buffers.commandComplete("SELECT 3");
 
 var addRow = function(bufferList, name, offset) {
   return bufferList.addCString(name) //field name
@@ -27,23 +20,34 @@ var addRow = function(bufferList, name, offset) {
     .addInt16(0) //format code, 0 => text
 };
 
+var row1 = {
+  name: 'id',
+  tableID: 1,
+  attributeNumber: 2,
+  dataTypeID: 3,
+  dataTypeSize: 4,
+  typeModifier: 5,
+  formatCode: 0
+};
+var oneRowDescBuff = new buffers.rowDescription([row1]);
+row1.name = 'bang';
 
-var oneRowDescBuff = new BufferList()
-  .addInt16(1);
-oneRowDescBuff = addRow(oneRowDescBuff, 'id', 1)
-  .join(true,'T');
-
-var twoRowDesc = new BufferList()
-  .addInt16(2);
-twoRowDesc = addRow(twoRowDesc, 'bang', 1);
-twoRowDesc = addRow(twoRowDesc, 'whoah', 10);
-twoRowBuf = twoRowDesc.join(true, 'T');
-
+var twoRowBuf = new buffers.rowDescription([row1,{
+  name: 'whoah',
+  tableID: 10,
+  attributeNumber: 11,
+  dataTypeID: 12,
+  dataTypeSize: 13,
+  typeModifier: 14,
+  formatCode: 0
+}])
 
 
 var emptyRowFieldBuf = new BufferList()
   .addInt16(0)
   .join(true, 'D');
+
+var emptyRowFieldBuf = buffers.dataRow();
 
 var oneFieldBuf = new BufferList()
   .addInt16(1) //number of fields
@@ -51,6 +55,7 @@ var oneFieldBuf = new BufferList()
   .addCString('test')
   .join(true, 'D');
 
+var oneFieldBuf = buffers.dataRow(['test\0']);
 
 
 var expectedAuthenticationOkayMessage = {
