@@ -39,8 +39,14 @@ test = function(name, action) {
     name = ' ' + name;
   }
   test.tabout += 2;
-  console.log(name);
-  action();
+  process.stdout.write('.');
+  try{
+    action();
+  }catch(e) {
+    console.log(name);
+    console.log(e.toString());
+  }
+
 
   test.tabout -= 2;
 };
