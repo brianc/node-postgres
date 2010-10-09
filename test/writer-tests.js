@@ -1,21 +1,6 @@
 require(__dirname + "/test-helper");
 
 
-assert.equalBuffers = function(actual, expected) {
-  if(actual.length != expected.length) {
-    console.log(actual);
-    console.log(expected);
-    assert.equal(actual.length, expected.length);
-  }
-  for(var i = 0; i < actual.length; i++) {
-    if(actual[i] != expected[i]) {
-      console.log(actual);
-      console.log(expected);
-    }
-    assert.equal(actual[i],expected[i]);
-  }
-}
-
 BufferList.prototype.compare = function(expected) {
   var buf = this.join();
   assert.equalBuffers(buf, expected);

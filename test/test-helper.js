@@ -11,6 +11,21 @@ assert.same = function(actual, expected) {
   }
 };
 
+assert.equalBuffers = function(actual, expected) {
+  if(actual.length != expected.length) {
+    console.log(actual);
+    console.log(expected);
+    assert.equal(actual.length, expected.length);
+  }
+  for(var i = 0; i < actual.length; i++) {
+    if(actual[i] != expected[i]) {
+      console.log(actual);
+      console.log(expected);
+    }
+    assert.equal(actual[i],expected[i]);
+  }
+};
+
 assert.empty = function(actual) {
   assert.length(actual, 0);
 };
