@@ -33,6 +33,10 @@ test('using closed stream', function() {
   test('uses configured host', function() {
     assert.equal(stream.host, 'bang');
   });
+  
+  test('after stream connects', function() {
+    stream.emit('connect');
+  });
 });
 
 test('using opened stream', function() {
@@ -133,4 +137,5 @@ test('simple query scenario', function() {
     assert.length(rowData, 1);
     assert.equal(ended, 1);
   });
+
 });
