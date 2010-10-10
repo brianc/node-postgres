@@ -77,7 +77,7 @@ test('query queue', function() {
     var handled = stream.emit('data', buffers.readyForQuery());
     assert.ok(handled, "Stream should have had data handled");
     assert.length(stream.packets, 1);
-    assert.equalBuffers(stream.packets[0], [0x51,0,0,0,5,33])
+    assert.equalBuffers(stream.packets[0], [0x51,0,0,0,6,33,0])
   });
 
 });
