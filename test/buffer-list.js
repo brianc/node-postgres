@@ -31,7 +31,7 @@ BufferList.prototype.addCString = function(val) {
 };
 
 BufferList.prototype.addChar = function(char, first) {
-  return this.add(Buffer(char,'utf8'), true);
+  return this.add(Buffer(char,'utf8'), first);
 };
 
 BufferList.prototype.join = function(appendLength, char) {
