@@ -33,7 +33,12 @@ client3.on('ReadyForQuery', function() {
   console.log('client3 ready for query');
 
 });
-var query = client3.query('create temporary table bang (id integer)');
+client3.query('create temporary table bang (id integer)');
+client3.query('insert into bang(id) VALUES(1)');
+var query = client3.query('select * from bang');
+query.on('row', function(data) {
+  console.log(data);
+});
 query.on('end', function() {
   client3.disconnect();
 });
