@@ -65,7 +65,16 @@ buffers.dataRow = function(columns) {
   return buf.join(true, 'D');
 };
 
-
+buffers.error = function(fields) {
+  fields = fields || [];
+  var buf = new BufferList();
+  fields.forEach(function(field) {
+    buf.addChar(field.type);
+    buf.addCString(field.value);
+  });
+  buf.add(Buffer([0]));//terminator
+  return buf.join(true, 'E');
+};
 
 
 

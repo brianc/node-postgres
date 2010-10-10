@@ -192,7 +192,7 @@ test('Client', function() {
         format: 'text'
       });
     });
-
+    
   });
 
   test('parsing rows', function() {
@@ -221,6 +221,12 @@ test('Client', function() {
       });
     });
 
+  });
+
+  test('error messages', function() {
+    testForMessage(buffers.error(),{
+      name: 'Error'
+    });
   });
 });
 

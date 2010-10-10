@@ -36,6 +36,7 @@ test('using closed stream', function() {
   
   test('after stream connects', function() {
     stream.emit('connect');
+    //TODO - test more of the connection packets
   });
 });
 
