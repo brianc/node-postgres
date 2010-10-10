@@ -30,6 +30,10 @@ BufferList.prototype.addCString = function(val) {
   return this.add(Buffer(val + '\0','utf8'));
 };
 
+BufferList.prototype.addChar = function(char, first) {
+  return this.add(Buffer(char,'utf8'), true);
+};
+
 BufferList.prototype.join = function(appendLength, char) {
   var length = this.getByteLength();
   if(appendLength) {
@@ -37,7 +41,7 @@ BufferList.prototype.join = function(appendLength, char) {
     return this.join(false, char);
   }
   if(char) {
-    this.buffers.unshift(Buffer(char,'utf8'));
+    this.addChar(char, true);
     length++;
   }
   var result = Buffer(length);
