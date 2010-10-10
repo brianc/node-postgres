@@ -1,7 +1,12 @@
 sys = require('sys');
 assert = require('assert');
-Client = require(__dirname+"/../lib/").Client;
-Parser = require(__dirname+"/../lib/").Parser;
+var requireLib = function(file) {
+  return require(__dirname + '/../../lib/' + (file || ""));
+};
+
+var stuff = requireLib();
+Client = stuff.Client;
+Parser = stuff.Parser;
 EventEmitter = require('events').EventEmitter;
 BufferList = require(__dirname+'/buffer-list');
 
