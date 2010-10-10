@@ -127,7 +127,6 @@ var testForMessage = function(buffer, expectedMessage) {
     client.on('message',function(msg) {
       lastMessage = msg;
     });
-
     stream.emit('data', buffer);
     assert.same(lastMessage, expectedMessage);
   });
@@ -192,7 +191,7 @@ test('Client', function() {
         format: 'text'
       });
     });
-    
+
   });
 
   test('parsing rows', function() {
@@ -224,9 +223,71 @@ test('Client', function() {
   });
 
   test('error messages', function() {
-    testForMessage(buffers.error(),{
-      name: 'Error'
+    test('with no fields', function() {
+      var msg = testForMessage(buffers.error(),{
+        name: 'Error'
+      });
     });
+
+    test('with all the fields', function() {
+      var buffer = buffers.error([{
+        type: 'S',
+        value: 'ERROR'
+      },{
+        type: 'C',
+        value: 'code'
+      },{
+        type: 'M',
+        value: 'message'
+      },{
+        type: 'D',
+        value: 'details'
+      },{
+        type: 'H',
+        value: 'hint'
+      },{
+        type: 'P',
+        value: '100'
+      },{
+        type: 'p',
+        value: '101'
+      },{
+        type: 'q',
+        value: 'query'
+      },{
+        type: 'W',
+        value: 'where'
+      },{
+        type: 'F',
+        value: 'file'
+      },{
+        type: 'L',
+        value: 'line'
+      },{
+        type: 'R',
+        value: 'routine'
+      },{
+        type: 'Z', //ignored
+        value: 'alsdkf'
+      }]);
+
+      testForMessage(buffer,{
+        severity: 'ERROR',
+        code: 'code',
+        message: 'message',
+        detail: 'details',
+        hint: 'hint',
+        position: '100',
+        internalPosition: '101',
+        internalQuery: 'query',
+        where: 'where',
+        file: 'file',
+        line: 'line',
+        routine: 'routine'
+      });
+    });
+
+
   });
 });
 
