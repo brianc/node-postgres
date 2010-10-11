@@ -1,5 +1,7 @@
 require(__dirname+'/test-helper');
+
 test('client settings', function() {
+
   test('defaults', function() {
     var client = new Client();
     assert.equal(client.user, null);

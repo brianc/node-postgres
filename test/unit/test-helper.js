@@ -1,13 +1,10 @@
 sys = require('sys');
 assert = require('assert');
-var requireLib = function(file) {
-  return require(__dirname + '/../../lib/' + (file || ""));
-};
-
-var stuff = requireLib();
-Client = stuff.Client;
+Client = require(__dirname+'/../../lib/client');
 EventEmitter = require('events').EventEmitter;
 BufferList = require(__dirname+'/buffer-list');
+buffers = require(__dirname+'/test-buffers');
+
 
 assert.same = function(actual, expected) {
   for(var key in expected) {
