@@ -13,31 +13,16 @@ var makeClient = function() {
   return client;
 };
 
-var client1 = makeClient();
-client1.connect();
-client1.on('ReadyForQuery', function() {
-  console.log('client1 ready for query');
-  client1.disconnect();
-});
-
-var client2 = makeClient();
-client2.connect();
-client2.on('ReadyForQuery', function() {
-  console.log('client2 ready for query');
-  client2.disconnect();
-});
-
 var client3 = makeClient();
 client3.connect();
 client3.on('ReadyForQuery', function() {
   console.log('client3 ready for query');
-
 });
 client3.query('create temporary table bang (id integer)');
 client3.query('insert into bang(id) VALUES(1)');
 var query = client3.query('select * from bang');
-query.on('row', function(data) {
-  console.log(data);
+query.on('row', function(row) {
+  console.log(row);
 });
 query.on('end', function() {
   client3.disconnect();
