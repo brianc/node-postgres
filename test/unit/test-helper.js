@@ -6,7 +6,6 @@ var requireLib = function(file) {
 
 var stuff = requireLib();
 Client = stuff.Client;
-Parser = stuff.Parser;
 EventEmitter = require('events').EventEmitter;
 BufferList = require(__dirname+'/buffer-list');
 
@@ -49,7 +48,7 @@ test = function(name, action) {
     action();
   }catch(e) {
     console.log(name);
-    console.log(e.toString());
+    throw e;
   }
   test.tabout -= 2;
 };
