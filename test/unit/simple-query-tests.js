@@ -34,14 +34,13 @@ test('simple query', function() {
     ended++;
   });
 
-  stream.emit('data', buffers.dataRow(["!"]));
+  stream.emit('data', buffers.dataRow(["!",null]));
 
-  test('row has one item', function() {
-    assert.length(rowData, 1);
-  });
 
   test('row has correct data', function() {
+    assert.length(rowData, 2);
     assert.equal(rowData[0], "!");
+    assert.equal(rowData[1], null);
   });
 
 
