@@ -55,7 +55,7 @@ buffers.dataRow = function(columns) {
   buf.addInt16(columns.length);
   columns.forEach(function(col) {
     if(col == null) {
-      buf.writeInt32(-1);
+      buf.addInt32(-1);
     } else {
       var strBuf = new Buffer(col, 'utf8');
       buf.addInt32(strBuf.length);
