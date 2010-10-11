@@ -52,7 +52,7 @@ test('simple query', function() {
   test('after query is ended, it emits nothing else', function() {
     stream.emit('data', buffers.dataRow(["X","Y","Z"]));
     stream.emit('data', buffers.commandComplete());
-    assert.length(rowData, 1);
+    assert.length(rowData, 2);
     assert.equal(ended, 1);
   });
 
