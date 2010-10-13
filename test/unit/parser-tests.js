@@ -292,7 +292,47 @@ test('Client', function() {
         routine: 'routine'
       });
     });
+  });
+});
 
+//since the data message on a stream can randomly divide the incomming
+//tcp packets anywhere, we need to make sure we can parse every single
+//split on a tcp message
+test('split buffer message parsing', function() {
+  var fullBuffer = buffers.dataRow([null, "bang", "zug zug", null, "!"]);
+  var stream = new MemoryStream();
+  stream.readyState = 'open';
+  var client = new Client({
+    stream: stream
+  });
+  client.connect();
+  var message = null;
+  client.on('message', function(msg) {
+    message = msg;
+  });
+  test('parses when full buffer comes in', function() {
+    stream.emit('data', fullBuffer);
+    assert.length(message.fields, 5);
+    assert.equal(message.fields[0], null);
+    assert.equal(message.fields[1], "bang");
+    assert.equal(message.fields[2], "zug zug");
+    assert.equal(message.fields[3], null);
+    assert.equal(message.fields[4], "!");
+  });
 
+  test('parses when split in the middle', function() {
+    var split = 6;
+    var firstBuffer = new Buffer(fullBuffer.length-split);
+    var secondBuffer = new Buffer(fullBuffer.length-firstBuffer.length);
+    fullBuffer.copy(firstBuffer, 0, 0);
+    fullBuffer.copy(secondBuffer, 0, firstBuffer.length);
+    stream.emit('data', firstBuffer);
+    stream.emit('data', secondBuffer);
+    assert.length(message.fields, 5);
+    assert.equal(message.fields[0], null);
+    assert.equal(message.fields[1], "bang");
+    assert.equal(message.fields[2], "zug zug");
+    assert.equal(message.fields[3], null);
+    assert.equal(message.fields[4], "!");
   });
 });
