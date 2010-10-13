@@ -59,13 +59,13 @@ var oneFieldBuf = buffers.dataRow(['test\0']);
 
 
 var expectedAuthenticationOkayMessage = {
-  name: 'AuthenticationOk',
+  name: 'authenticationOk',
   id: 'R',
   length: 8
 };
 
 var expectedParameterStatusMessage = {
-  name: 'ParameterStatus',
+  name: 'parameterStatus',
   id: 'S',
   length: 25,
   parameterName: 'client_encoding',
@@ -73,14 +73,14 @@ var expectedParameterStatusMessage = {
 };
 
 var expectedBackendKeyDataMessage = {
-  name: 'BackendKeyData',
+  name: 'backendKeyData',
   id: 'K',
   processID: 1,
   secretKey: 2
 };
 
 var expectedReadyForQueryMessage = {
-  name: 'ReadyForQuery',
+  name: 'readyForQuery',
   id: 'Z',
   length: 5,
   status: 'I'
@@ -96,20 +96,20 @@ var emptyRowDescriptionBuffer = new BufferList()
   .join(true,'T');
 
 var expectedEmptyRowDescriptionMessage = {
-  name: 'RowDescription',
+  name: 'rowDescription',
   id: 'T',
   length: 6,
   fieldCount: 0
 };
 var expectedOneRowMessage = {
-  name: 'RowDescription',
+  name: 'rowDescription',
   id: 'T',
   length: 27,
   fieldCount: 1
 };
 
 var expectedTwoRowMessage = {
-  name: 'RowDescription',
+  name: 'rowDescription',
   id: 'T',
   length: 53,
   fieldCount: 2
@@ -127,6 +127,11 @@ var testForMessage = function(buffer, expectedMessage) {
     client.on('message',function(msg) {
       lastMessage = msg;
     });
+
+    client.on(expectedMessage.name, function() {
+      client.removeAllListeners(expectedMessage.name);
+    });
+
     stream.emit('data', buffer);
     assert.same(lastMessage, expectedMessage);
   });
@@ -198,7 +203,7 @@ test('Client', function() {
 
     test('parsing empty row', function() {
       var message = testForMessage(emptyRowFieldBuf, {
-        name: 'DataRow',
+        name: 'dataRow',
         fieldCount: 0
       });
       test('has 0 fields', function() {
@@ -208,7 +213,7 @@ test('Client', function() {
 
     test('parsing data row with fields', function() {
       var message = testForMessage(oneFieldBuf, {
-        name: 'DataRow',
+        name: 'dataRow',
         fieldCount: 1
       });
       test('has 1 field', function() {
@@ -225,7 +230,7 @@ test('Client', function() {
   test('error messages', function() {
     test('with no fields', function() {
       var msg = testForMessage(buffers.error(),{
-        name: 'Error'
+        name: 'error'
       });
     });
 
@@ -272,6 +277,7 @@ test('Client', function() {
       }]);
 
       testForMessage(buffer,{
+        name: 'error',
         severity: 'ERROR',
         code: 'code',
         message: 'message',
