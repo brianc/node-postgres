@@ -310,6 +310,7 @@ test('split buffer message parsing', function() {
   client.on('message', function(msg) {
     message = msg;
   });
+
   test('parses when full buffer comes in', function() {
     stream.emit('data', fullBuffer);
     assert.length(message.fields, 5);
@@ -320,8 +321,7 @@ test('split buffer message parsing', function() {
     assert.equal(message.fields[4], "!");
   });
 
-  test('parses when split in the middle', function() {
-    var split = 6;
+  var testMessageRecievedAfterSpiltAt = function(split) {
     var firstBuffer = new Buffer(fullBuffer.length-split);
     var secondBuffer = new Buffer(fullBuffer.length-firstBuffer.length);
     fullBuffer.copy(firstBuffer, 0, 0);
@@ -334,5 +334,16 @@ test('split buffer message parsing', function() {
     assert.equal(message.fields[2], "zug zug");
     assert.equal(message.fields[3], null);
     assert.equal(message.fields[4], "!");
+
+  };
+
+  test('parses when split in the middle', function() {
+    testMessageRecievedAfterSpiltAt(6);
   });
+
+  test('parses when split at beginning', function() {
+    testMessageRecievedAfterSpiltAt(2);
+  });
+
+
 });
