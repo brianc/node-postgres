@@ -298,7 +298,7 @@ test('Client', function() {
 //since the data message on a stream can randomly divide the incomming
 //tcp packets anywhere, we need to make sure we can parse every single
 //split on a tcp message
-test('split buffer message parsing', function() {
+test('split buffer, single message parsing', function() {
   var fullBuffer = buffers.dataRow([null, "bang", "zug zug", null, "!"]);
   var stream = new MemoryStream();
   stream.readyState = 'open';
@@ -341,9 +341,75 @@ test('split buffer message parsing', function() {
     testMessageRecievedAfterSpiltAt(6);
   });
 
-  test('parses when split at beginning', function() {
+  test('parses when split at end', function() {
     testMessageRecievedAfterSpiltAt(2);
   });
 
+  test('parses when split at beginning', function() {
+    testMessageRecievedAfterSpiltAt(fullBuffer.length - 2);
+    testMessageRecievedAfterSpiltAt(fullBuffer.length - 1);
+    testMessageRecievedAfterSpiltAt(fullBuffer.length - 5);
+  });
+});
+
+test('split buffer, multiple message parsing', function() {
+  var dataRowBuffer = buffers.dataRow(['!']);
+  var readyForQueryBuffer = buffers.readyForQuery();
+  var fullBuffer = new Buffer(dataRowBuffer.length + readyForQueryBuffer.length);
+  dataRowBuffer.copy(fullBuffer, 0, 0);
+  readyForQueryBuffer.copy(fullBuffer, dataRowBuffer.length, 0);
+
+  var messages = [];
+  var stream = new MemoryStream();
+  var client = new Client({
+    stream: stream
+  });
+  client.connect();
+  client.on('message', function(msg) {
+    messages.push(msg);
+  });
+
+
+  var verifyMessages = function() {
+    assert.length(messages, 2);
+    assert.same(messages[0],{
+      name: 'dataRow',
+      fieldCount: 1
+    });
+    assert.equal(messages[0].fields[0],'!');
+    assert.same(messages[1],{
+      name: 'readyForQuery'
+    });
+    messages = [];
+  };
+  //sanity check
+  test('recieves both messages when packet is not split', function() {
+    stream.emit('data', fullBuffer);
+    verifyMessages();
+  });
+  var splitAndVerifyTwoMessages = function(split) {
+    var firstBuffer = new Buffer(fullBuffer.length-split);
+    var secondBuffer = new Buffer(fullBuffer.length-firstBuffer.length);
+    fullBuffer.copy(firstBuffer, 0, 0);
+    fullBuffer.copy(secondBuffer, 0, firstBuffer.length);
+    stream.emit('data', firstBuffer);
+    stream.emit('data', secondBuffer);
+  };
+
+  test('recieves both messages when packet is split', function() {
+    test('in the middle', function() {
+      splitAndVerifyTwoMessages(11);
+    });
+    test('at the front', function() {
+      splitAndVerifyTwoMessages(fullBuffer.length-1);
+      splitAndVerifyTwoMessages(fullBuffer.length-4);
+      splitAndVerifyTwoMessages(fullBuffer.length-6);
+    });
+
+    test('at the end', function() {
+      splitAndVerifyTwoMessages(8);
+      splitAndVerifyTwoMessages(1);
+    });
+  });
 
 });
