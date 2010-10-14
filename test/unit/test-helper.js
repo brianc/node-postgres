@@ -35,6 +35,14 @@ assert.length = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
 };
 
+
+if(!global.TEST_RESULTS) {
+  global.TEST_RESULTS = {
+    testCount: 0,
+    assertCount: 0
+  };
+}
+
 test = function(name, action) {
   for(var i = 0; i < test.tabout; i++) {
     name = ' ' + name;
@@ -42,6 +50,7 @@ test = function(name, action) {
   test.tabout += 2;
   process.stdout.write('.');
   try{
+    global.TEST_RESULTS.testCount++;
     action();
   }catch(e) {
     console.log(name);
@@ -50,6 +59,11 @@ test = function(name, action) {
   test.tabout -= 2;
 };
 test.tabout = 0;
+var start = new Date();
+process.on('exit', function() {
+  console.log('');
+  console.log('Ran ' + global.TEST_RESULTS.testCount + ' tests in ' + ((new Date() - start)/1000) + ' seconds');
+});
 
 stringToHex = function(string) {
   var b = Buffer(string,'utf8');
