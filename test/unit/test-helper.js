@@ -53,6 +53,7 @@ test = function(name, action) {
     global.TEST_RESULTS.testCount++;
     action();
   }catch(e) {
+    console.log('');
     console.log(name);
     throw e;
   }
