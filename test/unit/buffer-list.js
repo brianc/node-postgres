@@ -19,10 +19,10 @@ BufferList.prototype.getByteLength = function(initial) {
 
 BufferList.prototype.addInt32 = function(val, first) {
   return this.add(Buffer([
-    (val >>> 24),
-    (val >>> 16),
-    (val >>> 8),
-    (val >>> 0)
+    (val >>> 24 & 0xFF),
+    (val >>> 16 & 0xFF),
+    (val >>> 8 & 0xFF),
+    (val >>> 0 & 0xFF)
   ]),first);
 };
 
