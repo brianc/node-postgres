@@ -34,13 +34,12 @@ test('simple query', function() {
     ended++;
   });
 
-  stream.emit('data', buffers.dataRow(["!",null]));
+  stream.emit('data', buffers.dataRow(["!"]));
 
 
   test('row has correct data', function() {
-    assert.length(rowData, 2);
+    assert.length(rowData, 1);
     assert.equal(rowData[0], "!");
-    assert.equal(rowData[1], null);
   });
 
 
@@ -52,7 +51,7 @@ test('simple query', function() {
   test('after query is ended, it emits nothing else', function() {
     stream.emit('data', buffers.dataRow(["X","Y","Z"]));
     stream.emit('data', buffers.commandComplete());
-    assert.length(rowData, 2);
+    assert.length(rowData, 1);
     assert.equal(ended, 1);
   });
 
