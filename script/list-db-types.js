@@ -4,7 +4,7 @@ var client = new Client({
   database: 'postgres'
 });
 client.connect();
-var query = client.query('select oid, typname, typlen from pg_type order by typname');
+var query = client.query('select oid, typname, typlen from pg_type where typtype = \'b\' order by typname');
 query.on('row', function(row) {
   console.log(row);
 });
