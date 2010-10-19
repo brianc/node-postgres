@@ -63,7 +63,26 @@ test('parses binary data types', function() {
   //TODO
 });
 
-// test('parses date/time', function() {
-//   testForType('time', 1083);
-//   testForType('timetz (with timezone)', 1266)
-// });
+test('parses date/time', function() {
+  test('time', function() {
+    var result = queryResult(1083, '07:37:16-05');
+    assert.equal(result.getHours(), 7);
+    assert.equal(result.getMinutes(), 37);
+    assert.equal(result.getSeconds(), 16);
+  });
+
+  test('time with timezone (timez)', function() {
+    var result = queryResult(1266, '07:37:16-05');
+    //this is not recommended
+    //and i'm not sure how to handle time with timezone (timez)
+    //please see
+    //http://www.postgresql.org/docs/7.4/interactive/datatype-datetime.html
+    //section 8.5.3
+    assert.equal(result.getHours(), 7);
+    assert.equal(result.getMinutes(), 37);
+    assert.equal(result.getSeconds(), 16);
+  });
+  // testForType('timetz (with timezone)', 266);
+  // testForType('timestamp', 1114);
+  // testForType('timestampz', 1184);
+});
