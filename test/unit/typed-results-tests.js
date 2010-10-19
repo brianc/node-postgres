@@ -57,3 +57,7 @@ test('parses numeric types', function() {
   testForType('real (float4)', 700, '123.457', 123.457);
   testForType('doubl precision (float8)', 701, '123.4567', 123.4567);
 });
+
+test('parses binary data types', function() {
+  //TODO
+});
