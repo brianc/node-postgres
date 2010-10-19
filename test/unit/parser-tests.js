@@ -161,7 +161,7 @@ test('Client', function() {
         name: 'id',
         tableID: 1,
         columnID: 2,
-        dataType: 3,
+        dataTypeID: 3,
         dataTypeSize: 4,
         dataTypeModifier: 5,
         format: 'text'
@@ -179,7 +179,7 @@ test('Client', function() {
         name: 'bang',
         tableID: 1,
         columnID: 2,
-        dataType: 3,
+        dataTypeID: 3,
         dataTypeSize: 4,
         dataTypeModifier: 5,
         format: 'text'
@@ -190,7 +190,7 @@ test('Client', function() {
         name: 'whoah',
         tableID: 10,
         columnID: 11,
-        dataType: 12,
+        dataTypeID: 12,
         dataTypeSize: 13,
         dataTypeModifier: 14,
         format: 'text'
