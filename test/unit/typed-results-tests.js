@@ -71,7 +71,7 @@ test('parses date/time', function() {
     assert.equal(result.getSeconds(), 16);
   });
 
-  test('time with timezone (timez)', function() {
+  test('time with timezone (timetz)', function() {
     var result = queryResult(1266, '07:37:16-05');
     //this is not recommended
     //and i'm not sure how to handle time with timezone (timez)
@@ -82,7 +82,19 @@ test('parses date/time', function() {
     assert.equal(result.getMinutes(), 37);
     assert.equal(result.getSeconds(), 16);
   });
-  // testForType('timetz (with timezone)', 266);
+
+  test('timestamp (withouth timezone)', function() {
+    var result = queryResult(1114, '1997-12-17 07:37:16-05');
+    console.log(result);
+    assert.equal(result.getFullYear(), 1997);
+  });
+
+  test('timestamp (timestamptz)', function() {
+    var result = queryResult(1184, '1997-12-17 07:37:16-05');
+    console.log(result);    
+    assert.equal(result.getFullYear(), 1997);
+    
+  });
   // testForType('timestamp', 1114);
   // testForType('timestampz', 1184);
 });
