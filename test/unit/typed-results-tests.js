@@ -56,8 +56,14 @@ test('parses numeric types', function() {
   testForType('numeric (decimal)', 1700, '123.456', 123.456);
   testForType('real (float4)', 700, '123.457', 123.457);
   testForType('doubl precision (float8)', 701, '123.4567', 123.4567);
+  testForType('oid', 26, '1038', 1038);
 });
 
 test('parses binary data types', function() {
   //TODO
 });
+
+// test('parses date/time', function() {
+//   testForType('time', 1083);
+//   testForType('timetz (with timezone)', 1266)
+// });
