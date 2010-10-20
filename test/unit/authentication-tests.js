@@ -26,3 +26,7 @@ test('password authentication', function(){
   });
 
 });
+
+test('md5 authentication', function() {
+  return false; 
+});
