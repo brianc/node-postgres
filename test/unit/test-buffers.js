@@ -9,7 +9,7 @@ buffers.readyForQuery = function() {
 
 buffers.authenticationOk = function() {
   return new BufferList()
-    .addInt32(8)
+    .addInt32(0)
     .join(true, 'R');
 };
 
