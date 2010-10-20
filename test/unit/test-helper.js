@@ -48,10 +48,10 @@ test = function(name, action) {
     name = ' ' + name;
   }
   test.tabout += 2;
-  process.stdout.write('.');
+
   try{
     global.TEST_RESULTS.testCount++;
-    action();
+    process.stdout.write(    action() === false ? '?' : '.');
   }catch(e) {
     console.log('');
     console.log(name);
@@ -90,4 +90,13 @@ var p = MemoryStream.prototype;
 
 p.write = function(packet) {
   this.packets.push(packet);
+};
+
+createClient = function() {
+  var stream = new MemoryStream();
+  stream.readyState = "open";
+  var client = new Client({
+    stream: stream
+  });
+  client.connect();
 };
