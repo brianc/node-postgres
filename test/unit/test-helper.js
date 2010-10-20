@@ -99,4 +99,5 @@ createClient = function() {
     stream: stream
   });
   client.connect();
+  return client;
 };
