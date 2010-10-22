@@ -25,7 +25,7 @@ query.on('row', function(row) {
   console.log(row);
 });
 query.on('end', function() {
-  client3.disconnect();
+  client3.end();
 });
 
 

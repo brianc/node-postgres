@@ -18,5 +18,5 @@ query.on('row', function() {
 });
 
 query.on('end', function() {
-  client.disconnect();
+  client.end();
 });

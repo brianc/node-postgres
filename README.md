@@ -31,7 +31,7 @@ completely non-blocking.
     };
 
     query.on('end') {
-      client.disconnect();
+      client.end();
     };
 
 
