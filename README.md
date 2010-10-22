@@ -1,11 +1,19 @@
 #pg.js
-Pure JavaScript PostgreSQL driver for node.js
+Async Pure JavaScript PostgreSQL driver for node.js
 
 ## ALPHA version
 
-Unlike many githubbers this is my only active project.  All my
-free coding time is to be going towards this until it's production
-ready and stable so watch the repo and stay tuned.
+Implemented in a fully TDD fashion.  Drew major inspiration from
+[postgres-js](http://github.com/creationix/postgres-js) but it has 0 tests and
+doesn't seem to be actively developed anymore.  I'm aiming for
+extremely high quality code, but first doing the implementation and
+only refactoring after tests are in place.  
+
+I'm first aiming to support the low level [messaging
+protocol](http://developer.postgresql.org/pgdocs/postgres/protocol.html).
+
+Due to the fully async nature of node sockets, the driver is
+completely non-blocking.
 
 ### What works?
 
@@ -25,3 +33,16 @@ ready and stable so watch the repo and stay tuned.
     query.on('end') {
       client.disconnect();
     };
+
+
+## TODO
+  - prepared statements
+    - parameters
+    - caching
+  - integration testing
+  - notification api
+  - setting parameters
+  - stored procedures
+  - connection pooling
+  - copy data
+  - connection pooling
