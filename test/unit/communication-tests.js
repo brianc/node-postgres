@@ -18,24 +18,44 @@ test('using closed stream', function() {
   }
   var client = new Client({
     stream: stream,
+    user: '!',
+    database: 'x',
     host: 'bang',
     port: 1234
   });
   client.connect();
+
   test('makes stream connect', function() {
     assert.equal(stream.connectCalled, true);
   });
+
   test('uses configured port', function() {
     assert.equal(stream.port, 1234);
   });
+
   test('uses configured host', function() {
     assert.equal(stream.host, 'bang');
   });
-  
+
   test('after stream connects', function() {
     stream.emit('connect');
-    //TODO - test more of the connection packets
+
+    test('sends connection packet', function() {
+      assert.length(stream.packets, 1);
+      var expectedBuffer = new BufferList()
+        .add(Buffer([0,3,0, 0]))//version
+        .addCString('user')
+        .addCString('!')
+        .addCString('database')
+        .addCString('x')
+        .addCString("") //final terminator
+        .join(true);
+      assert.equalBuffers(stream.packets[0], expectedBuffer);
+    });
+
   });
+
+
 });
 
 test('using opened stream', function() {
