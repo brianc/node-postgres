@@ -40,7 +40,21 @@ test('prepared queries', function() {
   //server raises parse complete message
 
   test('sends bind message', function() {
-    return false;
+    
+    test('binding to unnamed prepared statement with no values', function() {
+      
+      client.bind();
+      assert.length(client.stream.packets, 1);
+      var packet = client.stream.packets.pop();
+      var expectedBuffer = new BufferList()
+        .addCString("")
+        .addCString("")
+        .addInt16(0)
+        .addInt16(0)
+        .addInt16(0).join(true,"B");
+      assert.equalBuffers(packet, expectedBuffer);
+    });
+
   });
 
   test('recieves rows', function() {

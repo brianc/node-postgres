@@ -10,6 +10,7 @@ var readyForQueryBuffer = buffers.readyForQuery();
 var backendKeyDataBuffer = buffers.backendKeyData(1,2);
 var commandCompleteBuffer = buffers.commandComplete("SELECT 3");
 
+
 var addRow = function(bufferList, name, offset) {
   return bufferList.addCString(name) //field name
     .addInt32(offset++) //table id
