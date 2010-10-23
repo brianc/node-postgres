@@ -77,6 +77,8 @@ buffers.error = function(fields) {
   return buf.join(true, 'E');
 };
 
-
+buffers.parseComplete = function() {
+  return new BufferList().join(true, '1');
+};
 
 module.exports = buffers;
