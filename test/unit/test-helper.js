@@ -5,7 +5,6 @@ EventEmitter = require('events').EventEmitter;
 BufferList = require(__dirname+'/buffer-list');
 buffers = require(__dirname+'/test-buffers');
 
-
 assert.same = function(actual, expected) {
   for(var key in expected) {
     assert.equal(actual[key], expected[key]);
@@ -53,11 +52,12 @@ test = function(name, action) {
 test.testCount = 0;
 test.ignored = [];
 test.errors = [];
+test.start = new Date();
 
-var start = new Date();
 process.on('exit', function() {
   console.log('');
-  console.log('Ran ' + test.testCount + ' tests in ' + ((new Date() - start)/1000) + ' seconds');
+  var duration = ((new Date() - test.start)/1000);
+  console.log('Ran ' + test.testCount + ' tests in ' + duration + ' seconds');
   test.ignored.forEach(function(name) {
     console.log("Ignored: " + name);
   });
