@@ -1,5 +1,7 @@
 require(__dirname+'/test-helper');
+
 var buffers = require(__dirname+'/test-buffers');
+
 var PARSE = function(buffer) {
   return new Parser(buffer).parse();
 };
@@ -121,7 +123,7 @@ var testForMessage = function(buffer, expectedMessage) {
   var lastMessage = {};
   test('recieves and parses ' + expectedMessage.name, function() {
     var stream = new MemoryStream();
-    var client = new Client({
+    var client = new Connection({
       stream: stream
     });
     client.connect();
@@ -140,7 +142,7 @@ var testForMessage = function(buffer, expectedMessage) {
   return lastMessage;
 };
 
-test('Client', function() {
+test('Connection', function() {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage);
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage);
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage);
