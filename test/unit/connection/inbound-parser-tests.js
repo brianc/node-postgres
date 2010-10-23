@@ -140,8 +140,26 @@ var testForMessage = function(buffer, expectedMessage) {
   return lastMessage;
 };
 
+var plainPasswordBuffer = buffers.authenticationCleartextPassword();
+var md5PasswordBuffer = buffers.authenticationMD5Password();
+
+var expectedPlainPasswordMessage = {
+  id: 'R',
+  name: 'authenticationCleartextPassword'
+};
+
+var expectedMD5PasswordMessage = {
+  id: 'R',
+  name: 'authenticationMD5Password'
+};
+
 test('Connection', function() {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage);
+  testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage);
+  var msg = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage);
+  test('md5 has right salt', function() {
+    assert.equalBuffers(msg.salt, Buffer([1,2,3,4]));
+  });
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage);
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage);
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage);

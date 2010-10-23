@@ -14,6 +14,19 @@ buffers.authenticationOk = function() {
     .join(true, 'R');
 };
 
+buffers.authenticationCleartextPassword = function() {
+  return new BufferList()
+    .addInt32(3)
+    .join(true, 'R');
+};
+
+buffers.authenticationMD5Password = function() {
+  return new BufferList()
+    .addInt32(5)
+    .add(Buffer([1,2,3,4]))
+    .join(true, 'R');
+};
+
 buffers.parameterStatus = function(name, value) {
   return new BufferList()
     .addCString(name)
