@@ -35,35 +35,32 @@ assert.length = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
 };
 
-
-if(!global.TEST_RESULTS) {
-  global.TEST_RESULTS = {
-    testCount: 0,
-    assertCount: 0
-  };
-}
-
 test = function(name, action) {
-  for(var i = 0; i < test.tabout; i++) {
-    name = ' ' + name;
-  }
-  test.tabout += 2;
-
   try{
-    global.TEST_RESULTS.testCount++;
-    process.stdout.write(    action() === false ? '?' : '.');
+    test.testCount ++;
+    var result = action();
+    if(result === false) {
+      test.ignored.push(name);
+      process.stdout.write('?');
+    }else{
+      process.stdout.write('.');
+    }
   }catch(e) {
-    console.log('');
-    console.log(name);
-    throw e;
+    console.log('E');
+    test.errors.push(e);
   }
-  test.tabout -= 2;
 };
-test.tabout = 0;
+test.testCount = 0;
+test.ignored = [];
+test.errors = [];
+
 var start = new Date();
 process.on('exit', function() {
   console.log('');
-  console.log('Ran ' + global.TEST_RESULTS.testCount + ' tests in ' + ((new Date() - start)/1000) + ' seconds');
+  console.log('Ran ' + test.testCount + ' tests in ' + ((new Date() - start)/1000) + ' seconds');
+  test.ignored.forEach(function(name) {
+    console.log("Ignored: " + name);
+  });
 });
 
 stringToHex = function(string) {
