@@ -2,7 +2,7 @@ sys = require('sys');
 assert = require('assert');
 Client = require(__dirname+'/../../lib/client');
 EventEmitter = require('events').EventEmitter;
-BufferList = require(__dirname+'/buffer-list');
+BufferList = require(__dirname+'/../../lib/buffer-list');
 buffers = require(__dirname+'/test-buffers');
 
 assert.same = function(actual, expected) {

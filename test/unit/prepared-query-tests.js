@@ -8,9 +8,31 @@ test('prepared queries', function() {
 
   test("parse messages", function() {
 
-    test('parsing a query with no parameters', function() {
-      client.parse('!');
+    test('parsing a query with no parameters and no name', function() {
+      client.parse({text: '!'});
       assert.length(client.stream.packets, 1);
+      var expected = new BufferList()
+        .addCString("")
+        .addCString("!")
+        .addInt16(0).join(true, 'P');
+      assert.equalBuffers(client.stream.packets.pop(), expected);
+      client.stream.emit('data', buffers.readyForQuery());
+    });
+
+    test('parsing a query with a name', function() {
+      //clear packets
+      client.parse({
+        name: 'boom',
+        text: 'select * from boom',
+        types: []
+      });
+      assert.length(client.stream.packets, 1);
+      var expected = new BufferList()
+        .addCString("boom")
+        .addCString("select * from boom")
+        .addInt16(0).join(true,'P');
+      assert.equalBuffers(client.stream.packets.pop(), expected);
+      client.stream.emit('data', buffers.readyForQuery());
     });
 
   });
