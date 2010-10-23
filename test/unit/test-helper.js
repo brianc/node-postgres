@@ -45,7 +45,7 @@ test = function(name, action) {
       process.stdout.write('.');
     }
   }catch(e) {
-    console.log('E');
+    process.stdout.write('E');
     test.errors.push(e);
   }
 };
@@ -60,6 +60,9 @@ process.on('exit', function() {
   console.log('Ran ' + test.testCount + ' tests in ' + duration + ' seconds');
   test.ignored.forEach(function(name) {
     console.log("Ignored: " + name);
+  });
+  test.errors.forEach(function(error) {
+    throw error;
   });
 });
 
