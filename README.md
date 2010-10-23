@@ -39,10 +39,10 @@ completely non-blocking.
   - prepared statements
     - parameters
     - caching
+  - portals
   - integration testing
   - notification api
   - setting parameters
-  - stored procedures
   - connection pooling
   - copy data
   - connection pooling
