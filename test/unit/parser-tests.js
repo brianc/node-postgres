@@ -9,7 +9,8 @@ var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8');
 var readyForQueryBuffer = buffers.readyForQuery();
 var backendKeyDataBuffer = buffers.backendKeyData(1,2);
 var commandCompleteBuffer = buffers.commandComplete("SELECT 3");
-
+var parseCompleteBuffer = buffers.parseComplete();
+var bindCompleteBuffer = buffers.bindComplete();
 
 var addRow = function(bufferList, name, offset) {
   return bufferList.addCString(name) //field name
@@ -292,6 +293,20 @@ test('Client', function() {
         line: 'line',
         routine: 'routine'
       });
+    });
+  });
+
+  test('parses parse complete command', function() {
+    testForMessage(parseCompleteBuffer, {
+      id: '1',
+      name: 'parseComplete'
+    });
+  });
+
+  test('parses bind complete command', function() {
+    testForMessage(bindCompleteBuffer, {
+      id: '2',
+      name: 'bindComplete'
     });
   });
 });

@@ -81,4 +81,8 @@ buffers.parseComplete = function() {
   return new BufferList().join(true, '1');
 };
 
+buffers.bindComplete = function() {
+  return new BufferList().join(true, '2');
+};
+
 module.exports = buffers;

@@ -40,9 +40,9 @@ test('prepared queries', function() {
   //server raises parse complete message
 
   test('sends bind message', function() {
-    
+
     test('binding to unnamed prepared statement with no values', function() {
-      
+
       client.bind();
       assert.length(client.stream.packets, 1);
       var packet = client.stream.packets.pop();
@@ -57,8 +57,35 @@ test('prepared queries', function() {
 
   });
 
-  test('recieves rows', function() {
-    return false;
+  test('sends execute message', function() {
+    test('executing an unnamed portal with no row limit', function() {
+      client.execute();
+      assert.length(client.stream.packets, 1);
+      var packet = client.stream.packets.pop();
+      var expectedBuffer = new BufferList()
+        .addCString('')
+        .addInt32(0)
+        .join(true,'E');
+      assert.equalBuffers(packet, expectedBuffer);
+
+    });
+
+  });
+
+  test('sends flush command', function() {
+    client.flush();
+    assert.length(client.stream.packets, 1);
+    var packet = client.stream.packets.pop();
+    var expected = new BufferList().join(true, 'H');
+    assert.equalBuffers(packet, expected);
+  });
+
+  test('sends sync command', function() {
+    client.sync();
+    assert.length(client.stream.packets, 1);
+    var packet = client.stream.packets.pop();
+    var expected = new BufferList().join(true,'S');
+    assert.equalBuffers(packet, expected);
   });
 
 });
