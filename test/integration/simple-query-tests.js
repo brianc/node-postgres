@@ -1,31 +1,27 @@
-require(__dirname+"/test-helper");
-
-//little helper to make a
-//fresh client to the test DB
-var makeClient = function() {
-  var client = new Client({
-    user: 'brian',
-    database: 'pgjstest'
+var helper = require(__dirname+"/test-helper");
+var assert = require('assert');
+var client = helper.client();
+var rows = [];
+//testing the low level 1-1 mapping api of client to postgres messages
+//it's cumbersome to use the api this way
+client.query('create temporary table bang(id integer)');
+client.once('commandComplete', function() {
+  client.query('insert into bang(id) values(1)');
+  client.once('commandComplete', function() {
+    client.query('select * from bang');
+    client.on('dataRow', function(row) {
+      rows.push(row.fields);
+    });
+    client.on('readyForQuery',function() {
+      client.end();
+    });
   });
-  client.on('Error', function(msg) {
-    console.log(msg);
-  });
-  return client;
-};
+});
 
-var client3 = makeClient();
-client3.connect();
-client3.on('ReadyForQuery', function() {
-  console.log('client3 ready for query');
-});
-client3.query('create temporary table bang (id integer)');
-client3.query('insert into bang(id) VALUES(1)');
-var query = client3.query('select * from bang');
-query.on('row', function(row) {
-  console.log(row);
-});
-query.on('end', function() {
-  client3.end();
+process.on('exit', function() {
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].length, 1);
+  assert.equal(rows[0], 1);
 });
 
 
