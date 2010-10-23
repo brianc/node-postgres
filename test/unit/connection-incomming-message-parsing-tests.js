@@ -320,7 +320,7 @@ test('split buffer, single message parsing', function() {
   var fullBuffer = buffers.dataRow([null, "bang", "zug zug", null, "!"]);
   var stream = new MemoryStream();
   stream.readyState = 'open';
-  var client = new Client({
+  var client = new Connection({
     stream: stream
   });
   client.connect();
@@ -379,7 +379,7 @@ test('split buffer, multiple message parsing', function() {
 
   var messages = [];
   var stream = new MemoryStream();
-  var client = new Client({
+  var client = new Connection({
     stream: stream
   });
   client.connect();
