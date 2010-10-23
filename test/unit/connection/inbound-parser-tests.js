@@ -1,7 +1,5 @@
 require(__dirname+'/test-helper');
 
-var buffers = require(__dirname+'/test-buffers');
-
 var PARSE = function(buffer) {
   return new Parser(buffer).parse();
 };

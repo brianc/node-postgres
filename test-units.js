@@ -1,6 +1,11 @@
 //executes all the unit tests
 var fs = require('fs');
-var files = fs.readdirSync(__dirname + '/test/unit');
-files.forEach(function(file){
-  require(__dirname + '/test/unit/' + file.split('.js') [0]);
-});
+var runDir = function(dir) {
+  fs.readdirSync(dir).forEach(function(file) {
+    if(file.indexOf(".js") < 0) {
+      return runDir(fs.realpathSync(dir + file) + "/");
+    }
+    require(dir + file.split('.js') [0]);
+  });
+};
+runDir(__dirname+'/test/unit/');
