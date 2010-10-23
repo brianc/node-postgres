@@ -72,20 +72,4 @@ test('prepared queries', function() {
 
   });
 
-  test('sends flush command', function() {
-    client.flush();
-    assert.length(client.stream.packets, 1);
-    var packet = client.stream.packets.pop();
-    var expected = new BufferList().join(true, 'H');
-    assert.equalBuffers(packet, expected);
-  });
-
-  test('sends sync command', function() {
-    client.sync();
-    assert.length(client.stream.packets, 1);
-    var packet = client.stream.packets.pop();
-    var expected = new BufferList().join(true,'S');
-    assert.equalBuffers(packet, expected);
-  });
-
 });

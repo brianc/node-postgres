@@ -4,7 +4,7 @@ Client = require(__dirname+'/../../lib/client');
 EventEmitter = require('events').EventEmitter;
 BufferList = require(__dirname+'/../../lib/buffer-list');
 buffers = require(__dirname+'/test-buffers');
-Connection = require(__dirname + '/../../lib/connection');
+Connection = require(__dirname + '/../../lib/connection')
 assert.same = function(actual, expected) {
   for(var key in expected) {
     assert.equal(actual[key], expected[key]);
@@ -46,7 +46,7 @@ test = function(name, action) {
     }
   }catch(e) {
     process.stdout.write('E');
-    test.errors.push(e);
+    test.errors.push({name: name, e: e});
   }
 };
 test.testCount = 0;
@@ -62,8 +62,12 @@ process.on('exit', function() {
     console.log("Ignored: " + name);
   });
   test.errors.forEach(function(error) {
-    throw error;
+    console.log("Error: " + error.name);
   });
+  test.errors.forEach(function(error) {
+    throw error.e;
+  });
+
 });
 
 MemoryStream = function() {
