@@ -8,4 +8,4 @@ var runDir = function(dir) {
     require(dir + file.split('.js') [0]);
   });
 };
-runDir(__dirname+'/test/unit/');
+runDir(__dirname+'/test/' + (process.argv[2] || "unit")+ '/');
