@@ -29,30 +29,12 @@ test('simple query', function() {
     rowData = data;
   });
   
-  var ended = 0;
-  query.on('end', function() {
-    ended++;
-  });
-
   stream.emit('data', buffers.dataRow(["!"]));
 
 
   test('row has correct data', function() {
     assert.length(rowData, 1);
     assert.equal(rowData[0], "!");
-  });
-
-
-  test('query ends', function() {
-    stream.emit('data', buffers.commandComplete());
-    assert.equal(ended, 1);
-  });
-  
-  test('after query is ended, it emits nothing else', function() {
-    stream.emit('data', buffers.dataRow(["X","Y","Z"]));
-    stream.emit('data', buffers.commandComplete());
-    assert.length(rowData, 1);
-    assert.equal(ended, 1);
   });
 
 });
