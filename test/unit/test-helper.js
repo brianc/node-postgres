@@ -63,19 +63,6 @@ process.on('exit', function() {
   });
 });
 
-stringToHex = function(string) {
-  var b = Buffer(string,'utf8');
-  var result = [];
-  for(var i = 0; i < b.length; i++) {
-    result.push(b[i]);
-  }
-  return result;
-};
-
-hexToString = function(hexArray) {
-  return new Buffer(hexArray).toString('utf8');
-}
-
 MemoryStream = function() {
   EventEmitter.call(this);
   this.packets = [];
