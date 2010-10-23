@@ -1,3 +1,4 @@
+#! /usr/local/bin/node
 //executes all the unit tests
 var fs = require('fs');
 var runDir = function(dir) {
