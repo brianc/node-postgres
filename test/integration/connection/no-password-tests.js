@@ -1,7 +1,8 @@
 var helper = require(__dirname+'/test-helper');
-helper.authConnect(function(con) {
-  con.once('readyForQuery', function() {
-    console.log("Succesfully connected without a password");
-    con.end();
+test('can log in with no password', function() {
+  helper.authConnect(function(con) {
+    assert.raises(con, 'readyForQuery', function() {
+      con.end();
+    });
   });
 });

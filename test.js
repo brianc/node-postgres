@@ -15,6 +15,6 @@ if(arg == 'all') {
   runDir(__dirname+'/test/integration/');
 }
 else {
-  runDir(__dirname+'/test/' + + '/');
+  runDir(__dirname+'/test/' + arg + '/');
 }
 

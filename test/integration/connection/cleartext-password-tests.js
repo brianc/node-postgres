@@ -1,15 +1,11 @@
 var helper = require(__dirname + '/test-helper');
-
-helper.authConnect('user_pw', 'postgres', function(con) {
-
-  con.once('authenticationCleartextPassword', function() {
-    con.passwordMessage('pass');
+test('can log in with clear text password', function() {
+  helper.authConnect('user_pw', 'postgres', function(con) {
+    assert.raises(con, 'authenticationCleartextPassword', function() {
+      con.passwordMessage('pass');
+    });
+    assert.raises(con, 'readyForQuery', function() {
+      con.end();
+    });
   });
-
-  con.once('readyForQuery', function() {
-    console.log('successfully connected with cleartext password');
-    con.end();
-  });
-
 });
-

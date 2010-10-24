@@ -1,37 +1,64 @@
 var helper = require(__dirname + '/test-helper');
 http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
 
-helper.connect(function(con) {
-  con.on('message', function(msg) {
-    console.log(msg.name);
-  });
+test('flushing once', function() {
+  helper.connect(function(con) {
 
-  con.parse({
-    text: 'select * from ids'
-  });
-  con.flush();
+    assert.raises(con, 'parseComplete');
+    assert.raises(con, 'bindComplete');
+    assert.raises(con, 'dataRow');
+    assert.raises(con, 'commandComplete');
+    assert.raises(con, 'commandComplete');
+    assert.raises(con, 'readyForQuery');
 
-  con.once('parseComplete', function() {
+    con.parse({
+      text: 'select * from ids'
+    });
     con.bind();
-    con.flush();
-  });
-
-  con.once('bindComplete', function() {
     con.execute();
     con.flush();
+    con.on('commandComplete', function() {
+      con.sync();
+    });
+    con.on('readyForQuery', function() {
+      con.end();
+    });
   });
-
-  con.once('dataRow', function(msg) {
-    console.log("row: " + sys.inspect(msg));
-  });
-
-  con.once('commandComplete', function() {
-    con.sync();
-  });
-
-  con.once('readyForQuery', function() {
-    con.end();
-  });
-
 });
 
+test("sending many flushes", function() {
+  helper.connect(function(con) {
+
+    assert.raises(con, 'parseComplete');
+    assert.raises(con, 'bindComplete');
+    assert.raises(con, 'dataRow');
+    assert.raises(con, 'commandComplete');
+    assert.raises(con, 'commandComplete');
+    assert.raises(con, 'readyForQuery');
+
+    con.parse({
+      text: 'select * from ids'
+    });
+
+    con.flush();
+
+    con.once('parseComplete', function() {
+      con.bind();
+      con.flush();
+    });
+
+    con.once('bindComplete', function() {
+      con.execute();
+      con.flush();
+    });
+
+    con.once('commandComplete', function() {
+      con.sync();
+    });
+
+    con.once('readyForQuery', function() {
+      con.end();
+    });
+
+  });
+});
