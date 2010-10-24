@@ -25,6 +25,11 @@ test("sends startup message", function() {
                   .addCString('').join(true))
 });
 
+test('sends passwordMessage', function() {
+  con.passwordMessage("!");
+  assert.recieved(stream, new BufferList().addCString("!").join(true,'p'));
+});
+
 test('sends query message', function() {
   var txt = 'select * from boom';
   con.query(txt);

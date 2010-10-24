@@ -6,20 +6,7 @@ test('password authentication', function(){
   var client = createClient();
   client.password = "!";
 
-  var clearTextPasswordBuffer = Buffer([0x52, 0, 0, 0, 8, 0, 0, 0, 3]);
-
-  var raised = false;
-
-  client.on('authenticationCleartextPassword', function() {
-    raised = true;
-  });
-
-  client.stream.emit('data', clearTextPasswordBuffer);
-
-  test('raises event', function() {
-    assert.ok(raised);
-  });
-
+  client.connection.emit('authenticationCleartextPassword');
   test('responds with password', function() {
     assert.length(client.stream.packets, 1);
     var packet = client.stream.packets[0];
