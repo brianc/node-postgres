@@ -92,3 +92,9 @@ test('sends sync command', function() {
   var expected = new BufferList().join(true,'S');
   assert.recieved(stream, expected);
 });
+
+test('sends end command', function() {
+  con.end();
+  var expected = new Buffer([0x58, 0, 0, 0, 4]);
+  assert.recieved(stream, expected);
+});
