@@ -105,7 +105,7 @@ buffers.bindComplete = function() {
   return new BufferList().join(true, '2');
 };
 
-buffers.notificationResponse = function(id, channel, payload) {
+buffers.notification = function(id, channel, payload) {
   return new BufferList()
     .addInt32(id)
     .addCString(channel)

@@ -5,7 +5,7 @@ test('recieves notification from same connection with no payload', function() {
     con.query('LISTEN boom');
     assert.raises(con, 'readyForQuery', function() {
       con.query("NOTIFY boom");
-      assert.raises(con, 'notificationResponse', function(msg) {
+      assert.raises(con, 'notification', function(msg) {
         assert.equal(msg.payload, "");
         assert.equal(msg.channel, 'boom')
         con.end();
