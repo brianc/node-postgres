@@ -1,14 +1,24 @@
-var Client = require(__dirname+"/../lib/client");
-var client = new Client({
-  user: 'brian',
-  database: 'postgres'
-});
-client.connect();
-var query = client.query('select oid, typname, typlen from pg_type where typtype = \'b\' order by typname');
-query.on('row', function(row) {
-  console.log(row);
-});
-query.on('end',function() {
-  client.disconnect();
-})
+var net = require('net')
+var Connection = require(__dirname+'/../lib/connection');
 
+var con = new Connection({stream: new net.Stream()});
+con.connect('5432', 'localhost');
+
+con.on('connect', function() {
+  con.startupMessage({
+    user: 'brian',
+    database: 'postgres'
+  });
+});
+
+con.on('dataRow', function(msg) {
+  console.log(msg.fields);
+});
+
+con.on('readyForQuery', function() {
+  con.query('select oid, typname from pg_type where typtype = \'b\' order by typname');
+});
+
+con.on('commandComplete', function() {
+  con.end();
+});

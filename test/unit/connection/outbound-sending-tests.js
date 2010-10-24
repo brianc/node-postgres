@@ -56,6 +56,23 @@ test('sends parse message with named query', function() {
     .addCString("select * from boom")
     .addInt16(0).join(true,'P');
   assert.recieved(stream, expected);
+
+  test('with multiple parameters', function() {
+    con.parse({
+      name: 'force',
+      text: 'select * from bang where name = $1',
+      types: [1, 2, 3 ,4]
+    });
+    var expected = new BufferList()
+      .addCString("force")
+      .addCString("select * from bang where name = $1")
+      .addInt16(4)
+      .addInt32(1)
+      .addInt32(2)
+      .addInt32(3)
+      .addInt32(4).join(true,'P');
+    assert.recieved(stream, expected);
+  });
 });
 
 test('sends bind to unamed statement with no values', function() {
