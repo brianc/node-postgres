@@ -22,14 +22,13 @@ var connect = function(callback) {
   authConnect(function(con) {
     con.once('readyForQuery', function() {
       con.query('create temp table ids(id integer)');
+      con.once('readyForQuery', function() {
+        con.query('insert into ids(id) values(1); insert into ids(id) values(2);');
+        con.once('readyForQuery', function() {
+          callback(con);
+        });
+      });
     });
-    con.once('readyForQuery', function() {
-      con.query('insert into ids(id) values(1); insert into ids(id) values(2);');
-    });
-    con.once('readyForQuery', function() {
-      callback(con);
-    });
-
   });
 };
 
