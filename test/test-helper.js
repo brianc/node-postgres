@@ -35,8 +35,10 @@ assert.raises = function(item, eventName, callback) {
 
 assert.equalBuffers = function(actual, expected) {
   if(actual.length != expected.length) {
-    console.log(actual);
-    console.log(expected);
+    console.log("");
+    console.log("actual " + sys.inspect(actual));
+    console.log("expect " + sys.inspect(expected));
+    console.log("");
     assert.equal(actual.length, expected.length);
   }
   for(var i = 0; i < actual.length; i++) {

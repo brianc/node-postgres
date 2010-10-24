@@ -75,28 +75,68 @@ test('sends parse message with named query', function() {
   });
 });
 
-test('sends bind to unamed statement with no values', function() {
-  con.bind();
+test('bind messages', function() {
+  test('with no values', function() {
+    con.bind();
 
-  var expectedBuffer = new BufferList()
-    .addCString("")
-    .addCString("")
-    .addInt16(0)
-    .addInt16(0)
-    .addInt16(0).join(true,"B");
-  assert.recieved(stream, expectedBuffer);
+    var expectedBuffer = new BufferList()
+      .addCString("")
+      .addCString("")
+      .addInt16(0)
+      .addInt16(0)
+      .addInt16(0)
+      .join(true,"B");
+    assert.recieved(stream, expectedBuffer);
+  });
+
+  test('with named statement, portal, and values', function() {
+    con.bind({
+      portal: 'bang',
+      statement: 'woo',
+      values: [1, 'hi', null, 'zing']
+    });
+    var expectedBuffer = new BufferList()
+      .addCString('bang')  //portal name
+      .addCString('woo') //statement name
+      .addInt16(0)
+      .addInt16(4)
+      .addInt32(1)
+      .add(Buffer("1"))
+      .addInt32(2)
+      .add(Buffer("hi"))
+      .addInt32(-1)
+      .addInt32(4)
+      .add(Buffer('zing'))
+      .addInt16(0)
+      .join(true, 'B');
+    assert.recieved(stream, expectedBuffer);
+  });
 });
 
 
-test("sends execute message for unamed portal with no row limit", function() {
-  con.execute();
-  var expectedBuffer = new BufferList()
-    .addCString('')
-    .addInt32(0)
-    .join(true,'E');
-  assert.recieved(stream, expectedBuffer);
-});
+test("sends execute message", function() {
 
+  test("for unamed portal with no row limit", function() {
+    con.execute();
+    var expectedBuffer = new BufferList()
+      .addCString('')
+      .addInt32(0)
+      .join(true,'E');
+    assert.recieved(stream, expectedBuffer);
+  });
+
+  test("for named portal with row limit", function() {
+    con.execute({
+      portal: 'my favorite portal',
+      rows: 100
+    });
+    var expectedBuffer = new BufferList()
+      .addCString("my favorite portal")
+      .addInt32(100)
+      .join(true, 'E');
+    assert.recieved(stream, expectedBuffer);
+  });
+});
 
 test('sends flush command', function() {
   con.flush();
