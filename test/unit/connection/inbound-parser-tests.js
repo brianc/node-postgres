@@ -158,7 +158,7 @@ var expectedNotificationResponseMessage = {
   id: 'A',
   processId: 4,
   channel: 'hi',
-  message: 'boom'
+  payload: 'boom'
 };
 
 test('Connection', function() {
