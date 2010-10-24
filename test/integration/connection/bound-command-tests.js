@@ -9,15 +9,17 @@ helper.connect(function(con) {
   con.flush();
 
   con.once('parseComplete', function() {
+    console.log('parseComplete');
     con.bind();
     con.flush();
   });
 
   con.once('bindComplete', function() {
+    console.log('bindComplete');
     con.execute();
     con.flush();
   });
-  
+
   con.on('dataRow', function(msg) {
     sys.debug("got row from pepared query");
   });
@@ -25,7 +27,7 @@ helper.connect(function(con) {
   con.on('commandComplete', function() {
     con.sync();
   });
-  
+
   con.on('readyForQuery', function() {
     con.end();
   });
