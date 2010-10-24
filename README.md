@@ -13,35 +13,30 @@ I'm first aiming to support the low level [messaging
 protocol](http://developer.postgresql.org/pgdocs/postgres/protocol.html).
 
 Due to the fully async nature of node sockets, the driver is
-completely non-blocking.
+completely non-blocking. Jump for joy!
 
-### What works?
+### Connection
 
-    var client = new Client({
-      username: 'brianc',
-      database: 'postgres'
-    });
+The connection object is a 1 to 1 mapping to the [messaging
+protocol](http://developer.postgresql.org/pgdocs/postgres/protocol.html).
+It is mostly used by the Client object (which...I haven't yet
+implemented) but you can do anything you want with PostgreSQL using
+the connection object if you're really into that.  I studied the
+protocol for a while implementing this and the documentation is pretty
+solid.  The connection only supports 'text' mode right now.
 
-    client.connect();
-    
-    client.query('select typname, oid from pg_type');
+### Client
 
-    query.on('row', function(row) {
-      console.log('type name: ' + row[0] + ' oid: ' + row[1]);      
-    };
-
-    query.on('end') {
-      client.end();
-    };
-
+Basically a facade on top of the connection to provide a much more
+user friendly, "node style" interface for doing all the lovely things
+you like with PostgreSQL.
 
 ## TODO
   - prepared statements
     - parameters
     - caching
-  - portals
   - integration testing
-  - notification api
+  - notifications
   - setting parameters
   - connection pooling
   - copy data
