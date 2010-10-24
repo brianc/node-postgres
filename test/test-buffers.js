@@ -98,4 +98,12 @@ buffers.bindComplete = function() {
   return new BufferList().join(true, '2');
 };
 
+buffers.notificationResponse = function(id, channel, message) {
+  return new BufferList()
+    .addInt32(id)
+    .addCString(channel)
+    .addCString(message)
+    .join(true, 'A')
+};
+
 module.exports = buffers;

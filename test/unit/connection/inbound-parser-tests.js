@@ -153,6 +153,14 @@ var expectedMD5PasswordMessage = {
   name: 'authenticationMD5Password'
 };
 
+var notificationResponseBuffer = buffers.notificationResponse(4, 'hi', 'boom');
+var expectedNotificationResponseMessage = {
+  id: 'A',
+  processId: 4,
+  channel: 'hi',
+  message: 'boom'
+};
+
 test('Connection', function() {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage);
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage);
@@ -164,6 +172,7 @@ test('Connection', function() {
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage);
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage);
   testForMessage(commandCompleteBuffer,expectedCommandCompleteMessage);
+  testForMessage(notificationResponseBuffer, expectedNotificationResponseMessage);
   test('empty row message', function() {
     var message = testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage);
     test('has no fields', function() {
