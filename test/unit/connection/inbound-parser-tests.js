@@ -256,6 +256,15 @@ test('Connection', function() {
 
   });
 
+  test('notice message', function() {
+    //this uses the same logic as error message
+    var buff = buffers.notice([{type: 'C', value: 'code'}]);
+    testForMessage(buff, {
+      name: 'notice',
+      code: 'code'
+    });
+  });
+
   test('error messages', function() {
     test('with no fields', function() {
       var msg = testForMessage(buffers.error(),{

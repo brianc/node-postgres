@@ -80,15 +80,22 @@ buffers.dataRow = function(columns) {
 };
 
 buffers.error = function(fields) {
+  return errorOrNotice(fields).join(true, 'E');
+};
+
+buffers.notice = function(fields) {
+  return errorOrNotice(fields).join(true, 'N');
+};
+
+var errorOrNotice = function(fields) {
   fields = fields || [];
   var buf = new BufferList();
   fields.forEach(function(field) {
     buf.addChar(field.type);
     buf.addCString(field.value);
   });
-  buf.add(Buffer([0]));//terminator
-  return buf.join(true, 'E');
-};
+  return buf.add(Buffer([0]));//terminator
+}
 
 buffers.parseComplete = function() {
   return new BufferList().join(true, '1');
