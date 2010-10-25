@@ -1,42 +1,5 @@
-var config = {};
 var sys = require('sys');
-var args = process.argv;
-for(var i = 0; i < args.length; i++) {
-  switch(args[i].toLowerCase()) {
-  case '-u':
-  case '--user':
-    config.user = args[++i];
-    break;
-  case '--password':
-    config.password = args[++i];
-    throw new Error("Passwords not supported yet");
-    break;
-  case '-d':
-  case '--database':
-    config.database = args[++i];
-    break;
-  case '-p':
-  case '--port':
-    config.port = args[++i];
-    break;
-  case '-h':
-  case '--host':
-    config.host = args[++i];
-    break;
-  case '--down':
-    config.down = true;
-    break;
-  default:
-    break;
-  }
-}
-var log = function(keys) {
-  keys.forEach(function(key) {
-    console.log(key + ": '" + config[key] + "'");
-  });
-}
-log(['user','password','database','port','host'])
-
+var config = require(__dirname + '/../test/cli');
 var pg = require(__dirname + '/../lib');
 var con = new pg.Connection();
 var people

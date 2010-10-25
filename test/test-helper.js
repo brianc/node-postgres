@@ -8,6 +8,7 @@ EventEmitter = require('events').EventEmitter;
 BufferList = require('buffer-list')
 buffers = require(__dirname + '/test-buffers');
 Connection = require('connection');
+var args = require(__dirname + '/cli');
 
 assert.same = function(actual, expected) {
   for(var key in expected) {
@@ -84,6 +85,7 @@ test = function(name, action) {
     test.errors.push({name: name, e: e});
   }
 };
+
 test.assertCount = test.assertCount || 0;
 test.testCount = test.testCount || 0;
 test.ignored = test.ignored || [];
@@ -104,3 +106,7 @@ process.on('exit', function() {
     throw error.e;
   });
 });
+
+module.exports = {
+  args: args
+};

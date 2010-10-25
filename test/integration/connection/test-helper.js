@@ -1,11 +1,11 @@
 var net = require('net');
-require(__dirname+'/../test-helper');
+var helper = require(__dirname+'/../test-helper');
 
 var authConnect = function(username, database, callback) {
   if(typeof username === 'function') {
     callback = username;
-    username = 'brian';
-    database = 'postgres';
+    username = helper.args.user;
+    database = helper.args.database;
   }
   var connection = new Connection({stream: new net.Stream()});
   connection.connect('5432','localhost');
