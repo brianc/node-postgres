@@ -26,7 +26,7 @@ So...__boom__. I set out to write my own.  I'm not working on anything
 else in my spare time other than this.  It's a labor of love.  I'd
 love for you to love it as well.  Contribute.  Fork, patch, and send
 me a pull request.  All I ask is everything you add you have complete
-and possible obsessive test coverage to back up.  
+and possibly obsessive test coverage to back up.  
 
 ## ALPHA version
 
@@ -36,13 +36,14 @@ only refactoring after tests are in place.
 
 ### Connection
 
-The connection object is a 1 to 1 mapping to the [messaging
-protocol](http://developer.postgresql.org/pgdocs/postgres/protocol.html).
-It is mostly used by the Client object (which...I haven't yet
+The connection object is a 1 to 1 mapping to the [postgres
+client/server messaging protocol](http://developer.postgresql.org/pgdocs/postgres/protocol.html).
+The __Connection_ object is mostly used by the Client object (which...I haven't yet
 finished implementing) but you can do anything you want with PostgreSQL using
 the connection object if you're really into that.  I studied the
 protocol for a while implementing this and the documentation is pretty
-solid.  
+solid.  If you're already familiar you should be right at home.  Have
+fun looking up the [oids for the datatypes in your bound queries](http://github.com/brianc/node-postgres/blob/master/script/list-db-types.js)
 
 There are a few minor variations from the protocol:
 
