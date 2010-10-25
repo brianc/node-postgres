@@ -42,6 +42,7 @@ test('executing query', function() {
       });
 
     });
+
     test("multiple in the queue", function() {
       var client = makeClient();
       var connection = client.connection;
@@ -72,6 +73,53 @@ test('executing query', function() {
         assert.equal(queries[2], 'three');
       });
     });
-  })
+  });
+
+  test("query event binding and flow", function() {
+    var client = makeClient();
+    var con = client.connection;
+    var query = client.query('whatever');
+
+    test("has no queries sent before ready", function() {
+      assert.empty(con.queries);
+    });
+
+    test('sends query on readyForQuery event', function() {
+      con.emit('readyForQuery');
+      assert.length(con.queries, 1);
+      assert.equal(con.queries[0], 'whatever');
+    });
+
+    test('handles rowDescription message', function() {
+      var handled = con.emit('rowDescription',{});
+      assert.ok(handled, "should have handlded rowDescritpion");
+    });
+
+    test('handles dataRow messages', function() {
+      assert.raises(query, 'row', function(row) {
+        assert.equal(row.fields[0], "hi");
+      });
+      var handled = con.emit('dataRow', { fields: ["hi"] });
+      assert.ok(handled, "should have handled first data row message");
+
+      assert.raises(query, 'row', function(row) {
+        assert.equal(row.fields[0], "bye");
+      });
+      var handledAgain = con.emit('dataRow', { fields: ["bye"] });
+      assert.ok(handledAgain, "should have handled seciond data row message");
+
+    });
+
+    test('removes itself after another readyForQuery message', function() {
+      assert.raises(query, "end");
+      con.emit("readyForQuery");
+      //this would never actually happen
+      ['dataRow','rowDescritpion', 'commandComplete'].forEach(function(msg) {
+        assert.equal(con.emit(msg), false, "Should no longer be picking up '"+ msg +"' messages");
+      });
+    });
+
+  });
+
 });
 
