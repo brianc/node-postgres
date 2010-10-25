@@ -19,7 +19,9 @@ assert.same = function(actual, expected) {
 assert.raises = function(item, eventName, callback) {
   var called = false;
   var id = setTimeout(function() {
-    assert.ok(called, "Expected '" + eventName + "' to be called.")
+    test("Should have called " + eventName, function() {
+      assert.ok(called, "Expected '" + eventName + "' to be called.")
+    });
   },1000);
 
   item.once(eventName, function() {
