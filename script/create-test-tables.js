@@ -43,7 +43,7 @@ var people
 con.connect(config.port, config.host);
 con.on('connect', function() {
   console.log('connected');
-  con.startupMessage({
+  con.startup({
     user: config.user,
     database: config.database
   });

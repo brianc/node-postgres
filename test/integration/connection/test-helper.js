@@ -10,7 +10,7 @@ var authConnect = function(username, database, callback) {
   var connection = new Connection({stream: new net.Stream()});
   connection.connect('5432','localhost');
   connection.once('connect', function() {
-    connection.startupMessage({
+    connection.startup({
       user: username,
       database: database
     });

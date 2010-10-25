@@ -5,7 +5,7 @@ var con = new Connection({stream: new net.Stream()});
 con.connect('5432', 'localhost');
 
 con.on('connect', function() {
-  con.startupMessage({
+  con.startup({
     user: 'brian',
     database: 'postgres'
   });

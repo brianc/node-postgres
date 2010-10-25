@@ -11,7 +11,7 @@ assert.recieved = function(stream, buffer) {
 };
 
 test("sends startup message", function() {
-  con.startupMessage({
+  con.startup({
     user: 'brian',
     database: 'bang'
   });
