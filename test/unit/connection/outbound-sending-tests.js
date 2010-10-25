@@ -25,8 +25,8 @@ test("sends startup message", function() {
                   .addCString('').join(true))
 });
 
-test('sends passwordMessage', function() {
-  con.passwordMessage("!");
+test('sends password message', function() {
+  con.password("!");
   assert.recieved(stream, new BufferList().addCString("!").join(true,'p'));
 });
 
