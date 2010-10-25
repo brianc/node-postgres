@@ -34,17 +34,18 @@ only refactoring after tests are in place.
 The connection object is a 1 to 1 mapping to the [messaging
 protocol](http://developer.postgresql.org/pgdocs/postgres/protocol.html).
 It is mostly used by the Client object (which...I haven't yet
-implemented) but you can do anything you want with PostgreSQL using
+finished implementing) but you can do anything you want with PostgreSQL using
 the connection object if you're really into that.  I studied the
 protocol for a while implementing this and the documentation is pretty
 solid.  
 
 There are a few minor variations from the protocol:
-  - The connection only supports 'text' mode right now.
-  - Renamed 'passwordMessage' to 'password'
-  - Renamed 'startupMessage' to 'startup'
-  - Renamed 'errorResposne' to 'error'
-  - Renamed 'noticeResponce' to 'notice'
+
+- The connection only supports 'text' mode right now.
+- Renamed 'passwordMessage' to 'password'
+- Renamed 'startupMessage' to 'startup'
+- Renamed 'errorResposne' to 'error'
+- Renamed 'noticeResponce' to 'notice'
 
 The reason for the renamings is 90% of the message names in the
 protocol do no contain "message" "request" "response" or anything
