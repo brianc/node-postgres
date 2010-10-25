@@ -6,20 +6,25 @@
 
 As soon as I saw node.js for the first time I knew I had found
 something lovely and simple and _just what I always wanted!_.  So...I
-poked around for a while.  I looked at the various NoSQL solutions but
-I still thought having support an actual database founded on decades of PhD
-level research might be something nice to have?  
+poked around for a while.  I was excited.  I told my friend "ah man
+the only thing holding node back is a really solid data access story."
+I mean...let's put the NoSQL debate aside.  Let's say for arguments
+sake you have to run a query from node.js on PostgreSQL before the
+last petal falls off the rose and you are stuck as a beast forever?
+What if your entire production site depends on it?  Well, fret no
+more.  And let [GastonDB](http://www.snipetts.com/ashley/mymusicals/disney/beauty-an-beast/images/gaston.gif) be vanquished.
 
 I drew major inspiration from
 [postgres-js](http://github.com/creationix/postgres-js).  I didn't
 just fork and contribute because it has
 __0__ tests included with it and doesn't seem to be actively developed
 anymore.  I am not comfortable forking & playing with a project
-without having a way to run a test suite, let alone using it in production.
+without having a way to run a test suite, let alone using it in
+production.
 
-So...__boom__ I set out to write my own.  I'm not working on anything
+So...__boom__. I set out to write my own.  I'm not working on anything
 else in my spare time other than this.  It's a labor of love.  I'd
-love for you to love it as well and contribute.  Fork, patch, and send
+love for you to love it as well.  Contribute.  Fork, patch, and send
 me a pull request.  All I ask is everything you add you have complete
 and possible obsessive test coverage to back up.  
 
@@ -50,7 +55,7 @@ There are a few minor variations from the protocol:
 The reason for the renamings is 90% of the message names in the
 protocol do no contain "message" "request" "response" or anything
 similar, and I feel it's a bit redundant to send a "passwordMessage
-message."  But then again...I do say ATM machine.
+message."  But then again...[I do say ATM machine](http://en.wikipedia.org/wiki/RAS_syndrome).
 
 Anyways...using a connection directly is a pretty verbose and
 cumbersom affair.  Here's an example of executing a prepared query
@@ -146,3 +151,4 @@ _note: this doesn't even __exist__ yet_
   - connection pooling
   - copy data
   - connection pooling
+  - kiss the sky
