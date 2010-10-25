@@ -32,11 +32,9 @@ user friendly, "node style" interface for doing all the lovely things
 you like with PostgreSQL.
 
 ## TODO
-  - prepared statements
-    - parameters
-    - caching
+  - Error handling
   - integration testing
-  - notifications
+  - notification
   - setting parameters
   - connection pooling
   - copy data
