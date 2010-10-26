@@ -102,7 +102,8 @@ API.  Help? Yes please!
 What I'd like is to simplify the above low level use with something
 like this:
 
-_note: this doesn't even __exist__ yet_
+_note: this doesn't fully exist yet_
+
     var client = new Client({
       user: 'brian',
       database: 'postgres',
@@ -139,7 +140,6 @@ The integration tests operate on an actual database and require
 access.  They're under a bit more flux as the api for the client is
 changing a bit; however, they should always all be passing on every
 push up to the ol' githubber.
-
 ### Running tests
 
 You can run any test file directly by doing the `node
@@ -181,14 +181,43 @@ In short, I tried to make executing the tests as easy as possible.
 Hopefully this will encourage you to fork, hack, and do whatever you
 please as you've got a nice, big safety net under you.
 
+#### Test data
+
+In order for the integration tests to not take ages to run, I've
+pulled out the script used to generate test data.  This way you can
+generate a "test" database once and don't have to up/down the tables
+every time an integration test runs.  To run the generation script,
+execute the script with the same command line arguments passed to any
+other test script.
+
+    node script/create-test-tables.js -u user -d database
+
+Aditionally if you want to revert the test data, you'll need to "down"
+the database first and then re-create the data as follows:
+
+
+    node script/create-test-tables.js -u user -d database --down
+    node script/create-test-tables.js -u user -d database
+
 ## TODO
+  - Query results returned
+    - some way to return number of rows inserted/updated etc
+    (supported in protocol and handled in __Connection__ but not sure
+    where on the __Client__ api to add this functionality)
+  - Typed result set support in client
+    - simple queries
+    - bound commands
   - Error handling
-  - integration testing
-  - notificationp
-  - setting parameters
+    - disconnection, removal of listeners on errors
+    - passing errors to callbacks?
+  - more integration testing
+  - bound command support in client
+    - type specification
+    - parameter specification
+    - transparent bound command caching?
+    - nice "cursor" (portal) api
   - connection pooling
-  - copy data
-  - connection pooling
+  - copy data?
   - kiss the sky
 
 ## Why?
