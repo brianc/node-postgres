@@ -3,62 +3,58 @@ http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW
 
 test('flushing once', function() {
   helper.connect(function(con) {
+    con.parse({
+      text: 'select * from ids'
+    });
+
+    con.bind();
+    con.execute();
+    con.flush();
 
     assert.raises(con, 'parseComplete');
     assert.raises(con, 'bindComplete');
     assert.raises(con, 'dataRow');
-    assert.raises(con, 'commandComplete');
-    assert.raises(con, 'commandComplete');
-    assert.raises(con, 'readyForQuery');
-
-    con.parse({
-      text: 'select * from ids'
-    });
-    con.bind();
-    con.execute();
-    con.flush();
-    con.on('commandComplete', function() {
+    assert.raises(con, 'commandComplete', function(){
       con.sync();
     });
-    con.on('readyForQuery', function() {
+    assert.raises(con, 'readyForQuery', function(){
       con.end();
     });
+
   });
 });
 
 test("sending many flushes", function() {
   helper.connect(function(con) {
 
-    assert.raises(con, 'parseComplete');
-    assert.raises(con, 'bindComplete');
-    assert.raises(con, 'dataRow');
-    assert.raises(con, 'commandComplete');
-    assert.raises(con, 'commandComplete');
-    assert.raises(con, 'readyForQuery');
-
-    con.parse({
-      text: 'select * from ids'
-    });
-
-    con.flush();
-
-    con.once('parseComplete', function() {
+    assert.raises(con, 'parseComplete', function(){
       con.bind();
       con.flush();
     });
 
-    con.once('bindComplete', function() {
+    assert.raises(con, 'bindComplete', function(){
       con.execute();
       con.flush();
     });
 
-    con.once('commandComplete', function() {
-      con.sync();
+    assert.raises(con, 'dataRow', function(msg){
+      assert.equal(msg.fields[0], 1);
+      assert.raises(con, 'dataRow', function(msg){
+        assert.equal(msg.fields[0], 2);
+        assert.raises(con, 'commandComplete', function(){
+          con.sync();
+        });
+        assert.raises(con, 'readyForQuery', function(){
+          con.end();
+        });
+      });
     });
 
-    con.once('readyForQuery', function() {
-      con.end();
+    con.parse({
+      text: "select * from ids order by id"
     });
+
+    con.flush();
 
   });
 });
