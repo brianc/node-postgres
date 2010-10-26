@@ -2,32 +2,6 @@
 
 100% javascript. 100% async. 100% would love your contributions.
 
-## Why?
-
-As soon as I saw node.js for the first time I knew I had found
-something lovely and simple and _just what I always wanted!_.  So...I
-poked around for a while.  I was excited.  I told my friend "ah man
-the only thing holding node back is a really solid data access story."
-I mean...let's put the NoSQL debate aside.  Let's say for arguments
-sake you have to run a query from node.js on PostgreSQL before the
-last petal falls off the rose and you are stuck as a beast forever?
-What if your entire production site depends on it?  Well, fret no
-more.  And let [GastonDB](http://www.snipetts.com/ashley/mymusicals/disney/beauty-an-beast/images/gaston.gif) be vanquished.
-
-I drew major inspiration from
-[postgres-js](http://github.com/creationix/postgres-js).  I didn't
-just fork and contribute because it has
-__0__ tests included with it and doesn't seem to be actively developed
-anymore.  I am not comfortable forking & playing with a project
-without having a way to run a test suite, let alone using it in
-production.
-
-So...__boom__. I set out to write my own.  I'm not working on anything
-else in my spare time other than this.  It's a labor of love.  I'd
-love for you to love it as well.  Contribute.  Fork, patch, and send
-me a pull request.  All I ask is everything you add you have complete
-and possibly obsessive test coverage to back up.  
-
 ## ALPHA version
 
 Implemented in a fully TDD fashion.    I'm aiming for
@@ -144,6 +118,69 @@ _note: this doesn't even __exist__ yet_
       client.end();
     });    
 
+## Testing
+
+The tests are split up into two different Unit test and
+integration tests.  
+
+### Unit tests
+
+Unit tests do not depend on having access to a
+running PostgreSQL server.  They work by mocking out the `net.Stream`
+instance into a `MemoryStream`.  The memory stream raises 'data'
+events with pre-populated packets which simulate communcation from an
+actual PostgreSQL server.  Some tests will validate incomming packets
+are parsed correctly by the __Connection__ and some tests validate the
+__Connection__ correctly sends outgoing packets to the stream.
+
+### Integration tests
+
+The integration tests operate on an actual database and require
+access.  They're under a bit more flux as the api for the client is
+changing a bit; however, they should always all be passing on every
+push up to the ol' githubber.
+
+### Running tests
+
+You can run any test file directly by doing the `node
+test/unit/connection/inbound-parser-tests.js` or something of the
+like.  
+
+However, you can specify command line arguments after the file
+and they will be picked up and used in the tests.  None of the
+arguments are used in _unit_ tests, so you're safe to just blast away
+with the command like above, but if you'd like to execute an
+_integration_ test, you outta specifiy your database, user to use for
+testing, and optionally a password.
+
+To do so you would do something like so:
+
+    node test/integration/client/simple-query-tests.js -u brian -d test_db 
+
+If you'd like to execute all the unit or integration tests at one
+time, you can do so with the "run.js" script in the /test directory as
+follows:
+
+##### Run all unit tests
+
+    node test/run.js -t unit
+
+or optionally, since `-t unit` is the default
+
+    node test/run.js
+
+##### Run all integration tests
+
+    node test/run.js -t integration -u brian -d test_db --password password!
+
+##### Run all the tests!
+
+    node test/run.js -t all -u brian -d test_db --password password!
+
+In short, I tried to make executing the tests as easy as possible.
+Hopefully this will encourage you to fork, hack, and do whatever you
+please as you've got a nice, big safety net under you.
+
 ## TODO
   - Error handling
   - integration testing
@@ -153,3 +190,35 @@ _note: this doesn't even __exist__ yet_
   - copy data
   - connection pooling
   - kiss the sky
+
+## Why?
+
+As soon as I saw node.js for the first time I knew I had found
+something lovely and simple and _just what I always wanted!_.  So...I
+poked around for a while.  I was excited.  I told my friend "ah man
+the only thing holding node back is a really solid data access story."
+I mean...let's put the NoSQL debate aside.  Let's say for arguments
+sake you have to run a query from node.js on PostgreSQL before the
+last petal falls off the rose and you are stuck as a beast forever?
+What if your entire production site depends on it?  Well, fret no
+more.  And let [GastonDB](http://www.snipetts.com/ashley/mymusicals/disney/beauty-an-beast/images/gaston.gif) be vanquished.
+
+I drew major inspiration from
+[postgres-js](http://github.com/creationix/postgres-js).  I didn't
+just fork and contribute because it has
+__0__ tests included with it and doesn't seem to be actively developed
+anymore.  I am not comfortable forking & playing with a project
+without having a way to run a test suite, let alone using it in
+production.
+
+I also drew some major inspirrado from
+[node-mysql](http://github.com/felixge/node-mysql) and liked what I
+saw there.  I'm thinking I might be stealing some of the ideas there
+for the __Client__ api.
+
+So...__boom__. I set out to write my own.  I'm not working on anything
+else in my spare time other than this.  It's a labor of love.  I'd
+love for you to love it as well.  Contribute.  Fork, patch, and send
+me a pull request.  All I ask is everything you add you have complete
+and possibly obsessive test coverage to back up.  
+
