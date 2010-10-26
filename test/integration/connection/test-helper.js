@@ -8,11 +8,23 @@ var authConnect = function(username, database, callback) {
     database = helper.args.database;
   }
   var connection = new Connection({stream: new net.Stream()});
+  connection.on('error', function(error){
+    console.log(error);
+    throw new Error("Connection error");
+  });
   connection.connect('5432','localhost');
   connection.once('connect', function() {
     connection.startup({
       user: username,
       database: database
+    });
+    connection.once('authenticationCleartextPassword', function(){
+      connection.password(helper.args.password);
+    });
+    connection.once('authenticationMD5Password', function(msg){
+      var inner = Client.md5(helper.args.password+helper.args.user);
+      var outer = Client.md5(inner + msg.salt.toString('binary'));
+      connection.password("md5"+outer);
     });
     callback(connection);
   });
