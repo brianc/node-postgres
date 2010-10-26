@@ -251,3 +251,6 @@ love for you to love it as well.  Contribute.  Fork, patch, and send
 me a pull request.  All I ask is everything you add you have complete
 and possibly obsessive test coverage to back up.  
 
+## License
+
+node-postgres is licensed under the MIT license.
