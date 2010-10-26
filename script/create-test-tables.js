@@ -1,19 +1,6 @@
 var sys = require('sys');
-var config = require(__dirname + '/../test/cli');
+var args = require(__dirname + '/../test/cli');
 var pg = require(__dirname + '/../lib');
-var con = new pg.Connection();
-var people
-con.connect(config.port, config.host);
-con.on('connect', function() {
-  console.log('connected');
-  con.startup({
-    user: config.user,
-    database: config.database
-  });
-  con.once('readyForQuery', function() {
-    config.down===true ? dropTable(con) : createTable(con);
-  });
-});
 
 var people = [
   {name: 'Aaron',    age: 10},
@@ -44,43 +31,29 @@ var people = [
   {name: 'Zanzabar', age: 260}
 ]
 
-var makeInsert = function(person) {
-  return "insert into person(name, age) values('"+person.name + "', '" + person.age + "')";
-};
-var personIndex = 0;
-var createTable = function(con) {
-  console.log("creating table 'person'");
-  con.query('create table person (id serial, name varchar(30), age integer)');
-  con.once('readyForQuery', function() {
-    console.log('created person table');
-    insertPerson(con);
+var con = new pg.Client({
+  user: args.user,
+  password: args.password,
+  database: args.database
+});
+con.connect();
+if(args.down) {
+  console.log("Dropping table 'person'")
+  var query = con.query("drop table person");
+  query.on('end', function() {
+    console.log("Dropped!");
+    con.end();
   });
-};
-
-var insertPerson = function(con) {
-  if(personIndex < people.length) {
-    var query = makeInsert(people[personIndex++]);
-    con.query(query);
-    con.once('readyForQuery', function() {
-      insertPerson(con);
-    });
-  }
-  else {
-    con.query("select * from person");
-    con.on('dataRow', function(row) {
-      console.log(row.fields);
-    });
-    con.once('readyForQuery', function() {
-      con.end();
-    });
-  }
-};
-
-var dropTable = function(con){
-  console.log("dropping table 'person'");
-  con.query('drop table person');
-  con.once('readyForQuery', function() {
-    console.log("dropped table 'person'");
+} else {
+  console.log("Creating table 'person'");
+  con.query("create table person(id serial, name varchar(10), age integer)").on('end', function(){
+    console.log("Created!");
+    console.log("Filling it with people");
+  });;
+  people.map(function(person) {
+    return con.query("insert into person(name, age) values('"+person.name + "', '" + person.age + "')");
+  }).pop().on('end', function(){
+    console.log("Inserted 26 people");
     con.end();
   });
 }
