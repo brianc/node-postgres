@@ -3,7 +3,8 @@ var config = {
   host: 'localhost',
   user: 'postgres',
   database: 'postgres',
-  password: ''
+  password: '',
+  test: 'unit'
 };
 
 var args = process.argv;
@@ -32,6 +33,9 @@ for(var i = 0; i < args.length; i++) {
   case '--down':
     config.down = true;
     break;
+  case '-t':
+  case '--test':
+    config.test = args[++i];
   default:
     break;
   }
