@@ -16,7 +16,6 @@ for(var i = 0; i < args.length; i++) {
     break;
   case '--password':
     config.password = args[++i];
-    throw new Error("Passwords not supported yet");
     break;
   case '-d':
   case '--database':
