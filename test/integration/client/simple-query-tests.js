@@ -13,5 +13,4 @@ test("selects rows", function() {
     client.end();
   });
 
-
 });
