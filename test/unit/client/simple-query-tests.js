@@ -77,7 +77,7 @@ test('executing query', function() {
     });
 
     test('handles rowDescription message', function() {
-      var handled = con.emit('rowDescription',{});
+      var handled = con.emit('rowDescription',{fields: [{}]});
       assert.ok(handled, "should have handlded rowDescritpion");
     });
 
