@@ -48,6 +48,16 @@ test('typed results', function() {
     dataTypeID: 701,
     actual: '1.2',
     expected: 1.2
+  },{
+    name: 'boolean true',
+    dataTypeID: 16,
+    actual: 't',
+    expected: true
+  },{
+    name: 'boolean false',
+    dataTypeID: 16,
+    actual: 'f',
+    expected: false
   }];
 
 
