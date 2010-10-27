@@ -1,25 +1,11 @@
-require(__dirname + "/test-helper");
-
-var makeClient = function() {
-  var connection = new Connection({stream: "no"});
-  connection.startup = function() {};
-  connection.connect = function() {};
-  connection.query = function(text) {
-    this.queries.push(text);
-  };
-  connection.queries = [];
-  var client = new Client({connection: connection});
-  client.connect();
-  client.connection.emit('connect');
-  return client;
-};
+var helper = require(__dirname + "/test-helper");
 
 test('executing query', function() {
 
   test("queing query", function() {
 
     test('when connection is ready', function() {
-      var client = makeClient();
+      var client = helper.client();
       assert.empty(client.connection.queries);
       client.connection.emit('readyForQuery');
       client.query('yes');
@@ -28,7 +14,7 @@ test('executing query', function() {
     });
 
     test('when connection is not ready', function() {
-      var client = makeClient();
+      var client = helper.client();
 
       test('query is not sent', function() {
         client.query('boom');
@@ -44,7 +30,7 @@ test('executing query', function() {
     });
 
     test("multiple in the queue", function() {
-      var client = makeClient();
+      var client = helper.client();
       var connection = client.connection;
       var queries = connection.queries;
       client.query('one');
@@ -76,7 +62,7 @@ test('executing query', function() {
   });
 
   test("query event binding and flow", function() {
-    var client = makeClient();
+    var client = helper.client();
     var con = client.connection;
     var query = client.query('whatever');
 
