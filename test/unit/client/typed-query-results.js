@@ -7,60 +7,67 @@ test('typed results', function() {
   var query = client.query("the bums lost");
 
 
-  assert.raises(query, 'row', function(row) {
-    var testParses = function(name, index, expected) {
-      test('parses ' + name, function() {
-        assert.strictEqual(row.fields[index], expected);
-      });
-    };
-    testParses('string', 0, 'bang');
-    testParses('integer / int4', 1, 1394);
-    testParses('smallInt / int2', 2, 4);
-    testParses('bigint / int8', 3, 1234567890);
-    testParses('oid', 4, 1234);
-    testParses('numeric', 5, 123.456);
-    testParses('real / float4', 6, 123.4567);
-    testParses('double', 7, 1234.5678);
-  });
+  //TODO refactor to this style
+  var tests = [{
+    name: 'string/varchar',
+    dataTypeID: 1043,
+    actual: 'bang',
+    expected: 'bang'
+  },{
+    name: 'integer/int4',
+    dataTypeID: 23,
+    actual: '100',
+    expected: 100
+  },{
+    name: 'smallint/int2',
+    dataTypeID: 21,
+    actual: '101',
+    expected: 101
+  },{
+    name: 'bigint/int8',
+    dataTypeID: 20,
+    actual: '102',
+    expected: 102
+  },{
+    name: 'oid',
+    dataTypeID: 26,
+    actual: '103',
+    expected: 103
+  },{
+    name: 'numeric',
+    dataTypeID: 1700,
+    actual: '12.34',
+    expected: 12.34
+  },{
+    name: 'real/float4',
+    dataTypeID: 700,
+    actual: '123.456',
+    expected: 123.456
+  },{
+    name: 'double precision / float8',
+    dataTypeID: 701,
+    actual: '1.2',
+    expected: 1.2
+  }];
+
 
   con.emit('rowDescription', {
-    fieldCount: 2,
-    fields: [{
-      name: 'string/varchar', //note: field name has NO influence on type parsing...
-      dataTypeID: 1043
-    },{
-      name: 'integer/int4',
-      dataTypeID: 23 //int4, integer
-    },{
-      name: 'smallint/int2',
-      dataTypeID: 21
-    },{
-      name: 'bigint/int8',
-      dataTypeID: 20
-    },{
-      name: 'oid',
-      dataTypeID: 26
-    },{
-      name: 'numeric',
-      dataTypeID: 1700
-    },{
-      name: 'real, float4',
-      dataTypeID: 700
-    },{
-      name: 'double precision, float8',
-      dataTypeID: 701
-    }]
+    fieldCount: tests.length,
+    fields: tests
   });
 
-  assert.ok(con.emit('dataRow', {fields:[
-    'bang', //varchar
-    '1394',  //integer
-    '4', //smallint
-    '1234567890', //bigint (yes, i know, this isn't 8 bytes)
-    '1234', //oid
-    '123.456', //numeric
-    '123.4567', //real
-    '1234.5678' //double
-  ]}));
+  assert.raises(query, 'row', function(row) {
+    for(var i = 0; i < tests.length; i++) {
+      test('parses ' + tests[i].name, function() {
+        assert.strictEqual(row.fields[i], tests[i].expected);
+      });
+    }
+  });
+
+  assert.ok(con.emit('dataRow', {
+    fields: tests.map(function(x) {
+      return x.actual;
+    })
+  }));
 
 });
