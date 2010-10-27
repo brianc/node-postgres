@@ -18,6 +18,9 @@ test('typed results', function() {
     testParses('smallInt / int2', 2, 4);
     testParses('bigint / int8', 3, 1234567890);
     testParses('oid', 4, 1234);
+    testParses('numeric', 5, 123.456);
+    testParses('real / float4', 6, 123.4567);
+    testParses('double', 7, 1234.5678);
   });
 
   con.emit('rowDescription', {
@@ -37,6 +40,15 @@ test('typed results', function() {
     },{
       name: 'oid',
       dataTypeID: 26
+    },{
+      name: 'numeric',
+      dataTypeID: 1700
+    },{
+      name: 'real, float4',
+      dataTypeID: 700
+    },{
+      name: 'double precision, float8',
+      dataTypeID: 701
     }]
   });
 
@@ -45,7 +57,10 @@ test('typed results', function() {
     '1394',  //integer
     '4', //smallint
     '1234567890', //bigint (yes, i know, this isn't 8 bytes)
-    '1234' //oid
+    '1234', //oid
+    '123.456', //numeric
+    '123.4567', //real
+    '1234.5678' //double
   ]}));
 
 });

@@ -207,6 +207,9 @@ the database first and then re-create the data as follows:
   - Typed result set support in client
     - simple queries
     - bound commands
+    - edge cases
+      - [numeric 'NaN' result](http://www.postgresql.org/docs/8.4/static/datatype-numeric.html)
+      - float Infinity, -Infinity
   - Error handling
     - disconnection, removal of listeners on errors
     - passing errors to callbacks?
