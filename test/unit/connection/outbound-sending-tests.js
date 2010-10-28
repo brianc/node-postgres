@@ -158,8 +158,14 @@ test('sends end command', function() {
 
 test('sends describe command',function() {
   test('describe statement', function() {
-    con.describe({type: 's', name: 'bang'});
-    var expected = new BufferList().addChar('s').addCString('bang').join(true, 'D')
+    con.describe({type: 'S', name: 'bang'});
+    var expected = new BufferList().addChar('S').addCString('bang').join(true, 'D')
+    assert.recieved(stream, expected);
+  });
+
+  test("describe unnamed portal", function() {
+    con.describe({type: 'P'});
+    var expected = new BufferList().addChar('P').addCString("").join(true, "D");
     assert.recieved(stream, expected);
   });
 });
