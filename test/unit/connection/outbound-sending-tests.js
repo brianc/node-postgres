@@ -155,3 +155,11 @@ test('sends end command', function() {
   var expected = new Buffer([0x58, 0, 0, 0, 4]);
   assert.recieved(stream, expected);
 });
+
+test('sends describe command',function() {
+  test('describe statement', function() {
+    con.describe({type: 's', name: 'bang'});
+    var expected = new BufferList().addChar('s').addCString('bang').join(true, 'D')
+    assert.recieved(stream, expected);
+  });
+});
