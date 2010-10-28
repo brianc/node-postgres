@@ -13,9 +13,9 @@ only refactoring after tests are in place.
 Clone the repo.  There are __no__ dependencies.
 
 ```bash
-    git clone git://github.com/brianc/node-postgres
-    cd node-postgres
-    node test/run.js
+     git clone git://github.com/brianc/node-postgres
+     cd node-postgres
+     node test/run.js
 ```
 And just like magic, you're ready to contribute! <3
 
@@ -136,21 +136,21 @@ tests for more up to date examples, but what I'm working towards is
 something like this:
 
 ```javascript
-    var client = new Client({
-      user: 'brian',
-      database: 'test'
-    });
+     var client = new Client({
+       user: 'brian',
+       database: 'test'
+     });
     
-    var query = client.query({
-      text: 'select * from person where age < $1',
-      values: [21]
-    });
+     var query = client.query({
+       text: 'select * from person where age < $1',
+       values: [21]
+     });
 
-    query.on('row', function(row) {
-      console.log(row);
-    });
+     query.on('row', function(row) {
+       console.log(row);
+     });
 
-    query.on('end', function() { client.end() });
+     query.on('end', function() { client.end() });
 ```
 ## Testing
 
