@@ -12,11 +12,11 @@ only refactoring after tests are in place.
 
 Clone the repo.  There are __no__ dependencies.
 
-```bash
+
      git clone git://github.com/brianc/node-postgres
      cd node-postgres
      node test/run.js
-```
+
 And just like magic, you're ready to contribute! <3
 
 I don't have _style guidelines_ or anything right now.  I'm 100x more
@@ -135,7 +135,7 @@ I'm still working on the API for prepared statements.  Check out the
 tests for more up to date examples, but what I'm working towards is
 something like this:
 
-```javascript
+
      var client = new Client({
        user: 'brian',
        database: 'test'
@@ -151,7 +151,7 @@ something like this:
      });
 
      query.on('end', function() { client.end() });
-```
+
 ## Testing
 
 The tests are split up into two different Unit test and
