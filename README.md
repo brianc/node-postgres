@@ -8,6 +8,21 @@ Implemented in a fully TDD fashion.    I'm aiming for
 extremely high quality code, but first doing the implementation and
 only refactoring after tests are in place.  
 
+##### Installation
+
+Clone the repo.  There are __no__ dependencies.
+
+    ```bash
+    git clone git://github.com/brianc/node-postgres
+    cd node-postgres
+    node test/run.js
+    ```
+And just like magic, you're ready to contribute! <3
+
+I don't have _style guidelines_ or anything right now.  I'm 100x more
+concerned with test coverage, functionality, and happy coding than I
+am about whether or not you've got the proper spacing after your `{ hash: 'separators' }`
+
 ### Connection
 
 The connection object is a 1 to 1 mapping to the [postgres
@@ -38,7 +53,7 @@ using the directly __Connection__ api in compliance with
 PostgreSQL.
  
 _note: this works and is taken directly from an integration test;
-however, it doesn't even include error handling_
+however, it doesn't include error handling_
 
     var con = new Connection({stream: new net.Stream()});
 
@@ -99,11 +114,6 @@ Now that I've got the __Connection__ api in place, the bulk and meat of
 the work is being done on the __Client__ to provide the best possible
 API.  Help? Yes please!
 
-What I'd like is to simplify the above low level use with something
-like this:
-
-_note: this doesn't fully exist yet_
-
     var client = new Client({
       user: 'brian',
       database: 'postgres',
@@ -119,6 +129,29 @@ _note: this doesn't fully exist yet_
       client.end();
     });    
 
+#### Prepared statements
+
+I'm still working on the API for prepared statements.  Check out the
+tests for more up to date examples, but what I'm working towards is
+something like this:
+
+    ```javascript
+    var client = new Client({
+      user: 'brian',
+      database: 'test'
+    });
+    
+    var query = client.query({
+      text: 'select * from person where age < $1',
+      values: [21]
+    });
+
+    query.on('row', function(row) {
+      console.log(row);
+    });
+
+    query.on('end', function() { client.end() });
+    ```
 ## Testing
 
 The tests are split up into two different Unit test and
