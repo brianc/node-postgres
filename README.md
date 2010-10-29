@@ -59,7 +59,7 @@ And just like magic, you're ready to contribute! <3
 
 ### Documentalicious
 
-Srsly check out the [WIKI](wiki).  MUCH more information there.
+Srsly check out the [WIKI](node-postgres/wiki).  MUCH more information there.
 
 p.s. want your own offline version of the wiki?
 
@@ -100,4 +100,4 @@ and possibly obsessive test coverage to back up.
 
 ## License
 
-node-postgres is licensed under the [MIT license](License).
+node-postgres is licensed under the [MIT license](node-postgres/License).
