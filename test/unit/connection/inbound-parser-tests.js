@@ -181,6 +181,13 @@ test('Connection', function() {
     });
   });
 
+  test("no data message", function() {
+    testForMessage(Buffer([0x6e, 0, 0, 0, 4]), {
+      id: 'n',
+      name: 'noData'
+    });
+  });
+
   test('one row message', function() {
     var message = testForMessage(oneRowDescBuff, expectedOneRowMessage);
     test('has one field', function() {
