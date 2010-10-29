@@ -100,4 +100,4 @@ and possibly obsessive test coverage to back up.
 
 ## License
 
-node-postgres is licensed under the [MIT license](node-postgres/License).
+node-postgres is licensed under the [MIT license](node-postgres/blob/master/License).
