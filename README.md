@@ -1,6 +1,7 @@
 #node-postgres
 
-Non-blocking (async) JavaScript PostgreSQL client for node.js written fully TDD
+Non-blocking (async) JavaScript PostgreSQL client for node.js written
+fully TDD and with lots of love.
 
 ## alpha version
 
@@ -31,6 +32,7 @@ Non-blocking (async) JavaScript PostgreSQL client for node.js written fully TDD
 
     var cachedPreparedStatement = client.query({
       name: 'user by heart type',
+      //you can omit the text the 2nd time, but you don't have to
       values: ['filled with kisses']
     });
     cachedPreparedStatement.on('row', printRow);
@@ -55,13 +57,15 @@ And just like magic, you're ready to contribute! <3
 
 ## More info please
 
-Srsly check out the [[wiki]].  MUCH more information there.
+### Documentalicious
+
+Srsly check out the [WIKI](wiki).  MUCH more information there.
 
 p.s. want your own offline version of the wiki?
 
     git clone git://github.com/brianc/node-postgres.wiki.git
 
-__github is magic__
+_github is magic_
 
 ### Why?
 
@@ -96,4 +100,4 @@ and possibly obsessive test coverage to back up.
 
 ## License
 
-node-postgres is licensed under the MIT license.
+node-postgres is licensed under the [MIT license](License).
