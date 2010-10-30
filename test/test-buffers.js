@@ -113,4 +113,8 @@ buffers.notification = function(id, channel, payload) {
     .join(true, 'A')
 };
 
+buffers.emptyQuery = function() {
+  return new BufferList().join(true, 'I');
+};
+
 module.exports = buffers;
