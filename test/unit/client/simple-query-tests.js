@@ -93,11 +93,20 @@ test('executing query', function() {
       });
       var handledAgain = con.emit('dataRow', { fields: ["bye"] });
       assert.ok(handledAgain, "should have handled seciond data row message");
+    });
 
+    //multiple command complete messages will be sent
+    //when multiple queries are in a simple command
+    test('handles command complete messages', function() {
+      con.emit('commandComplete', {
+        text: 'INSERT 31 1'
+      });
     });
 
     test('removes itself after another readyForQuery message', function() {
-      assert.raises(query, "end");
+      assert.raises(query, "end", function(msg) {
+        //TODO do we want to check the complete messages?
+      });
       con.emit("readyForQuery");
       //this would never actually happen
       ['dataRow','rowDescritpion', 'commandComplete'].forEach(function(msg) {
