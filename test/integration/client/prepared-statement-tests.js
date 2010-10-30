@@ -20,76 +20,76 @@ test("simple, unnamed prepared statement", function(){
 test("named prepared statement", function() {
 
   var client = helper.client();
+  client.on('drain', client.end.bind(client));
+
   var queryName = "user by age and like name";
-  var query = client.query({
-    text: 'select name from person where age <= $1 and name LIKE $2',
-    values: [20, 'Bri%'],
-    name: queryName
-  });
-
   var parseCount = 0;
-  client.connection.on('parseComplete', function() {
-    parseCount++;
+
+  test("first named prepared statement",function() {
+    var query = client.query({
+      text: 'select name from person where age <= $1 and name LIKE $2',
+      values: [20, 'Bri%'],
+      name: queryName
+    });
+
+    test("is parsed", function() {
+      client.connection.on('parseComplete', function() {
+        parseCount++;
+      });
+    });
+
+    assert.raises(query, 'row', function(row) {
+      assert.equal(row.fields[0], 'Brian');
+    });
+
+    assert.raises(query, 'end', function() {
+      test("query was parsed", function() {
+        assert.equal(parseCount, 1);
+      });
+    });
   });
 
-  assert.raises(query, 'row', function(row) {
-    assert.equal(row.fields[0], 'Brian');
+  test("second named prepared statement with same name & text", function() {
+    var cachedQuery = client.query({
+      text: 'select name from person where age <= $1 and name LIKE $2',
+      name: queryName,
+      values: [10, 'A%']
+    });
+
+    assert.raises(cachedQuery, 'row', function(row) {
+      assert.equal(row.fields[0], 'Aaron');
+    });
+
+    assert.raises(cachedQuery, 'end', function() {
+      test("query was only parsed one time", function() {
+        assert.equal(parseCount, 1, "Should not have reparsed query");
+      });
+    });
   });
 
-  assert.raises(query, 'end', function() {
-    test("query was parsed", function() {
+  test("with same name, but the query text not even there batman!", function() {
+    var q = client.query({
+      name: queryName,
+      values: [30, '%n%']
+    });
+
+    test("gets first row", function() {
+      assert.raises(q, 'row', function(row) {
+        assert.equal(row.fields[0], "Aaron");
+
+        test("gets second row", function() {
+          assert.raises(q, 'row', function(row) {
+            assert.equal(row.fields[0], "Brian");
+          });
+        });
+
+      });
+    });
+
+    assert.raises(q, 'end', function() {
       assert.equal(parseCount, 1);
     });
-
-    test("with same name & text", function() {
-      var cachedQuery = client.query({
-        text: 'select name from person where age <= $1 and name LIKE $2',
-        name: queryName,
-        values: [10, 'A%']
-      });
-
-      assert.raises(cachedQuery, 'row', function(row) {
-        assert.equal(row.fields[0], 'Aaron');
-      });
-
-      assert.raises(cachedQuery, 'end', function() {
-        test("query was only parsed one time", function() {
-          assert.equal(parseCount, 1, "Should not have reparsed query");
-        });
-      });
-    });
-
-    test("with same name, but the query text not even there batman!", function() {
-      var q = client.query({
-        name: queryName,
-        values: [30, '%n%']
-      });
-
-      test("gets first row", function() {
-
-        assert.raises(q, 'row', function(row) {
-          assert.equal(row.fields[0], "Aaron");
-
-          test("gets second row", function() {
-
-            assert.raises(q, 'row', function(row) {
-              assert.equal(row.fields[0], "Brian");
-            });
-          });
-
-        });
-      });
-
-      test("only parsed query once total", function() {
-        assert.equal(parseCount, 1);
-        q.on('end', function() {
-          client.end();
-        });
-      });
-
-    });
   });
-
 });
 
 test("prepared statements on different clients", function() {
