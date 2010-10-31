@@ -62,13 +62,11 @@ var oneFieldBuf = buffers.dataRow(['test\0']);
 
 var expectedAuthenticationOkayMessage = {
   name: 'authenticationOk',
-  id: 'R',
   length: 8
 };
 
 var expectedParameterStatusMessage = {
   name: 'parameterStatus',
-  id: 'S',
   length: 25,
   parameterName: 'client_encoding',
   parameterValue: 'UTF8'
@@ -76,21 +74,18 @@ var expectedParameterStatusMessage = {
 
 var expectedBackendKeyDataMessage = {
   name: 'backendKeyData',
-  id: 'K',
   processID: 1,
   secretKey: 2
 };
 
 var expectedReadyForQueryMessage = {
   name: 'readyForQuery',
-  id: 'Z',
   length: 5,
   status: 'I'
 };
 
 var expectedCommandCompleteMessage = {
   length: 13,
-  id: 'C',
   text: "SELECT 3"
 };
 var emptyRowDescriptionBuffer = new BufferList()
@@ -99,20 +94,17 @@ var emptyRowDescriptionBuffer = new BufferList()
 
 var expectedEmptyRowDescriptionMessage = {
   name: 'rowDescription',
-  id: 'T',
   length: 6,
   fieldCount: 0
 };
 var expectedOneRowMessage = {
   name: 'rowDescription',
-  id: 'T',
   length: 27,
   fieldCount: 1
 };
 
 var expectedTwoRowMessage = {
   name: 'rowDescription',
-  id: 'T',
   length: 53,
   fieldCount: 2
 };
@@ -144,18 +136,15 @@ var plainPasswordBuffer = buffers.authenticationCleartextPassword();
 var md5PasswordBuffer = buffers.authenticationMD5Password();
 
 var expectedPlainPasswordMessage = {
-  id: 'R',
   name: 'authenticationCleartextPassword'
 };
 
 var expectedMD5PasswordMessage = {
-  id: 'R',
   name: 'authenticationMD5Password'
 };
 
 var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom');
 var expectedNotificationResponseMessage = {
-  id: 'A',
   name: 'notification',
   processId: 4,
   channel: 'hi',
@@ -183,7 +172,6 @@ test('Connection', function() {
 
   test("no data message", function() {
     testForMessage(Buffer([0x6e, 0, 0, 0, 4]), {
-      id: 'n',
       name: 'noData'
     });
   });
@@ -342,14 +330,12 @@ test('Connection', function() {
 
   test('parses parse complete command', function() {
     testForMessage(parseCompleteBuffer, {
-      id: '1',
       name: 'parseComplete'
     });
   });
 
   test('parses bind complete command', function() {
     testForMessage(bindCompleteBuffer, {
-      id: '2',
       name: 'bindComplete'
     });
   });
