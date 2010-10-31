@@ -59,7 +59,7 @@ And just like magic, you're ready to contribute! <3
 
 ### Documentalicious
 
-Srsly check out the [WIKI](node-postgres/wiki).  MUCH more information there.
+__PLEASE__ check out the [WIKI](node-postgres/wiki).  __MUCH__ more information there.
 
 p.s. want your own offline version of the wiki?
 
@@ -67,7 +67,7 @@ p.s. want your own offline version of the wiki?
 
 _github is magic_
 
-### Why?
+### Why did you write this?
 
 As soon as I saw node.js for the first time I knew I had found
 something lovely and simple and _just what I always wanted!_.  So...I
