@@ -39,22 +39,32 @@ var testForTypeCoercion = function(type){
 //TODO test for nulls
 var types = [{
   name: 'integer',
-  values: [1, -1]
+  values: [1, -1, null]
 },{
   name: 'smallint',
-  values: [-1, 0, 1]
+  values: [-1, 0, 1, null]
 },{
   name: 'bigint',
-  values: [-10000, 0, 10000]
+  values: [-10000, 0, 10000, null]
 },{
   name: 'varchar(5)',
   values: ['yo', '', 'zomg!', null]
 },{
   name: 'oid',
-  values: [0, 204410]
+  values: [0, 204410, null]
 },{
   name: 'bool',
-  values: [true, false]
+  values: [true, false, null]
+},{
+  //TODO get some actual huge numbers here
+  name: 'numeric',
+  values: [-12.34, 0, 12.34, null]
+},{
+  name: 'real',
+  values: [101.1, 0, -101.3, null]
+},{
+  name: 'double precision',
+  values: [-1.2, 0, 1.2, null]
 }];
 
 types.forEach(testForTypeCoercion);
