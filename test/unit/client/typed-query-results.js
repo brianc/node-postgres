@@ -58,6 +58,11 @@ test('typed results', function() {
     dataTypeID: 16,
     actual: 'f',
     expected: false
+  },{
+    name: 'boolean null',
+    dataTypeID: 16,
+    actual: null,
+    expected: null
   }];
 
 
