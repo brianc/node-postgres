@@ -36,7 +36,6 @@ var testForTypeCoercion = function(type){
   });
 };
 
-//TODO test for nulls
 var types = [{
   name: 'integer',
   values: [1, -1, null]

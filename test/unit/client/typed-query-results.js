@@ -63,6 +63,34 @@ test('typed results', function() {
     dataTypeID: 16,
     actual: null,
     expected: null
+  },{
+    name: 'timestamptz with minutes in timezone',
+    dataTypeID: 1184,
+    actual: '2010-10-31 14:54:13.74-0530',
+    expected: function(val) {
+      return false;
+    }
+  },{
+    name: 'timestampz with huge miliseconds in UTC',
+    dataTypeID: 1184,
+    actual: '2010-10-30 14:11:12.730838Z',
+    expected: function(val) {
+      return false;
+    }
+  },{
+    name: 'timestampz with no miliseconds',
+    dataTypeID: 1184,
+    actual: '2010-10-30 13:10:01+05',
+    expected: function(val) {
+      return false;
+    }
+  },{
+    name: 'timestamp',
+    dataTypeID: 1114,
+    actual:  '2010-10-31 00:00:00',
+    expected: function(val) {
+      return false;
+    }
   }];
 
 
@@ -74,7 +102,12 @@ test('typed results', function() {
   assert.emits(query, 'row', function(row) {
     for(var i = 0; i < tests.length; i++) {
       test('parses ' + tests[i].name, function() {
-        assert.strictEqual(row.fields[i], tests[i].expected);
+        var expected = tests[i].expected;
+        if(typeof expected === 'function') {
+          return expected(row.fields[i]);
+        }
+        assert.strictEqual(row.fields[i], expected);
+
       });
     }
   });
