@@ -5,7 +5,7 @@ require.paths.unshift(__dirname + '/../lib/');
 
 Client = require('client');
 EventEmitter = require('events').EventEmitter;
-BufferList = require('buffer-list')
+BufferList = require(__dirname+'/buffer-list')
 buffers = require(__dirname + '/test-buffers');
 Connection = require('connection');
 var args = require(__dirname + '/cli');
