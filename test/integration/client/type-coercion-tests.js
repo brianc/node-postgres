@@ -22,7 +22,7 @@ var testForTypeCoercion = function(type){
       });
 
       test('coerces ' + val + ' as ' + type.name, function() {
-        assert.raises(query, 'row', function(row) {
+        assert.emits(query, 'row', function(row) {
           assert.strictEqual(row.fields[0], val);
         });
       });

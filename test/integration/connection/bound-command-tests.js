@@ -11,13 +11,13 @@ test('flushing once', function() {
     con.execute();
     con.flush();
 
-    assert.raises(con, 'parseComplete');
-    assert.raises(con, 'bindComplete');
-    assert.raises(con, 'dataRow');
-    assert.raises(con, 'commandComplete', function(){
+    assert.emits(con, 'parseComplete');
+    assert.emits(con, 'bindComplete');
+    assert.emits(con, 'dataRow');
+    assert.emits(con, 'commandComplete', function(){
       con.sync();
     });
-    assert.raises(con, 'readyForQuery', function(){
+    assert.emits(con, 'readyForQuery', function(){
       con.end();
     });
 
@@ -27,24 +27,24 @@ test('flushing once', function() {
 test("sending many flushes", function() {
   helper.connect(function(con) {
 
-    assert.raises(con, 'parseComplete', function(){
+    assert.emits(con, 'parseComplete', function(){
       con.bind();
       con.flush();
     });
 
-    assert.raises(con, 'bindComplete', function(){
+    assert.emits(con, 'bindComplete', function(){
       con.execute();
       con.flush();
     });
 
-    assert.raises(con, 'dataRow', function(msg){
+    assert.emits(con, 'dataRow', function(msg){
       assert.equal(msg.fields[0], 1);
-      assert.raises(con, 'dataRow', function(msg){
+      assert.emits(con, 'dataRow', function(msg){
         assert.equal(msg.fields[0], 2);
-        assert.raises(con, 'commandComplete', function(){
+        assert.emits(con, 'commandComplete', function(){
           con.sync();
         });
-        assert.raises(con, 'readyForQuery', function(){
+        assert.emits(con, 'readyForQuery', function(){
           con.end();
         });
       });

@@ -54,7 +54,7 @@ test('bound command', function() {
       values: ['hi']
     });
 
-    assert.raises(query,'end', function() {
+    assert.emits(query,'end', function() {
       test('parse argument', function() {
         assert.equal(parseArg.name, null);
         assert.equal(parseArg.text, 'select * where name = $1');

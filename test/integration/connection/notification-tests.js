@@ -3,9 +3,9 @@ var helper = require(__dirname + '/test-helper');
 test('recieves notification from same connection with no payload', function() {
   helper.connect(function(con) {
     con.query('LISTEN boom');
-    assert.raises(con, 'readyForQuery', function() {
+    assert.emits(con, 'readyForQuery', function() {
       con.query("NOTIFY boom");
-      assert.raises(con, 'notification', function(msg) {
+      assert.emits(con, 'notification', function(msg) {
         assert.equal(msg.payload, "");
         assert.equal(msg.channel, 'boom')
         con.end();

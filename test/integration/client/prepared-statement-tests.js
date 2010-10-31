@@ -8,11 +8,11 @@ test("simple, unnamed prepared statement", function(){
     values: ['Brian']
   });
 
-  assert.raises(query, 'row', function(row) {
+  assert.emits(query, 'row', function(row) {
     assert.equal(row.fields[0], 20);
   });
 
-  assert.raises(query, 'end', function() {
+  assert.emits(query, 'end', function() {
     client.end();
   });
 });
@@ -38,11 +38,11 @@ test("named prepared statement", function() {
       });
     });
 
-    assert.raises(query, 'row', function(row) {
+    assert.emits(query, 'row', function(row) {
       assert.equal(row.fields[0], 'Brian');
     });
 
-    assert.raises(query, 'end', function() {
+    assert.emits(query, 'end', function() {
       test("query was parsed", function() {
         assert.equal(parseCount, 1);
       });
@@ -56,11 +56,11 @@ test("named prepared statement", function() {
       values: [10, 'A%']
     });
 
-    assert.raises(cachedQuery, 'row', function(row) {
+    assert.emits(cachedQuery, 'row', function(row) {
       assert.equal(row.fields[0], 'Aaron');
     });
 
-    assert.raises(cachedQuery, 'end', function() {
+    assert.emits(cachedQuery, 'end', function() {
       test("query was only parsed one time", function() {
         assert.equal(parseCount, 1, "Should not have reparsed query");
       });
@@ -74,11 +74,11 @@ test("named prepared statement", function() {
     });
 
     test("gets first row", function() {
-      assert.raises(q, 'row', function(row) {
+      assert.emits(q, 'row', function(row) {
         assert.equal(row.fields[0], "Aaron");
 
         test("gets second row", function() {
-          assert.raises(q, 'row', function(row) {
+          assert.emits(q, 'row', function(row) {
             assert.equal(row.fields[0], "Brian");
           });
         });
@@ -86,7 +86,7 @@ test("named prepared statement", function() {
       });
     });
 
-    assert.raises(q, 'end', function() {
+    assert.emits(q, 'end', function() {
       assert.equal(parseCount, 1);
     });
   });
@@ -111,12 +111,12 @@ test("prepared statements on different clients", function() {
       text: statement1
     });
     test('gets right data back', function() {
-      assert.raises(query, 'row', function(row) {
+      assert.emits(query, 'row', function(row) {
         assert.equal(row.fields[0], 26);
       });
     });
 
-    assert.raises(query, 'end', function() {
+    assert.emits(query, 'end', function() {
       if(client2Finished) {
         client1.end();
         client2.end();
@@ -135,12 +135,12 @@ test("prepared statements on different clients", function() {
     });
 
     test('gets right data', function() {
-      assert.raises(query, 'row', function(row) {
+      assert.emits(query, 'row', function(row) {
         assert.equal(row.fields[0], 1);
       });
     });
 
-    assert.raises(query, 'end', function() {
+    assert.emits(query, 'end', function() {
       if(client1Finished) {
         client1.end();
         client2.end();

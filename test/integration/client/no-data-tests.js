@@ -26,7 +26,7 @@ test("noData message handling", function() {
     values: [101]
   });
 
-  assert.raises(query, 'row', function(row) {
+  assert.emits(query, 'row', function(row) {
     assert.strictEqual(row.fields[0],100)
   });
 

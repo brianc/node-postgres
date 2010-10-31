@@ -71,7 +71,7 @@ test('typed results', function() {
     fields: tests
   });
 
-  assert.raises(query, 'row', function(row) {
+  assert.emits(query, 'row', function(row) {
     for(var i = 0; i < tests.length; i++) {
       test('parses ' + tests[i].name, function() {
         assert.strictEqual(row.fields[i], tests[i].expected);

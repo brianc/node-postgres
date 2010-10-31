@@ -17,7 +17,7 @@ assert.same = function(actual, expected) {
 };
 
 
-assert.raises = function(item, eventName, callback) {
+assert.emits = function(item, eventName, callback) {
   var called = false;
   var id = setTimeout(function() {
     test("Should have called " + eventName, function() {
@@ -62,7 +62,7 @@ assert.length = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
 };
 
-['equal', 'length', 'empty', 'strictEqual', 'raises', 'equalBuffers', 'same', 'ok'].forEach(function(name) {
+['equal', 'length', 'empty', 'strictEqual', 'emits', 'equalBuffers', 'same', 'ok'].forEach(function(name) {
   var old = assert[name];
   assert[name] = function() {
     test.assertCount++

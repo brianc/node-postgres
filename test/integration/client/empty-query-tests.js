@@ -3,6 +3,6 @@ var client = helper.client();
 
 test("empty query message handling", function() {
   client.query("");
-  assert.raises(client.connection, 'emptyQuery');
+  assert.emits(client.connection, 'emptyQuery');
   client.on('drain', client.end.bind(client));
 });

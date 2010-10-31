@@ -7,11 +7,11 @@ var rows = [];
 test('simple query', function() {
   helper.connect(function(con) {
     con.query('select * from ids');
-    assert.raises(con, 'dataRow');
+    assert.emits(con, 'dataRow');
     con.on('dataRow', function(msg) {
       rows.push(msg.fields);
     });
-    assert.raises(con, 'readyForQuery', function() {
+    assert.emits(con, 'readyForQuery', function() {
       con.end();
     });
   });

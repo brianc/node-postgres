@@ -82,13 +82,13 @@ test('executing query', function() {
     });
 
     test('handles dataRow messages', function() {
-      assert.raises(query, 'row', function(row) {
+      assert.emits(query, 'row', function(row) {
         assert.equal(row.fields[0], "hi");
       });
       var handled = con.emit('dataRow', { fields: ["hi"] });
       assert.ok(handled, "should have handled first data row message");
 
-      assert.raises(query, 'row', function(row) {
+      assert.emits(query, 'row', function(row) {
         assert.equal(row.fields[0], "bye");
       });
       var handledAgain = con.emit('dataRow', { fields: ["bye"] });
@@ -104,7 +104,7 @@ test('executing query', function() {
     });
 
     test('removes itself after another readyForQuery message', function() {
-      assert.raises(query, "end", function(msg) {
+      assert.emits(query, "end", function(msg) {
         //TODO do we want to check the complete messages?
       });
       con.emit("readyForQuery");
