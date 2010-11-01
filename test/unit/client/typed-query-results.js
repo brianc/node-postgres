@@ -68,28 +68,28 @@ test('typed results', function() {
     dataTypeID: 1184,
     actual: '2010-10-31 14:54:13.74-0530',
     expected: function(val) {
-      return false;
+      assert.UTCDate(val, 2010, 9, 31, 9, 24, 13, 74);
     }
   },{
     name: 'timestampz with huge miliseconds in UTC',
     dataTypeID: 1184,
     actual: '2010-10-30 14:11:12.730838Z',
     expected: function(val) {
-      return false;
+      assert.UTCDate(val, 2010, 9, 30, 14, 11, 12, 730);
     }
   },{
     name: 'timestampz with no miliseconds',
     dataTypeID: 1184,
     actual: '2010-10-30 13:10:01+05',
     expected: function(val) {
-      return false;
+      assert.UTCDate(val, 2010, 9, 30, 18, 10, 01, 0);
     }
   },{
     name: 'timestamp',
     dataTypeID: 1114,
     actual:  '2010-10-31 00:00:00',
     expected: function(val) {
-      return false;
+      assert.UTCDate(val, 2010, 9, 31, 0, 0, 0, 0);
     }
   }];
 
