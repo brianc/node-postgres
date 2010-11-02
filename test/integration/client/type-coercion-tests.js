@@ -61,6 +61,18 @@ var types = [{
 },{
   name: 'double precision',
   values: [-1.2, 0, 1.2, null]
+},{
+  name: 'timestamptz',
+  values: [null]
+},{
+  name: 'timestamp',
+  values: [null]
+},{
+  name: 'timetz',
+  values: ['13:11:12.1234-05:30',null]
+},{
+  name: 'time',
+  values: ['13:12:12.321', null]
 }];
 
 types.forEach(testForTypeCoercion);
