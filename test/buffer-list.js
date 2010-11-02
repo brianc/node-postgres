@@ -27,8 +27,12 @@ p.addInt32 = function(val, first) {
   ]),first);
 };
 
-p.addCString = function(val) {
-  return this.add(Buffer(val + '\0','utf8'));
+p.addCString = function(val, front) {
+  var len = Buffer.byteLength(val);
+  var buffer = new Buffer(len+1);
+  buffer.write(val);
+  buffer[len] = 0;
+  return this.add(buffer, front);
 };
 
 p.addChar = function(char, first) {

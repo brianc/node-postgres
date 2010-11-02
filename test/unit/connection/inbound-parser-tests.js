@@ -57,7 +57,7 @@ var oneFieldBuf = new BufferList()
   .addCString('test')
   .join(true, 'D');
 
-var oneFieldBuf = buffers.dataRow(['test\0']);
+var oneFieldBuf = buffers.dataRow(['test']);
 
 
 var expectedAuthenticationOkayMessage = {
@@ -67,9 +67,9 @@ var expectedAuthenticationOkayMessage = {
 
 var expectedParameterStatusMessage = {
   name: 'parameterStatus',
-  length: 25,
   parameterName: 'client_encoding',
-  parameterValue: 'UTF8'
+  parameterValue: 'UTF8',
+  length: 25
 };
 
 var expectedBackendKeyDataMessage = {
@@ -246,7 +246,7 @@ test('Connection', function() {
       });
 
       test('field is correct', function() {
-        assert.equal(message.fields[0],'test\0');
+        assert.equal(message.fields[0],'test');
       });
     });
 
