@@ -1,14 +1,12 @@
 var helper = require(__dirname + '/test-helper');
 
-
+var client = helper.client();
+client.on('drain', client.end.bind(client));
 var testForTypeCoercion = function(type){
+  client.query("create temp table test_type(col " + type.name + ")");
+
   test("Coerces " + type.name, function() {
     type.values.forEach(function(val) {
-
-      var client = helper.client();
-
-      client.query("create temp table test_type(col " + type.name + ")");
-      client.on('drain', client.end.bind(client));
 
       var insertQuery = client.query({
         name: 'insert type test ' + type.name,
@@ -30,6 +28,8 @@ var testForTypeCoercion = function(type){
         text: 'delete from test_type'
       });
     });
+
+    client.query('drop table test_type');
   });
 };
 
