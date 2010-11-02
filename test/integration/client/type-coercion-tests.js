@@ -2,6 +2,7 @@ var helper = require(__dirname + '/test-helper');
 
 var client = helper.client();
 client.on('drain', client.end.bind(client));
+
 var testForTypeCoercion = function(type){
   client.query("create temp table test_type(col " + type.name + ")");
 
@@ -20,7 +21,7 @@ var testForTypeCoercion = function(type){
       });
 
       assert.emits(query, 'row', function(row) {
-        assert.strictEqual(row.fields[0], val);
+        assert.strictEqual(row.fields[0], val, "expected " + type.name + " of " + val + " but got " + row.fields[0]);
       });
 
       client.query({

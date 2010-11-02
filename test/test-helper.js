@@ -23,7 +23,7 @@ assert.emits = function(item, eventName, callback) {
     test("Should have called " + eventName, function() {
       assert.ok(called, "Expected '" + eventName + "' to be called.")
     });
-  },10000);
+  },20000);
 
   item.once(eventName, function() {
     called = true;
