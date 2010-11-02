@@ -77,4 +77,34 @@ var types = [{
 
 types.forEach(testForTypeCoercion);
 
+test("timestampz round trip", function() {
+  var now = new Date();
+  var client = helper.client();
+  client.on('error', function(err) {
+    console.log(err);
+    client.end();
+  });
+  client.query("create temp table date_tests(name varchar(10), tstz timestamptz(3))");
+  client.query({
+    text: "insert into date_tests(name, tstz)VALUES($1, $2)",
+    name: 'add date',
+    values: ['now', now]
+  });
+  var result = client.query({
+    name: 'get date',
+    text: 'select * from date_tests where name = $1',
+    values: ['now']
+  });
+  assert.emits(result, 'row', function(row) {
+    var date = row.fields[1];
+    assert.equal(date.getYear(),now.getYear());
+    assert.equal(date.getMonth(), now.getMonth());
+    assert.equal(date.getDate(), now.getDate());
+    assert.equal(date.getHours(), now.getHours());
+    assert.equal(date.getMinutes(), now.getMinutes());
+    assert.equal(date.getSeconds(), now.getSeconds());
+    assert.equal(date.getMilliseconds(), now.getMilliseconds());
+  });
+  client.on('drain', client.end.bind(client));
+});
 
