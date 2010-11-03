@@ -1,10 +1,11 @@
-sys = require('sys');
-assert = require('assert');
 
 require.paths.unshift(__dirname + '/../lib/');
 
 Client = require('client');
 EventEmitter = require('events').EventEmitter;
+
+sys = require('sys');
+assert = require('assert');
 BufferList = require(__dirname+'/buffer-list')
 buffers = require(__dirname + '/test-buffers');
 Connection = require('connection');
