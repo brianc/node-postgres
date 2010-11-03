@@ -5,6 +5,10 @@ fully TDD and with lots of love.
 
 ## alpha version
 
+### Installation
+
+    npm install pg
+
 ### good things
 
 - prepared statement support
@@ -65,9 +69,7 @@ fully TDD and with lots of love.
 * no monkey patching
 * no dependencies (well...besides PostgreSQL)
 
-### Installation
-
-Clone the repo.  
+clone the repo:
 
      git clone git://github.com/brianc/node-postgres
      cd node-postgres
