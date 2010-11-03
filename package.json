@@ -1,0 +1,14 @@
+{ "name": "pg",
+  "version": "0.0.1",
+  "description": "Pure JavaScript PostgreSQL client",
+  "homepage": "http://github.com/brianc/node-postgres",
+  "repository" : {
+    "type" : "git",
+    "url" : "git://github.com/brianc/node-postgres.git"
+  },
+  "author" : "Brian Carlson <brian.m.carlson@gmail.com>",
+  "main" : "./lib/index",
+  "directories" : { "lib" : "./lib" },
+  "scripts" : { "test" : "node .test/run.js" },
+  "engines" : { "node": ">= 0.2.2" }
+}
