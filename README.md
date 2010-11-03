@@ -5,6 +5,26 @@ fully TDD and with lots of love.
 
 ## alpha version
 
+### good things
+
+- prepared statement support
+  - parameters
+  - query caching
+- type coercion
+  - date <-> timestamptz
+  - integer <-> integer, smallint, bigint
+  - float <-> double, numeric
+  - boolean <-> boolean
+- notification message support
+- tested 
+  ~1000 assertions executed on
+    - ubuntu
+      - node v0.2.2, v0.2.3, v0.2.4, v0.3.0
+      - postgres 8.4.4
+    - osx
+      - node v0.2.2, v0.2.3, v0.2.4, v0.3.0
+      - postgres v8.4.4, v9.0.1
+
 ### Whirlwind tour
 
     var Client = require('node-postgres').Client;
