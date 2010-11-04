@@ -39,9 +39,10 @@ fully TDD and with lots of love.
     });
 
     client.connect();
+    client.on('drain', client.end.bind(client));
 
     var printRow = function(row) {
-      console.log(row.fields);
+      console.log(row);
     };
 
     var simpleQuery = client.query("select * from user where heart = 'big'");
@@ -61,7 +62,6 @@ fully TDD and with lots of love.
     });
     cachedPreparedStatement.on('row', printRow);
 
-    cachedPreparedStatement.on('end', client.end());
 
 ### Philosophy
 
