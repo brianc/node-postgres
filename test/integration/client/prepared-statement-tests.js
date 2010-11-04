@@ -9,7 +9,7 @@ test("simple, unnamed prepared statement", function(){
   });
 
   assert.emits(query, 'row', function(row) {
-    assert.equal(row.fields[0], 20);
+    assert.equal(row[0], 20);
   });
 
   assert.emits(query, 'end', function() {
@@ -39,7 +39,7 @@ test("named prepared statement", function() {
     });
 
     assert.emits(query, 'row', function(row) {
-      assert.equal(row.fields[0], 'Brian');
+      assert.equal(row[0], 'Brian');
     });
 
     assert.emits(query, 'end', function() {
@@ -57,7 +57,7 @@ test("named prepared statement", function() {
     });
 
     assert.emits(cachedQuery, 'row', function(row) {
-      assert.equal(row.fields[0], 'Aaron');
+      assert.equal(row[0], 'Aaron');
     });
 
     assert.emits(cachedQuery, 'end', function() {
@@ -75,11 +75,11 @@ test("named prepared statement", function() {
 
     test("gets first row", function() {
       assert.emits(q, 'row', function(row) {
-        assert.equal(row.fields[0], "Aaron");
+        assert.equal(row[0], "Aaron");
 
         test("gets second row", function() {
           assert.emits(q, 'row', function(row) {
-            assert.equal(row.fields[0], "Brian");
+            assert.equal(row[0], "Brian");
           });
         });
 
@@ -112,7 +112,7 @@ test("prepared statements on different clients", function() {
     });
     test('gets right data back', function() {
       assert.emits(query, 'row', function(row) {
-        assert.equal(row.fields[0], 26);
+        assert.equal(row[0], 26);
       });
     });
 
@@ -136,7 +136,7 @@ test("prepared statements on different clients", function() {
 
     test('gets right data', function() {
       assert.emits(query, 'row', function(row) {
-        assert.equal(row.fields[0], 1);
+        assert.equal(row[0], 1);
       });
     });
 

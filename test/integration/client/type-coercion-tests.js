@@ -21,7 +21,7 @@ var testForTypeCoercion = function(type){
       });
 
       assert.emits(query, 'row', function(row) {
-        assert.strictEqual(row.fields[0], val, "expected " + type.name + " of " + val + " but got " + row.fields[0]);
+        assert.strictEqual(row[0], val, "expected " + type.name + " of " + val + " but got " + row[0]);
       });
 
       client.query({
@@ -97,7 +97,7 @@ test("timestampz round trip", function() {
     values: ['now']
   });
   assert.emits(result, 'row', function(row) {
-    var date = row.fields[1];
+    var date = row[1];
     assert.equal(date.getYear(),now.getYear());
     assert.equal(date.getMonth(), now.getMonth());
     assert.equal(date.getDate(), now.getDate());

@@ -10,7 +10,7 @@ test("simple query interface", function() {
 
   var rows = [];
   query.on('row', function(row) {
-    rows.push(row.fields[0])
+    rows.push(row[0])
   });
 
   assert.emits(query, 'end', function() {
@@ -30,9 +30,9 @@ test("multiple simple queries", function() {
   client.query("insert into bang(name) VALUES ('yes');");
   var query = client.query("select name from bang");
   assert.emits(query, 'row', function(row) {
-    assert.equal(row.fields[0], 'boom');
+    assert.equal(row[0], 'boom');
     assert.emits(query, 'row', function(row) {
-      assert.equal(row.fields[0],'yes');
+      assert.equal(row[0],'yes');
     });
   });
   client.on('drain', client.end.bind(client));

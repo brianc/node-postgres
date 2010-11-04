@@ -27,7 +27,7 @@ test("noData message handling", function() {
   });
 
   assert.emits(query, 'row', function(row) {
-    assert.strictEqual(row.fields[0],100)
+    assert.strictEqual(row[0],100)
   });
 
   client.on('drain', client.end.bind(client));
