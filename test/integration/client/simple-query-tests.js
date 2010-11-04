@@ -38,3 +38,19 @@ test("multiple simple queries", function() {
   client.on('drain', client.end.bind(client));
 });
 
+test("multiple select statements", function() {
+  var client = helper.client();
+  client.query("create temp table boom(age integer); insert into boom(age) values(1); insert into boom(age) values(2); insert into boom(age) values(3)");
+  client.query("create temp table bang(name varchar(5)); insert into bang(name) values('zoom');");
+  var result = client.query("select age from boom where age < 2; select name from bang");
+  assert.emits(result, 'row', function(row) {
+    assert.strictEqual(row[0], 1);
+    assert.length(row, 1);
+    assert.emits(result, 'row', function(row) {
+      assert.length(row, 1);
+      assert.strictEqual(row[0], 'zoom');
+    });
+  });
+  client.on('drain', client.end.bind(client));
+});
+
