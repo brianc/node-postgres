@@ -136,7 +136,7 @@ test("prepared statements on different clients", function() {
 
     test('gets right data', function() {
       assert.emits(query, 'row', function(row) {
-        assert.equal(row[0], 1);
+        assert.equal(row.pop(), 1);
       });
     });
 
