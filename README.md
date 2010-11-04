@@ -40,28 +40,48 @@ fully TDD and with lots of love.
 
     client.connect();
     client.on('drain', client.end.bind(client));
-
-    var printRow = function(row) {
-      console.log(row);
-    };
-
+    
+    //queries are queued on a per-client basis and executed one at a time
+    client.query("create temp table user(heart varchar(10), birthday timestamptz);");
+    
+    //parameters are always parsed & prepared inside of PostgreSQL server
+    //using unnamed prepared statement (no sql injection! yay!)
+    client.query({
+      text: 'INSERT INTO user(heart, birthday) VALUES ($1, $2)',
+      values: ['big', new Date(2031, 03, 03)]
+    });
+    client.query({
+      text: 'INSERT INTO user(heart, birthday) VALUES ($1, $2)',
+      values: ['filled with kisses', new Date(2010, 01, 01)]
+    });
+    
     var simpleQuery = client.query("select * from user where heart = 'big'");
-    simpleQuery.on('row', printRow);
+    simpleQuery.on('row', function(row){
+      console.log(row.heart); //big
+      console.log(row.birthday.getYear()); //2031
+    });
 
     var preparedStatement = client.query({
       name: 'user by heart type',
       text: 'select * from user where heart = $1',
       values: ['big']
     });
-    preparedStatement.on('row', printRow);
+
+    preparedStatement.on('row', function(row){
+      console.log(row.heart); //big
+      console.log(row.birthday.getYear()); //2031
+    });
 
     var cachedPreparedStatement = client.query({
       name: 'user by heart type',
-      //you can omit the text the 2nd time, but you don't have to
+      //you can omit the text the 2nd time if using a named query
       values: ['filled with kisses']
     });
-    cachedPreparedStatement.on('row', printRow);
 
+    cachedPreparedStatement.on('row', function(row){
+      console.log(row.heart); //filled with kisses
+      console.log(row.birthday.getYear()); //2010
+    });
 
 ### Philosophy
 
