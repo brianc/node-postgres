@@ -77,21 +77,26 @@ test('executing query', function() {
     });
 
     test('handles rowDescription message', function() {
-      var handled = con.emit('rowDescription',{fields: [{}]});
+      var handled = con.emit('rowDescription',{
+        fields: [{
+          name: 'boom'
+        }]
+      });
       assert.ok(handled, "should have handlded rowDescritpion");
     });
 
     test('handles dataRow messages', function() {
       assert.emits(query, 'row', function(row) {
-        assert.equal(row[0], "hi");
-        assert.equal(row.length, 1);
+        assert.equal(row['boom'], "hi");
       });
+
       var handled = con.emit('dataRow', { fields: ["hi"] });
       assert.ok(handled, "should have handled first data row message");
 
       assert.emits(query, 'row', function(row) {
-        assert.equal(row[0], "bye");
+        assert.equal(row['boom'], "bye");
       });
+
       var handledAgain = con.emit('dataRow', { fields: ["bye"] });
       assert.ok(handledAgain, "should have handled seciond data row message");
     });

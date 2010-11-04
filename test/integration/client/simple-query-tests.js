@@ -10,7 +10,7 @@ test("simple query interface", function() {
 
   var rows = [];
   query.on('row', function(row) {
-    rows.push(row[0])
+    rows.push(row['name'])
   });
 
   assert.emits(query, 'end', function() {
@@ -30,9 +30,9 @@ test("multiple simple queries", function() {
   client.query("insert into bang(name) VALUES ('yes');");
   var query = client.query("select name from bang");
   assert.emits(query, 'row', function(row) {
-    assert.equal(row[0], 'boom');
+    assert.equal(row['name'], 'boom');
     assert.emits(query, 'row', function(row) {
-      assert.equal(row[0],'yes');
+      assert.equal(row['name'],'yes');
     });
   });
   client.on('drain', client.end.bind(client));
@@ -44,11 +44,9 @@ test("multiple select statements", function() {
   client.query("create temp table bang(name varchar(5)); insert into bang(name) values('zoom');");
   var result = client.query("select age from boom where age < 2; select name from bang");
   assert.emits(result, 'row', function(row) {
-    assert.strictEqual(row[0], 1);
-    assert.length(row, 1);
+    assert.strictEqual(row['age'], 1);
     assert.emits(result, 'row', function(row) {
-      assert.length(row, 1);
-      assert.strictEqual(row[0], 'zoom');
+      assert.strictEqual(row['name'], 'zoom');
     });
   });
   client.on('drain', client.end.bind(client));

@@ -104,9 +104,9 @@ test('typed results', function() {
       test('parses ' + tests[i].name, function() {
         var expected = tests[i].expected;
         if(typeof expected === 'function') {
-          return expected(row[i]);
+          return expected(row[tests[i].name]);
         }
-        assert.strictEqual(row[i], expected);
+        assert.strictEqual(row[tests[i].name], expected);
       });
     }
   });

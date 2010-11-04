@@ -9,7 +9,7 @@ test("simple, unnamed prepared statement", function(){
   });
 
   assert.emits(query, 'row', function(row) {
-    assert.equal(row[0], 20);
+    assert.equal(row.age, 20);
   });
 
   assert.emits(query, 'end', function() {
@@ -39,7 +39,7 @@ test("named prepared statement", function() {
     });
 
     assert.emits(query, 'row', function(row) {
-      assert.equal(row[0], 'Brian');
+      assert.equal(row.name, 'Brian');
     });
 
     assert.emits(query, 'end', function() {
@@ -57,7 +57,7 @@ test("named prepared statement", function() {
     });
 
     assert.emits(cachedQuery, 'row', function(row) {
-      assert.equal(row[0], 'Aaron');
+      assert.equal(row.name, 'Aaron');
     });
 
     assert.emits(cachedQuery, 'end', function() {
@@ -75,11 +75,11 @@ test("named prepared statement", function() {
 
     test("gets first row", function() {
       assert.emits(q, 'row', function(row) {
-        assert.equal(row[0], "Aaron");
+        assert.equal(row.name, "Aaron");
 
         test("gets second row", function() {
           assert.emits(q, 'row', function(row) {
-            assert.equal(row[0], "Brian");
+            assert.equal(row.name, "Brian");
           });
         });
 
@@ -94,8 +94,8 @@ test("named prepared statement", function() {
 
 test("prepared statements on different clients", function() {
   var statementName = "differ";
-  var statement1 = "select count(*) from person";
-  var statement2 = "select count(*) from person where age < $1";
+  var statement1 = "select count(*) as count from person";
+  var statement2 = "select count(*) as count from person where age < $1";
 
   var client1Finished = false;
   var client2Finished = false;
@@ -112,7 +112,7 @@ test("prepared statements on different clients", function() {
     });
     test('gets right data back', function() {
       assert.emits(query, 'row', function(row) {
-        assert.equal(row[0], 26);
+        assert.equal(row.count, 26);
       });
     });
 
@@ -136,7 +136,7 @@ test("prepared statements on different clients", function() {
 
     test('gets right data', function() {
       assert.emits(query, 'row', function(row) {
-        assert.equal(row.pop(), 1);
+        assert.equal(row.count, 1);
       });
     });
 
