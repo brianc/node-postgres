@@ -68,7 +68,7 @@ fully TDD and with lots of love.
 * well tested
 * no monkey patching
 * no dependencies (well...besides PostgreSQL)
-* [[extreme documentation|http://github.com/brianc/node-postgres/wiki]]
+* [extreme documentation](http://github.com/brianc/node-postgres/wiki)
 
 ### features
 
