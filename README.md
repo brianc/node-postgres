@@ -111,7 +111,7 @@ _github is magic_
 
 ### Working?
 
-http://www.explodemy.com is running the worlds worst (but fully functional) PostgreSQL backed, Node.js powered website.
+[this page](http://www.explodemy.com) is running the worlds worst (but fully functional) PostgreSQL backed, Node.js powered website.
 
 ### Why did you write this?
 
