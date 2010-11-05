@@ -109,6 +109,10 @@ p.s. want your own offline version of the wiki?
 
 _github is magic_
 
+### Working?
+
+http://www.explodemy.com is running the worlds worst (but fully functional) PostgreSQL backed, Node.js powered website.
+
 ### Why did you write this?
 
 As soon as I saw node.js for the first time I knew I had found
