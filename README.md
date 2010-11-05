@@ -9,26 +9,6 @@ fully TDD and with lots of love.
 
     npm install pg
 
-### good things
-
-- prepared statement support
-  - parameters
-  - query caching
-- type coercion
-  - date <-> timestamptz
-  - integer <-> integer, smallint, bigint
-  - float <-> double, numeric
-  - boolean <-> boolean
-- notification message support
-- tested 
-  ~1000 assertions executed on
-    - ubuntu
-      - node v0.2.2, v0.2.3, v0.2.4, v0.3.0
-      - postgres 8.4.4
-    - osx
-      - node v0.2.2, v0.2.3, v0.2.4, v0.3.0
-      - postgres v8.4.4, v9.0.1
-
 ### Whirlwind tour
 
     var Client = require('pg').Client;
@@ -88,6 +68,29 @@ fully TDD and with lots of love.
 * well tested
 * no monkey patching
 * no dependencies (well...besides PostgreSQL)
+* [extreme documentation](http://github.com/brianc/node-postgres/wiki)
+
+### features
+
+- prepared statement support
+  - parameters
+  - query caching
+- type coercion
+  - date <-> timestamptz
+  - integer <-> integer, smallint, bigint
+  - float <-> double, numeric
+  - boolean <-> boolean
+- notification message support
+- tested like a Toyota
+  ~1000 assertions executed on
+    - ubuntu
+      - node v0.2.2, v0.2.3, v0.2.4, v0.3.0
+      - postgres 8.4.4
+    - osx
+      - node v0.2.2, v0.2.3, v0.2.4, v0.3.0
+      - postgres v8.4.4, v9.0.1
+
+### party time
 
 clone the repo:
 
@@ -108,6 +111,10 @@ p.s. want your own offline version of the wiki?
     git clone git://github.com/brianc/node-postgres.wiki.git
 
 _github is magic_
+
+### Working?
+
+[this page](http://www.explodemy.com) is running the worlds worst (but fully functional) PostgreSQL backed, Node.js powered website.
 
 ### Why did you write this?
 
