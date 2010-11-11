@@ -45,5 +45,5 @@ var log = function(keys) {
     console.log(key + ": '" + config[key] + "'");
   });
 }
-log(['user','password','database','port','host'])
+//log(['user','password','database','port','host'])
 module.exports = config;
