@@ -152,3 +152,33 @@ test("prepared statements on different clients", function() {
 
 });
 
+test('prepared statement', function() {
+  var client = helper.client();
+  client.on('drain', client.end.bind(client));
+  client.query('CREATE TEMP TABLE zoom(name varchar(100));');
+  client.query("INSERT INTO zoom (name) VALUES ('zed')");
+  client.query("INSERT INTO zoom (name) VALUES ('postgres')");
+  client.query("INSERT INTO zoom (name) VALUES ('node postgres')");
+
+  test('with small row count', function() {
+    var q = client.query({
+      name: 'get names',
+      text: "SELECT name FROM zoom ORDER BY name",
+      rows: 1
+    });
+    test('row callback fires for each result', function() {
+      assert.emits(q, 'row', function(row) {
+        assert.equal(row.name, 'node postgres');
+        
+        assert.emits(q, 'row', function(row) {
+          assert.equal(row.name, 'postgres');
+          
+          assert.emits(q, 'row', function(row) {
+            assert.equal(row.name, 'zed');
+          })
+        });
+      })
+    })
+
+  })
+})
