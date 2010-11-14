@@ -117,4 +117,8 @@ buffers.emptyQuery = function() {
   return new BufferList().join(true, 'I');
 };
 
+buffers.portalSuspended = function() {
+  return new BufferList().join(true, 's');
+};
+
 module.exports = buffers;

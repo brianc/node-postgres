@@ -11,6 +11,7 @@ var backendKeyDataBuffer = buffers.backendKeyData(1,2);
 var commandCompleteBuffer = buffers.commandComplete("SELECT 3");
 var parseCompleteBuffer = buffers.parseComplete();
 var bindCompleteBuffer = buffers.bindComplete();
+var portalSuspendedBuffer = buffers.portalSuspended();
 
 var addRow = function(bufferList, name, offset) {
   return bufferList.addCString(name) //field name
@@ -337,6 +338,12 @@ test('Connection', function() {
   test('parses bind complete command', function() {
     testForMessage(bindCompleteBuffer, {
       name: 'bindComplete'
+    });
+  });
+
+  test('parses portal suspended message', function() {
+    testForMessage(portalSuspendedBuffer, {
+      name: 'portalSuspended'
     });
   });
 });
