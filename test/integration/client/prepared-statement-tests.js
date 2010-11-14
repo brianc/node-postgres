@@ -160,25 +160,40 @@ test('prepared statement', function() {
   client.query("INSERT INTO zoom (name) VALUES ('postgres')");
   client.query("INSERT INTO zoom (name) VALUES ('node postgres')");
 
-  test('with small row count', function() {
-    var q = client.query({
-      name: 'get names',
-      text: "SELECT name FROM zoom ORDER BY name",
-      rows: 1
-    });
+  var checkForResults = function(q) {
     test('row callback fires for each result', function() {
       assert.emits(q, 'row', function(row) {
         assert.equal(row.name, 'node postgres');
-        
+
         assert.emits(q, 'row', function(row) {
           assert.equal(row.name, 'postgres');
-          
+
           assert.emits(q, 'row', function(row) {
             assert.equal(row.name, 'zed');
           })
         });
       })
     })
+  };
+
+  test('with small row count', function() {
+    var query = client.query({
+      name: 'get names',
+      text: "SELECT name FROM zoom ORDER BY name",
+      rows: 1
+    });
+
+    checkForResults(query);
 
   })
+
+  test('with large row count', function() {
+    var query = client.query({
+      name: 'get names',
+      text: 'SELECT name FROM zoom ORDER BY name',
+      rows: 1000
+    })
+    checkForResults(query);
+  })
+
 })
