@@ -7,9 +7,7 @@ var preparedCalled = false
 
 pg.connect(helper.args, function(err, client) {
   connected = true
-  test('error is null', function() {
-    assert.equal(err, null);
-  })
+  assert.equal(err, null, "Failed to connect");
 
   client.query('CREATE TEMP TABLE band(name varchar(100))');
 
@@ -53,6 +51,3 @@ test('raises error if cannot connect', function() {
     assert.ok(err, 'error was null')
   })
 })
-
-
-
