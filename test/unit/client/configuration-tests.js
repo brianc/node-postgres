@@ -4,8 +4,8 @@ test('client settings', function() {
 
   test('defaults', function() {
     var client = new Client();
-    assert.equal(client.user, null);
-    assert.equal(client.database, null);
+    assert.equal(client.user, '');
+    assert.equal(client.database, '');
     assert.equal(client.port, 5432);
   });
 
