@@ -29,9 +29,9 @@ with love and TDD.
           //handle error
           return
         }
-        var user = result.rows[0];
-        assert.equal(user.name, 'brianc');
-        assert.equal(user.birthday.getYear(), 2010);
+        var user = result.rows[0]
+        console.log(user.name) //brianc
+        console.log(user.birthday.getYear()) //2010
       })
 
     })
