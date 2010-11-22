@@ -4,7 +4,7 @@ var pg = require(__dirname + '/../../../lib');
 var connected = false
 var simpleCalled = false
 var preparedCalled = false
-
+var nestedCalled = false
 pg.connect(helper.args, function(err, client) {
   connected = true
   assert.equal(err, null, "Failed to connect");
@@ -38,10 +38,19 @@ pg.connect(helper.args, function(err, client) {
       assert.equal(result.rows.pop().name, 'the beach boys');
     })
   })
+
+  test('executing nested queries', function() {
+    client.query('select * FROM band', function(err, result) {
+      client.query('select * FROM band', function(err, result2) {
+        nestedCalled = true
+      })
+    })
+  })
 })
 
 process.on('exit', function() {
   assert.ok(connected, 'never connected');
+  assert.ok(nestedCalled, 'never called nested query')
   assert.ok(simpleCalled, 'query result callback was never called');
   assert.ok(preparedCalled, 'prepared callback was never called');
 })

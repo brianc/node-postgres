@@ -43,7 +43,9 @@ test("when all queries are sent", function() {
 test("after last query finishes", function() {
   con.emit('readyForQuery');
   test("emits drain", function() {
-    assert.ok(raisedDrain);
+    process.nextTick(function() {
+      assert.ok(raisedDrain);
+    })
   });
 });
 
