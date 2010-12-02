@@ -1,62 +1,58 @@
 var helper = require(__dirname + '/../test-helper');
 var pg = require(__dirname + '/../../../lib');
 
-var connected = false
-var simpleCalled = false
-var preparedCalled = false
-var nestedCalled = false
-pg.connect(helper.args, function(err, client) {
-  connected = true
-  assert.equal(err, null, "Failed to connect");
+test('api', function() {
+  pg.connect(helper.args, assert.calls(function(err, client) {
+    assert.equal(err, null, "Failed to connect");
 
-  client.query('CREATE TEMP TABLE band(name varchar(100))');
+    client.query('CREATE TEMP TABLE band(name varchar(100))');
 
-  ['the flaming lips', 'wolf parade', 'radiohead', 'bright eyes', 'the beach boys', 'dead black hearts'].forEach(function(bandName) {
-    client.query("INSERT INTO band (name) VALUES ('"+ bandName +"')")
-  });
-
-
-  test('simple query execution', function() {
-    client.query("SELECT * FROM band WHERE name = 'the beach boys'", function(err, result) {
-      simpleCalled = true
-      assert.length(result.rows, 1)
-      assert.equal(result.rows.pop().name, 'the beach boys')
+    ['the flaming lips', 'wolf parade', 'radiohead', 'bright eyes', 'the beach boys', 'dead black hearts'].forEach(function(bandName) {
+      var query = client.query("INSERT INTO band (name) VALUES ('"+ bandName +"')")
     });
 
-  })
 
-  test('prepared statement execution', function() {
-    client.query('SELECT * FROM band WHERE name = $1', ['dead black hearts'], function(err, result) {
-      preparedCalled = true;
-      assert.length(result.rows, 1);
-      assert.equal(result.rows.pop().name, 'dead black hearts');
-    })
+    test('simple query execution',assert.calls( function() {
+      client.query("SELECT * FROM band WHERE name = 'the beach boys'", function(err, result) {
+        assert.length(result.rows, 1)
+        assert.equal(result.rows.pop().name, 'the beach boys')
+      });
 
-    client.query('SELECT * FROM band WHERE name LIKE $1 ORDER BY name', ['the %'], function(err, result) {
-      assert.length(result.rows, 2);
-      assert.equal(result.rows.pop().name, 'the flaming lips');
-      assert.equal(result.rows.pop().name, 'the beach boys');
-    })
-  })
+    }))
 
-  test('executing nested queries', function() {
-    client.query('select * FROM band', function(err, result) {
-      client.query('select * FROM band', function(err, result2) {
-        nestedCalled = true
-      })
-    })
-  })
+    test('prepared statement execution',assert.calls( function() {
+      client.query('SELECT * FROM band WHERE name = $1', ['dead black hearts'],assert.calls( function(err, result) {
+        assert.length(result.rows, 1);
+        assert.equal(result.rows.pop().name, 'dead black hearts');
+      }))
+
+      client.query('SELECT * FROM band WHERE name LIKE $1 ORDER BY name', ['the %'], assert.calls(function(err, result) {
+        assert.length(result.rows, 2);
+        assert.equal(result.rows.pop().name, 'the flaming lips');
+        assert.equal(result.rows.pop().name, 'the beach boys');
+      }))
+    }))
+
+  }))
 })
 
-process.on('exit', function() {
-  assert.ok(connected, 'never connected');
-  assert.ok(nestedCalled, 'never called nested query')
-  assert.ok(simpleCalled, 'query result callback was never called');
-  assert.ok(preparedCalled, 'prepared callback was never called');
+
+test('executing nested queries', function() {
+  pg.connect(helper.args, assert.calls(function(err, client) {
+    client.query('select now as now from NOW()', assert.calls(function(err, result) {
+      assert.equal(new Date().getYear(), result.rows[0].now.getYear())
+      client.query('select now as now_again FROM NOW()', assert.calls(function() {
+        client.query('select * FROM NOW()', assert.calls(function() {
+          assert.ok('all queries hit')
+        }))
+      }))
+    }))
+  }))
 })
+
 
 test('raises error if cannot connect', function() {
-  pg.connect({database:'asdlfkajsdf there is no way this is a real database, right?!'}, function(err, client) {
-    assert.ok(err, 'error was null')
-  })
+  pg.connect({database:'asdlfkajsdf there is no way this is a real database, right?!'}, assert.calls(function(err, client) {
+    assert.ok(err, 'should have raised an error')
+  }))
 })
