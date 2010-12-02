@@ -82,11 +82,24 @@ assert.length = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
 };
 
-['equal', 'length', 'empty', 'strictEqual', 'emits', 'equalBuffers', 'same', 'ok'].forEach(function(name) {
+var expect = function(callback) {
+  var executed = false;
+  setTimeout(function() {
+    assert.ok(executed, "Expected execution never fired");
+  }, 1000)
+
+  return function(err, queryResult) {
+    executed = true;
+    callback.apply(this, arguments)
+  }
+}
+assert.calls = expect;
+
+['equal', 'length', 'empty', 'strictEqual', 'emits', 'equalBuffers', 'same', 'calls', 'ok'].forEach(function(name) {
   var old = assert[name];
   assert[name] = function() {
     test.assertCount++
-    old.apply(this, arguments);
+    return old.apply(this, arguments);
   };
 });
 
