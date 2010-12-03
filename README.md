@@ -45,7 +45,7 @@ with love and TDD.
 * well tested
 * no monkey patching
 * no dependencies (...besides PostgreSQL)
-* [in-depth documentation](http://github.com/brianc/node-postgres/wiki)
+* [in-depth documentation](http://github.com/brianc/node-postgres/wiki) (work in progress)
 
 ### features
 
@@ -104,6 +104,7 @@ saw there.
 - transparent prepared statement caching
 - connection pooling
 - more testings of error scenarios
+- streamline writing of buffers
 
 ## License
 
