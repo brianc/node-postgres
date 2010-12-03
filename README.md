@@ -11,64 +11,41 @@ with love and TDD.
 
 ### Example
 
-    var Client = require('pg').Client;
-    var client = new Client({
-      user: 'brianc',
-      database: 'test',
-      password: 'boom' //plaintext or md5 supported
-    });
+    var pg = require('pg');
     
-    client.connect();
-    client.on('drain', client.end.bind(client));
-
-    //queries are queued on a per-client basis and executed one at a time
-    client.query("create temp table user(heart varchar(10), birthday timestamptz);");
+    pg.connect("pg://user:password@host:port/database", function(err, client) {
+      if(err) {
+        //handle connection error
+      }
+      else {
+        //queries are queued and executed in order
+        client.query("CREATE TEMP TABLE user(name varchar(50), birthday timestamptz)");
+        client.query("INSERT INTO user(name, birthday) VALUES('brianc', '1982-01-01T10:21:11')");
+        
+        //parameterized queries with transparent type coercion
+        client.query("INSERT INTO user(name, birthday) VALUES($1, $2)", ['santa', new Date()]);
+        
+        //nested queries with callbacks
+        client.query("SELECT * FROM user ORDER BY name", function(err, result) {
+          if(err) {
+            //handle query error
+          }
+          else {
+            client.query("SELECT birthday FROM user WHERE name = $1", [result.rows[0].name], function(err, result) {
+              //typed parameters and results
+              assert.ok(result.rows[0].birthday.getYear() === 1982)
+            })
+          }
+        })
+      }
+    }
     
-    //parameters are always parsed & prepared inside of PostgreSQL server
-    //using unnamed prepared statement (no sql injection! yay!)
-    client.query({
-      text: 'INSERT INTO user(heart, birthday) VALUES ($1, $2)',
-      values: ['big', new Date(2031, 03, 03)]
-    });
-    client.query({
-      text: 'INSERT INTO user(heart, birthday) VALUES ($1, $2)',
-      values: ['filled with kisses', new Date(2010, 01, 01)]
-    });
-    
-    var simpleQuery = client.query("select * from user where heart = 'big'");
-    simpleQuery.on('row', function(row){
-      console.log(row.heart); //big
-      console.log(row.birthday.getYear()); //2031
-    });
-    
-    var preparedStatement = client.query({
-      name: 'user by heart type',
-      text: 'select * from user where heart = $1',
-      values: ['big']
-    });
-
-    preparedStatement.on('row', function(row){
-      console.log(row.heart); //big
-      console.log(row.birthday.getYear()); //2031
-    });
-
-    var cachedPreparedStatement = client.query({
-      name: 'user by heart type',
-      //you can omit the text the 2nd time if using a named query
-      values: ['filled with kisses']
-    });
-
-    cachedPreparedStatement.on('row', function(row){
-      console.log(row.heart); //filled with kisses
-      console.log(row.birthday.getYear()); //2010
-    });
-
 ### Philosophy
 
 * well tested
 * no monkey patching
 * no dependencies (...besides PostgreSQL)
-* [extreme documentation](http://github.com/brianc/node-postgres/wiki)
+* [in-depth documentation](http://github.com/brianc/node-postgres/wiki)
 
 ### features
 
