@@ -86,7 +86,7 @@ var expect = function(callback, timeout) {
   var executed = false;
   var id = setTimeout(function() {
     assert.ok(executed, "Expected execution of " + callback + " fired");
-  }, timeout || 1000)
+  }, timeout || 2000)
 
   return function(err, queryResult) {
     clearTimeout(id);

@@ -60,7 +60,7 @@ test('an empty pool', function() {
       }))
       assert.ok(sync, "Should have generated item & called callback in sync")
     })
-    
+
     test('creates again if item is checked out', function() {
       var sync = pool.checkOut(assert.calls(function(err, item) {
         assert.equal(item.name, "first2")
@@ -87,6 +87,30 @@ test('an empty pool', function() {
       pool.checkIn(external);
     })
   })
+})
+
+test('when creating async new pool members', function() {
+  var count = 0;
+  var pool = new Pool(3, function() {
+    var item = {ref: {name: ++count}, checkedIn: false};
+    process.nextTick(function() {
+      pool.checkIn(item.ref)
+    })
+    return item;
+  })
+  test('one request recieves member', function() {
+    pool.checkOut(assert.calls(function(err, item) {
+      assert.equal(item.name, 1)
+      pool.checkOut(assert.calls(function(err, item) {
+        assert.equal(item.name, 2)
+        pool.checkOut(assert.calls(function(err, item) {
+          assert.equal(item.name, 3)
+        }))
+      }))
+    }))
+  })
 
 })
+
+
 

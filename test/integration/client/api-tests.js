@@ -36,7 +36,6 @@ test('api', function() {
   }))
 })
 
-
 test('executing nested queries', function() {
   pg.connect(helper.args, assert.calls(function(err, client) {
     client.query('select now as now from NOW()', assert.calls(function(err, result) {
@@ -50,9 +49,11 @@ test('executing nested queries', function() {
   }))
 })
 
-
 test('raises error if cannot connect', function() {
-  pg.connect({database:'asdlfkajsdf there is no way this is a real database, right?!'}, assert.calls(function(err, client) {
+  var connectionString = "pg://asdf@seoiasfd:4884/ieieie";
+  pg.connect(connectionString, assert.calls(function(err, client) {
     assert.ok(err, 'should have raised an error')
   }))
 })
+
+pg.end();
