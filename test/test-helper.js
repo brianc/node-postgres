@@ -96,6 +96,11 @@ var expect = function(callback, timeout) {
 }
 assert.calls = expect;
 
+assert.isNull = function(item, message) {
+  message = message || "expected " + item + " to be null";
+  assert.ok(item === null, message);
+};
+
 ['equal', 'length', 'empty', 'strictEqual', 'emits', 'equalBuffers', 'same', 'calls', 'ok'].forEach(function(name) {
   var old = assert[name];
   assert[name] = function() {
