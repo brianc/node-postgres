@@ -82,11 +82,11 @@ assert.length = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
 };
 
-var expect = function(callback) {
+var expect = function(callback, timeout) {
   var executed = false;
   var id = setTimeout(function() {
     assert.ok(executed, "Expected execution of " + callback + " fired");
-  }, 1000)
+  }, timeout || 1000)
 
   return function(err, queryResult) {
     clearTimeout(id);
@@ -105,18 +105,13 @@ assert.calls = expect;
 });
 
 test = function(name, action) {
-  try{
-    test.testCount ++;
-    var result = action();
-    if(result === false) {
-      test.ignored.push(name);
-      process.stdout.write('?');
-    }else{
-      process.stdout.write('.');
-    }
-  }catch(e) {
-    process.stdout.write('E');
-    test.errors.push({name: name, e: e});
+  test.testCount ++;
+  var result = action();
+  if(result === false) {
+    test.ignored.push(name);
+    process.stdout.write('?');
+  }else{
+    process.stdout.write('.');
   }
 };
 
