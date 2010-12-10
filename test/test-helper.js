@@ -85,7 +85,7 @@ assert.length = function(actual, expectedLength) {
 var expect = function(callback) {
   var executed = false;
   var id = setTimeout(function() {
-    assert.ok(executed, "Expected execution never fired");
+    assert.ok(executed, "Expected execution of " + callback + " fired");
   }, 1000)
 
   return function(err, queryResult) {
