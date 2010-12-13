@@ -85,7 +85,7 @@ assert.length = function(actual, expectedLength) {
 var expect = function(callback, timeout) {
   var executed = false;
   var id = setTimeout(function() {
-    assert.ok(executed, "Expected execution of " + callback + " fired");
+    assert.ok(executed, "Expected execution of funtion to be fired");
   }, timeout || 2000)
 
   return function(err, queryResult) {
@@ -140,7 +140,42 @@ process.on('exit', function() {
     throw error.e;
   });
 });
+var count = 0;
+
+var Sink = function(expected, timeout, callback) {
+  var defaultTimeout = 1000;
+  if(typeof timeout == 'function') {
+    callback = timeout;
+    timeout = defaultTimeout;
+  }
+  timeout = timeout || defaultTimeout;
+  var internalCount = 0;
+  var kill = function() {
+    assert.ok(false, "Did not reach expected " + expected + " with an idle timeout of " + timeout);
+  }
+  var killTimeout = setTimeout(kill, timeout);
+  return {
+    add: function(count) {
+      count = count || 1;
+      internalCount += count;
+      clearTimeout(killTimeout)
+      if(internalCount < expected) {
+        killTimeout = setTimeout(kill, timeout)
+      }
+      else {
+        assert.equal(internalCount, expected);
+        callback();
+      }
+    }
+  }
+}
 
 module.exports = {
-  args: args
+  args: args,
+  Sink: Sink,
+  connectionString: function() {
+    return "pg"+(count++)+"://"+args.user+":"+args.password+"@"+args.host+":"+args.port+"/"+args.database;
+  }
 };
+
+
