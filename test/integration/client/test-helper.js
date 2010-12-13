@@ -12,5 +12,7 @@ module.exports = {
     });
     client.connect();
     return client;
-  }
+  },
+  connectionString: helper.connectionString,
+  Sink: helper.Sink
 };
