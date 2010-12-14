@@ -58,7 +58,8 @@ with love and TDD.
   - float <-> double, numeric
   - boolean <-> boolean
 - notification message support
-- tested like a Toyota
+- connection pooling
+- mucho testing
   ~1000 assertions executed on
     - ubuntu
       - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.3.0, v0.3.1
