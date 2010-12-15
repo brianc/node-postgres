@@ -14,5 +14,6 @@ module.exports = {
     return client;
   },
   connectionString: helper.connectionString,
-  Sink: helper.Sink
+  Sink: helper.Sink,
+  pg: helper.pg
 };

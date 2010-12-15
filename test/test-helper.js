@@ -173,6 +173,7 @@ var Sink = function(expected, timeout, callback) {
 module.exports = {
   args: args,
   Sink: Sink,
+  pg: require('index'),
   connectionString: function() {
     return "pg"+(count++)+"://"+args.user+":"+args.password+"@"+args.host+":"+args.port+"/"+args.database;
   }

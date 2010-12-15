@@ -51,4 +51,3 @@ test("multiple select statements", function() {
   });
   client.on('drain', client.end.bind(client));
 });
-

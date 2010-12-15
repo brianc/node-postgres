@@ -1,37 +1,39 @@
 var helper = require(__dirname + '/test-helper');
-
-var client = helper.client();
-client.on('drain', client.end.bind(client));
-
+var sink;
+var connectionString = helper.connectionString();
 var testForTypeCoercion = function(type){
-  client.query("create temp table test_type(col " + type.name + ")");
+  helper.pg.connect(connectionString, function(err, client) {
+    assert.isNull(err)
+    client.query("create temp table test_type(col " + type.name + ")");
 
-  test("Coerces " + type.name, function() {
-    type.values.forEach(function(val) {
+    test("Coerces " + type.name, function() {
+      type.values.forEach(function(val) {
 
-      var insertQuery = client.query({
-        name: 'insert type test ' + type.name,
-        text: 'insert into test_type(col) VALUES($1)',
-        values: [val]
+        var insertQuery = client.query({
+          name: 'insert type test ' + type.name,
+          text: 'insert into test_type(col) VALUES($1)',
+          values: [val]
+        });
+
+        var query = client.query({
+          name: 'get type ' + type.name ,
+          text: 'select col from test_type'
+        });
+
+        assert.emits(query, 'row', function(row) {
+          assert.strictEqual(row.col, val, "expected " + type.name + " of " + val + " but got " + row[0]);
+        });
+
+        client.query({
+          name: 'delete values',
+          text: 'delete from test_type'
+        });
+        sink.add();
       });
 
-      var query = client.query({
-        name: 'get type ' + type.name ,
-        text: 'select col from test_type'
-      });
-
-      assert.emits(query, 'row', function(row) {
-        assert.strictEqual(row.col, val, "expected " + type.name + " of " + val + " but got " + row[0]);
-      });
-
-      client.query({
-        name: 'delete values',
-        text: 'delete from test_type'
-      });
+      client.query('drop table test_type');
     });
-
-    client.query('drop table test_type');
-  });
+  })
 };
 
 var types = [{
@@ -76,9 +78,18 @@ var types = [{
   values: ['13:12:12.321', null]
 }];
 
+var valueCount = 0;
+types.forEach(function(type) {
+  valueCount += type.values.length;
+})
+sink = new helper.Sink(valueCount, function() {
+  helper.pg.end();
+})
+
 types.forEach(testForTypeCoercion);
 
 test("timestampz round trip", function() {
+
   var now = new Date();
   var client = helper.client();
   client.on('error', function(err) {
@@ -112,6 +123,7 @@ test("timestampz round trip", function() {
     });
 
   });
+
   client.on('drain', client.end.bind(client));
 });
 

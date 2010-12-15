@@ -11,10 +11,19 @@ var testPoolSize = function(max) {
   test("can pool " + max + " times", function() {
     for(var i = 0; i < max; i++) {
       helper.pg.poolSize = 10;
-      helper.pg.connect(conString, function(err, client) {
-        assert.isNull(err);
-        client.query("select * from NOW()", function() {
-          sink.add();
+      test("connection  #" + i + " executes", function() {
+        helper.pg.connect(conString, function(err, client) {
+          assert.isNull(err);
+          client.query("select * from person", function(err, result) {
+            assert.length(result.rows, 26)
+          })
+          client.query("select count(*) as c from person", function(err, result) {
+            assert.equal(result.rows[0].c, 26)
+          })
+          var query = client.query("SELECT * FROM NOW()")
+          query.on('end',function() {
+            sink.add()
+          })
         })
       })
     }
