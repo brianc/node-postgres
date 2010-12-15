@@ -1,4 +1,3 @@
-
 require.paths.unshift(__dirname + '/../lib/');
 
 Client = require('client');
@@ -101,14 +100,6 @@ assert.isNull = function(item, message) {
   assert.ok(item === null, message);
 };
 
-['equal', 'length', 'empty', 'strictEqual', 'emits', 'equalBuffers', 'same', 'calls', 'ok'].forEach(function(name) {
-  var old = assert[name];
-  assert[name] = function() {
-    test.assertCount++
-    return old.apply(this, arguments);
-  };
-});
-
 test = function(name, action) {
   test.testCount ++;
   var result = action();
@@ -120,26 +111,35 @@ test = function(name, action) {
   }
 };
 
-test.assertCount = test.assertCount || 0;
+//print out the filename
+process.stdout.write(require('path').basename(process.argv[1]));
+
 test.testCount = test.testCount || 0;
 test.ignored = test.ignored || [];
 test.errors = test.errors || [];
-test.start = test.start || new Date();
 
 process.on('exit', function() {
   console.log('');
-  var duration = ((new Date() - test.start)/1000);
-  console.log(test.testCount + ' tests ' + test.assertCount + ' assertions in ' + duration + ' seconds');
-  test.ignored.forEach(function(name) {
-    console.log("Ignored: " + name);
-  });
-  test.errors.forEach(function(error) {
-    console.log("Error: " + error.name);
-  });
+  if(test.ignored.length || test.errors.length) {
+    test.ignored.forEach(function(name) {
+      console.log("Ignored: " + name);
+    });
+    test.errors.forEach(function(error) {
+      console.log("Error: " + error.name);
+    });
+    console.log('');
+  }
   test.errors.forEach(function(error) {
     throw error.e;
   });
 });
+
+process.on('uncaughtException', function(err) {
+  console.error("\n %s", err.stack || err.toString())
+  //causes xargs to abort right away
+  process.exit(255);
+});
+
 var count = 0;
 
 var Sink = function(expected, timeout, callback) {
