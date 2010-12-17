@@ -64,3 +64,12 @@ test('raises error if cannot connect', function() {
     assert.ok(err, 'should have raised an error')
   }))
 })
+
+test("query errors are handled and do not bubble if callbac is provded", function() {
+  pg.connect(connectionString, assert.calls(function(err, client) {
+    assert.isNull(err)
+    client.query("SELECT OISDJF FROM LEIWLISEJLSE", assert.calls(function(err, result) {
+      assert.ok(err);
+    }))
+  }))
+})
