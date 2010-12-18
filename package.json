@@ -1,5 +1,5 @@
 { "name": "pg",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Pure JavaScript PostgreSQL client",
   "homepage": "http://github.com/brianc/node-postgres",
   "repository" : {
