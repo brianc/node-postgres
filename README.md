@@ -76,6 +76,16 @@ clone the repo:
 
 And just like magic, you're ready to contribute! <3
 
+### Contributors
+
+Many thanks to the following:
+
+* [creationix](https://github.com/creationix)
+* [felixge](https://github.com/felixge)
+* [pshc](https://github.com/pshc))
+* [pjornblomqvist](https://github.com/bjornblomqvist)
+* [JulianBirch](https://github.com/JulianBirch)
+
 ## More info please
 
 ### Documentation
