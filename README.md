@@ -88,9 +88,9 @@ Many thanks to the following:
 
 ## More info please
 
-### Documentation
+### [Documentation](node-postgres/wiki)
 
-__PLEASE__ check out the [WIKI](node-postgres/wiki).  __MUCH__ more information there.
+### __PLEASE__ check out the WIKI
 
 ### Working?
 
