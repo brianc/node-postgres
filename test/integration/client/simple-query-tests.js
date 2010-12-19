@@ -4,13 +4,24 @@ test("simple query interface", function() {
 
   var client = helper.client();
 
-  var query = client.query("select name from person");
+  var query = client.query("select name from person order by name");
 
   client.on('drain', client.end.bind(client));
 
   var rows = [];
   query.on('row', function(row) {
     rows.push(row['name'])
+  });
+  query.once('row', function(row) {
+    test('Can iterate through columns', function () {
+      var columnCount = 0;
+      for (column in row) {
+        columnCount++;
+      };
+      if ('length' in row) {
+        assert.length(row, columnCount, 'Iterating through the columns gives a different length from calling .length.');
+      }
+    });
   });
 
   assert.emits(query, 'end', function() {
