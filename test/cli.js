@@ -49,9 +49,4 @@ var log = function(keys) {
   });
 }
 
-if(config.verbose) {
-  log(['user','password','database','port','host'])
-
-}
-
 module.exports = config;
