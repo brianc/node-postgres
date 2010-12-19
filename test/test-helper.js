@@ -111,19 +111,28 @@ assert.isNull = function(item, message) {
 
 test = function(name, action) {
   test.testCount ++;
-  console.log('\n' + name);
+  if(args.verbose) {
+    console.log(name);
+  }
   var result = action();
   if(result === false) {
     test.ignored.push(name);
-    process.stdout.write('?');
+    if(!args.verbose) {
+      process.stdout.write('?');
+    }
   }else{
-    process.stdout.write('.');
+    if(!args.verbose) {
+      process.stdout.write('.');
+    }
   }
 };
 
 //print out the filename
 process.stdout.write(require('path').basename(process.argv[1]));
-
+//print a new line since we'll be printing test names
+if(args.verbose) {
+  console.log();
+}
 test.testCount = test.testCount || 0;
 test.ignored = test.ignored || [];
 test.errors = test.errors || [];

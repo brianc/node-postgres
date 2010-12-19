@@ -17,6 +17,9 @@ for(var i = 0; i < args.length; i++) {
   case '--password':
     config.password = args[++i];
     break;
+  case '--verbose':
+    config.verbose = (args[++i] == "true");
+    break;
   case '-d':
   case '--database':
     config.database = args[++i];
@@ -45,5 +48,10 @@ var log = function(keys) {
     console.log(key + ": '" + config[key] + "'");
   });
 }
-//log(['user','password','database','port','host'])
+
+if(config.verbose) {
+  log(['user','password','database','port','host'])
+
+}
+
 module.exports = config;
