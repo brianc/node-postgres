@@ -82,7 +82,7 @@ Many thanks to the following:
 
 * [creationix](https://github.com/creationix)
 * [felixge](https://github.com/felixge)
-* [pshc](https://github.com/pshc))
+* [pshc](https://github.com/pshc)
 * [pjornblomqvist](https://github.com/bjornblomqvist)
 * [JulianBirch](https://github.com/JulianBirch)
 
