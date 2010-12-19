@@ -10,6 +10,15 @@ buffers = require(__dirname + '/test-buffers');
 Connection = require('connection');
 var args = require(__dirname + '/cli');
 
+process.on('uncaughtException', function(d) {
+  if ('stack' in d && 'message' in d) {
+    console.log("Message: " + d.message);
+    console.log(d.stack);
+  } else {
+    console.log(d);
+  }
+});
+
 assert.same = function(actual, expected) {
   for(var key in expected) {
     assert.equal(actual[key], expected[key]);
@@ -102,6 +111,7 @@ assert.isNull = function(item, message) {
 
 test = function(name, action) {
   test.testCount ++;
+  console.log('\n' + name);
   var result = action();
   if(result === false) {
     test.ignored.push(name);
