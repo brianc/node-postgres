@@ -9,16 +9,18 @@ verbose=false
 
 params := -u $(user) --password $(password) -p $(port) -d $(database) -h $(host) --verbose $(verbose)
 
+node-command := xargs -n 1 -I file node file $(params)
+
+.PHONY : test test-connection test-integration
+test: test-unit 
+
+test-all: test-unit test-integration
+
+test-unit:
+	@find test/unit -name "*-tests.js" | $(node-command)
+
 test-connection:
 	@node script/test-connection.js $(params)
 
-test-unit:
-	@find test/unit -name "*-tests.js" | xargs -n 1 -I file node file $(params)
-
 test-integration: test-connection
-	@find test/integration -name "*-tests.js" | xargs -n 1 -I file node file $(params)
-
-test-all: test-unit test-integration
-test: test-unit
-
-.PHONY : test
+	@find test/integration -name "*-tests.js" | $(node-command)
