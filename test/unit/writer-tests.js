@@ -45,14 +45,32 @@ p.addCString = function(string) {
   var string = string || "";
   var len = Buffer.byteLength(string) + 1;
   this._ensure(len);
+  this.buffer.write(string, this.offset);
   this.offset += len;
-  this.buffer.write(string);
   this.buffer[this.offset] = 0; //add null terminator
   return this;  
 }
 
+p.addChar = function(char) {
+  this._ensure(1);
+  this.buffer.write(char, this.offset);
+  this.offset++;
+  return this;
+}
+
 p.join = function() {
-  return this.buffer.slice(0, this.offset)
+  return this.buffer.slice(0, this.offset);
+}
+
+p.getByteLength = function() {
+  return this.offset;
+}
+
+p.add = function(otherBuffer) {
+  this._ensure(otherBuffer.length);
+  otherBuffer.copy(this.buffer, this.offset);
+  this.offset += otherBuffer.length;
+  return this;
 }
 
 test('adding int32', function() {
@@ -132,6 +150,33 @@ test('cString', function() {
     var result = subject.addCString("!!!").join();
     assert.equalBuffers(result, [33, 33, 33, 0]);
   })
+  
+  test('writes multiple cstrings', function() {
+    var subject = new ElasticBuffer();
+    var result = subject.addCString("!").addCString("!").join();
+    assert.equalBuffers(result, [33, 0, 33, 0]);
+  })
 
+})
 
+test('writes char', function() {
+  var subject = new ElasticBuffer(2);
+  var result = subject.addChar('a').addChar('b').addChar('c').join();
+  assert.equalBuffers(result, [0x61, 0x62, 0x63])
+})
+
+test('gets correct byte length', function() {
+  var subject = new ElasticBuffer(5);
+  assert.equal(subject.getByteLength(), 0)
+  subject.addInt32(0)
+  assert.equal(subject.getByteLength(), 4)
+  subject.addCString("!")
+  assert.equal(subject.getByteLength(), 6)
+})
+
+test('can add arbitrary buffer to the end', function() {
+  var subject = new ElasticBuffer(4);
+  subject.addCString("!!!")
+  var result = subject.add(Buffer("!!!")).join();
+  assert.equalBuffers(result, [33, 33, 33, 0, 33, 33, 33]);
 })
