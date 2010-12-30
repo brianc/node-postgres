@@ -44,8 +44,10 @@ p.addInt16 = function(num) {
 p.addCString = function(string) {
   var string = string || "";
   var len = Buffer.byteLength(string) + 1;
-  this._ensure(len);
-  
+  this.offset += len;
+  this.buffer.write(string);
+  this.buffer[this.offset] = 0; //add null terminator
+  return this;  
 }
 
 p.join = function() {
