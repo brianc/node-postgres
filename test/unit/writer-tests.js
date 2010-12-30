@@ -44,6 +44,7 @@ p.addInt16 = function(num) {
 p.addCString = function(string) {
   var string = string || "";
   var len = Buffer.byteLength(string) + 1;
+  this._ensure(len);
   this.offset += len;
   this.buffer.write(string);
   this.buffer[this.offset] = 0; //add null terminator
@@ -119,5 +120,18 @@ test('cString', function() {
     var result = subject.addCString().join();
     assert.equalBuffers(result, [0])
   })
+
+  test('writes non-empty cstring', function() {
+    var subject = new ElasticBuffer();
+    var result = subject.addCString("!!!").join();
+    assert.equalBuffers(result, [33, 33, 33, 0]);
+  })
+
+  test('resizes if reached end', function() {
+    var subject = new ElasticBuffer(3);
+    var result = subject.addCString("!!!").join();
+    assert.equalBuffers(result, [33, 33, 33, 0]);
+  })
+
 
 })
