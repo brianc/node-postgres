@@ -11,10 +11,13 @@ params := -u $(user) --password $(password) -p $(port) -d $(database) -h $(host)
 
 node-command := xargs -n 1 -I file node file $(params)
 
-.PHONY : test test-connection test-integration
+.PHONY : test test-connection test-integration bench
 test: test-unit 
 
 test-all: test-unit test-integration
+
+bench:
+	@find benchmark -name "*-bench.js" | $(node-command)
 
 test-unit:
 	@find test/unit -name "*-tests.js" | $(node-command)
