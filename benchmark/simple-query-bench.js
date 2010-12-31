@@ -3,9 +3,14 @@ var bencher = require('bencher');
 var helper = require(__dirname + '/../test/test-helper')
 var conString = helper.connectionString()
 
+var round = function(num) {
+  return Math.round((num*1000))/1000
+}
+
 var doBenchmark = function() {
   var bench = bencher({
-    repeat: 3000,
+    name: 'query compare',
+    repeat: 1000,
     actions: [{
       name: 'simple query',
       run: function(next) {
@@ -38,12 +43,15 @@ var doBenchmark = function() {
   });
   bench(function(result) {
     console.log();
+    console.log("%s (%d repeats):", result.name, result.repeat)
     result.actions.forEach(function(action) {
-      console.log("%s -> %d", action.name, action.meanTime);
+      console.log("  %s: \n    average: %d ms\n    total: %d ms", action.name, round(action.meanTime), round(action.totalTime));
     })
     client.end();
   })
 }
+
+
 
 var client = new pg.Client(conString);
 client.connect();
