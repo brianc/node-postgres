@@ -78,7 +78,7 @@ test('cString', function() {
     var result = subject.addCString("!!!").join();
     assert.equalBuffers(result, [33, 33, 33, 0]);
   })
-  
+
   test('writes multiple cstrings', function() {
     var subject = new Writer();
     var result = subject.addCString("!").addCString("!").join();
@@ -115,4 +115,22 @@ test('clearing', function() {
   subject.addInt32(10401);
   subject.clear();
   assert.equalBuffers(subject.join(), []);
+  test('can keep writing', function() {
+    var joinedResult = subject.addCString("!").addInt32(9).addInt16(2).join();
+    assert.equalBuffers(joinedResult, [33, 0, 0, 0, 0, 9, 0, 2]);
+    test('flush', function() {
+      var flushedResult = subject.flush();
+      test('returns result', function() {
+        assert.equalBuffers(flushedResult, [33, 0, 0, 0, 0, 9, 0, 2])
+      })
+      test('clears the writer', function() {
+        assert.equalBuffers(subject.join(), [])
+        assert.equalBuffers(subject.flush(), [])
+      })
+    })
+  })
+
 })
+
+
+
