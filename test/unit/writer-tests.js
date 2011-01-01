@@ -105,9 +105,26 @@ test('gets correct byte length', function() {
 test('can add arbitrary buffer to the end', function() {
   var subject = new Writer(4);
   subject.addCString("!!!")
-  var result = subject.add(Buffer("!!!")).join();
-  assert.equalBuffers(result, [33, 33, 33, 0, 33, 33, 33]);
+  var result = subject.add(Buffer("@@@")).join();
+  assert.equalBuffers(result, [33, 33, 33, 0, 0x40, 0x40, 0x40]);
 })
+
+test('can write normal string', function() {
+  var subject = new Writer(4);
+  var result = subject.addString("!").join();
+  assert.equalBuffers(result, [33]);
+  test('can write cString too', function() {
+    var result = subject.addCString("!").join();
+    assert.equalBuffers(result, [33, 33, 0]);
+    test('can resize', function() {
+      var result = subject.addString("!!").join();
+      assert.equalBuffers(result, [33, 33, 0, 33, 33]);
+    })
+
+  })
+
+})
+
 
 test('clearing', function() {
   var subject = new Writer();
