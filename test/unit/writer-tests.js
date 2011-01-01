@@ -108,3 +108,11 @@ test('can add arbitrary buffer to the end', function() {
   var result = subject.add(Buffer("!!!")).join();
   assert.equalBuffers(result, [33, 33, 33, 0, 33, 33, 33]);
 })
+
+test('clearing', function() {
+  var subject = new Writer();
+  subject.addCString("@!!#!#");
+  subject.addInt32(10401);
+  subject.clear();
+  assert.equalBuffers(subject.join(), []);
+})
