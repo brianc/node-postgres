@@ -1,4 +1,3 @@
-
 require.paths.unshift(__dirname + '/../lib/');
 
 Client = require('client');
@@ -10,6 +9,15 @@ BufferList = require(__dirname+'/buffer-list')
 buffers = require(__dirname + '/test-buffers');
 Connection = require('connection');
 var args = require(__dirname + '/cli');
+
+process.on('uncaughtException', function(d) {
+  if ('stack' in d && 'message' in d) {
+    console.log("Message: " + d.message);
+    console.log(d.stack);
+  } else {
+    console.log(d);
+  }
+});
 
 assert.same = function(actual, expected) {
   for(var key in expected) {
@@ -85,7 +93,7 @@ assert.length = function(actual, expectedLength) {
 var expect = function(callback, timeout) {
   var executed = false;
   var id = setTimeout(function() {
-    assert.ok(executed, "Expected execution of " + callback + " fired");
+    assert.ok(executed, "Expected execution of funtion to be fired");
   }, timeout || 2000)
 
   return function(err, queryResult) {
@@ -101,46 +109,93 @@ assert.isNull = function(item, message) {
   assert.ok(item === null, message);
 };
 
-['equal', 'length', 'empty', 'strictEqual', 'emits', 'equalBuffers', 'same', 'calls', 'ok'].forEach(function(name) {
-  var old = assert[name];
-  assert[name] = function() {
-    test.assertCount++
-    return old.apply(this, arguments);
-  };
-});
-
 test = function(name, action) {
   test.testCount ++;
+  if(args.verbose) {
+    console.log(name);
+  }
   var result = action();
   if(result === false) {
     test.ignored.push(name);
-    process.stdout.write('?');
+    if(!args.verbose) {
+      process.stdout.write('?');
+    }
   }else{
-    process.stdout.write('.');
+    if(!args.verbose) {
+      process.stdout.write('.');
+    }
   }
 };
 
-test.assertCount = test.assertCount || 0;
+//print out the filename
+process.stdout.write(require('path').basename(process.argv[1]));
+//print a new line since we'll be printing test names
+if(args.verbose) {
+  console.log();
+}
 test.testCount = test.testCount || 0;
 test.ignored = test.ignored || [];
 test.errors = test.errors || [];
-test.start = test.start || new Date();
 
 process.on('exit', function() {
   console.log('');
-  var duration = ((new Date() - test.start)/1000);
-  console.log(test.testCount + ' tests ' + test.assertCount + ' assertions in ' + duration + ' seconds');
-  test.ignored.forEach(function(name) {
-    console.log("Ignored: " + name);
-  });
-  test.errors.forEach(function(error) {
-    console.log("Error: " + error.name);
-  });
+  if(test.ignored.length || test.errors.length) {
+    test.ignored.forEach(function(name) {
+      console.log("Ignored: " + name);
+    });
+    test.errors.forEach(function(error) {
+      console.log("Error: " + error.name);
+    });
+    console.log('');
+  }
   test.errors.forEach(function(error) {
     throw error.e;
   });
 });
 
+process.on('uncaughtException', function(err) {
+  console.error("\n %s", err.stack || err.toString())
+  //causes xargs to abort right away
+  process.exit(255);
+});
+
+var count = 0;
+
+var Sink = function(expected, timeout, callback) {
+  var defaultTimeout = 1000;
+  if(typeof timeout == 'function') {
+    callback = timeout;
+    timeout = defaultTimeout;
+  }
+  timeout = timeout || defaultTimeout;
+  var internalCount = 0;
+  var kill = function() {
+    assert.ok(false, "Did not reach expected " + expected + " with an idle timeout of " + timeout);
+  }
+  var killTimeout = setTimeout(kill, timeout);
+  return {
+    add: function(count) {
+      count = count || 1;
+      internalCount += count;
+      clearTimeout(killTimeout)
+      if(internalCount < expected) {
+        killTimeout = setTimeout(kill, timeout)
+      }
+      else {
+        assert.equal(internalCount, expected);
+        callback();
+      }
+    }
+  }
+}
+
 module.exports = {
-  args: args
+  args: args,
+  Sink: Sink,
+  pg: require('index'),
+  connectionString: function() {
+    return "pg"+(count++)+"://"+args.user+":"+args.password+"@"+args.host+":"+args.port+"/"+args.database;
+  }
 };
+
+

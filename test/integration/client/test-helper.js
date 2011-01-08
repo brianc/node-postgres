@@ -10,7 +10,11 @@ module.exports = {
       host: helper.args.host,
       port: helper.args.port
     });
+    
     client.connect();
     return client;
-  }
+  },
+  connectionString: helper.connectionString,
+  Sink: helper.Sink,
+  pg: helper.pg
 };
