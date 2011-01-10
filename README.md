@@ -37,7 +37,7 @@ with love and TDD.
         })
       }
     }
-    
+
 ## Philosophy
 
 * well tested
@@ -92,6 +92,10 @@ Many thanks to the following:
 
 ### __PLEASE__ check out the WIKI
 
+## Help
+
+If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.
+    
 ### Working?
 
 [this page](http://www.explodemy.com) is running the worlds worst (but fully functional) PostgreSQL backed, Node.js powered website.
