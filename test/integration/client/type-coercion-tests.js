@@ -116,9 +116,6 @@ test("timestampz round trip", function() {
     assert.equal(date.getMinutes(), now.getMinutes());
     assert.equal(date.getSeconds(), now.getSeconds());
     test("milliseconds are equal", function() {
-      //TODO this is not equal sometimes
-      //need to fix
-      return false
       assert.equal(date.getMilliseconds(), now.getMilliseconds());
     });
 
