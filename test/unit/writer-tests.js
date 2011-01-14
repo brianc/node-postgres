@@ -149,5 +149,9 @@ test('clearing', function() {
 
 })
 
-
-
+test("resizing to much larger", function() {
+  var subject = new Writer(2);
+  var string = "!!!!!!!!";
+  var result = subject.addCString(string).flush();
+  assert.equalBuffers(result, [33, 33, 33, 33, 33, 33, 33, 33, 0])
+})
