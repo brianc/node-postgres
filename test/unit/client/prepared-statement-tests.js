@@ -23,7 +23,7 @@ con.execute = function(arg) {
   executeArg = arg;
   process.nextTick(function() {
     con.emit('rowData',{ fields: [] });
-    con.emit('commandComplete');
+    con.emit('commandComplete', { text: "" });
   });
 };
 
