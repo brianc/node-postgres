@@ -22,11 +22,13 @@ var testForTag = function(tagText, callback) {
   })
 }
 
-var check = function(oid, rowCount, commandType) {
+var check = function(oid, rowCount, command) {
   return function(result) {
-    assert.equal(result.oid, oid);
+    if(oid != null) {
+      assert.equal(result.oid, oid);
+    }
     assert.equal(result.rowCount, rowCount);
-    assert.equal(result.commandType, commandType);
+    assert.equal(result.command, command);
   }
 }
 
