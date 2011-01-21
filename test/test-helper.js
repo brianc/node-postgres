@@ -89,7 +89,7 @@ assert.empty = function(actual) {
 };
 
 assert.success = function(callback) {
-  assert.calls(function(err, arg) {
+  return assert.calls(function(err, arg) {
     assert.isNull(err);
     callback(arg);
   })
