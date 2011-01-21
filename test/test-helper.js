@@ -88,6 +88,13 @@ assert.empty = function(actual) {
   assert.length(actual, 0);
 };
 
+assert.success = function(callback) {
+  assert.calls(function(err, arg) {
+    assert.isNull(err);
+    callback(arg);
+  })
+}
+
 
 assert.length = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
