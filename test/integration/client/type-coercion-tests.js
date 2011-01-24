@@ -107,7 +107,7 @@ test("timestampz round trip", function() {
     text: 'select * from date_tests where name = $1',
     values: ['now']
   });
-  client.connection.on('dataRow', console.log);
+
   assert.emits(result, 'row', function(row) {
     var date = row.tstz;
     assert.equal(date.getYear(),now.getYear());
