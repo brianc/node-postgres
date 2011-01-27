@@ -107,6 +107,7 @@ test("timestampz round trip", function() {
     text: 'select * from date_tests where name = $1',
     values: ['now']
   });
+
   assert.emits(result, 'row', function(row) {
     var date = row.tstz;
     assert.equal(date.getYear(),now.getYear());
@@ -118,7 +119,6 @@ test("timestampz round trip", function() {
     test("milliseconds are equal", function() {
       assert.equal(date.getMilliseconds(), now.getMilliseconds());
     });
-
   });
 
   client.on('drain', client.end.bind(client));

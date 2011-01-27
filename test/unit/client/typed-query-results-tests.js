@@ -68,9 +68,16 @@ test('typed results', function() {
     dataTypeID: 1184,
     actual: '2010-10-31 14:54:13.74-0530',
     expected: function(val) {
-      assert.UTCDate(val, 2010, 9, 31, 20, 24, 13, 74);
+      assert.UTCDate(val, 2010, 9, 31, 20, 24, 13, 740);
     }
   },{
+    name: 'timestamptz with other milisecond digits dropped',
+    dataTypeID: 1184,
+    actual: '2011-01-23 22:05:00.68-06',
+    expected: function(val) {
+      assert.UTCDate(val, 2011, 01, 24, 4, 5, 00, 680);
+    }
+  }, {
     name: 'timestampz with huge miliseconds in UTC',
     dataTypeID: 1184,
     actual: '2010-10-30 14:11:12.730838Z',

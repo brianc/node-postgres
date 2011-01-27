@@ -149,5 +149,29 @@ test('clearing', function() {
 
 })
 
+test("resizing to much larger", function() {
+  var subject = new Writer(2);
+  var string = "!!!!!!!!";
+  var result = subject.addCString(string).flush();
+  assert.equalBuffers(result, [33, 33, 33, 33, 33, 33, 33, 33, 0])
+})
 
+test("header", function() {
+  test('added as a hex code to a full writer', function() {
+    var subject = new Writer(2);
+    var result = subject.addCString("!").flush(0x50)
+    assert.equalBuffers(result, [0x50, 0, 0, 0, 6, 33, 0]);
+  })
 
+  test('added as a hex code to a non-full writer', function() {
+    var subject = new Writer(10).addCString("!");
+    var joinedResult = subject.join(0x50);
+    var result = subject.flush(0x50);
+    assert.equalBuffers(result, [0x50, 0, 0, 0, 6, 33, 0]);
+  })
+
+  test('added as a hex code to a buffer which requires resizing', function() {
+    var result = new Writer(2).addCString("!!!!!!!!").flush(0x50);
+    assert.equalBuffers(result, [0x50, 0, 0, 0, 0x0D, 33, 33, 33, 33, 33, 33, 33, 33, 0]);
+  })
+})
