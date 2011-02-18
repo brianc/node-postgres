@@ -1,3 +1,5 @@
 /.emacs-project
 *.swp
 *.log
+.lock-wscript
+build/
