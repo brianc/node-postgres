@@ -12,9 +12,16 @@ test('calling connect without params raises error', function() {
   assert.ok(err!=null);
 });
 
+test('connecting with wrong parameters', function() {
+  var con = new Connection();
+  con.connect("user=asldfkj hostaddr=127.0.0.1 port=5432 dbname=asldkfj");
+  assert.emits(con, 'error')
+});
+
+
 test('connects', function() {
   var con = new Connection();
-  con.connect("user=postgres password=1234 hostaddr=127.0.0.1 port=5432 dbname=postgres");
+  con.connect("user=brian hostaddr=127.0.0.1 port=5432 dbname=postgres");
   assert.emits(con, 'connect', function() {
     con._sendQuery("SELECT NOW()");
   });
