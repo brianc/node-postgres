@@ -1,5 +1,5 @@
 var helper = require(__dirname + "/../test-helper");
-var Connection = require(__dirname + "/../../lib/binding");
+var Connection = require(__dirname + "/../../lib/libpq").Connection;
 
 test('calling connect without params raises error', function() {
   var con = new Connection();
