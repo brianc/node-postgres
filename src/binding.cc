@@ -13,6 +13,7 @@ using namespace v8;
 using namespace node;
 
 static Persistent<String> connect_symbol;
+static Persistent<String> error_symbol;
 
 class Connection : public EventEmitter {
 
@@ -30,6 +31,7 @@ public:
     t->SetClassName(String::NewSymbol("Connection"));
 
     connect_symbol = NODE_PSYMBOL("connect");
+    error_symbol = NODE_PSYMBOL("error");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
@@ -275,6 +277,8 @@ private:
       StopRead();
       StopWrite();
       LOG("Polled: PGRES_POLLING_FAILED");
+      EmitLastError();
+      EmitError("Something happened...polling error");
       break;
     case PGRES_POLLING_OK:
       LOG("Polled: PGRES_POLLING_OK");
@@ -285,6 +289,17 @@ private:
       printf("Unknown polling status: %d\n", status);
       break;
     }
+  }
+
+  void EmitError(const char *message)
+  {
+    Local<Value> exception = Exception::Error(String::New(message));
+    Emit(error_symbol, 1, &exception);
+  }
+
+  void EmitLastError()
+  {
+    EmitError(PQerrorMessage(connection_));
   }
 
   void StopWrite()

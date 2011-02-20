@@ -15,7 +15,9 @@ test('calling connect without params raises error', function() {
 test('connecting with wrong parameters', function() {
   var con = new Connection();
   con.connect("user=asldfkj hostaddr=127.0.0.1 port=5432 dbname=asldkfj");
-  assert.emits(con, 'error')
+  assert.emits(con, 'error', function(error) {
+    console.log(error);
+  })
 });
 
 
