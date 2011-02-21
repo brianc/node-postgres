@@ -17,6 +17,7 @@ test('connecting with wrong parameters', function() {
   con.connect("user=asldfkj hostaddr=127.0.0.1 port=5432 dbname=asldkfj");
   assert.emits(con, 'error', function(error) {
     console.log(error);
+
   })
 });
 
@@ -26,5 +27,8 @@ test('connects', function() {
   con.connect("user=brian hostaddr=127.0.0.1 port=5432 dbname=postgres");
   assert.emits(con, 'connect', function() {
     con._sendQuery("SELECT NOW()");
+    test('ends connection', function() {
+      con.end();
+    })
   });
 })

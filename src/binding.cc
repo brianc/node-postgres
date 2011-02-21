@@ -35,6 +35,7 @@ public:
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
+    NODE_SET_PROTOTYPE_METHOD(t, "end", End);
 
     target->Set(String::NewSymbol("Connection"), t->GetFunction());
     LOG("created class");
@@ -81,6 +82,15 @@ public:
     //TODO should we flush before throw?
     self->Flush();
     return Undefined();
+  }
+
+  static Handle<Value>
+  End(const Arguments& args)
+  {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+    
+    self->End();
   }
 
   ev_io read_watcher_;
@@ -256,6 +266,11 @@ protected:
         StopWrite();
       }
     }
+  }
+  
+  void End()
+  {
+    PQfinish(connection_);
   }
 
 private:
