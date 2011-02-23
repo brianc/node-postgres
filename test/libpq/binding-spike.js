@@ -16,7 +16,8 @@ test('connecting with wrong parameters', function() {
   var con = new Connection();
   con.connect("user=asldfkj hostaddr=127.0.0.1 port=5432 dbname=asldkfj");
   assert.emits(con, 'error', function(error) {
-    console.log(error);
+    assert.ok(error != null, "error should not be null");
+    con.end();
   });
 });
 
@@ -25,12 +26,10 @@ test('connects', function() {
   var con = new Connection();
   con.connect("user=brian hostaddr=127.0.0.1 port=5432 dbname=postgres");
   assert.emits(con, 'connect', function() {
-    con._sendQuery("SELECT NOW()");
-    assert.emits(con, 'row', function(row) {
-      assert.ok(false, "Need to assert on row data");
-      test('ends connection', function() {
+    test('disconnects', function() {
+      assert.emits(con, 'connect', function() {
         con.end();
-      });
-    });
-  });
+      })
+    })
+  })
 })
