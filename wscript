@@ -28,4 +28,4 @@ def build(bld):
   obj.uselib = "PG"
 
 def test(test):
-  Utils.exec_command("node test/libpq/binding-spike.js")
+  Utils.exec_command("node test/libpq/connection-tests.js")
