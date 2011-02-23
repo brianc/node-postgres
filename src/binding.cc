@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #define LOG(msg) printf("%s\n",msg)
-#define TRACE(msg) printf("%s\n", msg);
+#define TRACE(msg) //printf("%s\n", msg);
 
 #define THROW(msg) return ThrowException(Exception::Error(String::New(msg)));
 
@@ -154,7 +154,7 @@ protected:
     if (!connection_) {
       LOG("Connection couldn't be created");
     } else {
-      LOG("Connect created");
+      TRACE("Connect created");
     }
 
     if (PQsetnonblocking(connection_, 1) == -1) {
@@ -179,7 +179,7 @@ protected:
 
     assert(PQisnonblocking(connection_));
 
-    LOG("Setting watchers to socket");
+    TRACE("Setting watchers to socket");
     ev_io_set(&read_watcher_, fd, EV_READ);
     ev_io_set(&write_watcher_, fd, EV_WRITE);
 
