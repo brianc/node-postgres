@@ -10,10 +10,10 @@ Connection = require('connection');
 var args = require(__dirname + '/cli');
 
 if(args.libpg) {
+  Client = require('binding').Client;
 } else {
   Client = require('client');
 }
-
 
 process.on('uncaughtException', function(d) {
   if ('stack' in d && 'message' in d) {

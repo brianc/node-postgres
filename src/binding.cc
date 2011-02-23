@@ -14,6 +14,7 @@ using namespace node;
 
 static Persistent<String> connect_symbol;
 static Persistent<String> error_symbol;
+static Persistent<String> ready_symbol;
 
 class Connection : public EventEmitter {
 
@@ -32,6 +33,7 @@ public:
 
     connect_symbol = NODE_PSYMBOL("connect");
     error_symbol = NODE_PSYMBOL("error");
+    ready_symbol = NODE_PSYMBOL("readyForQuery");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
@@ -93,6 +95,7 @@ public:
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
 
     self->End();
+    return Undefined();
   }
 
   ev_io read_watcher_;
@@ -214,7 +217,7 @@ protected:
           //EmitResult(result);
           PQclear(result);
         }
-        //Emit(ready_symbol, 0, NULL);
+        Emit(ready_symbol, 0, NULL);
       } else {
         LOG("PQisBusy true");
       }
