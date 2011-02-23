@@ -15,6 +15,7 @@ using namespace node;
 static Persistent<String> connect_symbol;
 static Persistent<String> error_symbol;
 static Persistent<String> ready_symbol;
+static Persistent<String> row_symbol;
 
 class Connection : public EventEmitter {
 
@@ -34,6 +35,7 @@ public:
     connect_symbol = NODE_PSYMBOL("connect");
     error_symbol = NODE_PSYMBOL("error");
     ready_symbol = NODE_PSYMBOL("readyForQuery");
+    row_symbol = NODE_PSYMBOL("row");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
@@ -193,6 +195,10 @@ protected:
   //called to process io_events from libev
   void HandleIOEvent(int revents)
   {
+    //declare handlescope as this method is entered via a libev callback
+    //and not part of the public v8 interface
+    HandleScope scope;
+
     if(revents & EV_ERROR) {
       LOG("Connection error.");
       return;
@@ -213,8 +219,21 @@ protected:
       if (PQisBusy(connection_) == 0) {
         PGresult *result;
         while ((result = PQgetResult(connection_))) {
-          LOG("Got result");
-          //EmitResult(result);
+          int rowCount = PQntuples(result);
+          for(int rowNumber = 0; rowNumber < rowCount; rowNumber++) {
+            //create result object for this row
+            Local<Object> row = Object::New();
+            int fieldCount = PQnfields(result);
+            for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
+              char* fieldName = PQfname(result, fieldNumber);
+              char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
+              row->Set(String::New(fieldName), String::New(fieldValue));
+            }
+
+            //not sure about what to dealloc or scope#Close here
+            Handle<Value> e = (Handle<Value>)row;
+            Emit(row_symbol, 1, &e);
+          }
           PQclear(result);
         }
         Emit(ready_symbol, 0, NULL);
@@ -241,6 +260,8 @@ protected:
 
   void End()
   {
+    StopRead();
+    StopWrite();
     PQfinish(connection_);
   }
 
