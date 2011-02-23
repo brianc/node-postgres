@@ -1,6 +1,5 @@
 require.paths.unshift(__dirname + '/../lib/');
 
-Client = require('client');
 EventEmitter = require('events').EventEmitter;
 
 sys = require('sys');
@@ -9,6 +8,12 @@ BufferList = require(__dirname+'/buffer-list')
 buffers = require(__dirname + '/test-buffers');
 Connection = require('connection');
 var args = require(__dirname + '/cli');
+
+if(args.libpg) {
+} else {
+  Client = require('client');
+}
+
 
 process.on('uncaughtException', function(d) {
   if ('stack' in d && 'message' in d) {

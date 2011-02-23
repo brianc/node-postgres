@@ -25,5 +25,8 @@ test-unit:
 test-connection:
 	@node script/test-connection.js $(params)
 
+test-libpg: test-unit
+	@find test/integration/client -name "*-tests.js" | $(node-command) --libpg true
+
 test-integration: test-connection
 	@find test/integration -name "*-tests.js" | $(node-command)
