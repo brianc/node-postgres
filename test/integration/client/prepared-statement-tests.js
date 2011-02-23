@@ -32,20 +32,11 @@ test("named prepared statement", function() {
       name: queryName
     });
 
-    test("is parsed", function() {
-      client.connection.on('parseComplete', function() {
-        parseCount++;
-      });
-    });
-
     assert.emits(query, 'row', function(row) {
       assert.equal(row.name, 'Brian');
     });
 
     assert.emits(query, 'end', function() {
-      test("query was parsed", function() {
-        assert.equal(parseCount, 1);
-      });
     });
   });
 
@@ -61,9 +52,6 @@ test("named prepared statement", function() {
     });
 
     assert.emits(cachedQuery, 'end', function() {
-      test("query was only parsed one time", function() {
-        assert.equal(parseCount, 1, "Should not have reparsed query");
-      });
     });
   });
 
@@ -87,7 +75,7 @@ test("named prepared statement", function() {
     });
 
     assert.emits(q, 'end', function() {
-      assert.equal(parseCount, 1);
+
     });
   });
 });
