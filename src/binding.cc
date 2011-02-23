@@ -38,7 +38,7 @@ public:
     NODE_SET_PROTOTYPE_METHOD(t, "end", End);
 
     target->Set(String::NewSymbol("Connection"), t->GetFunction());
-    LOG("created class");
+    TRACE("created class");
   }
 
   //static function called by libev as callback entrypoint
@@ -84,12 +84,14 @@ public:
     return Undefined();
   }
 
+  //v8 entry point into Connection#end
   static Handle<Value>
   End(const Arguments& args)
   {
     HandleScope scope;
+
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
-    
+
     self->End();
   }
 
@@ -102,7 +104,7 @@ public:
     connection_ = NULL;
     connecting_ = false;
 
-    LOG("Initializing ev watchers");
+    TRACE("Initializing ev watchers");
     ev_init(&read_watcher_, io_event);
     read_watcher_.data = this;
     ev_init(&write_watcher_, io_event);
@@ -160,40 +162,6 @@ protected:
 
     ConnStatusType status = PQstatus(connection_);
 
-    switch(status) {
-    case CONNECTION_STARTED:
-      LOG("Status: CONNECTION_STARTED");
-      break;
-
-    case CONNECTION_BAD:
-      LOG("Status: CONNECTION_BAD");
-      break;
-
-    case CONNECTION_MADE:
-      LOG("Status: CONNECTION_MADE");
-      break;
-
-    case CONNECTION_AWAITING_RESPONSE:
-      LOG("Status: CONNECTION_AWAITING_RESPONSE");
-      break;
-
-    case CONNECTION_AUTH_OK:
-      LOG("Status: CONNECTION_AUTH_OKAY");
-      break;
-
-    case CONNECTION_SSL_STARTUP:
-      LOG("Status: CONNECTION_SSL_STARTUP");
-      break;
-
-    case CONNECTION_SETENV:
-      LOG("Status: CONNECTION_SETENV");
-      break;
-
-    default:
-      LOG("Unknown connection status");
-      break;
-    }
-
     if(CONNECTION_BAD == status) {
       PQfinish(connection_);
       LOG("Bad connection status");
@@ -233,7 +201,7 @@ protected:
     }
 
     if(revents & EV_READ) {
-      LOG("revents & EV_READ");
+      TRACE("revents & EV_READ");
       if(PQconsumeInput(connection_) == 0) {
         LOG("Something happened, consume input is 0");
         return;
@@ -267,7 +235,7 @@ protected:
       }
     }
   }
-  
+
   void End()
   {
     PQfinish(connection_);
@@ -279,29 +247,29 @@ private:
     PostgresPollingStatusType status = PQconnectPoll(connection_);
     switch(status) {
     case PGRES_POLLING_READING:
-      LOG("Polled: PGRES_POLLING_READING");
+      TRACE("Polled: PGRES_POLLING_READING");
       StopWrite();
       StartRead();
       break;
     case PGRES_POLLING_WRITING:
-      LOG("Polled: PGRES_POLLING_WRITING");
+      TRACE("Polled: PGRES_POLLING_WRITING");
       StopRead();
       StartWrite();
       break;
     case PGRES_POLLING_FAILED:
       StopRead();
       StopWrite();
-      LOG("Polled: PGRES_POLLING_FAILED");
+      TRACE("Polled: PGRES_POLLING_FAILED");
       EmitLastError();
       EmitError("Something happened...polling error");
       break;
     case PGRES_POLLING_OK:
-      LOG("Polled: PGRES_POLLING_OK");
+      TRACE("Polled: PGRES_POLLING_OK");
       connecting_ = false;
-      Emit(connect_symbol, 0, NULL);
       StartRead();
+      Emit(connect_symbol, 0, NULL);
     default:
-      printf("Unknown polling status: %d\n", status);
+      //printf("Unknown polling status: %d\n", status);
       break;
     }
   }
