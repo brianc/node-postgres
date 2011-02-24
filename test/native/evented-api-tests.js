@@ -1,6 +1,6 @@
 var helper = require(__dirname + "/../test-helper");
 var Client = require(__dirname + "/../../lib/native").Client;
-var conString = "tcp://postgres:1234@127.0.0.1:5432/postgres";
+var conString = helper.connectionString();
 test('connects', function() {
   var client = new Client(conString);
   client.connect();

@@ -11,7 +11,7 @@ test('connecting with wrong parameters', function() {
 });
 
 test('connects', function() {
-  var con = new Client("tcp://postgres:1234@127.0.0.1:5432/postgres");
+  var con = new Client(helper.connectionString());
   con.connect();
   assert.emits(con, 'connect', function() {
     test('disconnects', function() {

@@ -11,7 +11,7 @@ params := -u $(user) --password $(password) -p $(port) -d $(database) -h $(host)
 
 node-command := xargs -n 1 -I file node file $(params)
 
-.PHONY : test test-connection test-integration bench test-libpg build
+.PHONY : test test-connection test-integration bench test-native build
 test: test-unit 
 
 test-all: test-unit test-integration
@@ -28,8 +28,8 @@ test-unit:
 test-connection:
 	@node script/test-connection.js $(params)
 
-test-libpg: build test-unit
-	@find test/integration/client -name "*-tests.js" | $(node-command) --libpg true
+test-native: build
+	@find test/native -name "*-tests.js" | $(node-command)
 
 test-integration: test-connection
 	@find test/integration -name "*-tests.js" | $(node-command)
