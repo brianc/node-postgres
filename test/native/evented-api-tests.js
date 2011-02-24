@@ -39,7 +39,18 @@ test('multiple results', function() {
       assert.equal(row.name, 'Aaron');
       assert.emits(q, 'row', function(row) {
         assert.equal(row.name, "Brian");
-        client.end();
+
+      })
+    })
+    assert.emits(q, 'end', function() {
+      test('query with config', function() {
+        var q = client.query({text:'SELECT 1 as num'});
+        assert.emits(q, 'row', function(row) {
+          assert.strictEqual(row.num, 1);
+          assert.emits(q, 'end', function() {
+            client.end();
+          })
+        })
       })
     })
   })
