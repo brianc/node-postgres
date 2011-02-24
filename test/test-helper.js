@@ -1,18 +1,18 @@
 require.paths.unshift(__dirname + '/../lib/');
-
-EventEmitter = require('events').EventEmitter;
-
-sys = require('sys');
+//make assert a global...
 assert = require('assert');
-BufferList = require(__dirname+'/buffer-list')
-buffers = require(__dirname + '/test-buffers');
-Connection = require('connection');
+
+var EventEmitter = require('events').EventEmitter;
+var sys = require('sys');
+var BufferList = require(__dirname+'/buffer-list')
+
+var Connection = require('connection');
 var args = require(__dirname + '/cli');
 
 if(args.libpq) {
-  Client = require('binding').Client;
+Client = require('binding').Client;
 } else {
-  Client = require('client');
+Client = require('client');
 }
 
 process.on('uncaughtException', function(d) {
@@ -210,7 +210,9 @@ module.exports = {
   pg: require('index'),
   connectionString: function() {
     return "pg"+(count++)+"://"+args.user+":"+args.password+"@"+args.host+":"+args.port+"/"+args.database;
-  }
+  },
+  sys: sys,
+  Client: Client
 };
 
 
