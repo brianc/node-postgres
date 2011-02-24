@@ -226,8 +226,7 @@ protected:
             int fieldCount = PQnfields(result);
             for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
               char* fieldName = PQfname(result, fieldNumber);
-              char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
-              row->Set(String::New(fieldName), String::New(fieldValue));
+              row->Set(String::New(fieldName), WrapFieldValue(result, rowNumber, fieldNumber));
             }
 
             //not sure about what to dealloc or scope#Close here
@@ -255,6 +254,18 @@ protected:
       if (PQflush(connection_) == 0) {
         StopWrite();
       }
+    }
+  }
+
+  Handle<Value> WrapFieldValue(PGresult* result, int rowNumber, int fieldNumber)
+  {
+    int fieldType = PQftype(result, fieldNumber);
+    char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
+    switch(fieldType) {
+    case 23:
+      return Integer::New(atoi(fieldValue));
+    default:
+      return String::New(fieldValue);
     }
   }
 
