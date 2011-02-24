@@ -9,7 +9,7 @@ buffers = require(__dirname + '/test-buffers');
 Connection = require('connection');
 var args = require(__dirname + '/cli');
 
-if(args.libpg) {
+if(args.libpq) {
   Client = require('binding').Client;
 } else {
   Client = require('client');
