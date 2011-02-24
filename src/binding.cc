@@ -256,6 +256,9 @@ protected:
     case PGRES_FATAL_ERROR:
       EmitLastError();
       break;
+    case PGRES_COMMAND_OK:
+      //do nothing
+      break;
     default:
       printf("Unrecogized query status: %s\n", PQresStatus(status));
       break;
