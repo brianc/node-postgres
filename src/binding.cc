@@ -7,6 +7,7 @@
 #define LOG(msg) printf("%s\n",msg)
 #define TRACE(msg) //printf("%s\n", msg);
 
+
 #define THROW(msg) return ThrowException(Exception::Error(String::New(msg)));
 
 using namespace v8;
@@ -33,9 +34,9 @@ public:
     t->SetClassName(String::NewSymbol("Connection"));
 
     connect_symbol = NODE_PSYMBOL("connect");
-    error_symbol = NODE_PSYMBOL("error");
-    ready_symbol = NODE_PSYMBOL("readyForQuery");
-    row_symbol = NODE_PSYMBOL("row");
+    error_symbol = NODE_PSYMBOL("_error");
+    ready_symbol = NODE_PSYMBOL("_readyForQuery");
+    row_symbol = NODE_PSYMBOL("_row");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
@@ -156,7 +157,7 @@ protected:
     if (!connection_) {
       LOG("Connection couldn't be created");
     } else {
-      TRACE("Connect created");
+      TRACE("Native connection created");
     }
 
     if (PQsetnonblocking(connection_, 1) == -1) {
@@ -205,6 +206,7 @@ protected:
     }
 
     if(connecting_) {
+      TRACE("Processing connecting_ io");
       HandleConnectionIO();
       return;
     }
@@ -219,20 +221,7 @@ protected:
       if (PQisBusy(connection_) == 0) {
         PGresult *result;
         while ((result = PQgetResult(connection_))) {
-          int rowCount = PQntuples(result);
-          for(int rowNumber = 0; rowNumber < rowCount; rowNumber++) {
-            //create result object for this row
-            Local<Object> row = Object::New();
-            int fieldCount = PQnfields(result);
-            for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
-              char* fieldName = PQfname(result, fieldNumber);
-              row->Set(String::New(fieldName), WrapFieldValue(result, rowNumber, fieldNumber));
-            }
-
-            //not sure about what to dealloc or scope#Close here
-            Handle<Value> e = (Handle<Value>)row;
-            Emit(row_symbol, 1, &e);
-          }
+          HandleResult(result);
           PQclear(result);
         }
         Emit(ready_symbol, 0, NULL);
@@ -254,6 +243,40 @@ protected:
       if (PQflush(connection_) == 0) {
         StopWrite();
       }
+    }
+  }
+
+  void HandleResult(PGresult* result)
+  {
+    ExecStatusType status = PQresultStatus(result);
+    switch(status) {
+    case PGRES_TUPLES_OK:
+      HandleTuplesResult(result);
+      break;
+    case PGRES_FATAL_ERROR:
+      EmitLastError();
+      break;
+    default:
+      printf("Unrecogized query status: %s\n", PQresStatus(status));
+      break;
+    }
+  }
+
+  void HandleTuplesResult(PGresult* result)
+  {
+    int rowCount = PQntuples(result);
+    for(int rowNumber = 0; rowNumber < rowCount; rowNumber++) {
+      //create result object for this row
+      Local<Object> row = Object::New();
+      int fieldCount = PQnfields(result);
+      for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
+        char* fieldName = PQfname(result, fieldNumber);
+        row->Set(String::New(fieldName), WrapFieldValue(result, rowNumber, fieldNumber));
+      }
+
+      //not sure about what to dealloc or scope#Close here
+      Handle<Value> e = (Handle<Value>)row;
+      Emit(row_symbol, 1, &e);
     }
   }
 
@@ -296,7 +319,6 @@ private:
       StopWrite();
       TRACE("Polled: PGRES_POLLING_FAILED");
       EmitLastError();
-      EmitError("Something happened...polling error");
       break;
     case PGRES_POLLING_OK:
       TRACE("Polled: PGRES_POLLING_OK");

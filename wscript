@@ -28,4 +28,5 @@ def build(bld):
   obj.uselib = "PG"
 
 def test(test):
-  Utils.exec_command("node test/libpq/connection-tests.js")
+  Utils.exec_command("node test/native/connection-tests.js")
+  Utils.exec_command("node test/native/evented-api-tests.js")
