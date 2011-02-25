@@ -79,8 +79,11 @@ public:
   {
     HandleScope scope;
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
-    String::Utf8Value queryText(args[0]->ToString());
+    if(!args[0]->IsString()) {
+      return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
+    }
 
+    String::Utf8Value queryText(args[0]->ToString());
     int result = self->Send(*queryText);
     if(result == 0) {
       THROW("PQsendQuery returned error code");
