@@ -44,8 +44,8 @@ test('parameterized query with non-array for second value', function() {
       client.end();
     })
   })
-  test('config', function() {
 
+  test('config', function() {
     connect(function(client) {
       assert.throws(function() {
         client.query({
