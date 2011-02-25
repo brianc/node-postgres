@@ -27,3 +27,35 @@ test('parameterized query with non-text as first parameter throws error', functi
   })
 })
 
+var connect = function(callback) {
+  var client = new Client(conString);
+  client.connect();
+  assert.emits(client, 'connect', function() {
+    callback(client);
+  })
+}
+
+test('parameterized query with non-array for second value', function() {
+  test('inline', function() {
+    connect(function(client) {
+      assert.throws(function() {
+        client.query("SELECT *", "LKSDJF")
+      })
+      client.end();
+    })
+  })
+  test('config', function() {
+
+    connect(function(client) {
+      assert.throws(function() {
+        client.query({
+          text: "SELECT *",
+          values: "ALSDKFJ"
+        })
+      })
+      client.end();
+    })
+  })
+})
+
+

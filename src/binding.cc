@@ -102,6 +102,10 @@ public:
     if(!args[0]->IsString()) {
       return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
     }
+    printf("testing for logs","");
+    if(!args[1]->IsArray()) {
+      return ThrowException(Exception::Error(String::New("Values must be array")));
+    }
 
     String::Utf8Value queryText(args[0]->ToString());
     int result = self->Send(*queryText);
