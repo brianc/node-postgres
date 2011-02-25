@@ -102,14 +102,24 @@ public:
     if(!args[0]->IsString()) {
       return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
     }
-    printf("testing for logs","");
+
     if(!args[1]->IsArray()) {
       return ThrowException(Exception::Error(String::New("Values must be array")));
     }
 
     String::Utf8Value queryText(args[0]->ToString());
-    int result = self->Send(*queryText);
-
+    Local<Array> params = Local<Array>::Cast(args[1]);
+    int len = params->Length();
+    
+    for(int i = 0; i < len; i++) { 
+      Handle<Value> val = params->Get(i);
+      if(!val->IsString()) {
+        return ThrowException(Exception::Error(String::New("Only string parameters supported")));
+      }
+    }
+    char **rawParams;
+    self->SendQueryParams(*queryText, len, rawParams);
+    THROW("Not implemented");
     return Undefined();
   }
 
@@ -161,6 +171,11 @@ protected:
   int Send(const char *queryText)
   {
     return PQsendQuery(connection_, queryText);
+  }
+
+  int SendQueryParams(const char *command, const int nParams, const char * const *paramValues)
+  {
+    return PQsendQueryParams(connection_, command, nParams, NULL, paramValues, NULL, NULL, 0);
   }
 
   //flushes socket
