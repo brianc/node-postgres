@@ -26,20 +26,22 @@ test('connects', function() {
     })
   })
 })
-
-test('multiple results', function() {
+var setupClient = function() {
   var client = new Client(conString);
   client.connect();
+  client.query("CREATE TEMP TABLE boom(name varchar(10))");
+  client.query("INSERT INTO boom(name) VALUES('Aaron')");
+  client.query("INSERT INTO boom(name) VALUES('Brian')");
+  return client;
+}
+test('multiple results', function() {
   test('queued queries', function() {
-    client.query("CREATE TEMP TABLE boom(name varchar(10))");
-    client.query("INSERT INTO boom(name) VALUES('Aaron')");
-    client.query("INSERT INTO boom(name) VALUES('Brian')");
+    var client = setupClient();
     var q = client.query("SELECT * from BOOM");
     assert.emits(q, 'row', function(row) {
       assert.equal(row.name, 'Aaron');
       assert.emits(q, 'row', function(row) {
         assert.equal(row.name, "Brian");
-
       })
     })
     assert.emits(q, 'end', function() {
@@ -55,3 +57,31 @@ test('multiple results', function() {
     })
   })
 })
+
+test('parameterized queries', function() {
+  test('with a single string param', function() {
+    var client = setupClient();
+    var q = client.query("SELECT name FROM boom WHERE name = $1", ['Brian']);
+    assert.emits(q, 'row', function(row) {
+      assert.equal(row.name, 'Brian')
+    })
+    assert.emits(q, 'end', function() {
+      client.end();
+    });
+  })
+  test('with object config for query', function() {
+    var client = setupClient();
+    var q = client.query({
+      text: "SELECT name FROM boom WHERE name = $1",
+      values: ['Brian']
+    });
+    assert.emits(q, 'row', function(row) {
+      assert.equal(row.name, 'Brian');
+    })
+    assert.emits(q, 'end', function() {
+      client.end();
+    })
+  })
+
+})
+

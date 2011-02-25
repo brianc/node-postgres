@@ -40,6 +40,7 @@ public:
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
+    NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryWithParams", SendQueryWithParams);
     NODE_SET_PROTOTYPE_METHOD(t, "end", End);
 
     target->Set(String::NewSymbol("Connection"), t->GetFunction());
@@ -86,6 +87,16 @@ public:
     }
     //TODO should we flush before throw?
     self->Flush();
+    return Undefined();
+  }
+
+  //v8 entry point into Connection#_sendQueryWithParams
+  static Handle<Value>
+  SendQueryWithParams(const Arguments& args)
+  {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+    printf("%d\n", args.Length());
     return Undefined();
   }
 
