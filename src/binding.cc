@@ -99,7 +99,13 @@ public:
   {
     HandleScope scope;
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
-    printf("%d\n", args.Length());
+    if(!args[0]->IsString()) {
+      return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
+    }
+
+    String::Utf8Value queryText(args[0]->ToString());
+    int result = self->Send(*queryText);
+
     return Undefined();
   }
 
