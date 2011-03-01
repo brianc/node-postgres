@@ -4,7 +4,10 @@ var conString = helper.connectionString();
 
 test('fires callback with results', function() {
   var client = new Client(conString);
-  client.query('SELECT 1', assert.calls(function(result) {
+  var q = client.query('SELECT 1', assert.calls(function(err, result) {
     
   }));
+  q.on('row', function(row) {
+    console.log(row);
+  })
 })
