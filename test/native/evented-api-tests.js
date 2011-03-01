@@ -1,6 +1,16 @@
 var helper = require(__dirname + "/../test-helper");
 var Client = require(__dirname + "/../../lib/native").Client;
 var conString = helper.connectionString();
+
+var setupClient = function() {
+  var client = new Client(conString);
+  client.connect();
+  client.query("CREATE TEMP TABLE boom(name varchar(10), age integer)");
+  client.query("INSERT INTO boom(name, age) VALUES('Aaron', 26)");
+  client.query("INSERT INTO boom(name, age) VALUES('Brian', 28)");
+  return client;
+}
+
 test('connects', function() {
   var client = new Client(conString);
   client.connect();
@@ -26,14 +36,6 @@ test('connects', function() {
     })
   })
 })
-var setupClient = function() {
-  var client = new Client(conString);
-  client.connect();
-  client.query("CREATE TEMP TABLE boom(name varchar(10))");
-  client.query("INSERT INTO boom(name) VALUES('Aaron')");
-  client.query("INSERT INTO boom(name) VALUES('Brian')");
-  return client;
-}
 
 test('multiple results', function() {
   test('queued queries', function() {
@@ -85,5 +87,29 @@ test('parameterized queries', function() {
     })
   })
 
+  test('multiple parameters', function() {
+    var client = setupClient();
+    var q = client.query('SELECT name FROM boom WHERE name = $1 or name = $2 ORDER BY name', ['Aaron', 'Brian']);
+    assert.emits(q, 'row', function(row) {
+      assert.equal(row.name, 'Aaron');
+      assert.emits(q, 'row', function(row) {
+        assert.equal(row.name, 'Brian');
+        assert.emits(q, 'end', function() {
+          client.end();
+        })
+      })
+    })
+  })
+  
+  test('integer parameters', function() {
+    var client = setupClient();
+    var q = client.query('SELECT * FROM boom WHERE age > $1', [27]);
+    assert.emits(q, 'row', function(row) {
+      assert.equal(row.name, 'Brian');
+      assert.equal(row.age, 28);
+    });
+    assert.emits(q, 'end', function() {
+      client.end();
+    })
+  })
 })
-
