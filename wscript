@@ -1,6 +1,6 @@
 import Options, Utils
 from os import unlink, symlink, popen
-from os.path import exists 
+from os.path import exists
 
 srcdir = '.'
 blddir = 'build'

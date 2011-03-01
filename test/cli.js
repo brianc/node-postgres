@@ -38,8 +38,8 @@ for(var i = 0; i < args.length; i++) {
   case '-t':
   case '--test':
     config.test = args[++i];
-  case '--libpq':
-    config.libpq = (args[++i] == "true");
+  case '--native':
+    config.native = (args[++i] == "true");
   default:
     break;
   }

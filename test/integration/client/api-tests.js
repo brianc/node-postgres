@@ -1,5 +1,10 @@
 var helper = require(__dirname + '/../test-helper');
 var pg = require(__dirname + '/../../../lib');
+
+if(helper.args.native) {
+  pg = require(__dirname + '/../../../lib/native')
+}
+
 if(helper.args.libpq) {
   pg = require(__dirname + "/../../../lib/binding");
 }

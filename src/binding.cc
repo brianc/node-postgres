@@ -330,11 +330,18 @@ protected:
     int rowCount = PQntuples(result);
     for(int rowNumber = 0; rowNumber < rowCount; rowNumber++) {
       //create result object for this row
-      Local<Object> row = Object::New();
+      Local<Array> row = Array::New();
       int fieldCount = PQnfields(result);
       for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
+        Local<Object> field = Object::New();
         char* fieldName = PQfname(result, fieldNumber);
-        row->Set(String::New(fieldName), WrapFieldValue(result, rowNumber, fieldNumber));
+        int fieldType = PQftype(result, fieldNumber);
+        char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
+        //TODO use symbols here
+        field->Set(String::New("name"), String::New(fieldName));
+        field->Set(String::New("value"), String::New(fieldValue));
+        field->Set(String::New("type"), Integer::New(fieldType));
+        row->Set(Integer::New(fieldNumber), field);
       }
 
       //not sure about what to dealloc or scope#Close here
