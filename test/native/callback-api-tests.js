@@ -4,10 +4,14 @@ var conString = helper.connectionString();
 
 test('fires callback with results', function() {
   var client = new Client(conString);
-  var q = client.query('SELECT 1', assert.calls(function(err, result) {
-    
+  client.connect();
+  client.query('SELECT 1 as num', assert.calls(function(err, result) {
+    assert.isNull(err);
+    assert.equal(result.rows[0].num, 1);
+    client.query('SELECT * FROM person WHERE name = $1', ['Brian'], assert.calls(function(err, result) {
+      assert.isNull(err);
+      assert.equal(result.rows[0].name, 'Brian');
+      client.end();
+    }))
   }));
-  q.on('row', function(row) {
-    console.log(row);
-  })
 })
