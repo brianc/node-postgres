@@ -34,10 +34,11 @@ var setupClient = function() {
   client.query("INSERT INTO boom(name) VALUES('Brian')");
   return client;
 }
+
 test('multiple results', function() {
   test('queued queries', function() {
     var client = setupClient();
-    var q = client.query("SELECT * from BOOM");
+    var q = client.query("SELECT name FROM BOOM");
     assert.emits(q, 'row', function(row) {
       assert.equal(row.name, 'Aaron');
       assert.emits(q, 'row', function(row) {
@@ -61,14 +62,15 @@ test('multiple results', function() {
 test('parameterized queries', function() {
   test('with a single string param', function() {
     var client = setupClient();
-    var q = client.query("SELECT name FROM boom WHERE name = $1", ['Brian']);
+    var q = client.query("SELECT * FROM boom WHERE name = $1", ['Aaron']);
     assert.emits(q, 'row', function(row) {
-      assert.equal(row.name, 'Brian')
+      assert.equal(row.name, 'Aaron');
     })
     assert.emits(q, 'end', function() {
       client.end();
     });
   })
+
   test('with object config for query', function() {
     var client = setupClient();
     var q = client.query({

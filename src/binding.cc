@@ -1,6 +1,7 @@
 #include <libpq-fe.h>
 #include <node.h>
 #include <node_events.h>
+#include <string.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -67,7 +68,6 @@ public:
     }
 
     String::Utf8Value conninfo(args[0]->ToString());
-
     self->Connect(*conninfo);
 
     return Undefined();
@@ -83,8 +83,9 @@ public:
       return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
     }
 
-    String::Utf8Value queryText(args[0]->ToString());
-    int result = self->Send(*queryText);
+    char* queryText = MallocCString(args[0]);
+    int result = self->Send(queryText);
+    free(queryText);
     if(result == 0) {
       THROW("PQsendQuery returned error code");
     }
@@ -107,20 +108,40 @@ public:
       return ThrowException(Exception::Error(String::New("Values must be array")));
     }
 
-    String::Utf8Value queryText(args[0]->ToString());
+    char* queryText = MallocCString(args[0]);
     Local<Array> params = Local<Array>::Cast(args[1]);
     int len = params->Length();
-    
-    for(int i = 0; i < len; i++) { 
+    char* *paramValues = new char*[len];
+    for(int i = 0; i < len; i++) {
       Handle<Value> val = params->Get(i);
       if(!val->IsString()) {
+        //TODO this leaks mem
+        delete [] paramValues;
         return ThrowException(Exception::Error(String::New("Only string parameters supported")));
       }
+      char* cString = MallocCString(val);
+      paramValues[i] = cString;
     }
-    char **rawParams;
-    self->SendQueryParams(*queryText, len, rawParams);
-    THROW("Not implemented");
-    return Undefined();
+
+    int result = self->SendQueryParams(queryText, len, paramValues);
+
+    free(queryText);
+    for(int i = 0; i < len; i++) {
+      free(paramValues[i]);
+    }
+    delete [] paramValues;
+    if(result == 1) {
+      return Undefined();
+    }
+    return ThrowException(Exception::Error(String::New("Could not dispatch parameterized query")));
+  }
+
+  static char* MallocCString(v8::Handle<Value> v8String)
+  {
+    String::Utf8Value utf8String(v8String->ToString());
+    char *cString = (char *) malloc(strlen(*utf8String) + 1);
+    strcpy(cString, *utf8String);
+    return cString;
   }
 
   //v8 entry point into Connection#end
