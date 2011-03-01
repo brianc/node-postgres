@@ -3,9 +3,9 @@ var pg = require("index");
 
 test('default values', function() {
   assert.same(pg.defaults,{
-    user: '',
-    database: '',
-    password: '',
+    user: process.env.USER,
+    database: process.env.USER,
+    password: null,
     port: 5432,
     rows: 0,
     poolSize: 10
@@ -13,9 +13,9 @@ test('default values', function() {
   test('are used in new clients', function() {
     var client = new pg.Client();
     assert.same(client,{
-      user: '',
-      database: '',
-      password: '',
+      user: process.env.USER,
+      database: process.env.USER,
+      password: null,
       port: 5432
     })
   })
