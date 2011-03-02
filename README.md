@@ -60,10 +60,10 @@ with love and TDD.
 - mucho testing
   ~250 tests executed on
     - ubuntu
-      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.3.0, v0.3.1
+      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.2.6, v0.3.0, v0.3.1, v0.3.2, v0.3.3, v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8
       - postgres 8.4.4
     - osx
-      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.3.0, v0.3.1
+      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.2.6, v0.3.0, v0.3.1, v0.3.2, v0.3.3, v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8
       - postgres v8.4.4, v9.0.1 installed both locally and on networked Windows 7
 
 ## Contributing
