@@ -6,8 +6,9 @@ host=localhost
 port=5432
 database=postgres
 verbose=false
+native=false
 
-params := -u $(user) --password $(password) -p $(port) -d $(database) -h $(host) --verbose $(verbose)
+params := -u $(user) --password $(password) -p $(port) -d $(database) -h $(host) --verbose $(verbose) --native $(native)
 
 node-command := xargs -n 1 -I file node file $(params)
 
