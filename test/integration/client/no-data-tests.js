@@ -17,6 +17,7 @@ test("noData message handling", function() {
 
   client.query({
     name: 'insert',
+    text: 'insert into boom(size) values($1)',
     values: [101]
   });
   
