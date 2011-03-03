@@ -253,6 +253,10 @@ protected:
     return true;
   }
 
+  void HandleNotice(void *arg, const PGresult *res)
+  {
+  }
+
   //called to process io_events from libev
   void HandleIOEvent(int revents)
   {
