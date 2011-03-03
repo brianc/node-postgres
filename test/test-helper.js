@@ -9,11 +9,7 @@ var BufferList = require(__dirname+'/buffer-list')
 var Connection = require('connection');
 var args = require(__dirname + '/cli');
 
-if(args.libpq) {
-Client = require('binding').Client;
-} else {
-Client = require('client');
-}
+Client = require(__dirname + '/../lib').Client;
 
 process.on('uncaughtException', function(d) {
   if ('stack' in d && 'message' in d) {
