@@ -1,5 +1,7 @@
 require(__dirname + '/test-helper');
-var Pool = require(__dirname + "/../../lib/utils").Pool;
+var utils = require(__dirname + "/../../lib/utils");
+var Pool = utils.Pool;
+var defaults = require(__dirname + "/../../lib").defaults;
 
 //this tests the monkey patching
 //to ensure comptability with older
@@ -109,8 +111,75 @@ test('when creating async new pool members', function() {
       }))
     }))
   })
-
 })
 
+test('normalizing connection info', function() {
+  test('with objects', function() {
+    test('empty object uses defaults', function() {
+      var input = {};
+      var output = utils.normalizeConnectionInfo(input);
+      assert.equal(output.user, defaults.user);
+      assert.equal(output.database, defaults.database);
+      assert.equal(output.port, defaults.port);
+      assert.equal(output.host, defaults.host);
+      assert.equal(output.password, defaults.password);
+    });
 
+    test('full object ignores defaults', function() {
+      var input = {
+        user: 'test1',
+        database: 'test2',
+        port: 'test3',
+        host: 'test4',
+        password: 'test5'
+      };
+      assert.equal(utils.normalizeConnectionInfo(input), input);
+    });
 
+    test('connection string', function() {
+      test('non-unix socket', function() {
+        test('uses defaults', function() {
+          var input = "";
+          var output = utils.normalizeConnectionInfo(input);
+          assert.equal(output.user, defaults.user);
+          assert.equal(output.database, defaults.database);
+          assert.equal(output.port, defaults.port);
+          assert.equal(output.host, defaults.host);
+          assert.equal(output.password, defaults.password);
+        });
+        test('ignores defaults if string contains them all', function() {
+          var input = "tcp://user1:pass2@host3:3333/databaseName";
+          var output = utils.normalizeConnectionInfo(input);
+          assert.equal(output.user, 'user1');
+          assert.equal(output.database, 'databaseName');
+          assert.equal(output.port, 3333);
+          assert.equal(output.host, 'host3');
+          assert.equal(output.password, 'pass2');
+        })
+      });
+
+      test('unix socket', function() {
+        test('uses defaults', function() {
+          var input = "/var/run/postgresql";
+          var output = utils.normalizeConnectionInfo(input);
+          assert.equal(output.user, process.env.USER);
+          assert.equal(output.host, '/var/run/postgresql');
+          assert.equal(output.database, process.env.USER);
+          assert.equal(output.port, 5432);
+        });
+        
+        test('uses overridden defaults', function() {
+          defaults.host = "/var/run/postgresql";
+          defaults.user = "boom";
+          defaults.password = "yeah";
+          defaults.port = 1234;
+          var output = utils.normalizeConnectionInfo("asdf");
+          assert.equal(output.user, "boom");
+          assert.equal(output.password, "yeah");
+          assert.equal(output.port, 1234);
+          assert.equal(output.host, "/var/run/postgresql");
+        })
+      })
+    })
+  })
+})

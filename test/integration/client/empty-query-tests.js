@@ -7,3 +7,11 @@ test("empty query message handling", function() {
   });
   client.query("");
 });
+
+test('callback supported', assert.calls(function() {
+  client.query("", function(err, result) {
+    assert.isNull(err);
+    assert.empty(result.rows);
+  })
+}))
+
