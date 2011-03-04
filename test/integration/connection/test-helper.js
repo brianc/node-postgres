@@ -19,8 +19,10 @@ var connect = function(callback) {
       con.password(helper.args.password);
     });
     con.once('authenticationMD5Password', function(msg){
-      var inner = Client.md5(helper.args.password+helper.args.user);
-      var outer = Client.md5(inner + msg.salt.toString('binary'));
+      //need js client even if native client is included
+      var client = require(__dirname +"/../../../lib/client");
+      var inner = client.md5(helper.args.password+helper.args.user);
+      var outer = client.md5(inner + msg.salt.toString('binary'));
       con.password("md5"+outer);
     });
     con.once('readyForQuery', function() {
