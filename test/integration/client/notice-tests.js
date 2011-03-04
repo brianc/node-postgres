@@ -4,7 +4,10 @@ test('emits notice message', function() {
   client.query('create temp table boom(id serial, size integer)');
   assert.emits(client, 'notice', function(notice) {
     assert.ok(notice != null);
-    client.end();
+    //TODO ending connection after notice generates weird errors
+    process.nextTick(function() {
+      client.end();
+    })
   });
 })
 
@@ -15,9 +18,11 @@ test('emits notify message', function() {
     otherClient.query('LISTEN boom', assert.calls(function() {
       client.query('NOTIFY boom');
       assert.emits(client, 'notification', function(msg) {
+        assert.equal(msg.channel, 'boom');
         client.end()
       });
       assert.emits(otherClient, 'notification', function(msg) {
+        assert.equal(msg.channel, 'boom');
         otherClient.end();
       });
     }));

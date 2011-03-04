@@ -18,6 +18,7 @@ static Persistent<String> connect_symbol;
 static Persistent<String> error_symbol;
 static Persistent<String> ready_symbol;
 static Persistent<String> row_symbol;
+static Persistent<String> notice_symbol;
 
 class Connection : public EventEmitter {
 
@@ -37,6 +38,7 @@ public:
     connect_symbol = NODE_PSYMBOL("connect");
     error_symbol = NODE_PSYMBOL("_error");
     ready_symbol = NODE_PSYMBOL("_readyForQuery");
+    notice_symbol = NODE_PSYMBOL("notice");
     row_symbol = NODE_PSYMBOL("_row");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
@@ -242,7 +244,7 @@ protected:
 
     assert(PQisnonblocking(connection_));
 
-    PQsetNoticeReceiver(connection_, NoticeReceiver, this);
+    PQsetNoticeProcessor(connection_, NoticeReceiver, this);
 
     TRACE("Setting watchers to socket");
     ev_io_set(&read_watcher_, fd, EV_READ);
@@ -255,24 +257,22 @@ protected:
     return true;
   }
 
-  static void NoticeReceiver(void *arg, const PGresult *res)
+  static void NoticeReceiver(void *arg, const char *message)
   {
     Connection *self = (Connection*)arg;
-    self->HandleNotice(res);
+    self->HandleNotice(message);
   }
 
-  void HandleNotice(const PGresult *res)
+  void HandleNotice(const char *message)
   {
-    LOG("Need to handle notification messages properly");
+    HandleScope scope;
+    Handle<Value> notice = String::New(message);
+    Emit(notice_symbol, 1, &notice);
   }
 
   //called to process io_events from libev
   void HandleIOEvent(int revents)
   {
-    //declare handlescope as this method is entered via a libev callback
-    //and not part of the public v8 interface
-    HandleScope scope;
-
     if(revents & EV_ERROR) {
       LOG("Connection error.");
       return;
@@ -291,19 +291,31 @@ protected:
         return;
       }
 
+      //declare handlescope as this method is entered via a libev callback
+      //and not part of the public v8 interface
+      HandleScope scope;
+
       if (PQisBusy(connection_) == 0) {
         PGresult *result;
+        bool didHandleResult = false;
         while ((result = PQgetResult(connection_))) {
           HandleResult(result);
+          didHandleResult = true;
           PQclear(result);
         }
-        Emit(ready_symbol, 0, NULL);
+        if(didHandleResult) {
+          //might have fired from notification
+          Emit(ready_symbol, 0, NULL);
+        }
       }
 
       //TODO look at this later
       PGnotify *notify;
       while ((notify = PQnotifies(connection_))) {
-        LOG("Unhandled (not implemented) Notification received....");
+        Local<Object> result = Object::New();
+        result->Set(String::New("channel"), String::New(notify->relname));
+        Handle<Value> res = (Handle<Value>)result;
+        Emit((Handle<String>)String::New("notification"), 1, &res);
         PQfreemem(notify);
       }
 
