@@ -289,9 +289,7 @@ protected:
           PQclear(result);
         }
         Emit(ready_symbol, 0, NULL);
-      } else {
-        LOG("PQisBusy true");
-      }
+      } 
 
       //TODO look at this later
       PGnotify *notify;
