@@ -242,7 +242,7 @@ protected:
 
     assert(PQisnonblocking(connection_));
 
-    PQsetNoticeReceiver(connection_, NoticeReceiver, NULL);
+    PQsetNoticeReceiver(connection_, NoticeReceiver, this);
 
     TRACE("Setting watchers to socket");
     ev_io_set(&read_watcher_, fd, EV_READ);
@@ -257,11 +257,13 @@ protected:
 
   static void NoticeReceiver(void *arg, const PGresult *res)
   {
-    printf("*****NOTICE*********%s","\n");
+    Connection *self = (Connection*)arg;
+    self->HandleNotice(res);
   }
 
-  void HandleNotice(void *arg, const PGresult *res)
+  void HandleNotice(const PGresult *res)
   {
+    LOG("Need to handle notification messages properly");
   }
 
   //called to process io_events from libev
