@@ -242,6 +242,8 @@ protected:
 
     assert(PQisnonblocking(connection_));
 
+    PQsetNoticeReceiver(connection_, NoticeReceiver, NULL);
+
     TRACE("Setting watchers to socket");
     ev_io_set(&read_watcher_, fd, EV_READ);
     ev_io_set(&write_watcher_, fd, EV_WRITE);
@@ -251,6 +253,11 @@ protected:
 
     Ref();
     return true;
+  }
+
+  static void NoticeReceiver(void *arg, const PGresult *res)
+  {
+    printf("*****NOTICE*********%s","\n");
   }
 
   void HandleNotice(void *arg, const PGresult *res)
