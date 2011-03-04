@@ -19,7 +19,6 @@ test('error handling', function(){
 
     assert.emits(query, 'error', function(error) {
       test('error is a psql error', function() {
-        return false;
         assert.equal(error.severity, "ERROR");
       })
     });
@@ -64,7 +63,6 @@ test('error handling', function(){
         test("query emits the error", function() {
           assert.emits(query, 'error', function(err) {
             test('error has right severity', function() {
-              return false;
               assert.equal(err.severity, "ERROR");
             })
 

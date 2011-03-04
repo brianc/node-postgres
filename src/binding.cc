@@ -19,6 +19,18 @@ static Persistent<String> error_symbol;
 static Persistent<String> ready_symbol;
 static Persistent<String> row_symbol;
 static Persistent<String> notice_symbol;
+static Persistent<String> severity_symbol;
+static Persistent<String> code_symbol;
+static Persistent<String> message_symbol;
+static Persistent<String> detail_symbol;
+static Persistent<String> hint_symbol;
+static Persistent<String> position_symbol;
+static Persistent<String> internalPosition_symbol;
+static Persistent<String> internalQuery_symbol;
+static Persistent<String> where_symbol;
+static Persistent<String> file_symbol;
+static Persistent<String> line_symbol;
+static Persistent<String> routine_symbol;
 
 class Connection : public EventEmitter {
 
@@ -40,6 +52,18 @@ public:
     ready_symbol = NODE_PSYMBOL("_readyForQuery");
     notice_symbol = NODE_PSYMBOL("notice");
     row_symbol = NODE_PSYMBOL("_row");
+    severity_symbol = NODE_PSYMBOL("severity");
+    code_symbol = NODE_PSYMBOL("code");
+    message_symbol = NODE_PSYMBOL("message");
+    detail_symbol = NODE_PSYMBOL("detail");
+    hint_symbol = NODE_PSYMBOL("hint");
+    position_symbol = NODE_PSYMBOL("position");
+    internalPosition_symbol = NODE_PSYMBOL("internalPosition");
+    internalQuery_symbol = NODE_PSYMBOL("internalQuery");
+    where_symbol = NODE_PSYMBOL("where");
+    file_symbol = NODE_PSYMBOL("file");
+    line_symbol = NODE_PSYMBOL("line");
+    routine_symbol = NODE_PSYMBOL("routine");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
@@ -329,7 +353,7 @@ protected:
     }
   }
 
-  void HandleResult(PGresult* result)
+  void HandleResult(const PGresult* result)
   {
     ExecStatusType status = PQresultStatus(result);
     switch(status) {
@@ -337,7 +361,7 @@ protected:
       HandleTuplesResult(result);
       break;
     case PGRES_FATAL_ERROR:
-      EmitLastError();
+      HandleErrorResult(result);
       break;
     case PGRES_COMMAND_OK:
     case PGRES_EMPTY_QUERY:
@@ -349,7 +373,7 @@ protected:
     }
   }
 
-  void HandleTuplesResult(PGresult* result)
+  void HandleTuplesResult(const PGresult* result)
   {
     int rowCount = PQntuples(result);
     for(int rowNumber = 0; rowNumber < rowCount; rowNumber++) {
@@ -374,7 +398,7 @@ protected:
     }
   }
 
-  Handle<Value> WrapFieldValue(PGresult* result, int rowNumber, int fieldNumber)
+  Handle<Value> WrapFieldValue(const PGresult* result, int rowNumber, int fieldNumber)
   {
     int fieldType = PQftype(result, fieldNumber);
     char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
@@ -383,6 +407,34 @@ protected:
       return Integer::New(atoi(fieldValue));
     default:
       return String::New(fieldValue);
+    }
+  }
+
+  void HandleErrorResult(const PGresult* result)
+  {
+    HandleScope scope;
+    Local<Object> msg = Object::New();
+    AttachErrorField(result, msg, severity_symbol, PG_DIAG_SEVERITY);
+    AttachErrorField(result, msg, code_symbol, PG_DIAG_SQLSTATE);
+    AttachErrorField(result, msg, message_symbol, PG_DIAG_MESSAGE_PRIMARY);
+    AttachErrorField(result, msg, detail_symbol, PG_DIAG_MESSAGE_DETAIL);
+    AttachErrorField(result, msg, hint_symbol, PG_DIAG_MESSAGE_HINT);
+    AttachErrorField(result, msg, position_symbol, PG_DIAG_STATEMENT_POSITION);
+    AttachErrorField(result, msg, internalPosition_symbol, PG_DIAG_INTERNAL_POSITION);
+    AttachErrorField(result, msg, internalQuery_symbol, PG_DIAG_INTERNAL_QUERY);
+    AttachErrorField(result, msg, where_symbol, PG_DIAG_CONTEXT);
+    AttachErrorField(result, msg, file_symbol, PG_DIAG_SOURCE_FILE);
+    AttachErrorField(result, msg, line_symbol, PG_DIAG_SOURCE_LINE);
+    AttachErrorField(result, msg, routine_symbol, PG_DIAG_SOURCE_FUNCTION);
+    Handle<Value> m = msg;
+    Emit(error_symbol, 1, &m);
+  }
+
+  void AttachErrorField(const PGresult *result, const Local<Object> msg, const Persistent<String> symbol, int fieldcode)
+  {
+    char *val = PQresultErrorField(result, fieldcode);
+    if(val) {
+      msg->Set(symbol, String::New(val));
     }
   }
 
