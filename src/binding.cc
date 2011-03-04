@@ -289,7 +289,7 @@ protected:
           PQclear(result);
         }
         Emit(ready_symbol, 0, NULL);
-      } 
+      }
 
       //TODO look at this later
       PGnotify *notify;
@@ -319,6 +319,7 @@ protected:
       EmitLastError();
       break;
     case PGRES_COMMAND_OK:
+    case PGRES_EMPTY_QUERY:
       //do nothing
       break;
     default:
