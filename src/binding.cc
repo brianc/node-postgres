@@ -31,6 +31,9 @@ static Persistent<String> where_symbol;
 static Persistent<String> file_symbol;
 static Persistent<String> line_symbol;
 static Persistent<String> routine_symbol;
+static Persistent<String> name_symbol;
+static Persistent<String> value_symbol;
+static Persistent<String> type_symbol;
 
 class Connection : public EventEmitter {
 
@@ -64,6 +67,10 @@ public:
     file_symbol = NODE_PSYMBOL("file");
     line_symbol = NODE_PSYMBOL("line");
     routine_symbol = NODE_PSYMBOL("routine");
+    name_symbol = NODE_PSYMBOL("name");
+    value_symbol = NODE_PSYMBOL("value");
+    type_symbol = NODE_PSYMBOL("type");
+
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
@@ -386,9 +393,9 @@ protected:
         int fieldType = PQftype(result, fieldNumber);
         char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
         //TODO use symbols here
-        field->Set(String::New("name"), String::New(fieldName));
-        field->Set(String::New("value"), String::New(fieldValue));
-        field->Set(String::New("type"), Integer::New(fieldType));
+        field->Set(name_symbol, String::New(fieldName));
+        field->Set(value_symbol, String::New(fieldValue));
+        field->Set(type_symbol, Integer::New(fieldType));
         row->Set(Integer::New(fieldNumber), field);
       }
 
