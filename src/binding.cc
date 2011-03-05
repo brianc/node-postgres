@@ -75,6 +75,8 @@ public:
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryWithParams", SendQueryWithParams);
+    NODE_SET_PROTOTYPE_METHOD(t, "_sendPrepare", SendPrepare);
+    NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryPrepared", SendQueryPrepared);
     NODE_SET_PROTOTYPE_METHOD(t, "end", End);
 
     target->Set(String::NewSymbol("Connection"), t->GetFunction());
@@ -177,6 +179,29 @@ public:
     return cString;
   }
 
+  //v8 entry point into Connection#_sendPrepare
+  static Handle<Value>
+  SendPrepare(const Arguments& args)
+  {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+    String::Utf8Value queryName(args[0]);
+    String::Utf8Value queryText(args[1]);
+    
+    self->SendPrepare(*queryName, *queryText, 0);
+    
+    return Undefined();
+  }
+
+  static Handle<Value>
+  SendQueryPrepared(const Arguments& args)
+  {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+    
+    return Undefined();
+  }
+
   //v8 entry point into Connection#end
   static Handle<Value>
   End(const Arguments& args)
@@ -230,6 +255,11 @@ protected:
   int SendQueryParams(const char *command, const int nParams, const char * const *paramValues)
   {
     return PQsendQueryParams(connection_, command, nParams, NULL, paramValues, NULL, NULL, 0);
+  }
+
+  int SendPrepare(const char *name, const char *command, const int nParams)
+  {
+    return PQsendPrepare(connection_, name, command, nParams, NULL);
   }
 
   //flushes socket
