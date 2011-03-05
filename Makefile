@@ -20,7 +20,7 @@ test-all: test-unit test-integration
 bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
-build:
+build/default/binding.node: src/binding.cc
 	@node-waf configure build
 
 test-unit:
@@ -29,7 +29,7 @@ test-unit:
 test-connection:
 	@node script/test-connection.js $(params)
 
-test-native: build
+test-native: build/default/binding.node
 	@find test/native -name "*-tests.js" | $(node-command)
 
 test-integration: test-connection
