@@ -145,10 +145,6 @@ public:
 
     Handle<Value> params = args[1];
 
-    if(!params->IsArray()) {
-      return ThrowException(Exception::Error(String::New("Values must be array")));
-    }
-
     char* queryText = MallocCString(args[0]);
     Local<Array> jsParams = Local<Array>::Cast(args[1]);
     char** paramValues = ArgToCStringArray(jsParams);
@@ -214,21 +210,22 @@ public:
     return cString;
   }
 
-  //v8 entry point into Connection#_sendPrepare
+  //v8 entry point into Connection#_sendPrepare(string queryName, string queryText, int nParams)
   static Handle<Value>
   SendPrepare(const Arguments& args)
   {
     HandleScope scope;
-    return ThrowException(Exception::Error(String::New("Prepared named queries not implemented")));
+
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
     String::Utf8Value queryName(args[0]);
     String::Utf8Value queryText(args[1]);
-
-    self->SendPrepare(*queryName, *queryText, 0);
+    int length = args[2]->Int32Value();
+    self->SendPrepare(*queryName, *queryText, length);
 
     return Undefined();
   }
 
+  //v8 entry point into Connection#_sendQueryPrepared(string queryName, string[] paramValues)
   static Handle<Value>
   SendQueryPrepared(const Arguments& args)
   {
@@ -236,6 +233,33 @@ public:
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
 
     String::Utf8Value queryName(args[0]);
+    //TODO this is much copy/pasta code
+    if(!args[0]->IsString()) {
+      return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
+    }
+
+    if(!args[1]->IsArray()) {
+      return ThrowException(Exception::Error(String::New("Values must be array")));
+    }
+
+    Handle<Value> params = args[1];
+
+    char* queryText = MallocCString(args[0]);
+    Local<Array> jsParams = Local<Array>::Cast(args[1]);
+    char** paramValues = ArgToCStringArray(jsParams);
+    if(!paramValues) {
+      return ThrowException(Exception::Error(String::New("Something bad happened when allocating parameter array")));
+    }
+
+    int len = jsParams->Length();
+    int result = self->SendPreparedQuery(queryText, len, paramValues);
+
+    free(queryText);
+    Free(paramValues, len);
+    if(result == 1) {
+      return Undefined();
+    }
+    return ThrowException(Exception::Error(String::New("Could not dispatch parameterized query")));
 
     return Undefined();
   }
@@ -298,6 +322,11 @@ protected:
   int SendPrepare(const char *name, const char *command, const int nParams)
   {
     return PQsendPrepare(connection_, name, command, nParams, NULL);
+  }
+
+  int SendPreparedQuery(const char *name, int nParams, const char * const *paramValues)
+  {
+    return PQsendQueryPrepared(connection_, name, nParams, paramValues, NULL, NULL, 0);
   }
 
   //flushes socket

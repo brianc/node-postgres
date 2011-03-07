@@ -11,7 +11,7 @@ params := -u $(user) --password $(password) -p $(port) -d $(database) -h $(host)
 
 node-command := xargs -n 1 -I file node file $(params)
 
-.PHONY : test test-connection test-integration bench test-native
+.PHONY : test test-connection test-integration bench test-native build/default/binding.node
 test: test-unit 
 
 test-all: test-unit test-integration test-native
@@ -19,7 +19,7 @@ test-all: test-unit test-integration test-native
 bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
-build/default/binding.node: src/binding.cc
+build/default/binding.node:
 	@node-waf configure build
 
 test-unit:
