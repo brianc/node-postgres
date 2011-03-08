@@ -9,8 +9,6 @@ Non-blocking PostgreSQL client for node.js
     * postgres 8.x, 9.x
     * Linux, OS X
     * node 2.x, 3.x, & 4.x
-* active development
-* _very_ fast
 * row-by-row result streaming
 * optional, built-in connection pooling
 * responsive project maintainer
@@ -19,6 +17,9 @@ Non-blocking PostgreSQL client for node.js
   * named statements with query plan caching
   * async notifications
   * extensible js<->postgresql data-type coercion 
+* query queue
+* active development
+* _very_ fast
 * No dependencies (other than PostgreSQL)
 * No monkey patching
 
@@ -26,37 +27,33 @@ Non-blocking PostgreSQL client for node.js
 
     npm install pg
 
-## Example
-```javascript
-    var pg = require('pg');
-    var connectionString = "pg://user:password@host:port/database";
-    pg.connect(connectionString, function(err, client) {
-      if(err) {
-        //handle connection error
-      }
-      else {
-        //queries are queued and executed in order
-        client.query("CREATE TEMP TABLE user(name varchar(50), birthday timestamptz)");
-        client.query("INSERT INTO user(name, birthday) VALUES('brianc', '1982-01-01T10:21:11')");
-        
-        //parameterized queries with transparent type coercion
-        client.query("INSERT INTO user(name, birthday) VALUES($1, $2)", ['santa', new Date()]);
-        
-        //nested queries with callbacks
-        client.query("SELECT * FROM user ORDER BY name", function(err, result) {
-          if(err) {
-            //handle query error
-          }
-          else {
-            client.query("SELECT birthday FROM user WHERE name = $1", [result.rows[0].name], function(err, result) {
-              //typed parameters and results
-              assert.ok(result.rows[0].birthday.getYear() === 1982)
-            })
-          }
-        })
-      }
-    }
-```
+## Examples
+
+All examples will work with the pure javascript bindings (currently default) or the libpq native (c/c++) bindings (currently in beta.)  Replace `require('pg')` with `require(pg/native)` to use the libpq native (c/c++) bindings.
+
+### Evented api
+
+    var pg = require('pg'); //naive = `var pg = require('pg/native')`
+    var conString = "tcp://postgres:1234@localhost/postgres";
+    
+    var client = new pg.Client(conString);
+    client.connect();
+    //queries are queued and executed one after another once the connection becomes available
+    client.query("CREATE TEMP TABLE beatles(name varchar(10), height integer, birthday timestamptz)");
+    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['Ringo', 67, new Date(1945, 11, 2)]);
+    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['John', 68, new Date(1944, 10, 13)]);
+    var query = client.query("SELECT * FROM beatles WHERE name = $1", ['john']);
+    //can stream row results back 1 at a time
+    query.on('row', function(row) {
+      console.log(row);
+      console.log("Beatle name: %s", row.name); //Beatle name: John
+      console.log("Beatle birth year: %d", row.birthday.getYear()); //dates are returned as javascript dates
+      console.log("Beatle height: %d' %d\"", Math.floor(row.height/12), row.height%12); //integers are returned as javascript ints
+    });
+    query.on('end', function() { //fired after last row is emitted
+      client.end();
+    });
+
 ### Contributors
 
 Many thanks to the following:
