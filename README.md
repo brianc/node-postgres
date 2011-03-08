@@ -1,6 +1,7 @@
 #node-postgres
 
 Non-blocking PostgreSQL client for node.js
+
 * a pure javascript client and native libpq bindings with _the same api_
 * _heavily_ tested
   * the same suite of 200+ integration tests passed by both javascript & libpq bindings
@@ -33,7 +34,7 @@ All examples will work with the pure javascript bindings (currently default) or 
 
 ### Evented api
 
-    var pg = require('pg'); //naive = `var pg = require('pg/native')`
+    var pg = require('pg'); //native libpq bindings = `var pg = require('pg/native')`
     var conString = "tcp://postgres:1234@localhost/postgres";
     
     var client = new pg.Client(conString);
