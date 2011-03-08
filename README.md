@@ -1,7 +1,26 @@
 #node-postgres
 
-Non-blocking (async) pure JavaScript PostgreSQL client for node.js written
-with love and TDD.
+Non-blocking PostgreSQL client for node.js
+* a pure javascript client and native libpq bindings with _the same api_
+* _heavily_ tested
+  * the same suite of 200+ integration tests passed by both javascript & libpq bindings
+  * benchmark & long-running memory leak tests performed before releases
+  * tested with with
+    * postgres 8.x, 9.x
+    * Linux, OS X
+    * node 2.x, 3.x, & 4.x
+* active development
+* _very_ fast
+* row-by-row result streaming
+* optional, built-in connection pooling
+* responsive project maintainer
+* supported PostgreSQL features
+  * parameterized queries
+  * named statements with query plan caching
+  * async notifications
+  * extensible js<->postgresql data-type coercion 
+* No dependencies (other than PostgreSQL)
+* No monkey patching
 
 ## Installation
 
@@ -38,44 +57,6 @@ with love and TDD.
       }
     }
 
-## Philosophy
-
-* well tested
-* no monkey patching
-* no dependencies (...besides PostgreSQL)
-* [in-depth documentation](http://github.com/brianc/node-postgres/wiki) (work in progress)
-
-## features
-
-- prepared statement support
-  - parameters
-  - query caching
-- type coercion
-  - date <-> timestamptz
-  - integer <-> integer, smallint, bigint
-  - float <-> double, numeric
-  - boolean <-> boolean
-- notification message support
-- connection pooling
-- mucho testing
-  ~250 tests executed on
-    - ubuntu
-      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.2.6, v0.3.0, v0.3.1, v0.3.2, v0.3.3, v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8
-      - postgres 8.4.4
-    - osx
-      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.2.6, v0.3.0, v0.3.1, v0.3.2, v0.3.3, v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8
-      - postgres v8.4.4, v9.0.1 installed both locally and on networked Windows 7
-
-## Contributing
-
-clone the repo:
-
-     git clone git://github.com/brianc/node-postgres
-     cd node-postgres
-     make test
-
-And just like magic, you're ready to contribute! <3
-
 ### Contributors
 
 Many thanks to the following:
@@ -86,7 +67,9 @@ Many thanks to the following:
 * [pjornblomqvist](https://github.com/bjornblomqvist)
 * [JulianBirch](https://github.com/JulianBirch)
 
-## More info please
+## Documentation
+
+Still a work in progress, I am trying to flesh out the wiki...
 
 ### [Documentation](node-postgres/wiki)
 
@@ -94,27 +77,8 @@ Many thanks to the following:
 
 ## Help
 
-If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.
+If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
     
-### Working?
-
-[this page](http://www.explodemy.com) is running the worlds worst (but fully functional) PostgreSQL backed, Node.js powered website.
-
-### Why did you write this?
-
-As soon as I saw node.js for the first time I knew I had found something lovely and simple and _just what I always wanted!_.  So...I poked around for a while.  I was excited.  I still am!
-
-I drew major inspiration from [postgres-js](http://github.com/creationix/postgres-js).
-
-I also drew some major inspirrado from
-[node-mysql](http://github.com/felixge/node-mysql) and liked what I
-saw there.
-
-### Plans for the future?
-
-- transparent prepared statement caching
-- more testings of error scenarios
-
 ## License
 
 Copyright (c) 2010 Brian Carlson (brian.m.carlson@gmail.com)
