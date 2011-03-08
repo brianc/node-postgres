@@ -1,14 +1,14 @@
 var helper = require(__dirname + '/test-helper');
 
 test("noData message handling", function() {
-  return false;
+
   var client = helper.client();
-  
+
   var q = client.query({
     name: 'boom',
     text: 'create temp table boom(id serial, size integer)'
   });
-  
+
   client.query({
     name: 'insert',
     text: 'insert into boom(size) values($1)',
@@ -25,7 +25,7 @@ test("noData message handling", function() {
     text: 'insert into boom(size) values($1)',
     values: [101]
   });
-  
+
   var query = client.query({
     name: 'fetch',
     text: 'select size from boom where size < $1',
@@ -37,5 +37,5 @@ test("noData message handling", function() {
   });
 
   client.on('drain', client.end.bind(client));
-  
+
 });
