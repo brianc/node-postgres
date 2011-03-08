@@ -27,7 +27,7 @@ Non-blocking PostgreSQL client for node.js
     npm install pg
 
 ## Example
-
+```javascript
     var pg = require('pg');
     var connectionString = "pg://user:password@host:port/database";
     pg.connect(connectionString, function(err, client) {
@@ -56,7 +56,7 @@ Non-blocking PostgreSQL client for node.js
         })
       }
     }
-
+```
 ### Contributors
 
 Many thanks to the following:
