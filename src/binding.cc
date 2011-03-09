@@ -115,7 +115,7 @@ public:
     HandleScope scope;
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
     if(!args[0]->IsString()) {
-      return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
+      THROW("First parameter must be a string query");
     }
 
     char* queryText = MallocCString(args[0]);
@@ -134,80 +134,8 @@ public:
   SendQueryWithParams(const Arguments& args)
   {
     HandleScope scope;
-    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
-    if(!args[0]->IsString()) {
-      return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
-    }
-
-    if(!args[1]->IsArray()) {
-      return ThrowException(Exception::Error(String::New("Values must be array")));
-    }
-
-    Handle<Value> params = args[1];
-
-    char* queryText = MallocCString(args[0]);
-    Local<Array> jsParams = Local<Array>::Cast(args[1]);
-    char** paramValues = ArgToCStringArray(jsParams);
-    if(!paramValues) {
-      return ThrowException(Exception::Error(String::New("Something bad happened when allocating parameter array")));
-    }
-
-    int len = jsParams->Length();
-    int result = self->SendQueryParams(queryText, len, paramValues);
-
-    free(queryText);
-    Free(paramValues, len);
-    if(result == 1) {
-      return Undefined();
-    }
-    return ThrowException(Exception::Error(String::New("Could not dispatch parameterized query")));
-  }
-
-  //Converts a v8 array to an array of cstrings
-  //the result char** array must be free() when it is no longer needed
-  //if for any reason the array cannot be created, returns 0
-  static char** ArgToCStringArray(Local<Array> params)
-  {
-    int len = params->Length();
-    char** paramValues = new char*[len];
-    for(int i = 0; i < len; i++) {
-      Handle<Value> val = params->Get(i);
-      if(val->IsString()) {
-        char* cString = MallocCString(val);
-        //will be 0 if could not malloc
-        if(!cString) {
-          LOG("ArgToCStringArray: OUT OF MEMORY OR SOMETHING BAD!");
-          Free(paramValues, i-1);
-          return 0;
-        }
-        paramValues[i] = cString;
-      } else {
-        //a paramter was not a string
-        LOG("Parameter not a string");
-        Free(paramValues, i-1);
-        return 0;
-      }
-    }
-    return paramValues;
-  }
-
-  static void Free(char **strArray, int len)
-  {
-    for(int i = 0; i < len; i++) {
-      free(strArray[i]);
-    }
-    delete [] strArray;
-  }
-
-  static char* MallocCString(v8::Handle<Value> v8String)
-  {
-    String::Utf8Value utf8String(v8String->ToString());
-    char *cString = (char *) malloc(strlen(*utf8String) + 1);
-    if(!cString) {
-      return cString;
-    }
-    strcpy(cString, *utf8String);
-    return cString;
+    //dispatch non-prepared parameterized query
+    return DispatchParameterizedQuery(args, false);
   }
 
   //v8 entry point into Connection#_sendPrepare(string queryName, string queryText, int nParams)
@@ -230,38 +158,52 @@ public:
   SendQueryPrepared(const Arguments& args)
   {
     HandleScope scope;
+    //dispatch prepared parameterized query
+    return DispatchParameterizedQuery(args, true);
+  }
+
+  static Handle<Value>
+  DispatchParameterizedQuery(const Arguments& args, bool isPrepared)
+  {
+    HandleScope scope;
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
 
     String::Utf8Value queryName(args[0]);
     //TODO this is much copy/pasta code
     if(!args[0]->IsString()) {
-      return ThrowException(Exception::Error(String::New("First parameter must be a string query")));
+      THROW("First parameter must be a string");
     }
 
     if(!args[1]->IsArray()) {
-      return ThrowException(Exception::Error(String::New("Values must be array")));
+      THROW("Values must be an array");
     }
 
     Handle<Value> params = args[1];
 
-    char* queryText = MallocCString(args[0]);
     Local<Array> jsParams = Local<Array>::Cast(args[1]);
+    int len = jsParams->Length();
+    
+    
     char** paramValues = ArgToCStringArray(jsParams);
     if(!paramValues) {
-      return ThrowException(Exception::Error(String::New("Something bad happened when allocating parameter array")));
+      THROW("Unable to allocate char **paramValues from Local<Array> of v8 params");
     }
 
-    int len = jsParams->Length();
-    int result = self->SendPreparedQuery(queryText, len, paramValues);
+    char* queryText = MallocCString(args[0]);
+
+    int result = 0;
+    if(isPrepared) {
+      result = self->SendPreparedQuery(queryText, len, paramValues);
+    } else {
+      result = self->SendQueryParams(queryText, len, paramValues);
+    }
 
     free(queryText);
-    Free(paramValues, len);
+    ReleaseCStringArray(paramValues, len);
     if(result == 1) {
       return Undefined();
     }
-    return ThrowException(Exception::Error(String::New("Could not dispatch parameterized query")));
-
-    return Undefined();
+    THROW("Postgres returned non-1 result from query dispatch.");
   }
 
   //v8 entry point into Connection#end
@@ -297,7 +239,6 @@ public:
   }
 
 protected:
-
   //v8 entry point to constructor
   static Handle<Value>
   New (const Arguments& args)
@@ -431,13 +372,12 @@ protected:
           didHandleResult = true;
           PQclear(result);
         }
+        //might have fired from notification
         if(didHandleResult) {
-          //might have fired from notification
           Emit(ready_symbol, 0, NULL);
         }
       }
 
-      //TODO look at this later
       PGnotify *notify;
       while ((notify = PQnotifies(connection_))) {
         Local<Object> result = Object::New();
@@ -477,6 +417,10 @@ protected:
     }
   }
 
+  //maps the postgres tuple results to v8 objects
+  //and emits row events
+  //TODO look at emitting fewer events because the back & forth between
+  //javascript & c++ might introduce overhead (requires benchmarking)
   void HandleTuplesResult(const PGresult* result)
   {
     int rowCount = PQntuples(result);
@@ -489,7 +433,6 @@ protected:
         char* fieldName = PQfname(result, fieldNumber);
         int fieldType = PQftype(result, fieldNumber);
         char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
-        //TODO use symbols here
         field->Set(name_symbol, String::New(fieldName));
         field->Set(value_symbol, String::New(fieldValue));
         field->Set(type_symbol, Integer::New(fieldType));
@@ -499,18 +442,6 @@ protected:
       //not sure about what to dealloc or scope#Close here
       Handle<Value> e = (Handle<Value>)row;
       Emit(row_symbol, 1, &e);
-    }
-  }
-
-  Handle<Value> WrapFieldValue(const PGresult* result, int rowNumber, int fieldNumber)
-  {
-    int fieldType = PQftype(result, fieldNumber);
-    char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
-    switch(fieldType) {
-    case 23:
-      return Integer::New(atoi(fieldValue));
-    default:
-      return String::New(fieldValue);
     }
   }
 
@@ -615,8 +546,56 @@ private:
     TRACE("Starting read watcher");
     ev_io_start(EV_DEFAULT_ &read_watcher_);
   }
+  //Converts a v8 array to an array of cstrings
+  //the result char** array must be free() when it is no longer needed
+  //if for any reason the array cannot be created, returns 0
+  static char** ArgToCStringArray(Local<Array> params)
+  {
+    int len = params->Length();
+    char** paramValues = new char*[len];
+    for(int i = 0; i < len; i++) {
+      Handle<Value> val = params->Get(i);
+      if(val->IsString()) {
+        char* cString = MallocCString(val);
+        //will be 0 if could not malloc
+        if(!cString) {
+          LOG("ArgToCStringArray: OUT OF MEMORY OR SOMETHING BAD!");
+          ReleaseCStringArray(paramValues, i-1);
+          return 0;
+        }
+        paramValues[i] = cString;
+      } else {
+        //a paramter was not a string
+        LOG("Parameter not a string");
+        ReleaseCStringArray(paramValues, i-1);
+        return 0;
+      }
+    }
+    return paramValues;
+  }
 
+  //helper function to release cString arrays
+  static void ReleaseCStringArray(char **strArray, int len)
+  {
+    for(int i = 0; i < len; i++) {
+      free(strArray[i]);
+    }
+    delete [] strArray;
+  }
+
+  //helper function to malloc new string from v8string
+  static char* MallocCString(v8::Handle<Value> v8String)
+  {
+    String::Utf8Value utf8String(v8String->ToString());
+    char *cString = (char *) malloc(strlen(*utf8String) + 1);
+    if(!cString) {
+      return cString;
+    }
+    strcpy(cString, *utf8String);
+    return cString;
+  }
 };
+
 
 extern "C" void
 init (Handle<Object> target)
