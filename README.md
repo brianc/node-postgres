@@ -1,6 +1,77 @@
 #node-postgres
 
-Non-blocking PostgreSQL client for node.js
+Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
+
+## Installation
+
+    npm install pg
+
+## Examples
+
+All examples will work with the pure javascript bindings (currently default) or the libpq native (c/c++) bindings (currently in beta)
+
+To use native libpq bindings replace `require('pg')` with `require(pg/native)`.
+
+The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg/native`, please report an issue.
+
+### Simple, using built-in client pool
+
+    var pg = require('pg'); 
+    //or native libpq bindings
+    //var pg = require('pg/native')
+
+    var conString = "tcp://postgres:1234@localhost/postgres";
+
+    //error handling omitted
+    pg.connect(conString, function(err, client) {
+      client.query("SELECT NOW() as when", function(err, result) {
+        console.log("Row count: %d",result.rows.length);  // 1
+        console.log("Current year: %d", result.rows[0].when.getYear());
+      });
+    });
+
+### Evented api
+
+    var pg = require('pg'); //native libpq bindings = `var pg = require('pg/native')`
+    var conString = "tcp://postgres:1234@localhost/postgres";
+    
+    var client = new pg.Client(conString);
+    client.connect();
+
+    //queries are queued and executed one after another once the connection becomes available
+    client.query("CREATE TEMP TABLE beatles(name varchar(10), height integer, birthday timestamps)");
+    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['Ringo', 67, new Date(1945, 11, 2)]);
+    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['John', 68, new Date(1944, 10, 13)]);
+
+    //queries can be executed either via text/parameter values passed as individual arguments
+    //or by passing an options object containing text, (optional) parameter values, and (optional) query name
+    client.query({
+      name: 'insert beatle',
+      text: "INSERT INTO beatles(name, height, birthday) values($1, $2, $3)",
+      values: ['George', 70, new Date(1946, 02, 14)]
+    });
+
+    //subsequent queries with the same name will be executed without re-parsing the query plan by postgres
+    client.query({
+      name: 'insert beatle',
+      values: ['Paul', 63, new Date(1945, 04, 03)]
+    });
+    var query = client.query("SELECT * FROM beatles WHERE name = $1", ['john']);
+
+    //can stream row results back 1 at a time
+    query.on('row', function(row) {
+      console.log(row);
+      console.log("Beatle name: %s", row.name); //Beatle name: John
+      console.log("Beatle birth year: %d", row.birthday.getYear()); //dates are returned as javascript dates
+      console.log("Beatle height: %d' %d\"", Math.floor(row.height/12), row.height%12); //integers are returned as javascript ints
+    });
+    
+    //fired after last row is emitted
+    query.on('end', function() { 
+      client.end();
+    });
+
+### Info
 
 * a pure javascript client and native libpq bindings with _the same api_
 * _heavily_ tested
@@ -20,40 +91,10 @@ Non-blocking PostgreSQL client for node.js
   * extensible js<->postgresql data-type coercion 
 * query queue
 * active development
-* _very_ fast
+* fast
 * No dependencies (other than PostgreSQL)
 * No monkey patching
-
-## Installation
-
-    npm install pg
-
-## Examples
-
-All examples will work with the pure javascript bindings (currently default) or the libpq native (c/c++) bindings (currently in beta.)  Replace `require('pg')` with `require(pg/native)` to use the libpq native (c/c++) bindings.
-
-### Evented api
-
-    var pg = require('pg'); //native libpq bindings = `var pg = require('pg/native')`
-    var conString = "tcp://postgres:1234@localhost/postgres";
-    
-    var client = new pg.Client(conString);
-    client.connect();
-    //queries are queued and executed one after another once the connection becomes available
-    client.query("CREATE TEMP TABLE beatles(name varchar(10), height integer, birthday timestamptz)");
-    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['Ringo', 67, new Date(1945, 11, 2)]);
-    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['John', 68, new Date(1944, 10, 13)]);
-    var query = client.query("SELECT * FROM beatles WHERE name = $1", ['john']);
-    //can stream row results back 1 at a time
-    query.on('row', function(row) {
-      console.log(row);
-      console.log("Beatle name: %s", row.name); //Beatle name: John
-      console.log("Beatle birth year: %d", row.birthday.getYear()); //dates are returned as javascript dates
-      console.log("Beatle height: %d' %d\"", Math.floor(row.height/12), row.height%12); //integers are returned as javascript ints
-    });
-    query.on('end', function() { //fired after last row is emitted
-      client.end();
-    });
+* Tried to mirror the node-mysql api as much as possible for future multi-database-supported ORM implementation ease
 
 ### Contributors
 
