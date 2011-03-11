@@ -1,14 +1,17 @@
 { "name": "pg",
-  "version": "0.2.8",
-  "description": "PostgreSQL client",
+  "version": "0.3.0",
+  "description": "PostgreSQL client - pure javascript & libpq with the same API",
+  "keywords" : ["postgres", "pg", "libpq", "postgre", "database", "rdbms"],
   "homepage": "http://github.com/brianc/node-postgres",
   "repository" : {
     "type" : "git",
     "url" : "git://github.com/brianc/node-postgres.git"
   },
   "author" : "Brian Carlson <brian.m.carlson@gmail.com>",
-  "main" : "./lib/index",
-  "directories" : { "lib" : "./lib" },
-  "scripts" : { "test" : "make test" },
+  "main" : "./lib",
+  "scripts" : { 
+    "test" : "make test",
+    "install" : "node-waf configure build || true"
+  },
   "engines" : { "node": ">= 0.2.2" }
 }
