@@ -112,7 +112,7 @@ Many thanks to the following:
 
 Still a work in progress, I am trying to flesh out the wiki...
 
-### [Documentation](node-postgres/wiki)
+### [Documentation](https://github.com/brianc/node-postgres/wiki)
 
 ### __PLEASE__ check out the WIKI
 
