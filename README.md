@@ -14,6 +14,8 @@ To use native libpq bindings replace `require('pg')` with `require('pg').native`
 
 The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg.native`, please report an issue.
 
+node-postgres supports both an 'event emitter' style API and a 'callback' style.  The callback style is more concise and generally preferred, but the evented API can come in handy.  They can be mixed and matched.  The only events which do __not__ fire when callbacks are supplied are the `error` events, as they are to be handled by the callback function.
+
 ### Simple, using built-in client pool
 
     var pg = require('pg'); 
@@ -80,7 +82,7 @@ The two share the same interface so __no other code changes should be required__
   * tested with with
     * postgres 8.x, 9.x
     * Linux, OS X
-    * node 2.x, 3.x, & 4.x
+    * node 2.x & 4.x
 * row-by-row result streaming
 * optional, built-in connection pooling
 * responsive project maintainer
