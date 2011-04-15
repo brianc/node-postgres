@@ -103,7 +103,10 @@ public:
     }
 
     String::Utf8Value conninfo(args[0]->ToString());
-    self->Connect(*conninfo);
+    bool success = self->Connect(*conninfo);
+    if(!success) {
+      self -> AbortConnection();
+    }
 
     return Undefined();
   }
@@ -182,8 +185,8 @@ public:
 
     Local<Array> jsParams = Local<Array>::Cast(args[1]);
     int len = jsParams->Length();
-    
-    
+
+
     char** paramValues = ArgToCStringArray(jsParams);
     if(!paramValues) {
       THROW("Unable to allocate char **paramValues from Local<Array> of v8 params");
@@ -279,6 +282,22 @@ protected:
     }
   }
 
+  //aborts connection and returns connection error message
+  char* AbortConnection()
+  {
+    EmitLastError();
+    DestroyConnection();
+  }
+
+  //safely destroys the connection at most 1 time
+  void DestroyConnection()
+  {
+    if(connection_ != NULL) {
+      PQfinish(connection_);
+      connection_ = NULL;
+    }
+  }
+
   //initializes initial async connection to postgres via libpq
   //and hands off control to libev
   bool Connect(const char* conninfo)
@@ -287,22 +306,18 @@ protected:
 
     if (!connection_) {
       LOG("Connection couldn't be created");
-    } else {
-      TRACE("Native connection created");
     }
 
     if (PQsetnonblocking(connection_, 1) == -1) {
       LOG("Unable to set connection to non-blocking");
-      PQfinish(connection_);
-      connection_ = NULL;
+      return false;
     }
 
     ConnStatusType status = PQstatus(connection_);
 
     if(CONNECTION_BAD == status) {
-      PQfinish(connection_);
       LOG("Bad connection status");
-      connection_ = NULL;
+      return false;
     }
 
     int fd = PQsocket(connection_);
@@ -477,7 +492,7 @@ protected:
   {
     StopRead();
     StopWrite();
-    PQfinish(connection_);
+    DestroyConnection();
   }
 
 private:
