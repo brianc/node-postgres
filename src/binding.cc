@@ -34,6 +34,8 @@ static Persistent<String> routine_symbol;
 static Persistent<String> name_symbol;
 static Persistent<String> value_symbol;
 static Persistent<String> type_symbol;
+static Persistent<String> channel_symbol;
+static Persistent<String> payload_symbol;
 
 class Connection : public EventEmitter {
 
@@ -70,6 +72,8 @@ public:
     name_symbol = NODE_PSYMBOL("name");
     value_symbol = NODE_PSYMBOL("value");
     type_symbol = NODE_PSYMBOL("type");
+    channel_symbol = NODE_PSYMBOL("channel");
+    payload_symbol = NODE_PSYMBOL("payload");
 
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
@@ -390,7 +394,8 @@ protected:
       PGnotify *notify;
       while ((notify = PQnotifies(connection_))) {
         Local<Object> result = Object::New();
-        result->Set(String::New("channel"), String::New(notify->relname));
+        result->Set(channel_symbol, String::New(notify->relname));
+        result->Set(payload_symbol, String::New(notify->extra));
         Handle<Value> res = (Handle<Value>)result;
         Emit((Handle<String>)String::New("notification"), 1, &res);
         PQfreemem(notify);
