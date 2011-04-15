@@ -105,7 +105,8 @@ public:
     String::Utf8Value conninfo(args[0]->ToString());
     bool success = self->Connect(*conninfo);
     if(!success) {
-      self -> AbortConnection();
+      self -> EmitLastError();
+      self -> DestroyConnection();
     }
 
     return Undefined();
@@ -280,13 +281,6 @@ protected:
       TRACE("Flushing");
       ev_io_start(EV_DEFAULT_ &write_watcher_);
     }
-  }
-
-  //aborts connection and returns connection error message
-  void AbortConnection()
-  {
-    EmitLastError();
-    DestroyConnection();
   }
 
   //safely destroys the connection at most 1 time
