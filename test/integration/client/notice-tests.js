@@ -16,28 +16,25 @@ test('emits notify message', function() {
   client.query('LISTEN boom', assert.calls(function() {
     var otherClient = helper.client();
     otherClient.query('LISTEN boom', assert.calls(function() {
-      var afterNotify = function() {
-        assert.emits(client, 'notification', function(msg) {
-
-          //make sure PQfreemem doesn't invalidate string pointers
-          setTimeout(function() {
-            assert.equal(msg.channel, 'boom');
-            assert.ok(msg.payload == 'omg!' /*9.x*/ || msg.payload == '' /*8.x*/, "expected blank payload or correct payload but got " + msg.message)
-            client.end()
-          }, 500)
-
-        });
-        assert.emits(otherClient, 'notification', function(msg) {
+      assert.emits(client, 'notification', function(msg) {
+        //make sure PQfreemem doesn't invalidate string pointers
+        setTimeout(function() {
           assert.equal(msg.channel, 'boom');
-          otherClient.end();
-        });
-      }
+          assert.ok(msg.payload == 'omg!' /*9.x*/ || msg.payload == '' /*8.x*/, "expected blank payload or correct payload but got " + msg.message)
+          client.end()
+        }, 500)
+
+      });
+      assert.emits(otherClient, 'notification', function(msg) {
+        assert.equal(msg.channel, 'boom');
+        otherClient.end();
+      });
+
       client.query("NOTIFY boom, 'omg!'", function(err, q) {
         if(err) {
           //notify not supported with payload on 8.x
           client.query("NOTIFY boom")
-        } 
-        afterNotify();
+        }
       });
     }));
   }));
