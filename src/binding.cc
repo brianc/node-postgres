@@ -283,7 +283,7 @@ protected:
   }
 
   //aborts connection and returns connection error message
-  char* AbortConnection()
+  void AbortConnection()
   {
     EmitLastError();
     DestroyConnection();
