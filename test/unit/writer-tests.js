@@ -156,7 +156,7 @@ test("resizing to much larger", function() {
   assert.equalBuffers(result, [33, 33, 33, 33, 33, 33, 33, 33, 0])
 })
 
-test("header", function() {
+test("flush", function() {
   test('added as a hex code to a full writer', function() {
     var subject = new Writer(2);
     var result = subject.addCString("!").flush(0x50)
@@ -173,5 +173,17 @@ test("header", function() {
   test('added as a hex code to a buffer which requires resizing', function() {
     var result = new Writer(2).addCString("!!!!!!!!").flush(0x50);
     assert.equalBuffers(result, [0x50, 0, 0, 0, 0x0D, 33, 33, 33, 33, 33, 33, 33, 33, 0]);
+  })
+})
+
+test("header", function() {
+  test('adding two packets with headers', function() {
+    var subject = new Writer(10).addCString("!");
+    subject.addHeader(0x50);
+    subject.addCString("!!");
+    subject.addHeader(0x40);
+    subject.addCString("!");
+    var result = subject.flush(0x10);
+    assert.equalBuffers(result, [0x50, 0, 0, 0, 6, 33, 0, 0x40, 0, 0, 0, 7, 33, 33, 0, 0x10, 0, 0, 0, 6, 33, 0 ]);
   })
 })
