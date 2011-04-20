@@ -3,3 +3,4 @@
 *.log
 .lock-wscript
 build/
+/todo.org
