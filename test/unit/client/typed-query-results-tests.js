@@ -117,7 +117,7 @@ test('typed results', function() {
     dataTypeID: 1186,
     actual: '1 day -00:00:03',
     expected: function(val) {
-      assert.deepEqual(val, {'days':1, 'hours': 0, 'minutes': 0, 'seconds':-3})
+      assert.deepEqual(val, {'days':1, 'seconds':-3})
     }
   }];
 
