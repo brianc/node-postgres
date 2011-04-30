@@ -98,6 +98,27 @@ test('typed results', function() {
     expected: function(val) {
       assert.UTCDate(val, 2010, 9, 31, 0, 0, 0, 0);
     }
+  },{
+    name: 'interval time',
+    dataTypeID: 1186,
+    actual: '01:02:03',
+    expected: function(val) {
+      assert.deepEqual(val, {'hours':1, 'minutes':2, 'seconds':3})
+    }
+  },{
+    name: 'interval long',
+    dataTypeID: 1186,
+    actual: '1 year -32 days',
+    expected: function(val) {
+      assert.deepEqual(val, {'years':1, 'days':-32})
+    }
+  },{
+    name: 'interval combined negative',
+    dataTypeID: 1186,
+    actual: '1 day -00:00:03',
+    expected: function(val) {
+      assert.deepEqual(val, {'days':1, 'seconds':-3})
+    }
   }];
 
 
