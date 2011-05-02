@@ -91,24 +91,28 @@ test('an empty pool', function() {
   })
 })
 
-test('when creating async new pool members', function() {
-  var count = 0;
-  var pool = new Pool(3, function() {
-    var item = {ref: {name: ++count}, checkedIn: false};
-    process.nextTick(function() {
-      pool.checkIn(item.ref)
-    })
-    return item;
+test('a pool with size of zero', function() {
+  var index = 0;
+  var pool = new Pool(0, function() {
+    return index++;
   })
-  test('one request recieves member', function() {
+  test('checkin does nothing', function() {
+    index = 0;
+    pool.checkIn(301813);
+    assert.equal(pool.checkOut(assert.calls(function(err, item) {
+      assert.equal(item, 0);
+    })));
+  })
+  test('always creates a new item', function() {
+    index = 0;
     pool.checkOut(assert.calls(function(err, item) {
-      assert.equal(item.name, 1)
-      pool.checkOut(assert.calls(function(err, item) {
-        assert.equal(item.name, 2)
-        pool.checkOut(assert.calls(function(err, item) {
-          assert.equal(item.name, 3)
-        }))
-      }))
+      assert.equal(item, 0);
+    }))
+    pool.checkOut(assert.calls(function(err, item) {
+      assert.equal(item, 1);
+    }))
+    pool.checkOut(assert.calls(function(err, item) {
+      assert.equal(item, 2);
     }))
   })
 })
@@ -167,7 +171,7 @@ test('normalizing connection info', function() {
           assert.equal(output.database, process.env.USER);
           assert.equal(output.port, 5432);
         });
-        
+
         test('uses overridden defaults', function() {
           defaults.host = "/var/run/postgresql";
           defaults.user = "boom";
