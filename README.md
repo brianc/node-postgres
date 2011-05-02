@@ -107,6 +107,7 @@ Many thanks to the following:
 * [pshc](https://github.com/pshc)
 * [pjornblomqvist](https://github.com/bjornblomqvist)
 * [JulianBirch](https://github.com/JulianBirch)
+* [ef4](https://github.com/ef4)
 
 ## Documentation
 
@@ -115,6 +116,11 @@ Still a work in progress, I am trying to flesh out the wiki...
 ### [Documentation](https://github.com/brianc/node-postgres/wiki)
 
 ### __PLEASE__ check out the WIKI
+
+## Production Use
+* [bayt.com](http://bayt.com)
+
+_if you use node-postgres in production and would like your site listed here, fork & add it_
 
 ## Help
 
