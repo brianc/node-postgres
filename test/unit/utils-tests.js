@@ -187,3 +187,56 @@ test('normalizing connection info', function() {
     })
   })
 })
+
+test('libpq connection string building', function() {
+  var checkForPart = function(array, part) {
+    assert.ok(array.indexOf(part) > -1, array.join(" ") + " did not contain " + part);
+  }
+
+  test('builds simple string', function() {
+    var config = {
+      user: 'brian',
+      password: 'xyz',
+      port: 888,
+      host: 'localhost',
+      database: 'bam'
+    }
+    utils.buildLibpqConnectionString(config, assert.calls(function(err, constring) {
+      assert.isNull(err)
+      var parts = constring.split(" ");
+      checkForPart(parts, "user='brian'")
+      checkForPart(parts, "password='xyz'")
+      checkForPart(parts, "port='888'")
+      checkForPart(parts, "hostaddr=127.0.0.1")
+      checkForPart(parts, "dbname='bam'")
+    }))
+  })
+  test('builds dns string', function() {
+    var config = {
+      user: 'brian',
+      password: 'asdf',
+      port: 5432,
+      host: 'example.com'
+    }
+    utils.buildLibpqConnectionString(config, assert.calls(function(err, constring) {
+      assert.isNull(err);
+      var parts = constring.split(" ");
+      checkForPart(parts, "user='brian'")
+      checkForPart(parts, "hostaddr=192.0.32.10")
+    }))
+  })
+
+  test('error when dns fails', function() {
+    var config = {
+      user: 'brian',
+      password: 'asf',
+      port: 5432,
+      host: 'asdlfkjasldfkksfd#!$!!!!..com'
+    }
+    utils.buildLibpqConnectionString(config, assert.calls(function(err, constring) {
+      assert.ok(err);
+      assert.isNull(constring)
+    }))
+  })
+
+})

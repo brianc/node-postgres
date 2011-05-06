@@ -85,3 +85,13 @@ test('error handling', function(){
   });
 
 });
+
+test('when connecting to invalid host', function() {
+  var client = new Client({
+    user: 'brian',
+    password: '1234',
+    host: 'asldkfjasdf!!#1308140.com'
+  })
+  assert.emits(client, 'error');
+  client.connect();
+})
