@@ -211,6 +211,7 @@ public:
     if(result == 1) {
       return Undefined();
     }
+    self->EmitLastError();
     THROW("Postgres returned non-1 result from query dispatch.");
   }
 
@@ -444,12 +445,22 @@ protected:
       int fieldCount = PQnfields(result);
       for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
         Local<Object> field = Object::New();
+        //name of field
         char* fieldName = PQfname(result, fieldNumber);
-        int fieldType = PQftype(result, fieldNumber);
-        char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
         field->Set(name_symbol, String::New(fieldName));
-        field->Set(value_symbol, String::New(fieldValue));
+
+        //oid of type of field
+        int fieldType = PQftype(result, fieldNumber);
         field->Set(type_symbol, Integer::New(fieldType));
+
+        //value of field
+        if(PQgetisnull(result, rowNumber, fieldNumber)) {
+          field->Set(value_symbol, Null());
+        } else {
+          char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
+          field->Set(value_symbol, String::New(fieldValue));
+        }
+
         row->Set(Integer::New(fieldNumber), field);
       }
 
@@ -578,6 +589,8 @@ private:
           return 0;
         }
         paramValues[i] = cString;
+      } else if(val->IsNull()) {
+        paramValues[i] = NULL;
       } else {
         //a paramter was not a string
         LOG("Parameter not a string");

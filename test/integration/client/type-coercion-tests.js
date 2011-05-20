@@ -4,35 +4,36 @@ var connectionString = helper.connectionString();
 var testForTypeCoercion = function(type){
   helper.pg.connect(connectionString, function(err, client) {
     assert.isNull(err)
-    client.query("create temp table test_type(col " + type.name + ")");
+    client.query("create temp table test_type(col " + type.name + ")", assert.calls(function(err, result) {
+      assert.isNull(err);
+      test("Coerces " + type.name, function() {
+        type.values.forEach(function(val) {
 
-    test("Coerces " + type.name, function() {
-      type.values.forEach(function(val) {
+          var insertQuery = client.query('insert into test_type(col) VALUES($1)',[val],assert.calls(function(err, result) {
+            assert.isNull(err);
+          }));
 
-        var insertQuery = client.query({
-          name: 'insert type test ' + type.name,
-          text: 'insert into test_type(col) VALUES($1)',
-          values: [val]
+          var query = client.query({
+            name: 'get type ' + type.name ,
+            text: 'select col from test_type'
+          });
+          query.on('error', function(err) {
+            console.log(err);
+            throw err;
+          });
+
+          assert.emits(query, 'row', function(row) {
+            assert.strictEqual(row.col, val, "expected " + type.name + " of " + val + " but got " + row[0]);
+          }, "row should have been called for " + type.name + " of " + val);
+
+          client.query('delete from test_type');
         });
 
-        var query = client.query({
-          name: 'get type ' + type.name ,
-          text: 'select col from test_type'
+        client.query('drop table test_type', function() {
+          sink.add();
         });
-
-        assert.emits(query, 'row', function(row) {
-          assert.strictEqual(row.col, val, "expected " + type.name + " of " + val + " but got " + row[0]);
-        });
-
-        client.query({
-          name: 'delete values',
-          text: 'delete from test_type'
-        });
-        sink.add();
-      });
-
-      client.query('drop table test_type');
-    });
+      })
+    }));
   })
 };
 
@@ -82,14 +83,15 @@ var valueCount = 0;
 types.forEach(function(type) {
   valueCount += type.values.length;
 })
-sink = new helper.Sink(valueCount, function() {
+sink = new helper.Sink(types.length, function() {
   helper.pg.end();
 })
 
-types.forEach(testForTypeCoercion);
+types.forEach(function(type) {
+  testForTypeCoercion(type)
+});
 
 test("timestampz round trip", function() {
-
   var now = new Date();
   var client = helper.client();
   client.on('error', function(err) {

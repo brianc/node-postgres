@@ -22,7 +22,7 @@ test('emits notify message', function() {
           assert.equal(msg.channel, 'boom');
           assert.ok(msg.payload == 'omg!' /*9.x*/ || msg.payload == '' /*8.x*/, "expected blank payload or correct payload but got " + msg.message)
           client.end()
-        }, 500)
+        }, 100)
 
       });
       assert.emits(otherClient, 'notification', function(msg) {
