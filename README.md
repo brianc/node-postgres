@@ -108,6 +108,7 @@ Many thanks to the following:
 * [pjornblomqvist](https://github.com/bjornblomqvist)
 * [JulianBirch](https://github.com/JulianBirch)
 * [ef4](https://github.com/ef4)
+* [napa3um](https://github.com/napa3um)
 
 ## Documentation
 
