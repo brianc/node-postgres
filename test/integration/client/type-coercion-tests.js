@@ -126,3 +126,15 @@ test("timestampz round trip", function() {
   client.on('drain', client.end.bind(client));
 });
 
+helper.pg.connect(helper.connectionString(), assert.calls(function(err, client) {
+  assert.isNull(err);
+  client.query('select null as res;', assert.calls(function(err, res) {
+    assert.isNull(err);
+    assert.strictEqual(res.rows[0].res, null)
+  }))
+  client.query('select 7 <> $1 as res;',[null], function(err, res) {
+    assert.isNull(err);
+    assert.strictEqual(res.rows[0].res, null);
+    client.end();
+  })
+}))

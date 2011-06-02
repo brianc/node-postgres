@@ -58,7 +58,7 @@ node-postgres supports both an 'event emitter' style API and a 'callback' style.
       name: 'insert beatle',
       values: ['Paul', 63, new Date(1945, 04, 03)]
     });
-    var query = client.query("SELECT * FROM beatles WHERE name = $1", ['john']);
+    var query = client.query("SELECT * FROM beatles WHERE name = $1", ['John']);
 
     //can stream row results back 1 at a time
     query.on('row', function(row) {
@@ -108,6 +108,7 @@ Many thanks to the following:
 * [pjornblomqvist](https://github.com/bjornblomqvist)
 * [JulianBirch](https://github.com/JulianBirch)
 * [ef4](https://github.com/ef4)
+* [napa3um](https://github.com/napa3um)
 
 ## Documentation
 
