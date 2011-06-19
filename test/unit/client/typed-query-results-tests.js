@@ -190,6 +190,14 @@ test('typed results', function() {
     actual: null,
     expected: null
   },{
+    name: 'binary-timestamp',
+    format: 'binary',
+    dataTypeID: 1184,
+    actual: [0x00, 0x01, 0x36, 0xee, 0x3e, 0x66, 0x9f, 0xe0],
+    expected: function(val) {
+      assert.UTCDate(val, 2010, 9, 31, 20, 24, 13, 740);
+    }
+  },{
     name: 'binary-string',
     format: 'binary',
     dataTypeID: 25,
