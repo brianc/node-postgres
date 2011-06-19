@@ -184,6 +184,12 @@ test('typed results', function() {
     actual: [0],
     expected: false
   },{
+    name: 'binary-boolean null',
+    format: 'binary',
+    dataTypeID: 16,
+    actual: null,
+    expected: null
+  },{
     name: 'binary-string',
     format: 'binary',
     dataTypeID: 25,
