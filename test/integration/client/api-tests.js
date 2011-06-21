@@ -1,5 +1,13 @@
 var helper = require(__dirname + '/../test-helper');
 var pg = require(__dirname + '/../../../lib');
+
+if(helper.args.native) {
+  pg = require(__dirname + '/../../../lib/native')
+}
+
+if(helper.args.libpq) {
+  pg = require(__dirname + "/../../../lib/binding");
+}
 var connectionString = helper.connectionString(__filename);
 
 var log = function() {
@@ -14,7 +22,7 @@ var sink = new helper.Sink(5, 10000, function() {
 test('api', function() {
   log("connecting to %s", connectionString)
   pg.connect(connectionString, assert.calls(function(err, client) {
-    assert.equal(err, null, "Failed to connect: " + sys.inspect(err));
+    assert.equal(err, null, "Failed to connect: " + helper.sys.inspect(err));
 
     client.query('CREATE TEMP TABLE band(name varchar(100))');
 
@@ -88,8 +96,8 @@ test("query errors are handled and do not bubble if callback is provded", functi
     client.query("SELECT OISDJF FROM LEIWLISEJLSE", assert.calls(function(err, result) {
       assert.ok(err);
       log("query error supplied error to callback")
-      sink.add(); 
-   }))
+      sink.add();
+    }))
   }))
 })
 
@@ -106,5 +114,18 @@ test('callback is fired once and only once', function() {
       assert.equal(callCount++, 0, "Call count should be 0.  More means this callback fired more than once.");
       sink.add();
     })
+  }))
+})
+
+test('can provide callback and config object', function() {
+  pg.connect(connectionString, assert.calls(function(err, client) {
+    assert.isNull(err);
+    client.query({
+      name: 'boom',
+      text: 'select NOW()'
+    }, assert.calls(function(err, result) {
+      assert.isNull(err);
+      assert.equal(result.rows[0].now.getYear(), new Date().getYear())
+    }))
   }))
 })

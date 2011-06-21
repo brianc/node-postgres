@@ -1,80 +1,102 @@
 #node-postgres
 
-Non-blocking (async) pure JavaScript PostgreSQL client for node.js written
-with love and TDD.
+Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
 
 ## Installation
 
     npm install pg
 
-## Example
+## Examples
 
-    var pg = require('pg');
-    var connectionString = "pg://user:password@host:port/database";
-    pg.connect(connectionString, function(err, client) {
-      if(err) {
-        //handle connection error
-      }
-      else {
-        //queries are queued and executed in order
-        client.query("CREATE TEMP TABLE user(name varchar(50), birthday timestamptz)");
-        client.query("INSERT INTO user(name, birthday) VALUES('brianc', '1982-01-01T10:21:11')");
-        
-        //parameterized queries with transparent type coercion
-        client.query("INSERT INTO user(name, birthday) VALUES($1, $2)", ['santa', new Date()]);
-        
-        //nested queries with callbacks
-        client.query("SELECT * FROM user ORDER BY name", function(err, result) {
-          if(err) {
-            //handle query error
-          }
-          else {
-            client.query("SELECT birthday FROM user WHERE name = $1", [result.rows[0].name], function(err, result) {
-              //typed parameters and results
-              assert.ok(result.rows[0].birthday.getYear() === 1982)
-            })
-          }
-        })
-      }
-    }
+All examples will work with the pure javascript bindings (currently default) or the libpq native (c/c++) bindings (currently in beta)
 
-## Philosophy
+To use native libpq bindings replace `require('pg')` with `require('pg').native`.
 
-* well tested
-* no monkey patching
-* no dependencies (...besides PostgreSQL)
-* [in-depth documentation](http://github.com/brianc/node-postgres/wiki) (work in progress)
+The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg.native`, please report an issue.
 
-## features
+node-postgres supports both an 'event emitter' style API and a 'callback' style.  The callback style is more concise and generally preferred, but the evented API can come in handy.  They can be mixed and matched.  The only events which do __not__ fire when callbacks are supplied are the `error` events, as they are to be handled by the callback function.
 
-- prepared statement support
-  - parameters
-  - query caching
-- type coercion
-  - date <-> timestamptz
-  - integer <-> integer, smallint, bigint
-  - float <-> double, numeric
-  - boolean <-> boolean
-- notification message support
-- connection pooling
-- mucho testing
-  ~250 tests executed on
-    - ubuntu
-      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.2.6, v0.3.0, v0.3.1, v0.3.2, v0.3.3, v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8
-      - postgres 8.4.4
-    - osx
-      - node v0.2.2, v0.2.3, v0.2.4, v0.2.5, v0.2.6, v0.3.0, v0.3.1, v0.3.2, v0.3.3, v0.3.4, v0.3.5, v0.3.6, v0.3.7, v0.3.8
-      - postgres v8.4.4, v9.0.1 installed both locally and on networked Windows 7
+### Simple, using built-in client pool
 
-## Contributing
+    var pg = require('pg'); 
+    //or native libpq bindings
+    //var pg = require('pg').native
 
-clone the repo:
+    var conString = "tcp://postgres:1234@localhost/postgres";
 
-     git clone git://github.com/brianc/node-postgres
-     cd node-postgres
-     make test
+    //error handling omitted
+    pg.connect(conString, function(err, client) {
+      client.query("SELECT NOW() as when", function(err, result) {
+        console.log("Row count: %d",result.rows.length);  // 1
+        console.log("Current year: %d", result.rows[0].when.getYear());
+      });
+    });
 
-And just like magic, you're ready to contribute! <3
+### Evented api
+
+    var pg = require('pg'); //native libpq bindings = `var pg = require('pg').native`
+    var conString = "tcp://postgres:1234@localhost/postgres";
+    
+    var client = new pg.Client(conString);
+    client.connect();
+
+    //queries are queued and executed one after another once the connection becomes available
+    client.query("CREATE TEMP TABLE beatles(name varchar(10), height integer, birthday timestamptz)");
+    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['Ringo', 67, new Date(1945, 11, 2)]);
+    client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['John', 68, new Date(1944, 10, 13)]);
+
+    //queries can be executed either via text/parameter values passed as individual arguments
+    //or by passing an options object containing text, (optional) parameter values, and (optional) query name
+    client.query({
+      name: 'insert beatle',
+      text: "INSERT INTO beatles(name, height, birthday) values($1, $2, $3)",
+      values: ['George', 70, new Date(1946, 02, 14)]
+    });
+
+    //subsequent queries with the same name will be executed without re-parsing the query plan by postgres
+    client.query({
+      name: 'insert beatle',
+      values: ['Paul', 63, new Date(1945, 04, 03)]
+    });
+    var query = client.query("SELECT * FROM beatles WHERE name = $1", ['John']);
+
+    //can stream row results back 1 at a time
+    query.on('row', function(row) {
+      console.log(row);
+      console.log("Beatle name: %s", row.name); //Beatle name: John
+      console.log("Beatle birth year: %d", row.birthday.getYear()); //dates are returned as javascript dates
+      console.log("Beatle height: %d' %d\"", Math.floor(row.height/12), row.height%12); //integers are returned as javascript ints
+    });
+    
+    //fired after last row is emitted
+    query.on('end', function() { 
+      client.end();
+    });
+
+### Info
+
+* a pure javascript client and native libpq bindings with _the same api_
+* _heavily_ tested
+  * the same suite of 200+ integration tests passed by both javascript & libpq bindings
+  * benchmark & long-running memory leak tests performed before releases
+  * tested with with
+    * postgres 8.x, 9.x
+    * Linux, OS X
+    * node 2.x & 4.x
+* row-by-row result streaming
+* optional, built-in connection pooling
+* responsive project maintainer
+* supported PostgreSQL features
+  * parameterized queries
+  * named statements with query plan caching
+  * async notifications
+  * extensible js<->postgresql data-type coercion 
+* query queue
+* active development
+* fast
+* No dependencies (other than PostgreSQL)
+* No monkey patching
+* Tried to mirror the node-mysql api as much as possible for future multi-database-supported ORM implementation ease
 
 ### Contributors
 
@@ -85,36 +107,26 @@ Many thanks to the following:
 * [pshc](https://github.com/pshc)
 * [pjornblomqvist](https://github.com/bjornblomqvist)
 * [JulianBirch](https://github.com/JulianBirch)
+* [ef4](https://github.com/ef4)
+* [napa3um](https://github.com/napa3um)
 
-## More info please
+## Documentation
 
-### [Documentation](node-postgres/wiki)
+Still a work in progress, I am trying to flesh out the wiki...
+
+### [Documentation](https://github.com/brianc/node-postgres/wiki)
 
 ### __PLEASE__ check out the WIKI
 
+## Production Use
+* [bayt.com](http://bayt.com)
+
+_if you use node-postgres in production and would like your site listed here, fork & add it_
+
 ## Help
 
-If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.
+If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
     
-### Working?
-
-[this page](http://www.explodemy.com) is running the worlds worst (but fully functional) PostgreSQL backed, Node.js powered website.
-
-### Why did you write this?
-
-As soon as I saw node.js for the first time I knew I had found something lovely and simple and _just what I always wanted!_.  So...I poked around for a while.  I was excited.  I still am!
-
-I drew major inspiration from [postgres-js](http://github.com/creationix/postgres-js).
-
-I also drew some major inspirrado from
-[node-mysql](http://github.com/felixge/node-mysql) and liked what I
-saw there.
-
-### Plans for the future?
-
-- transparent prepared statement caching
-- more testings of error scenarios
-
 ## License
 
 Copyright (c) 2010 Brian Carlson (brian.m.carlson@gmail.com)

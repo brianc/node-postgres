@@ -38,6 +38,8 @@ for(var i = 0; i < args.length; i++) {
   case '-t':
   case '--test':
     config.test = args[++i];
+  case '--native':
+    config.native = (args[++i] == "true");
   default:
     break;
   }
