@@ -216,13 +216,13 @@ test('libpq connection string building', function() {
       user: 'brian',
       password: 'asdf',
       port: 5432,
-      host: 'example.com'
+      host: 'localhost'
     }
     utils.buildLibpqConnectionString(config, assert.calls(function(err, constring) {
       assert.isNull(err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'")
-      checkForPart(parts, "hostaddr=192.0.32.10")
+      checkForPart(parts, "hostaddr=127.0.0.1")
     }))
   })
 
