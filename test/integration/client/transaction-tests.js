@@ -46,3 +46,29 @@ test('a single connection transaction', function() {
 
   }))
 })
+
+test('gh#36', function() {
+  var connectionString = helper.connectionString();
+  helper.pg.connect(connectionString, function(err, client) {
+    if(err) throw err;
+    client.query("BEGIN");
+    client.query({
+      name: 'X',
+      text: "SELECT $1::INTEGER",
+      values: [0]
+    }, assert.calls(function(err, result) {
+      if(err) throw err;
+      assert.equal(result.rows.length, 1);
+    }))
+    client.query({
+      name: 'X',
+      text: "SELECT $1::INTEGER",
+      values: [0]
+    }, assert.calls(function(err, result) {
+      if(err) throw err;
+      assert.equal(result.rows.length, 1);
+    }))
+    client.query("COMMIT")
+    client.on('drain', client.end.bind(client))
+  })
+})
