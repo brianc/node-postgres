@@ -1,4 +1,4 @@
-require(__dirname+'/../test-helper');
+var helper = require(__dirname+'/../test-helper');
 var Connection = require('connection');
 var makeClient = function() {
   var connection = new Connection({stream: "no"});
@@ -9,7 +9,7 @@ var makeClient = function() {
   };
   connection.queries = [];
   var client = new Client({connection: connection});
-  client.connect();
+  client.connect(helper.args.port, helper.args.host);
   client.connection.emit('connect');
   return client;
 };

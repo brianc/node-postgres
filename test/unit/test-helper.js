@@ -23,3 +23,5 @@ createClient = function() {
   client.connect();
   return client;
 };
+
+module.exports = helper;
