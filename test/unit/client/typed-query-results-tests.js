@@ -119,6 +119,20 @@ test('typed results', function() {
     expected: function(val) {
       assert.deepEqual(val, {'days':1, 'seconds':-3})
     }
+  },{
+    name: 'bytea',
+    dataTypeID: 17,
+    actual: 'foo\\000\\200\\\\\\377',
+    expected: function(val) {
+      assert.deepEqual(val, new Buffer([102, 111, 111, 0, 128, 92, 255]));
+    }
+  },{
+    name: 'empty bytea',
+    dataTypeID: 17,
+    actual: '',
+    expected: function(val) {
+      assert.deepEqual(val, new Buffer(0));
+    }
   }];
 
 
