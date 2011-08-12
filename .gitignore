@@ -1,6 +1,5 @@
-/.emacs-project
+node_modules/
 *.swp
 *.log
 .lock-wscript
 build/
-/todo.org
