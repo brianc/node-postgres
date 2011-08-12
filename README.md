@@ -8,14 +8,6 @@ Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bi
 
 ## Examples
 
-All examples will work with the pure javascript bindings (currently default) or the libpq native (c/c++) bindings (currently in beta)
-
-To use native libpq bindings replace `require('pg')` with `require('pg').native`.
-
-The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg.native`, please report an issue.
-
-node-postgres supports both an 'event emitter' style API and a 'callback' style.  The callback style is more concise and generally preferred, but the evented API can come in handy.  They can be mixed and matched.  The only events which do __not__ fire when callbacks are supplied are the `error` events, as they are to be handled by the callback function.
-
 ### Simple, using built-in client pool
 
     var pg = require('pg'); 
@@ -73,9 +65,19 @@ node-postgres supports both an 'event emitter' style API and a 'callback' style.
       client.end();
     });
 
+### Example notes
+
+node-postgres supports both an 'event emitter' style API and a 'callback' style.  The callback style is more concise and generally preferred, but the evented API can come in handy.  They can be mixed and matched.  The only events which do __not__ fire when callbacks are supplied are the `error` events, as they are to be handled by the callback function.
+
+All examples will work with the pure javascript bindings (currently default) or the libpq native (c/c++) bindings (currently in beta)
+
+To use native libpq bindings replace `require('pg')` with `require('pg').native`.
+
+The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg.native`, please report an issue.
+
 ### Info
 
-* a pure javascript client and native libpq bindings with _the same api_
+* pure javascript client and native libpq bindings share _the same api_
 * _heavily_ tested
   * the same suite of 200+ integration tests passed by both javascript & libpq bindings
   * benchmark & long-running memory leak tests performed before releases
@@ -84,7 +86,7 @@ node-postgres supports both an 'event emitter' style API and a 'callback' style.
     * Linux, OS X
     * node 2.x & 4.x
 * row-by-row result streaming
-* optional, built-in connection pooling
+* built-in (optional) connection pooling
 * responsive project maintainer
 * supported PostgreSQL features
   * parameterized queries
@@ -94,9 +96,7 @@ node-postgres supports both an 'event emitter' style API and a 'callback' style.
 * query queue
 * active development
 * fast
-* No dependencies (other than PostgreSQL)
-* No monkey patching
-* Tried to mirror the node-mysql api as much as possible for future multi-database-supported ORM implementation ease
+* close mirror of the node-mysql api for future multi-database-supported ORM implementation ease
 
 ### Contributors
 
@@ -110,14 +110,17 @@ Many thanks to the following:
 * [ef4](https://github.com/ef4)
 * [napa3um](https://github.com/napa3um)
 * [drdaeman](https://github.com/drdaeman)
+* [booo](https://github.com/booo)
 
 ## Documentation
 
-Still a work in progress, I am trying to flesh out the wiki...
+Documentation is a work in progress primarily taking place on the github WIKI
 
 ### [Documentation](https://github.com/brianc/node-postgres/wiki)
 
 ### __PLEASE__ check out the WIKI
+
+If you have a question, post it to the FAQ section of the WIKI so everyone can read the answer
 
 ## Production Use
 * [bayt.com](http://bayt.com)
