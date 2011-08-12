@@ -49,6 +49,9 @@ assert.UTCDate = function(actual, year, month, day, hours, min, sec, milisecond)
   var actualYear = actual.getUTCFullYear();
   assert.equal(actualYear, year, "expected year " + year + " but got " + actualYear);
 
+  var actualMonth = actual.getUTCMonth();
+  assert.equal(actualMonth, month, "expected month " + month + " but got " + actualMonth);
+
   var actualDate = actual.getUTCDate();
   assert.equal(actualDate, day, "expected day " + day + " but got " + actualDate);
 

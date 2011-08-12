@@ -75,7 +75,7 @@ test('typed results', function() {
     dataTypeID: 1184,
     actual: '2011-01-23 22:05:00.68-06',
     expected: function(val) {
-      assert.UTCDate(val, 2011, 01, 24, 4, 5, 00, 680);
+      assert.UTCDate(val, 2011, 0, 24, 4, 5, 00, 680);
     }
   }, {
     name: 'timestampz with huge miliseconds in UTC',
