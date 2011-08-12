@@ -111,6 +111,7 @@ Many thanks to the following:
 * [napa3um](https://github.com/napa3um)
 * [drdaeman](https://github.com/drdaeman)
 * [booo](https://github.com/booo)
+* [neonstalwart](https://github.com/neonstalwart)
 
 ## Documentation
 
