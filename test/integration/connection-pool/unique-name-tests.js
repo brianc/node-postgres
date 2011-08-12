@@ -6,7 +6,7 @@ helper.pg.defaults.password = helper.args.password;
 helper.pg.defaults.database = helper.args.database;
 helper.pg.defaults.port = helper.args.port;
 helper.pg.defaults.host = helper.args.host;
-
+helper.pg.defaults.poolIdleTimeout = 100;
 var args = {
   user: helper.args.user,
   password: helper.args.password,
