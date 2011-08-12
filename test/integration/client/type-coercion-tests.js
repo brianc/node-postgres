@@ -83,7 +83,7 @@ var valueCount = 0;
 types.forEach(function(type) {
   valueCount += type.values.length;
 })
-sink = new helper.Sink(types.length, function() {
+sink = new helper.Sink(types.length + 1, function() {
   helper.pg.end();
 })
 
@@ -135,6 +135,6 @@ helper.pg.connect(helper.connectionString(), assert.calls(function(err, client) 
   client.query('select 7 <> $1 as res;',[null], function(err, res) {
     assert.isNull(err);
     assert.strictEqual(res.rows[0].res, null);
-    client.end();
+    sink.add();
   })
 }))
