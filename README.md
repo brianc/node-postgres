@@ -1,6 +1,6 @@
 #node-postgres
 
-Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
+Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.  Active development,  well tested, and production use.
 
 ## Installation
 
