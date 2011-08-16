@@ -129,3 +129,17 @@ test('can provide callback and config object', function() {
     }))
   }))
 })
+
+test('can provide callback and config and parameters', function() {
+  pg.connect(connectionString, assert.calls(function(err, client) {
+    assert.isNull(err);
+    var config = {
+      text: 'select $1::text as val'
+    };
+    client.query(config, ['hi'], assert.calls(function(err, result) {
+      assert.isNull(err);
+      assert.equal(result.rows.length, 1);
+      assert.equal(result.rows[0].val, 'hi');
+    }))
+  }))
+})
