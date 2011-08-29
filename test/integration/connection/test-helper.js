@@ -1,6 +1,6 @@
 var net = require('net');
 var helper = require(__dirname+'/../test-helper');
-var Connection = require('connection');
+var Connection = require(__dirname + '/../../../lib/connection');
 var connect = function(callback) {
   var username = helper.args.user;
   var database = helper.args.database;

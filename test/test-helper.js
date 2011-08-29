@@ -1,4 +1,3 @@
-require.paths.unshift(__dirname + '/../lib/');
 //make assert a global...
 assert = require('assert');
 
@@ -6,7 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var sys = require('sys');
 var BufferList = require(__dirname+'/buffer-list')
 
-var Connection = require('connection');
+var Connection = require(__dirname + '/../lib/connection');
 var args = require(__dirname + '/cli');
 
 Client = require(__dirname + '/../lib').Client;
@@ -94,6 +93,9 @@ assert.empty = function(actual) {
 
 assert.success = function(callback) {
   return assert.calls(function(err, arg) {
+    if(err) {
+      console.log(err);
+    }
     assert.isNull(err);
     callback(arg);
   })
@@ -214,7 +216,7 @@ var Sink = function(expected, timeout, callback) {
 module.exports = {
   args: args,
   Sink: Sink,
-  pg: require('index'),
+  pg: require(__dirname + '/../lib/'),
   connectionString: function() {
     return "pg"+(count++)+"://"+args.user+":"+args.password+"@"+args.host+":"+args.port+"/"+args.database;
   },
