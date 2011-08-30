@@ -5,9 +5,6 @@ if(helper.args.native) {
   pg = require(__dirname + '/../../../lib').native;
 }
 
-if(helper.args.libpq) {
-  pg = require(__dirname + "/../../../lib/binding");
-}
 var connectionString = helper.connectionString(__filename);
 
 var log = function() {
