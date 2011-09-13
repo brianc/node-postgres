@@ -17,8 +17,8 @@ pg.connect(conString, assert.success(function(client) {
     //subscribe to the pg error event
     assert.emits(pg, 'error', function(error, brokenClient) {
       assert.ok(error);
-      assert.ok(client);
-      assert.equal(client.id, 1);
+      assert.ok(brokenClient);
+      assert.equal(client.id, brokenClient.id);
       pg.end();
     });
     //kill the connection from client
