@@ -21,7 +21,6 @@ static Persistent<String> row_symbol;
 static Persistent<String> notice_symbol;
 static Persistent<String> severity_symbol;
 static Persistent<String> code_symbol;
-static Persistent<String> message_symbol;
 static Persistent<String> detail_symbol;
 static Persistent<String> hint_symbol;
 static Persistent<String> position_symbol;
@@ -59,7 +58,6 @@ public:
     row_symbol = NODE_PSYMBOL("_row");
     severity_symbol = NODE_PSYMBOL("severity");
     code_symbol = NODE_PSYMBOL("code");
-    message_symbol = NODE_PSYMBOL("message");
     detail_symbol = NODE_PSYMBOL("detail");
     hint_symbol = NODE_PSYMBOL("hint");
     position_symbol = NODE_PSYMBOL("position");
@@ -473,10 +471,12 @@ protected:
   void HandleErrorResult(const PGresult* result)
   {
     HandleScope scope;
-    Local<Object> msg = Object::New();
+    //instantiate the return object as an Error with the summary Postgres message
+    Local<Object> msg = Local<Object>::Cast(Exception::Error(String::New(PQresultErrorField(result, PG_DIAG_MESSAGE_PRIMARY))));
+
+    //add the other information returned by Postgres to the error object
     AttachErrorField(result, msg, severity_symbol, PG_DIAG_SEVERITY);
     AttachErrorField(result, msg, code_symbol, PG_DIAG_SQLSTATE);
-    AttachErrorField(result, msg, message_symbol, PG_DIAG_MESSAGE_PRIMARY);
     AttachErrorField(result, msg, detail_symbol, PG_DIAG_MESSAGE_DETAIL);
     AttachErrorField(result, msg, hint_symbol, PG_DIAG_MESSAGE_HINT);
     AttachErrorField(result, msg, position_symbol, PG_DIAG_STATEMENT_POSITION);
