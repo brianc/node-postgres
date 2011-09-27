@@ -9,7 +9,7 @@ var makeClient = function() {
   };
   connection.queries = [];
   var client = new Client({connection: connection});
-  client.connect(helper.args.port, helper.args.host);
+  client.connect();
   client.connection.emit('connect');
   return client;
 };

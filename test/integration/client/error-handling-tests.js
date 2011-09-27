@@ -1,11 +1,11 @@
 var helper = require(__dirname + '/test-helper');
-var sys = require('sys')
+var sys = require('sys');
 
 var createErorrClient = function() {
   var client = helper.client();
   client.on('error', function(err) {
     assert.ok(false, "client should not throw query error: " + sys.inspect(err));
-  })
+  });
   client.on('drain', client.end.bind(client));
   return client;
 };
@@ -21,7 +21,7 @@ test('error handling', function(){
     assert.emits(query, 'error', function(error) {
       test('error is a psql error', function() {
         assert.equal(error.severity, "ERROR");
-      })
+      });
     });
 
   });
@@ -54,9 +54,9 @@ test('error handling', function(){
         assert.emits(query, 'error', function(err) {
           ensureFuture(client);
         });
-      })
+      });
 
-      test("when a query is binding", function() { 
+      test("when a query is binding", function() {
 
         var query = client.query({
           text: 'select * from boom where age = $1',
@@ -76,7 +76,7 @@ test('error handling', function(){
 
         //TODO how to test for errors during execution?
       });
-    })
+    });
   });
 
   test('non-query error', function() {
@@ -88,18 +88,38 @@ test('error handling', function(){
     client.connect();
   });
 
+  test('non-query error with callback', function() {
+
+    var client = new Client({
+      user:'asldkfjsadlfkj'
+    });
+    client.connect(function(error, client) {
+      assert.ok(error);
+    });
+  });
+
 });
 
 test('when connecting to invalid host', function() {
-  return false;
   var client = new Client({
     user: 'brian',
     password: '1234',
     host: 'asldkfjasdf!!#1308140.com'
-  })
+  });
   assert.emits(client, 'error');
   client.connect();
-})
+});
+
+test('when connecting to invalid host with callback', function() {
+  var client = new Client({
+    user: 'brian',
+    password: '1234',
+    host: 'asldkfjasdf!!#1308140.com'
+  });
+  client.connect(function(error, client) {
+    assert.ok(error);
+  });
+});
 
 test('multiple connection errors (gh#31)', function() {
   return false;
@@ -111,18 +131,18 @@ test('multiple connection errors (gh#31)', function() {
       host: helper.args.host,
       port: helper.args.port,
       database: helper.args.database
-    })
+    });
     client.connect();
     assert.emits(client, 'error', function(e) {
       client.connect();
-      assert.emits(client, 'error')
-    })
-  })
+      assert.emits(client, 'error');
+    });
+  });
 
   test('with callback method', function() {
     var badConString = "tcp://aslkdfj:oi14081@"+helper.args.host+":"+helper.args.port+"/"+helper.args.database;
     return false;
-  })
+  });
 
-})
+});
 
