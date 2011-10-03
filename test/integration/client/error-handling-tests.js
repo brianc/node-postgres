@@ -89,15 +89,29 @@ test('error handling', function(){
   });
 
   test('non-query error with callback', function() {
-
     var client = new Client({
       user:'asldkfjsadlfkj'
     });
-    client.connect(function(error, client) {
+    client.connect(assert.calls(function(error, client) {
       assert.ok(error);
-    });
+    }));
   });
 
+});
+
+test('non-error calls supplied callback', function() {
+  var client = new Client({
+    user: helper.args.user,
+    password: helper.args.password,
+    host: helper.args.host,
+    port: helper.args.port,
+    database: helper.args.database
+  });
+
+  client.connect(assert.calls(function(err) {
+    assert.isNull(err);
+    client.end();
+  }))
 });
 
 test('when connecting to invalid host', function() {
