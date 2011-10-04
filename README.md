@@ -112,6 +112,7 @@ Many thanks to the following:
 * [drdaeman](https://github.com/drdaeman)
 * [booo](https://github.com/booo)
 * [neonstalwart](https://github.com/neonstalwart)
+* [homme](https://github.com/homme)
 
 ## Documentation
 
