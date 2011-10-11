@@ -11,7 +11,7 @@ test('many rows', function() {
   });
   assert.emits(q, 'end', function() {
     client.end();
-    assert.length(rows, 26);
+    assert.lengthIs(rows, 26);
   })
 });
 
