@@ -16,5 +16,5 @@
     "test" : "make test",
     "install" : "node-waf configure build || true"
   },
-  "engines" : { "node": ">= 0.2.2" }
+  "engines" : { "node": ">= 0.4.0" }
 }
