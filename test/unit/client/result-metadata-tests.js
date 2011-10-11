@@ -7,7 +7,7 @@ var testForTag = function(tagText, callback) {
     client.connection.emit('readyForQuery')
 
     var query = client.query("whatever");
-    assert.length(client.connection.queries, 1)
+    assert.lengthIs(client.connection.queries, 1)
 
     assert.emits(query, 'end', function(result) {
       assert.ok(result != null, "should pass something to this event")

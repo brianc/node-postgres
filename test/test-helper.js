@@ -93,7 +93,7 @@ assert.equalBuffers = function(actual, expected) {
 };
 
 assert.empty = function(actual) {
-  assert.length(actual, 0);
+  assert.lengthIs(actual, 0);
 };
 
 assert.success = function(callback) {
@@ -116,7 +116,7 @@ assert.throws = function(offender) {
   assert.ok(false, "Expected " + offender + " to throw exception");
 }
 
-assert.length = function(actual, expectedLength) {
+assert.lengthIs = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
 };
 

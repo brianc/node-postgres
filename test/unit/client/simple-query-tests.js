@@ -9,7 +9,7 @@ test('executing query', function() {
       assert.empty(client.connection.queries);
       client.connection.emit('readyForQuery');
       client.query('yes');
-      assert.length(client.connection.queries, 1);
+      assert.lengthIs(client.connection.queries, 1);
       assert.equal(client.connection.queries, 'yes');
     });
 
@@ -23,7 +23,7 @@ test('executing query', function() {
 
       test('sends query to connection once ready', function() {
         assert.ok(client.connection.emit('readyForQuery'));
-        assert.length(client.connection.queries, 1);
+        assert.lengthIs(client.connection.queries, 1);
         assert.equal(client.connection.queries[0], "boom");
       });
 
@@ -40,20 +40,20 @@ test('executing query', function() {
 
       test("after one ready for query",function() {
         connection.emit('readyForQuery');
-        assert.length(queries, 1);
+        assert.lengthIs(queries, 1);
         assert.equal(queries[0], "one");
       });
 
       test('after two ready for query', function() {
         connection.emit('readyForQuery');
-        assert.length(queries, 2);
+        assert.lengthIs(queries, 2);
       });
 
       test("after a bunch more", function() {
         connection.emit('readyForQuery');
         connection.emit('readyForQuery');
         connection.emit('readyForQuery');
-        assert.length(queries, 3);
+        assert.lengthIs(queries, 3);
         assert.equal(queries[0], "one");
         assert.equal(queries[1], 'two');
         assert.equal(queries[2], 'three');
@@ -72,7 +72,7 @@ test('executing query', function() {
 
     test('sends query on readyForQuery event', function() {
       con.emit('readyForQuery');
-      assert.length(con.queries, 1);
+      assert.lengthIs(con.queries, 1);
       assert.equal(con.queries[0], 'whatever');
     });
 

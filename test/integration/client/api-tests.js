@@ -31,7 +31,7 @@ test('api', function() {
     test('simple query execution',assert.calls( function() {
       log("executing simple query")
       client.query("SELECT * FROM band WHERE name = 'the beach boys'", assert.calls(function(err, result) {
-        assert.length(result.rows, 1)
+        assert.lengthIs(result.rows, 1)
         assert.equal(result.rows.pop().name, 'the beach boys')
         log("simple query executed")
       }));
@@ -42,14 +42,14 @@ test('api', function() {
       log("executing prepared statement 1")
       client.query('SELECT * FROM band WHERE name = $1', ['dead black hearts'],assert.calls( function(err, result) {
         log("Prepared statement 1 finished")
-        assert.length(result.rows, 1);
+        assert.lengthIs(result.rows, 1);
         assert.equal(result.rows.pop().name, 'dead black hearts');
       }))
 
       log("executing prepared statement two")
       client.query('SELECT * FROM band WHERE name LIKE $1 ORDER BY name', ['the %'], assert.calls(function(err, result) {
         log("prepared statement two finished")
-        assert.length(result.rows, 2);
+        assert.lengthIs(result.rows, 2);
         assert.equal(result.rows.pop().name, 'the flaming lips');
         assert.equal(result.rows.pop().name, 'the beach boys');
         sink.add();

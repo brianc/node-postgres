@@ -8,7 +8,7 @@ test('cleartext password authentication', function(){
   client.connection.emit('authenticationCleartextPassword');
   test('responds with password', function() {
     var packets = client.connection.stream.packets;
-    assert.length(packets, 1);
+    assert.lengthIs(packets, 1);
     var packet = packets[0];
     assert.equalBuffers(packet, [0x70, 0, 0, 0, 6, 33, 0]);
   });

@@ -6,7 +6,7 @@ var con = new Connection({
 });
 
 assert.received = function(stream, buffer) {
-  assert.length(stream.packets, 1);
+  assert.lengthIs(stream.packets, 1);
   var packet = stream.packets.pop();
   assert.equalBuffers(packet, buffer);
 };

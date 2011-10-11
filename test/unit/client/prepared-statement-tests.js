@@ -64,7 +64,7 @@ test('bound command', function() {
       test('bind argument', function() {
         assert.equal(bindArg.statement, null);
         assert.equal(bindArg.portal, null);
-        assert.length(bindArg.values, 1);
+        assert.lengthIs(bindArg.values, 1);
         assert.equal(bindArg.values[0], 'hi')
       });
 

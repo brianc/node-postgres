@@ -24,7 +24,7 @@ pg.connect(conString, assert.success(function(client) {
     //kill the connection from client
     client2.query(killIdleQuery, assert.success(function(res) {
       //check to make sure client connection actually was killed
-      assert.length(res.rows, 1);
+      assert.lengthIs(res.rows, 1);
     }));
   }));
 }));
