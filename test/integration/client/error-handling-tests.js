@@ -1,10 +1,10 @@
 var helper = require(__dirname + '/test-helper');
-var sys = require('sys');
+var util = require('util');
 
 var createErorrClient = function() {
   var client = helper.client();
   client.on('error', function(err) {
-    assert.ok(false, "client should not throw query error: " + sys.inspect(err));
+    assert.ok(false, "client should not throw query error: " + util.inspect(err));
   });
   client.on('drain', client.end.bind(client));
   return client;
