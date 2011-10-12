@@ -497,13 +497,13 @@ protected:
 
 private:
   //EventEmitter was removed from c++ in node v0.5.x
-  void Emit(char* message) {
+  void Emit(const char* message) {
     HandleScope scope;
     Handle<Value> args[1] = { String::New(message) };
     Emit(1, args);
   }
 
-  void Emit(char* message, Handle<Value>* arg) {
+  void Emit(const char* message, Handle<Value>* arg) {
     HandleScope scope;
     Handle<Value> args[2] = { String::New(message), *arg };
     Emit(2, args);
