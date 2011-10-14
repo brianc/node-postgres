@@ -140,3 +140,21 @@ test('can provide callback and config and parameters', function() {
     }))
   }))
 })
+
+test('null and undefined are both inserted as NULL', function() {
+  pg.connect(connectionString, assert.calls(function(err, client) {
+    assert.isNull(err);
+    client.query("CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)");
+    client.query("INSERT INTO my_nulls(a,b,c,d,e,f) VALUES ($1,$2,$3,$4,$5,$6)", [ null, undefined, null, undefined, null, undefined ]);
+    client.query("SELECT * FROM my_nulls", assert.calls(function(err, result) {
+        assert.isNull(err);
+        assert.equal(result.rows.length, 1);
+        assert.isNull(result.rows[0].a);
+        assert.isNull(result.rows[0].b);
+        assert.isNull(result.rows[0].c);
+        assert.isNull(result.rows[0].d);
+        assert.isNull(result.rows[0].e);
+        assert.isNull(result.rows[0].f);
+    }))
+  }))
+})
