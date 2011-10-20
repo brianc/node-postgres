@@ -1,5 +1,5 @@
 { "name": "pg",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords" : ["postgres", "pg", "libpq", "postgre", "database", "rdbms"],
   "homepage": "http://github.com/brianc/node-postgres",
@@ -10,7 +10,7 @@
   "author" : "Brian Carlson <brian.m.carlson@gmail.com>",
   "main" : "./lib",
   "dependencies" : {
-    "generic-pool" : "1.0.6"
+    "generic-pool" : "1.0.7"
   },
   "scripts" : { 
     "test" : "make test",
