@@ -116,6 +116,7 @@ Many thanks to the following:
 * [booo](https://github.com/booo)
 * [neonstalwart](https://github.com/neonstalwart)
 * [homme](https://github.com/homme)
+* [bdunavant](https://github.com/bdunavant)
 
 ## Documentation
 
