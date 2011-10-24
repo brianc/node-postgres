@@ -1,6 +1,7 @@
 var helper = require(__dirname + '/test-helper');
 var q = {};
 q.dateParser = require(__dirname + "/../../../lib/types").getStringTypeParser(1114);
+q.stringArrayParser = require(__dirname + "/../../../lib/types").getStringTypeParser(1009);
 
 test("testing dateParser", function() {
   assert.equal(q.dateParser("2010-12-11 09:09:04").toUTCString(),new Date("2010-12-11 09:09:04 GMT").toUTCString());
@@ -36,3 +37,32 @@ test("testing 2dateParser", function() {
   assert.equal(JSON.stringify(q.dateParser(actual)),expected);
 });
 
+test("testing empty array", function(){
+  var input = '{}';
+  var expected = [];
+  assert.deepEqual(q.stringArrayParser(input), expected);
+});
+
+test("testing empty string array", function(){
+  var input = '{""}';
+  var expected = [""];
+  assert.deepEqual(q.stringArrayParser(input), expected);
+});
+
+test("testing numeric array", function(){
+  var input = '{1,2,3,4}';
+  var expected = [1,2,3,4];
+  assert.deepEqual(q.stringArrayParser(input), expected);
+});
+
+test("testing stringy array", function(){
+  var input = '{a,b,c,d}';
+  var expected = ['a','b','c','d'];
+  assert.deepEqual(q.stringArrayParser(input), expected);
+});
+
+test("testing NULL array", function(){
+  var input = '{NULL,NULL}';
+  var expected = [null,null];
+  assert.deepEqual(q.stringArrayParser(input), expected);
+});
