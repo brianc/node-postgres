@@ -117,6 +117,7 @@ Many thanks to the following:
 * [neonstalwart](https://github.com/neonstalwart)
 * [homme](https://github.com/homme)
 * [bdunavant](https://github.com/bdunavant)
+* [tokumine](https://github.com/tokumine)
 
 ## Documentation
 
