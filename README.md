@@ -118,6 +118,7 @@ Many thanks to the following:
 * [homme](https://github.com/homme)
 * [bdunavant](https://github.com/bdunavant)
 * [tokumine](https://github.com/tokumine)
+* [shtylman](https://github.com/shtylman)
 
 ## Documentation
 
