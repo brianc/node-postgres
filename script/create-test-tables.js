@@ -1,4 +1,3 @@
-var sys = require('utils');
 var args = require(__dirname + '/../test/cli');
 var pg = require(__dirname + '/../lib');
 
