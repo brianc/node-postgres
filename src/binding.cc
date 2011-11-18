@@ -1,11 +1,10 @@
 #include <libpq-fe.h>
 #include <node.h>
-#include <node_events.h>
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
 
-#define LOG(msg) printf("%s\n",msg)
+#define LOG(msg) printf("%s\n",msg);
 #define TRACE(msg) //printf("%s\n", msg);
 
 
@@ -14,14 +13,8 @@
 using namespace v8;
 using namespace node;
 
-static Persistent<String> connect_symbol;
-static Persistent<String> error_symbol;
-static Persistent<String> ready_symbol;
-static Persistent<String> row_symbol;
-static Persistent<String> notice_symbol;
 static Persistent<String> severity_symbol;
 static Persistent<String> code_symbol;
-static Persistent<String> message_symbol;
 static Persistent<String> detail_symbol;
 static Persistent<String> hint_symbol;
 static Persistent<String> position_symbol;
@@ -36,8 +29,9 @@ static Persistent<String> value_symbol;
 static Persistent<String> type_symbol;
 static Persistent<String> channel_symbol;
 static Persistent<String> payload_symbol;
+static Persistent<String> emit_symbol;
 
-class Connection : public EventEmitter {
+class Connection : public ObjectWrap {
 
 public:
 
@@ -48,18 +42,12 @@ public:
     HandleScope scope;
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
 
-    t->Inherit(EventEmitter::constructor_template);
     t->InstanceTemplate()->SetInternalFieldCount(1);
     t->SetClassName(String::NewSymbol("Connection"));
 
-    connect_symbol = NODE_PSYMBOL("connect");
-    error_symbol = NODE_PSYMBOL("_error");
-    ready_symbol = NODE_PSYMBOL("_readyForQuery");
-    notice_symbol = NODE_PSYMBOL("notice");
-    row_symbol = NODE_PSYMBOL("_row");
+    emit_symbol = NODE_PSYMBOL("emit");
     severity_symbol = NODE_PSYMBOL("severity");
     code_symbol = NODE_PSYMBOL("code");
-    message_symbol = NODE_PSYMBOL("message");
     detail_symbol = NODE_PSYMBOL("detail");
     hint_symbol = NODE_PSYMBOL("hint");
     position_symbol = NODE_PSYMBOL("position");
@@ -231,7 +219,7 @@ public:
   ev_io write_watcher_;
   PGconn *connection_;
   bool connecting_;
-  Connection () : EventEmitter ()
+  Connection () : ObjectWrap ()
   {
     connection_ = NULL;
     connecting_ = false;
@@ -350,7 +338,7 @@ protected:
   {
     HandleScope scope;
     Handle<Value> notice = String::New(message);
-    Emit(notice_symbol, 1, &notice);
+    Emit("notice", &notice);
   }
 
   //called to process io_events from libev
@@ -388,7 +376,7 @@ protected:
         }
         //might have fired from notification
         if(didHandleResult) {
-          Emit(ready_symbol, 0, NULL);
+          Emit("_readyForQuery");
         }
       }
 
@@ -398,7 +386,7 @@ protected:
         result->Set(channel_symbol, String::New(notify->relname));
         result->Set(payload_symbol, String::New(notify->extra));
         Handle<Value> res = (Handle<Value>)result;
-        Emit((Handle<String>)String::New("notification"), 1, &res);
+        Emit("notification", &res);
         PQfreemem(notify);
       }
 
@@ -466,17 +454,19 @@ protected:
 
       //not sure about what to dealloc or scope#Close here
       Handle<Value> e = (Handle<Value>)row;
-      Emit(row_symbol, 1, &e);
+      Emit("_row", &e);
     }
   }
 
   void HandleErrorResult(const PGresult* result)
   {
     HandleScope scope;
-    Local<Object> msg = Object::New();
+    //instantiate the return object as an Error with the summary Postgres message
+    Local<Object> msg = Local<Object>::Cast(Exception::Error(String::New(PQresultErrorField(result, PG_DIAG_MESSAGE_PRIMARY))));
+
+    //add the other information returned by Postgres to the error object
     AttachErrorField(result, msg, severity_symbol, PG_DIAG_SEVERITY);
     AttachErrorField(result, msg, code_symbol, PG_DIAG_SQLSTATE);
-    AttachErrorField(result, msg, message_symbol, PG_DIAG_MESSAGE_PRIMARY);
     AttachErrorField(result, msg, detail_symbol, PG_DIAG_MESSAGE_DETAIL);
     AttachErrorField(result, msg, hint_symbol, PG_DIAG_MESSAGE_HINT);
     AttachErrorField(result, msg, position_symbol, PG_DIAG_STATEMENT_POSITION);
@@ -487,7 +477,7 @@ protected:
     AttachErrorField(result, msg, line_symbol, PG_DIAG_SOURCE_LINE);
     AttachErrorField(result, msg, routine_symbol, PG_DIAG_SOURCE_FUNCTION);
     Handle<Value> m = msg;
-    Emit(error_symbol, 1, &m);
+    Emit("_error", &m);
   }
 
   void AttachErrorField(const PGresult *result, const Local<Object> msg, const Persistent<String> symbol, int fieldcode)
@@ -506,6 +496,33 @@ protected:
   }
 
 private:
+  //EventEmitter was removed from c++ in node v0.5.x
+  void Emit(const char* message) {
+    HandleScope scope;
+    Handle<Value> args[1] = { String::New(message) };
+    Emit(1, args);
+  }
+
+  void Emit(const char* message, Handle<Value>* arg) {
+    HandleScope scope;
+    Handle<Value> args[2] = { String::New(message), *arg };
+    Emit(2, args);
+  }
+
+  void Emit(int length, Handle<Value> *args) {
+    HandleScope scope;
+
+    Local<Value> emit_v = this->handle_->Get(emit_symbol);
+    assert(emit_v->IsFunction());
+    Local<Function> emit_f = emit_v.As<Function>();
+
+    TryCatch tc;
+    emit_f->Call(this->handle_, length, args);
+    if(tc.HasCaught()) {
+      FatalException(tc);
+    }
+  }
+
   void HandleConnectionIO()
   {
     PostgresPollingStatusType status = PQconnectPoll(connection_);
@@ -530,7 +547,7 @@ private:
       TRACE("Polled: PGRES_POLLING_OK");
       connecting_ = false;
       StartRead();
-      Emit(connect_symbol, 0, NULL);
+      Emit("connect");
     default:
       //printf("Unknown polling status: %d\n", status);
       break;
@@ -540,7 +557,7 @@ private:
   void EmitError(const char *message)
   {
     Local<Value> exception = Exception::Error(String::New(message));
-    Emit(error_symbol, 1, &exception);
+    Emit("_error", &exception);
   }
 
   void EmitLastError()
@@ -624,8 +641,7 @@ private:
 };
 
 
-extern "C" void
-init (Handle<Object> target)
+extern "C" void init (Handle<Object> target)
 {
   HandleScope scope;
   Connection::Init(target);

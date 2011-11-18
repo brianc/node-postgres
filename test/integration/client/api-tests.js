@@ -2,12 +2,9 @@ var helper = require(__dirname + '/../test-helper');
 var pg = require(__dirname + '/../../../lib');
 
 if(helper.args.native) {
-  pg = require(__dirname + '/../../../lib/native')
+  pg = require(__dirname + '/../../../lib').native;
 }
 
-if(helper.args.libpq) {
-  pg = require(__dirname + "/../../../lib/binding");
-}
 var connectionString = helper.connectionString(__filename);
 
 var log = function() {
@@ -34,7 +31,7 @@ test('api', function() {
     test('simple query execution',assert.calls( function() {
       log("executing simple query")
       client.query("SELECT * FROM band WHERE name = 'the beach boys'", assert.calls(function(err, result) {
-        assert.length(result.rows, 1)
+        assert.lengthIs(result.rows, 1)
         assert.equal(result.rows.pop().name, 'the beach boys')
         log("simple query executed")
       }));
@@ -45,14 +42,14 @@ test('api', function() {
       log("executing prepared statement 1")
       client.query('SELECT * FROM band WHERE name = $1', ['dead black hearts'],assert.calls( function(err, result) {
         log("Prepared statement 1 finished")
-        assert.length(result.rows, 1);
+        assert.lengthIs(result.rows, 1);
         assert.equal(result.rows.pop().name, 'dead black hearts');
       }))
 
       log("executing prepared statement two")
       client.query('SELECT * FROM band WHERE name LIKE $1 ORDER BY name', ['the %'], assert.calls(function(err, result) {
         log("prepared statement two finished")
-        assert.length(result.rows, 2);
+        assert.lengthIs(result.rows, 2);
         assert.equal(result.rows.pop().name, 'the flaming lips');
         assert.equal(result.rows.pop().name, 'the beach boys');
         sink.add();
@@ -126,6 +123,38 @@ test('can provide callback and config object', function() {
     }, assert.calls(function(err, result) {
       assert.isNull(err);
       assert.equal(result.rows[0].now.getYear(), new Date().getYear())
+    }))
+  }))
+})
+
+test('can provide callback and config and parameters', function() {
+  pg.connect(connectionString, assert.calls(function(err, client) {
+    assert.isNull(err);
+    var config = {
+      text: 'select $1::text as val'
+    };
+    client.query(config, ['hi'], assert.calls(function(err, result) {
+      assert.isNull(err);
+      assert.equal(result.rows.length, 1);
+      assert.equal(result.rows[0].val, 'hi');
+    }))
+  }))
+})
+
+test('null and undefined are both inserted as NULL', function() {
+  pg.connect(connectionString, assert.calls(function(err, client) {
+    assert.isNull(err);
+    client.query("CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)");
+    client.query("INSERT INTO my_nulls(a,b,c,d,e,f) VALUES ($1,$2,$3,$4,$5,$6)", [ null, undefined, null, undefined, null, undefined ]);
+    client.query("SELECT * FROM my_nulls", assert.calls(function(err, result) {
+        assert.isNull(err);
+        assert.equal(result.rows.length, 1);
+        assert.isNull(result.rows[0].a);
+        assert.isNull(result.rows[0].b);
+        assert.isNull(result.rows[0].c);
+        assert.isNull(result.rows[0].d);
+        assert.isNull(result.rows[0].e);
+        assert.isNull(result.rows[0].f);
     }))
   }))
 })

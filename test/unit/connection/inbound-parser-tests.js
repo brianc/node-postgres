@@ -1,5 +1,5 @@
 require(__dirname+'/test-helper');
-var Connection = require('connection');
+var Connection = require(__dirname + '/../../../lib/connection');
 var buffers = require(__dirname + '/../../test-buffers');
 var PARSE = function(buffer) {
   return new Parser(buffer).parse();
@@ -367,7 +367,7 @@ test('split buffer, single message parsing', function() {
 
   test('parses when full buffer comes in', function() {
     stream.emit('data', fullBuffer);
-    assert.length(message.fields, 5);
+    assert.lengthIs(message.fields, 5);
     assert.equal(message.fields[0], null);
     assert.equal(message.fields[1], "bang");
     assert.equal(message.fields[2], "zug zug");
@@ -382,7 +382,7 @@ test('split buffer, single message parsing', function() {
     fullBuffer.copy(secondBuffer, 0, firstBuffer.length);
     stream.emit('data', firstBuffer);
     stream.emit('data', secondBuffer);
-    assert.length(message.fields, 5);
+    assert.lengthIs(message.fields, 5);
     assert.equal(message.fields[0], null);
     assert.equal(message.fields[1], "bang");
     assert.equal(message.fields[2], "zug zug");
@@ -425,7 +425,7 @@ test('split buffer, multiple message parsing', function() {
 
 
   var verifyMessages = function() {
-    assert.length(messages, 2);
+    assert.lengthIs(messages, 2);
     assert.same(messages[0],{
       name: 'dataRow',
       fieldCount: 1

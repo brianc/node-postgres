@@ -1,5 +1,5 @@
 var helper = require(__dirname + "/../test-helper");
-var Client = require(__dirname + "/../../lib/native").Client;
+var Client = require(__dirname + "/../../lib/native");
 var conString = helper.connectionString();
 
 var setupClient = function() {

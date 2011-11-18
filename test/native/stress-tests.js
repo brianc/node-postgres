@@ -1,5 +1,5 @@
 var helper = require(__dirname + "/../test-helper");
-var Client = require(__dirname + "/../../lib/native").Client;
+var Client = require(__dirname + "/../../lib/native");
 
 test('many rows', function() {
   var client = new Client(helper.connectionString());
@@ -11,7 +11,7 @@ test('many rows', function() {
   });
   assert.emits(q, 'end', function() {
     client.end();
-    assert.length(rows, 26);
+    assert.lengthIs(rows, 26);
   })
 });
 

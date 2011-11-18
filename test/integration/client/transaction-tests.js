@@ -1,10 +1,11 @@
 var helper = require(__dirname + '/test-helper');
 
+var sink = new helper.Sink(2, function() {
+  helper.pg.end();
+});
+
 test('a single connection transaction', function() {
   var connectionString = helper.connectionString();
-  var sink = new helper.Sink(1, function() {
-    helper.pg.end();
-  });
 
   helper.pg.connect(connectionString, assert.calls(function(err, client) {
     assert.isNull(err);
@@ -43,6 +44,32 @@ test('a single connection transaction', function() {
         sink.add();
       }))
     })
-
   }))
+})
+
+test('gh#36', function() {
+  var connectionString = helper.connectionString();
+  helper.pg.connect(connectionString, function(err, client) {
+    if(err) throw err;
+    client.query("BEGIN");
+    client.query({
+      name: 'X',
+      text: "SELECT $1::INTEGER",
+      values: [0]
+    }, assert.calls(function(err, result) {
+      if(err) throw err;
+      assert.equal(result.rows.length, 1);
+    }))
+    client.query({
+      name: 'X',
+      text: "SELECT $1::INTEGER",
+      values: [0]
+    }, assert.calls(function(err, result) {
+      if(err) throw err;
+      assert.equal(result.rows.length, 1);
+    }))
+    client.query("COMMIT", function() {
+      sink.add();
+    })
+  })
 })

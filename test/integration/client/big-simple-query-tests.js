@@ -54,14 +54,14 @@ var runBigQuery = function(client) {
       console.log(err);
       throw Err;
     }
-    assert.length(result.rows, 26);
+    assert.lengthIs(result.rows, 26);
   });
   q.on('row', function(row) {
     rows.push(row);
   })
   assert.emits(q, 'end', function() {
     //query ended
-    assert.length(rows, 26);
+    assert.lengthIs(rows, 26);
   })
 }
 

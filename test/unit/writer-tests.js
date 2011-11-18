@@ -66,6 +66,13 @@ test('cString', function() {
     var result = subject.addCString().join();
     assert.equalBuffers(result, [0])
   })
+  
+  test('writes two empty cstrings', function() {
+    var subject = new Writer();
+    var result = subject.addCString("").addCString("").join();
+    assert.equalBuffers(result, [0, 0])
+  })
+
 
   test('writes non-empty cstring', function() {
     var subject = new Writer();

@@ -15,7 +15,7 @@ var testPoolSize = function(max) {
         helper.pg.connect(conString, function(err, client) {
           assert.isNull(err);
           client.query("select * from person", function(err, result) {
-            assert.length(result.rows, 26)
+            assert.lengthIs(result.rows, 26)
           })
           client.query("select count(*) as c from person", function(err, result) {
             assert.equal(result.rows[0].c, 26)

@@ -1,6 +1,6 @@
 var helper = require(__dirname+'/../test-helper');
 var EventEmitter = require('events').EventEmitter;
-var Connection = require('connection');
+var Connection = require(__dirname + '/../../lib/connection');
 MemoryStream = function() {
   EventEmitter.call(this);
   this.packets = [];
@@ -23,3 +23,5 @@ createClient = function() {
   client.connect();
   return client;
 };
+
+module.exports = helper;

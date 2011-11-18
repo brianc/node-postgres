@@ -6,7 +6,7 @@ test('md5 authentication', function() {
   client.connection.emit('authenticationMD5Password', {salt: salt});
 
   test('responds', function() {
-    assert.length(client.connection.stream.packets, 1);
+    assert.lengthIs(client.connection.stream.packets, 1);
     test('should have correct encrypted data', function() {
       var encrypted = Client.md5(client.password + client.user);
       encrypted = Client.md5(encrypted + salt.toString('binary'));

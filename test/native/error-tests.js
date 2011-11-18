@@ -1,5 +1,5 @@
 var helper = require(__dirname + "/../test-helper");
-var Client = require(__dirname + "/../../lib/native").Client;
+var Client = require(__dirname + "/../../lib/native");
 var conString = helper.connectionString();
 
 test('query with non-text as first parameter throws error', function() {

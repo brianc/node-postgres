@@ -1,5 +1,5 @@
 var helper = require(__dirname + '/test-helper');
-var pg = require("index");
+var pg = helper.pg;
 
 test('default values', function() {
   assert.same(pg.defaults,{

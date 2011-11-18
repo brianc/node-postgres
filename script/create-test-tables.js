@@ -1,4 +1,4 @@
-var sys = require('sys');
+var sys = require('utils');
 var args = require(__dirname + '/../test/cli');
 var pg = require(__dirname + '/../lib');
 
@@ -32,6 +32,8 @@ var people = [
 ]
 
 var con = new pg.Client({
+  host: args.host,
+  port: args.port,
   user: args.user,
   password: args.password,
   database: args.database

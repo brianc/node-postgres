@@ -88,7 +88,7 @@ test('typed results', function() {
     dataTypeID: 1184,
     actual: '2011-01-23 22:05:00.68-06',
     expected: function(val) {
-      assert.UTCDate(val, 2011, 01, 24, 4, 5, 00, 680);
+      assert.UTCDate(val, 2011, 0, 24, 4, 5, 00, 680);
     }
   }, {
     name: 'timestampz with huge miliseconds in UTC',
@@ -137,6 +137,22 @@ test('typed results', function() {
     actual: '1 day -00:00:03',
     expected: function(val) {
       assert.deepEqual(val, {'days':1, 'seconds':-3})
+    }
+  },{
+    name: 'bytea',
+    format: 'text',
+    dataTypeID: 17,
+    actual: 'foo\\000\\200\\\\\\377',
+    expected: function(val) {
+      assert.deepEqual(val, new Buffer([102, 111, 111, 0, 128, 92, 255]));
+    }
+  },{
+    name: 'empty bytea',
+    format: 'text',
+    dataTypeID: 17,
+    actual: '',
+    expected: function(val) {
+      assert.deepEqual(val, new Buffer(0));
     }
   },
 

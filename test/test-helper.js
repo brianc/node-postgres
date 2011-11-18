@@ -1,12 +1,11 @@
-require.paths.unshift(__dirname + '/../lib/');
 //make assert a global...
 assert = require('assert');
 
 var EventEmitter = require('events').EventEmitter;
-var sys = require('sys');
+var sys = require('util');
 var BufferList = require(__dirname+'/buffer-list')
 
-var Connection = require('connection');
+var Connection = require(__dirname + '/../lib/connection');
 var args = require(__dirname + '/cli');
 
 Client = require(__dirname + '/../lib').Client;
@@ -36,6 +35,11 @@ assert.emits = function(item, eventName, callback, message) {
   },2000);
 
   item.once(eventName, function() {
+    if (eventName === 'error') {
+      // belt and braces test to ensure all error events return an error
+      assert.ok(arguments[0] instanceof Error,
+                "Expected error events to throw instances of Error but found: " +  sys.inspect(arguments[0]));
+    }
     called = true;
     clearTimeout(id);
     assert.ok(true);
@@ -48,6 +52,9 @@ assert.emits = function(item, eventName, callback, message) {
 assert.UTCDate = function(actual, year, month, day, hours, min, sec, milisecond) {
   var actualYear = actual.getUTCFullYear();
   assert.equal(actualYear, year, "expected year " + year + " but got " + actualYear);
+
+  var actualMonth = actual.getUTCMonth();
+  assert.equal(actualMonth, month, "expected month " + month + " but got " + actualMonth);
 
   var actualDate = actual.getUTCDate();
   assert.equal(actualDate, day, "expected day " + day + " but got " + actualDate);
@@ -86,11 +93,14 @@ assert.equalBuffers = function(actual, expected) {
 };
 
 assert.empty = function(actual) {
-  assert.length(actual, 0);
+  assert.lengthIs(actual, 0);
 };
 
 assert.success = function(callback) {
   return assert.calls(function(err, arg) {
+    if(err) {
+      console.log(err);
+    }
     assert.isNull(err);
     callback(arg);
   })
@@ -100,24 +110,27 @@ assert.throws = function(offender) {
   try {
     offender();
   } catch (e) {
+    assert.ok(e instanceof Error, "Expected " + offender + " to throw instances of Error");
     return;
   }
   assert.ok(false, "Expected " + offender + " to throw exception");
 }
 
-assert.length = function(actual, expectedLength) {
+assert.lengthIs = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength);
 };
 
 var expect = function(callback, timeout) {
   var executed = false;
   var id = setTimeout(function() {
-    assert.ok(executed, "Expected execution of funtion to be fired");
+    assert.ok(executed, "Expected execution of function to be fired");
   }, timeout || 2000)
 
   return function(err, queryResult) {
     clearTimeout(id);
-    assert.ok(true);
+    if (err) {
+      assert.ok(err instanceof Error, "Expected errors to be instances of Error: " + sys.inspect(err));
+    }
     callback.apply(this, arguments)
   }
 }
@@ -211,7 +224,7 @@ var Sink = function(expected, timeout, callback) {
 module.exports = {
   args: args,
   Sink: Sink,
-  pg: require('index'),
+  pg: require(__dirname + '/../lib/'),
   connectionString: function() {
     return "pg"+(count++)+"://"+args.user+":"+args.password+"@"+args.host+":"+args.port+"/"+args.database;
   },

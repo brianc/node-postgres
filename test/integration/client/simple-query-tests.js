@@ -19,14 +19,14 @@ test("simple query interface", function() {
         columnCount++;
       };
       if ('length' in row) {
-        assert.length(row, columnCount, 'Iterating through the columns gives a different length from calling .length.');
+        assert.lengthIs(row, columnCount, 'Iterating through the columns gives a different length from calling .length.');
       }
     });
   });
 
   assert.emits(query, 'end', function() {
     test("returned right number of rows", function() {
-      assert.length(rows, 26);
+      assert.lengthIs(rows, 26);
     });
     test("row ordering", function(){
       assert.equal(rows[0], "Aaron");
