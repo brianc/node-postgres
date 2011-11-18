@@ -69,6 +69,7 @@ public:
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryWithParams", SendQueryWithParams);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendPrepare", SendPrepare);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryPrepared", SendQueryPrepared);
+    NODE_SET_PROTOTYPE_METHOD(t, "cancel", Cancel);
     NODE_SET_PROTOTYPE_METHOD(t, "end", End);
 
     target->Set(String::NewSymbol("Connection"), t->GetFunction());
@@ -96,6 +97,22 @@ public:
 
     String::Utf8Value conninfo(args[0]->ToString());
     bool success = self->Connect(*conninfo);
+    if(!success) {
+      self -> EmitLastError();
+      self -> DestroyConnection();
+    }
+
+    return Undefined();
+  }
+
+  //v8 entry point into Connection#cancel
+  static Handle<Value>
+  Cancel(const Arguments& args)
+  {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+
+    bool success = self->Cancel();
     if(!success) {
       self -> EmitLastError();
       self -> DestroyConnection();
@@ -265,6 +282,15 @@ protected:
   int SendPreparedQuery(const char *name, int nParams, const char * const *paramValues)
   {
     return PQsendQueryPrepared(connection_, name, nParams, paramValues, NULL, NULL, 0);
+  }
+
+  int Cancel()
+  {
+  	PGcancel* pgCancel = PQgetCancel(connection_);
+  	char errbuf[256];
+		int result = PQcancel(pgCancel, errbuf, 256);
+		PQfreeCancel(pgCancel);
+		return result;
   }
 
   //flushes socket
