@@ -20,6 +20,6 @@ test('simple query', function() {
 process.on('exit', function() {
   assert.equal(rows.length, 2);
   assert.equal(rows[0].length, 1);
-  assert.strictEqual(rows[0] [0], '1');
-  assert.strictEqual(rows[1] [0], '2');
+  assert.strictEqual(String(rows[0] [0]), '1');
+  assert.strictEqual(String(rows[1] [0]), '2');
 });
