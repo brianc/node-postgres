@@ -191,7 +191,7 @@ test('typed results', function() {
     name: 'binary-oid',
     format: 'binary',
     dataTypeID: 26,
-    actual: [0, 0, 0, 0, 0, 0, 0, 103],
+    actual: [0, 0, 0, 103],
     expected: 103
   },{
     name: 'binary-numeric',
