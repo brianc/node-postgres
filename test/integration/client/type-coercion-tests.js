@@ -23,7 +23,7 @@ var testForTypeCoercion = function(type){
           });
 
           assert.emits(query, 'row', function(row) {
-            assert.strictEqual(row.col, val, "expected " + type.name + " of " + val + " but got " + row[0]);
+            assert.strictEqual(row.col, val, "expected " + type.name + " of " + val + " but got " + row.col);
           }, "row should have been called for " + type.name + " of " + val);
 
           client.query('delete from test_type');
