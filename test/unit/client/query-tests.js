@@ -1,7 +1,7 @@
 var helper = require(__dirname + '/test-helper');
 var q = {};
-q.dateParser = require(__dirname + "/../../../lib/types").getStringTypeParser(1114);
-q.stringArrayParser = require(__dirname + "/../../../lib/types").getStringTypeParser(1009);
+q.dateParser = require(__dirname + "/../../../lib/types").getTypeParser(1114, 'text');
+q.stringArrayParser = require(__dirname + "/../../../lib/types").getTypeParser(1009, 'text');
 
 test("testing dateParser", function() {
   assert.equal(q.dateParser("2010-12-11 09:09:04").toUTCString(),new Date("2010-12-11 09:09:04 GMT").toUTCString());

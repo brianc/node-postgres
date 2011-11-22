@@ -30,7 +30,7 @@ test('error handling', function(){
 
     var client = createErorrClient();
 
-    var q = client.query("CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);");
+    var q = client.query({text: "CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);", binary: false});
 
     test("when query is parsing", function() {
 

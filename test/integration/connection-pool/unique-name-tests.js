@@ -6,36 +6,27 @@ helper.pg.defaults.password = helper.args.password;
 helper.pg.defaults.database = helper.args.database;
 helper.pg.defaults.port = helper.args.port;
 helper.pg.defaults.host = helper.args.host;
+helper.pg.defaults.binary = helper.args.binary;
 helper.pg.defaults.poolIdleTimeout = 100;
-var args = {
-  user: helper.args.user,
-  password: helper.args.password,
-  database: helper.args.database,
-  port: helper.args.port,
-  host: helper.args.host
+
+var moreArgs = {};
+for (c in helper.config) {
+  moreArgs[c] = helper.config[c];
+}
+moreArgs.zomg = true;
+
+var badArgs = {};
+for (c in helper.config) {
+  badArgs[c] = helper.config[c];
 }
 
-var moreArgs = {
-  database: helper.args.database,
-  password: helper.args.password,
-  port: helper.args.port,
-  user: helper.args.user,
-  host: helper.args.host,
-  zomg: true
-}
-
-var badArgs = {
-  user: helper.args.user + 'laksdjfl',
-  host: helper.args.host,
-  password: helper.args.password + 'asldkfjlas',
-  database: helper.args.database,
-  port: helper.args.port,
-  zomg: true
-}
+badArgs.user = badArgs.user + 'laksdjfl';
+badArgs.password = badArgs.password + 'asldkfjlas';
+badArgs.zomg = true;
 
 test('connecting with complete config', function() {
 
-  helper.pg.connect(args, assert.calls(function(err, client) {
+  helper.pg.connect(helper.config, assert.calls(function(err, client) {
     assert.isNull(err);
     client.iGotAccessed = true;
     client.query("SELECT NOW()")

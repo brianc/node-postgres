@@ -40,6 +40,8 @@ for(var i = 0; i < args.length; i++) {
     config.test = args[++i];
   case '--native':
     config.native = (args[++i] == "true");
+  case '--binary':
+    config.binary = (args[++i] == "true");
   default:
     break;
   }

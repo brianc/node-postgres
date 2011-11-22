@@ -6,7 +6,7 @@ if(helper.args.native) {
 }
 
 var testDrainOfClientWithPendingQueries = function() {
-  pg.connect(helper.connectionString(), assert.success(function(client) {
+  pg.connect(helper.config, assert.success(function(client) {
     test('when there are pending queries and client is resumed', function() {
       var drainCount = 0;
       client.on('drain', function() {
@@ -28,7 +28,7 @@ var testDrainOfClientWithPendingQueries = function() {
   }));
 };
 
-pg.connect(helper.connectionString(), assert.success(function(client) {
+pg.connect(helper.config, assert.success(function(client) {
   var drainCount = 0;
   client.on('drain', function() {
     drainCount++;

@@ -1,9 +1,9 @@
 var helper = require(__dirname + '/../test/test-helper');
-var connectionString = helper.connectionString();
+
 console.log();
-console.log("testing ability to connect to '%s'", connectionString);
+console.log("testing ability to connect to '%j'", helper.config);
 var pg = require(__dirname + '/../lib');
-pg.connect(connectionString, function(err, client) {
+pg.connect(helper.config, function(err, client) {
   if(err !== null) {
     console.error("Recieved connection error when attempting to contact PostgreSQL:");
     console.error(err);

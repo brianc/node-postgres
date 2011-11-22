@@ -225,9 +225,7 @@ module.exports = {
   args: args,
   Sink: Sink,
   pg: require(__dirname + '/../lib/'),
-  connectionString: function() {
-    return "pg"+(count++)+"://"+args.user+":"+args.password+"@"+args.host+":"+args.port+"/"+args.database;
-  },
+  config: args,
   sys: sys,
   Client: Client
 };

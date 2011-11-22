@@ -1,10 +1,9 @@
 var helper = require(__dirname + "/test-helper");
 var pg = helper.pg;
-var conString = helper.connectionString();
 
 test('should return insert metadata', function() {
   return false;
-  pg.connect(conString, assert.calls(function(err, client) {
+  pg.connect(helper.config, assert.calls(function(err, client) {
     assert.isNull(err);
     client.query("CREATE TEMP TABLE zugzug(name varchar(10))", assert.calls(function(err, result) {
       assert.isNull(err);
