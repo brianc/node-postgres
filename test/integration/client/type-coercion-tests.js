@@ -79,6 +79,13 @@ var types = [{
   values: ['13:12:12.321', null]
 }];
 
+// ignore some tests in binary mode
+if (helper.config.binary) {
+  types = types.filter(function(type) {
+    return !(type.name in {'real':1, 'timetz':1, 'time':1});
+  });
+}
+
 var valueCount = 0;
 types.forEach(function(type) {
   valueCount += type.values.length;
