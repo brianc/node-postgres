@@ -12,7 +12,7 @@ test('connecting with wrong parameters', function() {
 });
 
 test('connects', function() {
-  var con = new Client(helper.connectionString());
+  var con = new Client(helper.config);
   con.connect();
   assert.emits(con, 'connect', function() {
     test('disconnects', function() {

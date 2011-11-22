@@ -5,9 +5,7 @@ var sink = new helper.Sink(2, function() {
 });
 
 test('a single connection transaction', function() {
-  var connectionString = helper.connectionString();
-
-  helper.pg.connect(connectionString, assert.calls(function(err, client) {
+  helper.pg.connect(helper.config, assert.calls(function(err, client) {
     assert.isNull(err);
 
     client.query('begin');
@@ -48,8 +46,7 @@ test('a single connection transaction', function() {
 })
 
 test('gh#36', function() {
-  var connectionString = helper.connectionString();
-  helper.pg.connect(connectionString, function(err, client) {
+  helper.pg.connect(helper.config, function(err, client) {
     if(err) throw err;
     client.query("BEGIN");
     client.query({

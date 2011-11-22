@@ -1,9 +1,9 @@
 var helper = require(__dirname + '/test-helper');
 var sink;
-var connectionString = helper.connectionString();
+
 var testForTypeCoercion = function(type){
-  helper.pg.connect(connectionString, function(err, client) {
-    assert.isNull(err)
+  helper.pg.connect(helper.config, function(err, client) {
+    assert.isNull(err);
     client.query("create temp table test_type(col " + type.name + ")", assert.calls(function(err, result) {
       assert.isNull(err);
       test("Coerces " + type.name, function() {
@@ -126,7 +126,7 @@ test("timestampz round trip", function() {
   client.on('drain', client.end.bind(client));
 });
 
-helper.pg.connect(helper.connectionString(), assert.calls(function(err, client) {
+helper.pg.connect(helper.config, assert.calls(function(err, client) {
   assert.isNull(err);
   client.query('select null as res;', assert.calls(function(err, res) {
     assert.isNull(err);

@@ -1,9 +1,8 @@
 var helper = require(__dirname + "/../test-helper");
 var Client = require(__dirname + "/../../lib/native");
-var conString = helper.connectionString();
 
 test('query with non-text as first parameter throws error', function() {
-  var client = new Client(conString);
+  var client = new Client(helper.config);
   client.connect();
   assert.emits(client, 'connect', function() {
     assert.throws(function() {
@@ -14,7 +13,7 @@ test('query with non-text as first parameter throws error', function() {
 })
 
 test('parameterized query with non-text as first parameter throws error', function() {
-  var client = new Client(conString);
+  var client = new Client(helper.config);
   client.connect();
   assert.emits(client, 'connect', function() {
     assert.throws(function() {
@@ -28,7 +27,7 @@ test('parameterized query with non-text as first parameter throws error', functi
 })
 
 var connect = function(callback) {
-  var client = new Client(conString);
+  var client = new Client(helper.config);
   client.connect();
   assert.emits(client, 'connect', function() {
     callback(client);

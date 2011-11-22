@@ -1,9 +1,8 @@
 var helper = require(__dirname + "/../test-helper");
 var Client = require(__dirname + "/../../lib/native");
-var conString = helper.connectionString();
 
 test('fires callback with results', function() {
-  var client = new Client(conString);
+  var client = new Client(helper.config);
   client.connect();
   client.query('SELECT 1 as num', assert.calls(function(err, result) {
     assert.isNull(err);

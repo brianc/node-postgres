@@ -1,9 +1,8 @@
 var helper = require(__dirname + "/../test-helper");
 var Client = require(__dirname + "/../../lib/native");
-var conString = helper.connectionString();
 
 var setupClient = function() {
-  var client = new Client(conString);
+  var client = new Client(helper.config);
   client.connect();
   client.query("CREATE TEMP TABLE boom(name varchar(10), age integer)");
   client.query("INSERT INTO boom(name, age) VALUES('Aaron', 26)");
@@ -12,7 +11,7 @@ var setupClient = function() {
 }
 
 test('connects', function() {
-  var client = new Client(conString);
+  var client = new Client(helper.config);
   client.connect();
   test('good query', function() {
     var query = client.query("SELECT 1 as num, 'HELLO' as str");

@@ -28,9 +28,9 @@ test("cancellation of a query", function() {
 		rows4++;
 	});
 
-	helper.pg.cancel(helper.connectionString, client, query1);
-	helper.pg.cancel(helper.connectionString, client, query2);
-	helper.pg.cancel(helper.connectionString, client, query4);
+	helper.pg.cancel(helper.config, client, query1);
+	helper.pg.cancel(helper.config, client, query2);
+	helper.pg.cancel(helper.config, client, query4);
 
 	setTimeout(function() {
 		assert.equal(rows1, 0);

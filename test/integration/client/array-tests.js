@@ -1,9 +1,8 @@
 var helper = require(__dirname + "/test-helper");
 var pg = helper.pg;
-var conString = helper.connectionString();
 
 test('parsing array results', function() {
-  pg.connect(conString, assert.calls(function(err, client) {
+  pg.connect(helper.config, assert.calls(function(err, client) {
     assert.isNull(err);
     client.query("CREATE TEMP TABLE why(names text[], numbors integer[])");
     client.query('INSERT INTO why(names, numbors) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\')').on('error', console.log);
