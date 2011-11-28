@@ -120,6 +120,7 @@ Many thanks to the following:
 * [tokumine](https://github.com/tokumine)
 * [shtylman](https://github.com/shtylman)
 * [cricri](https://github.com/cricri)
+* [AlexanderS](https://github.com/AlexanderS)
 
 ## Documentation
 
