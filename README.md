@@ -6,9 +6,6 @@ Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bi
 
     npm install pg
     
-### notice
-node-postgres compiles native bindings when you install.  The native bindings do not _currently_ compile with node v0.5.x.  I'm working on support for v0.5.x.  In the mean time if you get a compilation failure during installation you have still successfully installed the module; however, you cannot use the native bindings -- only the pure javascript bindings.
-
 ## Examples
 
 ### Simple, using built-in client pool
