@@ -61,6 +61,12 @@ test("testing stringy array", function(){
   assert.deepEqual(q.stringArrayParser(input), expected);
 });
 
+test("testing stringy array containing escaped strings", function(){
+  var input = '{"\\"\\"\\"","\\\\\\\\\\\\"}';
+  var expected = ['"""','\\\\\\'];
+  assert.deepEqual(q.stringArrayParser(input), expected);
+});
+
 test("testing NULL array", function(){
   var input = '{NULL,NULL}';
   var expected = [null,null];
