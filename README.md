@@ -118,6 +118,7 @@ Many thanks to the following:
 * [shtylman](https://github.com/shtylman)
 * [cricri](https://github.com/cricri)
 * [AlexanderS](https://github.com/AlexanderS)
+* [ahtih](https://github.com/ahtih)
 
 ## Documentation
 
