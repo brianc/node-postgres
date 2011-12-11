@@ -14,7 +14,7 @@
   },
   "scripts" : { 
     "test" : "make test",
-    "install" : "node-waf configure build || true"
+    "install" : "node-waf configure build || (exit 0)"
   },
   "engines" : { "node": ">= 0.4.0" }
 }
