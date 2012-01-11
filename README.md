@@ -131,6 +131,7 @@ Documentation is a work in progress primarily taking place on the github WIKI
 If you have a question, post it to the FAQ section of the WIKI so everyone can read the answer
 
 ## Production Use
+* [yammer.com](http://www.yammer.com)
 * [bayt.com](http://bayt.com)
 
 _if you use node-postgres in production and would like your site listed here, fork & add it_
