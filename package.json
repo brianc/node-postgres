@@ -10,7 +10,7 @@
   "author" : "Brian Carlson <brian.m.carlson@gmail.com>",
   "main" : "./lib",
   "dependencies" : {
-    "generic-pool" : "1.0.7"
+    "generic-pool" : "1.0.9"
   },
   "scripts" : { 
     "test" : "make test",
