@@ -384,6 +384,8 @@ protected:
     if(revents & EV_READ) {
       TRACE("revents & EV_READ");
       if(PQconsumeInput(connection_) == 0) {
+        End();
+	EmitLastError();
         LOG("Something happened, consume input is 0");
         return;
       }
