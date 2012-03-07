@@ -56,12 +56,13 @@ test('parsing array results', function() {
     })
 
     test('null value', function(){
-      client.query("SELECT '{joe,null,bob}'::text[] as names", assert.success(function(result) {
+      client.query("SELECT '{joe,null,bob,\"NULL\"}'::text[] as names", assert.success(function(result) {
         var names = result.rows[0].names;
-        assert.lengthIs(names, 3);
+        assert.lengthIs(names, 4);
         assert.equal(names[0], 'joe');
         assert.equal(names[1], null);
         assert.equal(names[2], 'bob');
+        assert.equal(names[3], 'NULL');
         pg.end();
       }))
     })
