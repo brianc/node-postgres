@@ -266,31 +266,40 @@ protected:
 
   int Send(const char *queryText)
   {
-    return PQsendQuery(connection_, queryText);
+    int rv = PQsendQuery(connection_, queryText);
+    StartWrite();
+    return rv;
   }
 
   int SendQueryParams(const char *command, const int nParams, const char * const *paramValues)
   {
-    return PQsendQueryParams(connection_, command, nParams, NULL, paramValues, NULL, NULL, 0);
+    int rv = PQsendQueryParams(connection_, command, nParams, NULL, paramValues, NULL, NULL, 0);
+    StartWrite();
+    return rv;
   }
 
   int SendPrepare(const char *name, const char *command, const int nParams)
   {
-    return PQsendPrepare(connection_, name, command, nParams, NULL);
+    int rv = PQsendPrepare(connection_, name, command, nParams, NULL);
+    StartWrite();
+    return rv;
   }
 
   int SendPreparedQuery(const char *name, int nParams, const char * const *paramValues)
   {
-    return PQsendQueryPrepared(connection_, name, nParams, paramValues, NULL, NULL, 0);
+    int rv = PQsendQueryPrepared(connection_, name, nParams, paramValues, NULL, NULL, 0);
+    StartWrite();
+    return rv;
   }
 
   int Cancel()
   {
-  	PGcancel* pgCancel = PQgetCancel(connection_);
-  	char errbuf[256];
-		int result = PQcancel(pgCancel, errbuf, 256);
-		PQfreeCancel(pgCancel);
-		return result;
+    PGcancel* pgCancel = PQgetCancel(connection_);
+    char errbuf[256];
+    int result = PQcancel(pgCancel, errbuf, 256);
+    StartWrite();
+    PQfreeCancel(pgCancel);
+    return result;
   }
 
   //flushes socket
