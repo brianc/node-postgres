@@ -44,3 +44,45 @@ test("cancellation of a query", function() {
 		});
 	});
 });
+
+test("cancellation of all queries", function() {
+
+  var client = helper.client();
+
+  var qry = client.query("select name from person order by name");
+
+  client.on('drain', client.end.bind(client));
+
+	var rows1 = 0, rows2 = 0, rows3 = 0, rows4 = 0;
+
+	var query1 = client.query(qry);
+	query1.on('row', function(row) {
+		rows1++;
+	});
+	var query2 = client.query(qry);
+	query2.on('row', function(row) {
+		rows2++;
+	});
+	var query3 = client.query(qry);
+	query3.on('row', function(row) {
+		rows3++;
+	});
+	helper.pg.cancelAll(helper.config, client);
+
+	var query4 = client.query(qry);
+	query4.on('row', function(row) {
+		rows4++;
+	});
+
+	setTimeout(function() {
+		assert.equal(rows1, 0);
+		assert.equal(rows2, 0);
+		assert.equal(rows3, 0);
+	}, 2000);
+
+	assert.emits(query4, 'end', function() {
+		test("returned right number of rows", function() {
+			assert.equal(rows4, 26);
+		});
+	});
+});
