@@ -1,5 +1,5 @@
 { "name": "pg",
-  "version": "0.6.16",
+  "version": "0.6.17",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords" : ["postgres", "pg", "libpq", "postgre", "database", "rdbms"],
   "homepage": "http://github.com/brianc/node-postgres",
