@@ -120,6 +120,7 @@ Many thanks to the following:
 * [AlexanderS](https://github.com/AlexanderS)
 * [ahtih](https://github.com/ahtih)
 * [chowey](https://github.com/chowey)
+* [kennym](https://github.com/kennym)
 
 ## Documentation
 
