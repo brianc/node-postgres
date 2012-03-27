@@ -119,6 +119,7 @@ Many thanks to the following:
 * [cricri](https://github.com/cricri)
 * [AlexanderS](https://github.com/AlexanderS)
 * [ahtih](https://github.com/ahtih)
+* [chowey](https://github.com/chowey)
 
 ## Documentation
 
