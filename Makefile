@@ -1,13 +1,8 @@
 SHELL := /bin/bash
 
-user=postgres
-password=1234
-host=localhost
-port=5432
-database=postgres
-verbose=false
+connectionString=pg://postgres:5432@localhost/postgres
 
-params := -u $(user) --password $(password) -p $(port) -d $(database) -h $(host) --verbose $(verbose)
+params := $(connectionString)
 
 node-command := xargs -n 1 -I file node file $(params)
 
@@ -29,12 +24,12 @@ test-connection:
 	@node script/test-connection.js $(params)
 
 test-connection-binary:
-	@node script/test-connection.js $(params) --binary true
+	@node script/test-connection.js $(params) binary
 
 test-native: build/default/binding.node
 	@echo "***Testing native bindings***"
 	@find test/native -name "*-tests.js" | $(node-command)
-	@find test/integration -name "*-tests.js" | $(node-command) --native true
+	@find test/integration -name "*-tests.js" | $(node-command) native
 
 test-integration: test-connection
 	@echo "***Testing Pure Javascript***"
@@ -42,4 +37,4 @@ test-integration: test-connection
 
 test-binary: test-connection-binary
 	@echo "***Testing Pure Javascript (binary)***"
-	@find test/integration -name "*-tests.js" | $(node-command) --binary true
+	@find test/integration -name "*-tests.js" | $(node-command) binary

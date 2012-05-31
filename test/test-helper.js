@@ -6,7 +6,6 @@ var sys = require('util');
 var BufferList = require(__dirname+'/buffer-list')
 
 var Connection = require(__dirname + '/../lib/connection');
-var args = require(__dirname + '/cli');
 
 Client = require(__dirname + '/../lib').Client;
 
@@ -143,47 +142,21 @@ assert.isNull = function(item, message) {
 
 test = function(name, action) {
   test.testCount ++;
-  if(args.verbose) {
-    console.log(name);
-  }
   var result = action();
   if(result === false) {
-    test.ignored.push(name);
-    if(!args.verbose) {
-      process.stdout.write('?');
-    }
+    process.stdout.write('?');
   }else{
-    if(!args.verbose) {
-      process.stdout.write('.');
-    }
+    process.stdout.write('.');
   }
 };
 
 //print out the filename
 process.stdout.write(require('path').basename(process.argv[1]));
-//print a new line since we'll be printing test names
-if(args.verbose) {
-  console.log();
-}
-test.testCount = test.testCount || 0;
-test.ignored = test.ignored || [];
-test.errors = test.errors || [];
+var args = require(__dirname + '/cli');
+if(args.binary) process.stdout.write(' (binary)');
+if(args.native) process.stdout.write(' (native)');
 
-process.on('exit', function() {
-  console.log('');
-  if(test.ignored.length || test.errors.length) {
-    test.ignored.forEach(function(name) {
-      console.log("Ignored: " + name);
-    });
-    test.errors.forEach(function(error) {
-      console.log("Error: " + error.name);
-    });
-    console.log('');
-  }
-  test.errors.forEach(function(error) {
-    throw error.e;
-  });
-});
+process.on('exit', console.log)
 
 process.on('uncaughtException', function(err) {
   console.error("\n %s", err.stack || err.toString())
@@ -221,10 +194,11 @@ var Sink = function(expected, timeout, callback) {
   }
 }
 
+
 module.exports = {
-  args: args,
   Sink: Sink,
   pg: require(__dirname + '/../lib/'),
+  args: args,
   config: args,
   sys: sys,
   Client: Client
