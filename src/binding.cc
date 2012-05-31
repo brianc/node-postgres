@@ -30,6 +30,7 @@ static Persistent<String> type_symbol;
 static Persistent<String> channel_symbol;
 static Persistent<String> payload_symbol;
 static Persistent<String> emit_symbol;
+static Persistent<String> command_symbol;
 
 class Connection : public ObjectWrap {
 
@@ -62,6 +63,7 @@ public:
     type_symbol = NODE_PSYMBOL("type");
     channel_symbol = NODE_PSYMBOL("channel");
     payload_symbol = NODE_PSYMBOL("payload");
+    command_symbol = NODE_PSYMBOL("command");
 
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
@@ -437,24 +439,37 @@ protected:
     }
   }
 
-  void HandleResult(const PGresult* result)
+  void HandleResult(PGresult* result)
   {
     ExecStatusType status = PQresultStatus(result);
     switch(status) {
     case PGRES_TUPLES_OK:
-      HandleTuplesResult(result);
+      {
+        HandleTuplesResult(result);
+        EmitCommandMetaData(result);
+      }
       break;
     case PGRES_FATAL_ERROR:
       HandleErrorResult(result);
       break;
     case PGRES_COMMAND_OK:
-    case PGRES_EMPTY_QUERY:
-      //do nothing
+    case PGRES_EMPTY_QUERY: 
+      EmitCommandMetaData(result);
       break;
     default:
       printf("Unrecogized query status: %s\n", PQresStatus(status));
       break;
     }
+  }
+
+  void EmitCommandMetaData(PGresult* result)
+  {
+    HandleScope scope;
+    Local<Object> info = Object::New();
+    info->Set(command_symbol, String::New(PQcmdStatus(result)));
+    info->Set(value_symbol, String::New(PQcmdTuples(result)));
+    Handle<Value> e = (Handle<Value>)info;
+    Emit("_cmdStatus", &e);
   }
 
   //maps the postgres tuple results to v8 objects
@@ -463,6 +478,7 @@ protected:
   //javascript & c++ might introduce overhead (requires benchmarking)
   void HandleTuplesResult(const PGresult* result)
   {
+    HandleScope scope;
     int rowCount = PQntuples(result);
     for(int rowNumber = 0; rowNumber < rowCount; rowNumber++) {
       //create result object for this row
@@ -489,7 +505,6 @@ protected:
         row->Set(Integer::New(fieldNumber), field);
       }
 
-      //not sure about what to dealloc or scope#Close here
       Handle<Value> e = (Handle<Value>)row;
       Emit("_row", &e);
     }
@@ -564,30 +579,30 @@ private:
   {
     PostgresPollingStatusType status = PQconnectPoll(connection_);
     switch(status) {
-    case PGRES_POLLING_READING:
-      TRACE("Polled: PGRES_POLLING_READING");
-      StopWrite();
-      StartRead();
-      break;
-    case PGRES_POLLING_WRITING:
-      TRACE("Polled: PGRES_POLLING_WRITING");
-      StopRead();
-      StartWrite();
-      break;
-    case PGRES_POLLING_FAILED:
-      StopRead();
-      StopWrite();
-      TRACE("Polled: PGRES_POLLING_FAILED");
-      EmitLastError();
-      break;
-    case PGRES_POLLING_OK:
-      TRACE("Polled: PGRES_POLLING_OK");
-      connecting_ = false;
-      StartRead();
-      Emit("connect");
-    default:
-      //printf("Unknown polling status: %d\n", status);
-      break;
+      case PGRES_POLLING_READING:
+        TRACE("Polled: PGRES_POLLING_READING");
+        StopWrite();
+        StartRead();
+        break;
+      case PGRES_POLLING_WRITING:
+        TRACE("Polled: PGRES_POLLING_WRITING");
+        StopRead();
+        StartWrite();
+        break;
+      case PGRES_POLLING_FAILED:
+        StopRead();
+        StopWrite();
+        TRACE("Polled: PGRES_POLLING_FAILED");
+        EmitLastError();
+        break;
+      case PGRES_POLLING_OK:
+        TRACE("Polled: PGRES_POLLING_OK");
+        connecting_ = false;
+        StartRead();
+        Emit("connect");
+      default:
+        //printf("Unknown polling status: %d\n", status);
+        break;
     }
   }
 
