@@ -143,4 +143,17 @@ test('libpq connection string building', function() {
     }))
   })
 
+  test('password contains  < and/or >  characters', function () {
+    var sourceConfig = {
+      user:'brian',
+      password: 'hello<ther>e',
+      port: 5432,
+      host: 'localhost',
+      database: 'postgres'
+    }
+    var connectionString = 'pg://' + sourceConfig.user + ':' + sourceConfig.password + '@' + sourceConfig.host + ':' + sourceConfig.port + '/' + sourceConfig.database;
+    var config = utils.parseConnectionString(connectionString);
+    assert.same(config, sourceConfig);
+  });
+
 })
