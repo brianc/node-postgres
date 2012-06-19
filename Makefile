@@ -15,7 +15,7 @@ bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
 build/default/binding.node:
-	@node-waf configure build
+	@node-gyp rebuild
 
 test-unit:
 	@find test/unit -name "*-tests.js" | $(node-command)
