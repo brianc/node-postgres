@@ -68,11 +68,11 @@ test('parsing array results', function() {
     })
 
     test('element containing quote char', function(){
-      client.query("SELECT '{\"joe''\",jim'',\"bob\\\\\"\"}'::text[] as names", assert.success(function(result) {
+      client.query("SELECT ARRAY['joe''', 'jim', 'bob\"'] AS names", assert.success(function(result) {
         var names = result.rows[0].names;
         assert.lengthIs(names, 3);
         assert.equal(names[0], 'joe\'');
-        assert.equal(names[1], 'jim\'');
+        assert.equal(names[1], 'jim');
         assert.equal(names[2], 'bob"');
         pg.end();
       }))
