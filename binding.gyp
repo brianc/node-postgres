@@ -5,8 +5,8 @@
       'sources': [
         'src/binding.cc'
       ],
-      'include_dirs': ['/usr/include/postgresql'],
-      'libraries' : ['-lpq']
+      'include_dirs': ['<!@(pg_config --includedir)'],
+      'libraries' : ['-lpq -L<!@(pg_config --libdir)']
     }
   ]
 }
