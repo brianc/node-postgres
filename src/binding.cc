@@ -80,7 +80,7 @@ public:
 
   //static function called by libev as callback entrypoint
   static void
-  io_event(EV_P_ ev_io *w, int revents)
+  io_event(uv_poll_t* w, int status, int revents)
   {
     TRACE("Received IO event");
     Connection *connection = static_cast<Connection*>(w->data);
@@ -193,8 +193,6 @@ public:
       THROW("Values must be an array");
     }
 
-    Handle<Value> params = args[1];
-
     Local<Array> jsParams = Local<Array>::Cast(args[1]);
     int len = jsParams->Length();
 
@@ -234,8 +232,9 @@ public:
     return Undefined();
   }
 
-  ev_io read_watcher_;
-  ev_io write_watcher_;
+  uv_poll_t read_watcher_;
+  uv_poll_t  write_watcher_;
+
   PGconn *connection_;
   bool connecting_;
   Connection () : ObjectWrap ()
@@ -244,9 +243,9 @@ public:
     connecting_ = false;
 
     TRACE("Initializing ev watchers");
-    ev_init(&read_watcher_, io_event);
+    //ev_init(&read_watcher_, io_event);
     read_watcher_.data = this;
-    ev_init(&write_watcher_, io_event);
+    //ev_init(&write_watcher_, io_event);
     write_watcher_.data = this;
   }
 
@@ -309,7 +308,7 @@ protected:
   {
     if(PQflush(connection_) == 1) {
       TRACE("Flushing");
-      ev_io_start(EV_DEFAULT_ &write_watcher_);
+      //ev_io_start(EV_DEFAULT_ &write_watcher_);
     }
   }
 
@@ -354,9 +353,13 @@ protected:
 
     PQsetNoticeProcessor(connection_, NoticeReceiver, this);
 
+    uv_poll_init(uv_default_loop(), &read_watcher_, fd);
+    uv_poll_init(uv_default_loop(), &write_watcher_, fd);
+
     TRACE("Setting watchers to socket");
-    ev_io_set(&read_watcher_, fd, EV_READ);
-    ev_io_set(&write_watcher_, fd, EV_WRITE);
+    //uv_poll_start(uv_poll_t* handle, int events, uv_poll_cb cb)
+    //ev_io_set(&read_watcher_, fd, EV_READ);
+    //ev_io_set(&write_watcher_, fd, EV_WRITE);
 
     connecting_ = true;
     StartWrite();
@@ -453,7 +456,7 @@ protected:
       HandleErrorResult(result);
       break;
     case PGRES_COMMAND_OK:
-    case PGRES_EMPTY_QUERY: 
+    case PGRES_EMPTY_QUERY:
       EmitCommandMetaData(result);
       break;
     default:
@@ -620,25 +623,29 @@ private:
   void StopWrite()
   {
     TRACE("Stoping write watcher");
-    ev_io_stop(EV_DEFAULT_ &write_watcher_);
+    //ev_io_stop(EV_DEFAULT_ &write_watcher_);
+    uv_poll_stop(&write_watcher_);
   }
 
   void StartWrite()
   {
     TRACE("Starting write watcher");
-    ev_io_start(EV_DEFAULT_ &write_watcher_);
+    uv_poll_start(&write_watcher_, UV_WRITABLE, io_event);
+    //ev_io_start(EV_DEFAULT_ &write_watcher_);
   }
 
   void StopRead()
   {
     TRACE("Stoping read watcher");
-    ev_io_stop(EV_DEFAULT_ &read_watcher_);
+    //ev_io_stop(EV_DEFAULT_ &read_watcher_);
+    uv_poll_stop(&read_watcher_);
   }
 
   void StartRead()
   {
     TRACE("Starting read watcher");
-    ev_io_start(EV_DEFAULT_ &read_watcher_);
+    //ev_io_start(EV_DEFAULT_ &read_watcher_);
+    uv_poll_start(&read_watcher_, UV_READABLE, io_event);
   }
   //Converts a v8 array to an array of cstrings
   //the result char** array must be free() when it is no longer needed
