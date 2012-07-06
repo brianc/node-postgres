@@ -234,18 +234,17 @@ public:
 
   uv_poll_t read_watcher_;
   uv_poll_t  write_watcher_;
-
   PGconn *connection_;
   bool connecting_;
+  bool ioInitialized_;
   Connection () : ObjectWrap ()
   {
     connection_ = NULL;
     connecting_ = false;
+    ioInitialized_ = false;
 
     TRACE("Initializing ev watchers");
-    //ev_init(&read_watcher_, io_event);
     read_watcher_.data = this;
-    //ev_init(&write_watcher_, io_event);
     write_watcher_.data = this;
   }
 
@@ -308,7 +307,7 @@ protected:
   {
     if(PQflush(connection_) == 1) {
       TRACE("Flushing");
-      //ev_io_start(EV_DEFAULT_ &write_watcher_);
+      uv_poll_start(&write_watcher_, UV_WRITABLE, io_event);
     }
   }
 
@@ -331,15 +330,14 @@ protected:
       LOG("Connection couldn't be created");
     }
 
-    if (PQsetnonblocking(connection_, 1) == -1) {
-      LOG("Unable to set connection to non-blocking");
-      return false;
-    }
-
     ConnStatusType status = PQstatus(connection_);
 
     if(CONNECTION_BAD == status) {
-      LOG("Bad connection status");
+      return false;
+    }
+
+    if (PQsetnonblocking(connection_, 1) == -1) {
+      LOG("Unable to set connection to non-blocking");
       return false;
     }
 
@@ -353,13 +351,11 @@ protected:
 
     PQsetNoticeProcessor(connection_, NoticeReceiver, this);
 
+    TRACE("Setting watchers to socket");
     uv_poll_init(uv_default_loop(), &read_watcher_, fd);
     uv_poll_init(uv_default_loop(), &write_watcher_, fd);
 
-    TRACE("Setting watchers to socket");
-    //uv_poll_start(uv_poll_t* handle, int events, uv_poll_cb cb)
-    //ev_io_set(&read_watcher_, fd, EV_READ);
-    //ev_io_set(&write_watcher_, fd, EV_WRITE);
+    ioInitialized_ = true;
 
     connecting_ = true;
     StartWrite();
@@ -399,7 +395,7 @@ protected:
       TRACE("revents & EV_READ");
       if(PQconsumeInput(connection_) == 0) {
         End();
-	EmitLastError();
+        EmitLastError();
         LOG("Something happened, consume input is 0");
         return;
       }
@@ -623,28 +619,28 @@ private:
   void StopWrite()
   {
     TRACE("Stoping write watcher");
-    //ev_io_stop(EV_DEFAULT_ &write_watcher_);
-    uv_poll_stop(&write_watcher_);
+    if(ioInitialized_) {
+      uv_poll_stop(&write_watcher_);
+    }
   }
 
   void StartWrite()
   {
     TRACE("Starting write watcher");
     uv_poll_start(&write_watcher_, UV_WRITABLE, io_event);
-    //ev_io_start(EV_DEFAULT_ &write_watcher_);
   }
 
   void StopRead()
   {
     TRACE("Stoping read watcher");
-    //ev_io_stop(EV_DEFAULT_ &read_watcher_);
-    uv_poll_stop(&read_watcher_);
+    if(ioInitialized_) {
+      uv_poll_stop(&read_watcher_);
+    }
   }
 
   void StartRead()
   {
     TRACE("Starting read watcher");
-    //ev_io_start(EV_DEFAULT_ &read_watcher_);
     uv_poll_start(&read_watcher_, UV_READABLE, io_event);
   }
   //Converts a v8 array to an array of cstrings
