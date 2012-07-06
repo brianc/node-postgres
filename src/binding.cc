@@ -306,7 +306,7 @@ protected:
   {
     if(PQflush(connection_) == 1) {
       TRACE("Flushing");
-      //ev_io_start(EV_DEFAULT_ &write_watcher_);
+      uv_poll_start(&write_watcher_, UV_WRITABLE, io_event);
     }
   }
 
