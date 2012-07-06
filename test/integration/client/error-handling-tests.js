@@ -80,7 +80,6 @@ test('error handling', function(){
   });
 
   test('non-query error', function() {
-    return false;
 
     var client = new Client({
       user:'asldkfjsadlfkj'
@@ -90,7 +89,6 @@ test('error handling', function(){
   });
 
   test('non-query error with callback', function() {
-    return false;
     var client = new Client({
       user:'asldkfjsadlfkj'
     });
@@ -117,7 +115,6 @@ test('non-error calls supplied callback', function() {
 });
 
 test('when connecting to invalid host', function() {
-  return false;
   var client = new Client({
     user: 'brian',
     password: '1234',
@@ -128,7 +125,6 @@ test('when connecting to invalid host', function() {
 });
 
 test('when connecting to invalid host with callback', function() {
-  return false;
   var client = new Client({
     user: 'brian',
     password: '1234',
