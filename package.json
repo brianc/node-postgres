@@ -16,5 +16,5 @@
     "test" : "make test",
     "install" : "node-gyp rebuild || (exit 0)"
   },
-  "engines" : { "node": ">= 0.4.0" }
+  "engines" : { "node": ">= 0.8.0" }
 }
