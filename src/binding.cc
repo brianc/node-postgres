@@ -329,15 +329,15 @@ protected:
       LOG("Connection couldn't be created");
     }
 
-    if (PQsetnonblocking(connection_, 1) == -1) {
-      LOG("Unable to set connection to non-blocking");
-      return false;
-    }
-
     ConnStatusType status = PQstatus(connection_);
 
     if(CONNECTION_BAD == status) {
       LOG("Bad connection status");
+      return false;
+    }
+
+    if (PQsetnonblocking(connection_, 1) == -1) {
+      LOG("Unable to set connection to non-blocking");
       return false;
     }
 
