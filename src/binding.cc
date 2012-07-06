@@ -234,13 +234,14 @@ public:
 
   uv_poll_t read_watcher_;
   uv_poll_t  write_watcher_;
-
   PGconn *connection_;
   bool connecting_;
+  bool ioInitialized_;
   Connection () : ObjectWrap ()
   {
     connection_ = NULL;
     connecting_ = false;
+    ioInitialized_ = false;
 
     TRACE("Initializing ev watchers");
     read_watcher_.data = this;
@@ -353,6 +354,8 @@ protected:
     TRACE("Setting watchers to socket");
     uv_poll_init(uv_default_loop(), &read_watcher_, fd);
     uv_poll_init(uv_default_loop(), &write_watcher_, fd);
+
+    ioInitialized_ = true;
 
     connecting_ = true;
     StartWrite();
@@ -616,7 +619,9 @@ private:
   void StopWrite()
   {
     TRACE("Stoping write watcher");
-    uv_poll_stop(&write_watcher_);
+    if(ioInitialized_) {
+      uv_poll_stop(&write_watcher_);
+    }
   }
 
   void StartWrite()
@@ -628,7 +633,9 @@ private:
   void StopRead()
   {
     TRACE("Stoping read watcher");
-    uv_poll_stop(&read_watcher_);
+    if(ioInitialized_) {
+      uv_poll_stop(&read_watcher_);
+    }
   }
 
   void StartRead()
