@@ -332,7 +332,6 @@ protected:
     ConnStatusType status = PQstatus(connection_);
 
     if(CONNECTION_BAD == status) {
-      LOG("Bad connection status");
       return false;
     }
 
