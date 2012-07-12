@@ -156,7 +156,9 @@ var args = require(__dirname + '/cli');
 if(args.binary) process.stdout.write(' (binary)');
 if(args.native) process.stdout.write(' (native)');
 
-process.on('exit', console.log)
+process.on('exit', function() {
+  console.log('')
+})
 
 process.on('uncaughtException', function(err) {
   console.error("\n %s", err.stack || err.toString())

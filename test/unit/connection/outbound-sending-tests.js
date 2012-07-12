@@ -94,7 +94,7 @@ test('bind messages', function() {
     con.bind({
       portal: 'bang',
       statement: 'woo',
-      values: [1, 'hi', null, 'zing']
+      values: ['1', 'hi', null, 'zing']
     });
     var expectedBuffer = new BufferList()
       .addCString('bang')  //portal name
