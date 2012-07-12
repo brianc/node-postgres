@@ -1,0 +1,6 @@
+language: node_js
+node_js:
+  - 0.8
+before_script:
+  - psql -c 'create database node-postgres;' -U postgres
+  - node script/create-test-tables.js pg://postgres@127.0.0.1:5432/node-postgres
