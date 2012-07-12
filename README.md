@@ -1,5 +1,7 @@
 #node-postgres
 
+[![Build Status](https://secure.travis-ci.org/brianc/node-postgres.png)](http://travis-ci.org/brianc/node-postgres)
+
 Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.  Active development,  well tested, and production use.
 
 ## Installation
