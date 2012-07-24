@@ -115,6 +115,14 @@ test('typed results', function() {
       assert.UTCDate(val, 2010, 9, 31, 0, 0, 0, 0);
     }
   },{
+    name: 'date',
+    format: 'text',
+    dataTypeID: 1082,
+    actual: '2010-10-31',
+    expected: function(val) {
+      assert.UTCDate(val, 2010, 9, 31, 0, 0, 0, 0);
+    }
+  },{
     name: 'interval time',
     format: 'text',
     dataTypeID: 1186,
