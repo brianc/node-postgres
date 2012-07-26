@@ -138,8 +138,8 @@ public:
     int result = self->Send(queryText);
     free(queryText);
     if(result == 0) {
-      lastErrorMessage = self->GetLastError();                                                                                                                                                                       
-      THROW(lastErrorMessage);   
+      lastErrorMessage = self->GetLastError();
+      THROW(lastErrorMessage);
     }
     //TODO should we flush before throw?
     self->Flush();
@@ -617,7 +617,7 @@ private:
   {
     EmitError(PQerrorMessage(connection_));
   }
- 
+
   const char *GetLastError()
   {
     return PQerrorMessage(connection_);
