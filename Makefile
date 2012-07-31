@@ -1,12 +1,16 @@
 SHELL := /bin/bash
 
-connectionString=pg://postgres:5432@localhost/postgres
+connectionString=pg://
 
 params := $(connectionString)
 
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native build/default/binding.node
+
+help:
+	echo "make test-all connectionString=pg://<your connection string>"
+
 test: test-unit 
 
 test-all: test-unit test-integration test-native test-binary
