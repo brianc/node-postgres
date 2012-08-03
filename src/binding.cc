@@ -301,7 +301,7 @@ protected:
     return rv;
   }
 
-  int Cancel()
+  bool Cancel()
   {
     PGcancel* pgCancel = PQgetCancel(connection_);
     char errbuf[256];
