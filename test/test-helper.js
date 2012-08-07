@@ -31,7 +31,7 @@ assert.emits = function(item, eventName, callback, message) {
     test("Should have called " + eventName, function() {
       assert.ok(called, message || "Expected '" + eventName + "' to be called.")
     });
-  },2000);
+  },5000);
 
   item.once(eventName, function() {
     if (eventName === 'error') {
@@ -123,7 +123,7 @@ var expect = function(callback, timeout) {
   var executed = false;
   var id = setTimeout(function() {
     assert.ok(executed, "Expected execution of function to be fired");
-  }, timeout || 2000)
+  }, timeout || 5000)
 
   return function(err, queryResult) {
     clearTimeout(id);
@@ -169,7 +169,7 @@ process.on('uncaughtException', function(err) {
 var count = 0;
 
 var Sink = function(expected, timeout, callback) {
-  var defaultTimeout = 1000;
+  var defaultTimeout = 5000;
   if(typeof timeout == 'function') {
     callback = timeout;
     timeout = defaultTimeout;
