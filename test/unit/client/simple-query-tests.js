@@ -82,7 +82,7 @@ test('executing query', function() {
           name: 'boom'
         }]
       });
-      assert.ok(handled, "should have handlded rowDescritpion");
+      assert.ok(handled, "should have handlded rowDescription");
     });
 
     test('handles dataRow messages', function() {
@@ -116,7 +116,7 @@ test('executing query', function() {
       });
       con.emit("readyForQuery");
       //this would never actually happen
-      ['dataRow','rowDescritpion', 'commandComplete'].forEach(function(msg) {
+      ['dataRow','rowDescription', 'commandComplete'].forEach(function(msg) {
         assert.equal(con.emit(msg), false, "Should no longer be picking up '"+ msg +"' messages");
       });
     });
