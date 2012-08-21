@@ -14,7 +14,7 @@
   },
   "scripts" : { 
     "test" : "make test-all connectionString=pg://postgres@localhost:5432/postgres",
-    "prepublish": "rm -r build || (exit 0)"
+    "prepublish": "rm -r build || (exit 0)",
     "install" : "node-gyp rebuild || (exit 0)"
   },
   "engines" : { "node": ">= 0.8.0" }
