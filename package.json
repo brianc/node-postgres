@@ -1,5 +1,5 @@
 { "name": "pg",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords" : ["postgres", "pg", "libpq", "postgre", "database", "rdbms"],
   "homepage": "http://github.com/brianc/node-postgres",
@@ -14,6 +14,7 @@
   },
   "scripts" : { 
     "test" : "make test-all connectionString=pg://postgres@localhost:5432/postgres",
+    "prepublish": "rm -r build || (exit 0)"
     "install" : "node-gyp rebuild || (exit 0)"
   },
   "engines" : { "node": ">= 0.8.0" }
