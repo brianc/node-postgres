@@ -9,15 +9,16 @@ test("simple query interface", function() {
   client.on('drain', client.end.bind(client));
 
   var rows = [];
-  query.on('row', function(row) {
-    rows.push(row['name'])
+  query.on('row', function(row, result) {
+    assert.ok(result);
+    rows.push(row['name']);
   });
   query.once('row', function(row) {
     test('Can iterate through columns', function () {
       var columnCount = 0;
       for (column in row) {
         columnCount++;
-      };
+      }
       if ('length' in row) {
         assert.lengthIs(row, columnCount, 'Iterating through the columns gives a different length from calling .length.');
       }
