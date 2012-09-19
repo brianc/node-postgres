@@ -5,8 +5,27 @@
       'sources': [
         'src/binding.cc'
       ],
-      'include_dirs': ['<!@(pg_config --includedir)'],
-      'libraries' : ['-lpq -L<!@(pg_config --libdir)']
+      'conditions' : [
+        ['OS=="mac"', {
+          'include_dirs': ['<!@(pg_config --includedir)'],
+          'libraries' : ['-lpq -L<!@(pg_config --libdir)']
+        }],
+        ['OS=="linux"', {
+          'include_dirs': ['<!@(pg_config --includedir)'],
+          'libraries' : ['-lpq -L<!@(pg_config --libdir)']
+        }],
+        ['OS=="win"', {
+          'include_dirs': ['<!@(pg_config --includedir)'],
+          'libraries' : ['libpq.dll'],
+          'msvs_settings': {
+            'VCLinkerTool' : {
+              'AdditionalLibraryDirectories' : [
+                '<!@(pg_config --libdir)\\'
+              ]
+            },
+          }
+        }]
+      ]
     }
   ]
 }
