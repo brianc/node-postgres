@@ -16,7 +16,7 @@
         }],
         ['OS=="win"', {
           'include_dirs': ['<!@(pg_config --includedir)'],
-          'libraries' : ['libpq.dll'],
+          'libraries' : ['libpq.lib'],
           'msvs_settings': {
             'VCLinkerTool' : {
               'AdditionalLibraryDirectories' : [
