@@ -1,5 +1,6 @@
 #include <libpq-fe.h>
 #include <node.h>
+#include <node_buffer.h>
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -65,7 +66,6 @@ public:
     payload_symbol = NODE_PSYMBOL("payload");
     command_symbol = NODE_PSYMBOL("command");
 
-
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryWithParams", SendQueryWithParams);
@@ -73,7 +73,8 @@ public:
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryPrepared", SendQueryPrepared);
     NODE_SET_PROTOTYPE_METHOD(t, "cancel", Cancel);
     NODE_SET_PROTOTYPE_METHOD(t, "end", End);
-
+    NODE_SET_PROTOTYPE_METHOD(t, "_sendCopyFromChunk", SendCopyFromChunk);
+    NODE_SET_PROTOTYPE_METHOD(t, "_endCopyFrom", EndCopyFrom);
     target->Set(String::NewSymbol("Connection"), t->GetFunction());
     TRACE("created class");
   }
@@ -246,12 +247,13 @@ public:
   PGconn *connection_;
   bool connecting_;
   bool ioInitialized_;
+  bool copyOutMode_;
   Connection () : ObjectWrap ()
   {
     connection_ = NULL;
     connecting_ = false;
     ioInitialized_ = false;
-
+    copyOutMode_ = false;
     TRACE("Initializing ev watchers");
     read_watcher_.data = this;
     write_watcher_.data = this;
@@ -259,6 +261,26 @@ public:
 
   ~Connection ()
   {
+  }
+
+  static Handle<Value>
+  SendCopyFromChunk(const Arguments& args) {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+    //TODO handle errors in some way
+    if (args.Length() < 1 && !Buffer::HasInstance(args[0])) {
+      THROW("SendCopyFromChunk requires 1 Buffer argument");  
+    }
+    self->SendCopyFromChunk(args[0]->ToObject());
+    return Undefined();
+  }
+  static Handle<Value>
+  EndCopyFrom(const Arguments& args) {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+    //TODO handle errors in some way
+    self->EndCopyFrom();
+    return Undefined();
   }
 
 protected:
@@ -408,14 +430,27 @@ protected:
       //declare handlescope as this method is entered via a libuv callback
       //and not part of the public v8 interface
       HandleScope scope;
-
+      if (this->copyOutMode_) {
+        this->HandleCopyOut();
+      }
       if (PQisBusy(connection_) == 0) {
         PGresult *result;
         bool didHandleResult = false;
         while ((result = PQgetResult(connection_))) {
-          HandleResult(result);
-          didHandleResult = true;
-          PQclear(result);
+          if (PGRES_COPY_IN == PQresultStatus(result)) {
+            didHandleResult = false;
+            Emit("_copyInResponse");
+            PQclear(result);
+            break;
+          } else if (PGRES_COPY_OUT == PQresultStatus(result)) {
+            PQclear(result);
+            this->copyOutMode_ = true;
+            didHandleResult = this->HandleCopyOut();
+          } else {
+            HandleResult(result);
+            didHandleResult = true;
+            PQclear(result);
+          }
         }
         //might have fired from notification
         if(didHandleResult) {
@@ -442,7 +477,37 @@ protected:
       }
     }
   }
-
+  bool HandleCopyOut () {
+    char * buffer = NULL;
+    int copied = PQgetCopyData(connection_, &buffer, 1);
+    if (copied > 0) {
+      Buffer * chunk = Buffer::New(buffer, copied);
+      Handle<Value> node_chunk = chunk->handle_; 
+      Emit("_copyData", &node_chunk);
+      PQfreemem(buffer);
+      //result was not handled copmpletely
+      return false;
+    } else if (copied == 0) {
+      //wait for next read ready
+      //result was not handled copmpletely
+      return false;
+    } else if (copied == -1) {
+      PGresult *result;
+      //result is handled completely
+      this->copyOutMode_ = false;
+      if (PQisBusy(connection_) == 0 && (result = PQgetResult(connection_))) {
+        HandleResult(result);
+        PQclear(result);
+        return true;
+      } else {
+        return false;
+      }
+    } else if (copied == -2) {
+      //TODO error handling
+      //result is handled with error
+      return true;
+    }
+  }
   void HandleResult(PGresult* result)
   {
     ExecStatusType status = PQresultStatus(result);
@@ -703,6 +768,13 @@ private:
     strcpy(cString, *utf8String);
     return cString;
   }
+  void SendCopyFromChunk(Handle<Object> chunk) {
+    PQputCopyData(connection_, Buffer::Data(chunk), Buffer::Length(chunk));
+  }
+  void EndCopyFrom() {
+    PQputCopyEnd(connection_, NULL);
+  }
+
 };
 
 
