@@ -505,6 +505,7 @@ protected:
     } else if (copied == -2) {
       //TODO error handling
       //result is handled with error
+      HandleErrorResult(NULL);
       return true;
     }
   }
