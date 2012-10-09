@@ -142,6 +142,7 @@ If you have a question, post it to the FAQ section of the WIKI so everyone can r
 * [yammer.com](http://www.yammer.com)
 * [bayt.com](http://bayt.com)
 * [bitfloor.com](https://bitfloor.com)
+* [Vendly](http://www.vend.ly)
 
 _if you use node-postgres in production and would like your site listed here, fork & add it_
 
