@@ -158,3 +158,8 @@ test('libpq connection string building', function() {
   });
 
 })
+
+test('types are exported', function() {
+  var pg = require(__dirname + '/../../lib/index');
+  assert.ok(pg.types);
+});
