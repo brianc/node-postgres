@@ -24,6 +24,7 @@ pg.connect(conString, function(err, client) {
   client.query("SELECT NOW() as when", function(err, result) {
     console.log("Row count: %d",result.rows.length);  // 1
     console.log("Current year: %d", result.rows[0].when.getFullYear());
+    pg.end(); //terminate the client pool, disconnecting all clients
   });
 });
 ```
