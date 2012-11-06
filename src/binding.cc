@@ -439,7 +439,7 @@ protected:
         while ((result = PQgetResult(connection_))) {
           if (PGRES_COPY_IN == PQresultStatus(result)) {
             didHandleResult = false;
-            Emit("_copyInResponse");
+            Emit("copyInResponse");
             PQclear(result);
             break;
           } else if (PGRES_COPY_OUT == PQresultStatus(result)) {
@@ -483,7 +483,7 @@ protected:
     if (copied > 0) {
       Buffer * chunk = Buffer::New(buffer, copied);
       Handle<Value> node_chunk = chunk->handle_; 
-      Emit("_copyData", &node_chunk);
+      Emit("copyData", &node_chunk);
       PQfreemem(buffer);
       //result was not handled copmpletely
       return false;
