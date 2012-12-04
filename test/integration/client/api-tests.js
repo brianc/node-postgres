@@ -16,6 +16,11 @@ var sink = new helper.Sink(5, 10000, function() {
 
 test('api', function() {
   log("connecting to %j", helper.config)
+  //test weird callback behavior with node-pool
+  pg.connect(helper.config, function(err) {
+    assert.isNull(err);
+    arguments[1].emit('drain');
+  });
   pg.connect(helper.config, assert.calls(function(err, client) {
     assert.equal(err, null, "Failed to connect: " + helper.sys.inspect(err));
 
