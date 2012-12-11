@@ -461,7 +461,7 @@ protected:
       EmitCommandMetaData(result);
       break;
     default:
-      printf("Unrecogized query status: %s\n", PQresStatus(status));
+      printf("YOU SHOULD NEVER SEE THIS! PLEASE OPEN AN ISSUE ON GITHUB! Unrecogized query status: %s\n", PQresStatus(status));
       break;
     }
   }
