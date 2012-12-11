@@ -142,7 +142,8 @@ assert.isNull = function(item, message) {
 
 test = function(name, action) {
   test.testCount ++;
-  var result = action();
+  test[name] = action;
+  var result = test[name]();
   if(result === false) {
     process.stdout.write('?');
   }else{
