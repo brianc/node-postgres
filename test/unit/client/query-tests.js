@@ -4,7 +4,7 @@ q.dateParser = require(__dirname + "/../../../lib/types").getTypeParser(1114, 't
 q.stringArrayParser = require(__dirname + "/../../../lib/types").getTypeParser(1009, 'text');
 
 test("testing dateParser", function() {
-  assert.equal(q.dateParser("2010-12-11 09:09:04").toUTCString(),new Date("2010-12-11 09:09:04 GMT").toUTCString());
+  assert.equal(q.dateParser("2010-12-11 09:09:04").toString(),new Date("2010-12-11 09:09:04").toString());
 });
 
 var testForMs = function(part, expected) {
@@ -19,19 +19,19 @@ testForMs('.1', 100);
 testForMs('.01', 10);
 testForMs('.74', 740);
 
-test("testing 2dateParser", function() {
+test("testing 2dateParser on dates without timezones", function() {
   var actual = "2010-12-11 09:09:04.1";
-  var expected = "\"2010-12-11T09:09:04.100Z\"";
+  var expected = JSON.stringify(new Date(2010,11,11,9,9,4,100))
   assert.equal(JSON.stringify(q.dateParser(actual)),expected);
 });
 
-test("testing 2dateParser", function() {
+test("testing 2dateParser on dates with timezones", function() {
   var actual = "2011-01-23 22:15:51.28-06";
   var expected = "\"2011-01-24T04:15:51.280Z\"";
   assert.equal(JSON.stringify(q.dateParser(actual)),expected);
 });
 
-test("testing 2dateParser", function() {
+test("testing 2dateParser on dates with huge millisecond value", function() {
   var actual = "2011-01-23 22:15:51.280843-06";
   var expected = "\"2011-01-24T04:15:51.280Z\"";
   assert.equal(JSON.stringify(q.dateParser(actual)),expected);

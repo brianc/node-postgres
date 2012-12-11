@@ -112,7 +112,8 @@ test('typed results', function() {
     dataTypeID: 1114,
     actual:  '2010-10-31 00:00:00',
     expected: function(val) {
-      assert.UTCDate(val, 2010, 9, 31, 0, 0, 0, 0);
+      assert.equal(val.toUTCString(), new Date(2010, 9, 31, 0, 0, 0, 0, 0).toUTCString());
+      assert.equal(val.toString(), new Date(2010, 9, 31, 0, 0, 0, 0, 0, 0).toString());
     }
   },{
     name: 'date',
