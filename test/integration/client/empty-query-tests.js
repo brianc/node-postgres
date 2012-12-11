@@ -5,11 +5,11 @@ test("empty query message handling", function() {
   assert.emits(client, 'drain', function() {
     client.end();
   });
-  client.query({text: "", binary: false});
+  client.query({text: ""});
 });
 
 test('callback supported', assert.calls(function() {
-  client.query({text: "", binary: false}, function(err, result) {
+  client.query("", function(err, result) {
     assert.isNull(err);
     assert.empty(result.rows);
   })
