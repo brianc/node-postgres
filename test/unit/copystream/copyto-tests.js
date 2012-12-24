@@ -13,7 +13,7 @@ DataCounter.prototype = {
     this.recievedBytes += chunk.length;    
   },
   assert: function () {
-    assert.equal(this.sendBytes, this.recievedBytes); 
+    assert.equal(this.sendBytes, this.recievedBytes, "data bytes send and recieved has to match"); 
   }
 };
 var buf1 = new Buffer("asdfasd"),
@@ -36,7 +36,7 @@ test('CopyToStream pause/resume/close', function () {
   var stream = new CopyToStream(),
     dc = new DataCounter();
   stream.on('data', dc.recieve.bind(dc));
-  assert.emits(stream, 'end', function () {}, '');
+  assert.emits(stream, 'end', function () {}, 'stream has to emit end after closing');
   stream.pause();
   stream.handleChunk(dc.send(buf1));
   stream.handleChunk(dc.send(buf2));
@@ -50,7 +50,7 @@ test('CopyToStream pause/resume/close', function () {
   dc.assert();
   stream.pause();
   stream.handleChunk(dc.send(buf4));
-  assert(dc.sendBytes - dc.recievedBytes, buf4.length);
+  assert(dc.sendBytes - dc.recievedBytes, buf4.length, "stream has not emit, data while it is in paused state");
   stream.resume();
   dc.assert();
   stream.close();
@@ -59,7 +59,7 @@ test('CopyToStream error', function () {
   var stream = new CopyToStream(),
     dc = new DataCounter();
   stream.on('data', dc.recieve.bind(dc));
-  assert.emits(stream, 'error', function () {}, '');
+  assert.emits(stream, 'error', function () {}, 'stream has to emit error event, when error method called');
   stream.handleChunk(dc.send(buf1));
   stream.handleChunk(dc.send(buf2));
   stream.error(new Error('test error'));

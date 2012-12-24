@@ -24,7 +24,7 @@ var buf1 = new Buffer("asdfasd"),
   buf3 = new Buffer(542),
   buf4 = new Buffer("93jfemialfjkasjlfas");
 
-test('stream has to finish data stream to connection exactly once', function () {
+test('CopyFromStream, start streaming before data, end after data. no drain event', function () {
   var stream = new CopyFromStream();
   var conn = new ConnectionImitation();
   stream.on('drain', function () {
@@ -38,8 +38,9 @@ test('stream has to finish data stream to connection exactly once', function () 
   stream.end(conn.updateHasToBeSend(buf4));
   assert.ok(!stream.writable, "stream has not to be writable");
   stream.end();
+  assert.equal(conn.hasToBeSend, conn.send);
 });
-test('', function () {
+test('CopyFromStream, start streaming after end, end after data. drain event', function () {
   var stream = new CopyFromStream();
   assert.emits(stream, 'drain', function() {}, 'drain have to be emitted');
   var conn = new ConnectionImitation() 
@@ -51,8 +52,9 @@ test('', function () {
   assert.ok(!stream.writable, "stream has not to be writable");
   stream.end();
   stream.startStreamingToConnection(conn);
+  assert.equal(conn.hasToBeSend, conn.send);
 });
-test('', function () {
+test('CopyFromStream, start streaming between data chunks. end after data. drain event', function () {
   var stream = new CopyFromStream();
   var conn = new ConnectionImitation() 
   assert.emits(stream, 'drain', function() {}, 'drain have to be emitted');
@@ -62,10 +64,11 @@ test('', function () {
   stream.write(conn.updateHasToBeSend(buf3));
   assert.ok(stream.writable, "stream has to be writable");
   stream.end(conn.updateHasToBeSend(buf4));
+  assert.equal(conn.hasToBeSend, conn.send);
   assert.ok(!stream.writable, "stream has not to be writable");
   stream.end();
 });
-test('', function () {
+test('CopyFromStream, start sreaming before end. end stream with data. drain event', function () {
   var stream = new CopyFromStream();
   var conn = new ConnectionImitation() 
   assert.emits(stream, 'drain', function() {}, 'drain have to be emitted');
@@ -75,10 +78,11 @@ test('', function () {
   stream.startStreamingToConnection(conn);
   assert.ok(stream.writable, "stream has to be writable");
   stream.end(conn.updateHasToBeSend(buf4));
+  assert.equal(conn.hasToBeSend, conn.send);
   assert.ok(!stream.writable, "stream has not to be writable");
   stream.end();
 });
-test('', function(){
+test('CopyFromStream, start streaming after end. end with data. drain event', function(){
   var stream = new CopyFromStream();
   var conn = new ConnectionImitation() 
   assert.emits(stream, 'drain', function() {}, 'drain have to be emitted');
@@ -89,6 +93,7 @@ test('', function(){
   assert.ok(stream.writable, "stream has to be writable");
   stream.end(conn.updateHasToBeSend(buf4));
   stream.startStreamingToConnection(conn);
+  assert.equal(conn.hasToBeSend, conn.send);
   assert.ok(!stream.writable, "stream has not to be writable");
   stream.end();
 });
