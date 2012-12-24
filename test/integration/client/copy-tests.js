@@ -58,4 +58,41 @@ test('COPY TO', function () {
     });
   });
 });
+test('COPY TO, queue queries', function () {
+  pg.connect(helper.config, function (error, client) {
+    assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
+    prepareTable(client, function () {
+      var query1Done = false,
+        copyQueryDone = false,
+        query2Done = false;
+      client.query("SELECT count(*) from person", function () {
+        query1Done = true;
+        assert.ok(!copyQueryDone && ! query2Done, "first query has to be executed before others");
+      });
+      var stream = client.copyTo("COPY  person (id, name, age)  TO stdin WITH CSV");
+      //imitate long query, to make impossible,
+      //that copy query end callback runs after 
+      //second query callback
+      client.query("SELECT pg_sleep(5)", function () {
+        query2Done = true;
+        assert.ok(copyQueryDone && query2Done, "second query has to be executed after others");
+      });
+      var  buf = new Buffer(0);
+      stream.on('error', function (error) {
+        assert.ok(false, "COPY TO stream should not emit errors" + helper.sys.inspect(error)); 
+      });
+      assert.emits(stream, 'data', function (chunk) {
+        buf = Buffer.concat([buf, chunk]);  
+      }, "COPY IN stream should emit data event for each row"); 
+      assert.emits(stream, 'end', function () {
+        copyQueryDone = true;
+        assert.ok(query1Done && ! query2Done, "copy query has to be executed before second query and after first");
+        var lines = buf.toString().split('\n');
+        assert.equal(lines.length >= 0, true, "copy in should return rows saved by copy from");
+        assert.equal(lines[0].split(',').length, 3, "each line should consists of 3 fields");
+        pg.end(helper.config);     
+      }, "COPY IN stream should emit end event after all rows");
+    });
+  });
+});
 
