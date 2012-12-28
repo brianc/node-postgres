@@ -91,7 +91,7 @@ The two share the same interface so __no other code changes should be required__
   * tested with with
     * postgres 8.x, 9.x
     * Linux, OS X
-    * node 2.x & 4.x
+    * node 0.6.x & 0.8.x
 * row-by-row result streaming
 * built-in (optional) connection pooling
 * responsive project maintainer
