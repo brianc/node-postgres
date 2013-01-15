@@ -128,7 +128,10 @@ Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  T
 
 ## Extras
 
-node-postgres is by design _low level_ with the bare minimum of abstraction.  You might be interested in a higher-level interface:  https://github.com/grncdr/node-any-db
+node-postgres is by design _low level_ with the bare minimum of abstraction.  These might help out:
+
+- https://github.com/grncdr/node-any-db
+- https://github.com/brianc/node-sql
 
 ## License
 
