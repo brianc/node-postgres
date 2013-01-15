@@ -2,7 +2,7 @@
 
 [![Build Status](https://secure.travis-ci.org/brianc/node-postgres.png)](http://travis-ci.org/brianc/node-postgres)
 
-Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.  Active development,  well tested, and production use.
+PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Non-blocking PostgreSQL client for node.js.  Pure JavaScript and native libpq bi
     
 ## Examples
 
-### Simple, using built-in client pool
+### Callbacks
 
 ```javascript
 var pg = require('pg'); 
@@ -19,17 +19,18 @@ var pg = require('pg');
 
 var conString = "tcp://postgres:1234@localhost/postgres";
 
-//error handling omitted
-pg.connect(conString, function(err, client) {
-  client.query("SELECT NOW() as when", function(err, result) {
-    console.log("Row count: %d",result.rows.length);  // 1
-    console.log("Current year: %d", result.rows[0].when.getFullYear());
-    pg.end(); //terminate the client pool, disconnecting all clients
-  });
+//note: error handling omitted
+var client = new pg.Client(conString);
+client.connect(function(err) {
+  client.query('SELECT NOW() AS theTime', function(err, result) {
+      console.log(result.rows[0].theTime);
+      //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
+  })
 });
+
 ```
 
-### Evented api
+### Events
 
 ```javascript
 var pg = require('pg'); //native libpq bindings = `var pg = require('pg').native`
@@ -40,22 +41,7 @@ client.connect();
 
 //queries are queued and executed one after another once the connection becomes available
 client.query("CREATE TEMP TABLE beatles(name varchar(10), height integer, birthday timestamptz)");
-client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['Ringo', 67, new Date(1945, 11, 2)]);
 client.query("INSERT INTO beatles(name, height, birthday) values($1, $2, $3)", ['John', 68, new Date(1944, 10, 13)]);
-
-//queries can be executed either via text/parameter values passed as individual arguments
-//or by passing an options object containing text, (optional) parameter values, and (optional) query name
-client.query({
-  name: 'insert beatle',
-  text: "INSERT INTO beatles(name, height, birthday) values($1, $2, $3)",
-  values: ['George', 70, new Date(1946, 02, 14)]
-});
-
-//subsequent queries with the same name will be executed without re-parsing the query plan by postgres
-client.query({
-  name: 'insert beatle',
-  values: ['Paul', 63, new Date(1945, 04, 03)]
-});
 var query = client.query("SELECT * FROM beatles WHERE name = $1", ['John']);
 
 //can stream row results back 1 at a time
@@ -74,60 +60,27 @@ query.on('end', function() {
 
 ### Example notes
 
-node-postgres supports both an 'event emitter' style API and a 'callback' style.  The callback style is more concise and generally preferred, but the evented API can come in handy.  They can be mixed and matched.  The only events which do __not__ fire when callbacks are supplied are the `error` events, as they are to be handled by the callback function.
+node-postgres supports both an 'event emitter' style API and a 'callback' style.  The callback style is more concise and generally preferred, but the evented API can come in handy when you want to handle row events as they come in.  
 
-All examples will work with the pure javascript bindings (currently default) or the libpq native (c/c++) bindings (currently in beta)
+They can be mixed and matched.  The only events which do __not__ fire when callbacks are supplied are the `error` events, as they are to be handled within the callback function.
+
+All examples will work with the pure javascript bindings or the libpq native (c/c++) bindings
 
 To use native libpq bindings replace `require('pg')` with `require('pg').native`.
 
 The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg.native`, please report an issue.
 
-### Info
+### Features
 
 * pure javascript client and native libpq bindings share _the same api_
-* _heavily_ tested
-  * the same suite of 200+ integration tests passed by both javascript & libpq bindings
-  * benchmark & long-running memory leak tests performed before releases
-  * tested with with
-    * postgres 8.x, 9.x
-    * Linux, OS X
-    * node 0.6.x & 0.8.x
 * row-by-row result streaming
-* built-in (optional) connection pooling
 * responsive project maintainer
 * supported PostgreSQL features
   * parameterized queries
   * named statements with query plan caching
-  * async notifications
-  * extensible js<->postgresql data-type coercion 
-* query queue
-* active development
-* fast
-* close mirror of the node-mysql api for future multi-database-supported ORM implementation ease
-
-### Contributors
-
-Many thanks to the following:
-
-* [creationix](https://github.com/creationix)
-* [felixge](https://github.com/felixge)
-* [pshc](https://github.com/pshc)
-* [pjornblomqvist](https://github.com/bjornblomqvist)
-* [JulianBirch](https://github.com/JulianBirch)
-* [ef4](https://github.com/ef4)
-* [napa3um](https://github.com/napa3um)
-* [drdaeman](https://github.com/drdaeman)
-* [booo](https://github.com/booo)
-* [neonstalwart](https://github.com/neonstalwart)
-* [homme](https://github.com/homme)
-* [bdunavant](https://github.com/bdunavant)
-* [tokumine](https://github.com/tokumine)
-* [shtylman](https://github.com/shtylman)
-* [cricri](https://github.com/cricri)
-* [AlexanderS](https://github.com/AlexanderS)
-* [ahtih](https://github.com/ahtih)
-* [chowey](https://github.com/chowey)
-* [kennym](https://github.com/kennym)
+  * async notifications with `LISTEN/NOTIFY`
+  * bulk import & export with `COPY TO/COPY FROM`
+  * extensible js<->postgresql data-type coercion
 
 ## Documentation
 
@@ -151,6 +104,32 @@ _if you use node-postgres in production and would like your site listed here, fo
 
 If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
     
+## Contributing
+
+__I love contributions.__
+
+You are welcome contribute via pull requests.  If you need help getting the tests running locally feel free to email me or gchat me.
+
+I will __happily__ accept your pull request if it:
+- _has tests_
+- looks reasonable
+- does not break backwards compatibility
+
+If you need help or have questions about constructing a pull request I'll be glad to help out as well.
+
+## Support
+
+If at all possible when you open an issue please provide
+- version of node
+- version of postgres
+- smallest possible snippet of code to reproduce the problem
+
+Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  Then I make the test pass.  Then everyone's happy!
+
+## Extras
+
+node-postgres is by design _low level_ with the bare minimum of abstraction.  You might be interested in a higher-level interface:  https://github.com/grncdr/node-any-db
+
 ## License
 
 Copyright (c) 2010 Brian Carlson (brian.m.carlson@gmail.com)
