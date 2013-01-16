@@ -9,7 +9,8 @@ node-command := xargs -n 1 -I file node file $(params)
 .PHONY : test test-connection test-integration bench test-native build/default/binding.node
 
 help:
-	echo "make test-all connectionString=pg://<your connection string>"
+	@echo "make prepare-test-db [connectionString=pg://<your connection string>]"
+	@echo "make test-all [connectionString=pg://<your connection string>]"
 
 test: test-unit 
 
@@ -25,9 +26,11 @@ test-unit:
 	@find test/unit -name "*-tests.js" | $(node-command)
 
 test-connection:
+	@echo "***Testing connection***"
 	@node script/test-connection.js $(params)
 
 test-connection-binary:
+	@echo "***Testing binary connection***"
 	@node script/test-connection.js $(params) binary
 
 test-native: build/default/binding.node
@@ -35,10 +38,15 @@ test-native: build/default/binding.node
 	@find test/native -name "*-tests.js" | $(node-command)
 	@find test/integration -name "*-tests.js" | $(node-command) native
 
-test-integration: test-connection
+test-integration: test-connection 
 	@echo "***Testing Pure Javascript***"
 	@find test/integration -name "*-tests.js" | $(node-command)
 
 test-binary: test-connection-binary
 	@echo "***Testing Pure Javascript (binary)***"
 	@find test/integration -name "*-tests.js" | $(node-command) binary
+
+prepare-test-db:
+	@echo "***Preparing the database for tests***"
+	@find script/create-test-tables.js  | $(node-command)
+
