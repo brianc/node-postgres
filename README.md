@@ -22,7 +22,7 @@ var conString = "tcp://postgres:1234@localhost/postgres";
 //note: error handling omitted
 var client = new pg.Client(conString);
 client.connect(function(err) {
-  client.query('SELECT NOW() AS theTime', function(err, result) {
+  client.query('SELECT NOW() AS "theTime"', function(err, result) {
       console.log(result.rows[0].theTime);
       //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
   })
