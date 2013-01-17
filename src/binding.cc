@@ -248,12 +248,14 @@ public:
   bool connecting_;
   bool ioInitialized_;
   bool copyOutMode_;
+  bool copyInMode_;
   Connection () : ObjectWrap ()
   {
     connection_ = NULL;
     connecting_ = false;
     ioInitialized_ = false;
     copyOutMode_ = false;
+    copyInMode_ = false;
     TRACE("Initializing ev watchers");
     read_watcher_.data = this;
     write_watcher_.data = this;
@@ -278,8 +280,13 @@ public:
   EndCopyFrom(const Arguments& args) {
     HandleScope scope;
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+    char * error_msg = NULL;
+    if (args[0]->IsString()) {
+      error_msg = MallocCString(args[0]);
+    }
     //TODO handle errors in some way
-    self->EndCopyFrom();
+    self->EndCopyFrom(error_msg);
+    free(error_msg);
     return Undefined();
   }
 
@@ -433,23 +440,19 @@ protected:
       if (this->copyOutMode_) {
         this->HandleCopyOut();
       }
-      if (PQisBusy(connection_) == 0) {
+      if (!this->copyInMode_ && !this->copyOutMode_ && PQisBusy(connection_) == 0) {
         PGresult *result;
         bool didHandleResult = false;
         while ((result = PQgetResult(connection_))) {
-          if (PGRES_COPY_IN == PQresultStatus(result)) {
-            didHandleResult = false;
-            Emit("copyInResponse");
-            PQclear(result);
+          didHandleResult = HandleResult(result);
+          PQclear(result);
+          if(!didHandleResult) {
+            //this means that we are in copy in or copy out mode
+            //in this situation PQgetResult will return same
+            //result untill all data will be read (copy out) or
+            //until data end notification (copy in)
+            //and because of this, we need to break cycle
             break;
-          } else if (PGRES_COPY_OUT == PQresultStatus(result)) {
-            PQclear(result);
-            this->copyOutMode_ = true;
-            didHandleResult = this->HandleCopyOut();
-          } else {
-            HandleResult(result);
-            didHandleResult = true;
-            PQclear(result);
           }
         }
         //might have fired from notification
@@ -479,37 +482,29 @@ protected:
   }
   bool HandleCopyOut () {
     char * buffer = NULL;
-    int copied = PQgetCopyData(connection_, &buffer, 1);
-    if (copied > 0) {
-      Buffer * chunk = Buffer::New(buffer, copied);
+    int copied;
+    Buffer * chunk;
+    copied = PQgetCopyData(connection_, &buffer, 1);
+    while (copied > 0) { 
+      chunk = Buffer::New(buffer, copied);
       Handle<Value> node_chunk = chunk->handle_; 
       Emit("copyData", &node_chunk);
       PQfreemem(buffer);
-      //result was not handled copmpletely
-      return false;
-    } else if (copied == 0) {
+      copied = PQgetCopyData(connection_, &buffer, 1);
+    }
+    if (copied == 0) {
       //wait for next read ready
       //result was not handled copmpletely
       return false;
     } else if (copied == -1) {
-      PGresult *result;
-      //result is handled completely
       this->copyOutMode_ = false;
-      if (PQisBusy(connection_) == 0 && (result = PQgetResult(connection_))) {
-        HandleResult(result);
-        PQclear(result);
-        return true;
-      } else {
-        return false;
-      }
+      return true;
     } else if (copied == -2) {
-      //TODO error handling
-      //result is handled with error
-      HandleErrorResult(NULL);
+      this->copyOutMode_ = false;
       return true;
     }
   }
-  void HandleResult(PGresult* result)
+  bool HandleResult(PGresult* result)
   {
     ExecStatusType status = PQresultStatus(result);
     switch(status) {
@@ -517,14 +512,35 @@ protected:
       {
         HandleTuplesResult(result);
         EmitCommandMetaData(result);
+        return true;
       }
       break;
     case PGRES_FATAL_ERROR:
-      HandleErrorResult(result);
+      {
+        HandleErrorResult(result);
+        return true;
+      }
       break;
     case PGRES_COMMAND_OK:
     case PGRES_EMPTY_QUERY:
-      EmitCommandMetaData(result);
+      {
+        EmitCommandMetaData(result);
+        return true;
+      }
+      break;
+    case PGRES_COPY_IN: 
+      {
+        this->copyInMode_ = true;
+        Emit("copyInResponse");
+        return false;  
+      }
+      break;
+    case PGRES_COPY_OUT:
+      {
+        this->copyOutMode_ = true;
+        Emit("copyOutResponse");
+        return this->HandleCopyOut();
+      }
       break;
     default:
       printf("YOU SHOULD NEVER SEE THIS! PLEASE OPEN AN ISSUE ON GITHUB! Unrecogized query status: %s\n", PQresStatus(status));
@@ -772,8 +788,9 @@ private:
   void SendCopyFromChunk(Handle<Object> chunk) {
     PQputCopyData(connection_, Buffer::Data(chunk), Buffer::Length(chunk));
   }
-  void EndCopyFrom() {
-    PQputCopyEnd(connection_, NULL);
+  void EndCopyFrom(char * error_msg) {
+    PQputCopyEnd(connection_, error_msg);
+    this->copyInMode_ = false;
   }
 
 };
