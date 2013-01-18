@@ -5,7 +5,7 @@ var defaults = require(__dirname + "/../../lib").defaults;
 //this tests the monkey patching
 //to ensure comptability with older
 //versions of node
-test("EventEmitter.once", function() {
+test("EventEmitter.once", function(t) {
 
   //an event emitter
   var stream = new MemoryStream();
