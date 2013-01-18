@@ -487,7 +487,7 @@ protected:
     copied = PQgetCopyData(connection_, &buffer, 1);
     while (copied > 0) { 
       chunk = Buffer::New(buffer, copied);
-      Handle<Value> node_chunk = chunk->handle_; 
+      Local<Value> node_chunk = Local<Value>::New(chunk->handle_); 
       Emit("copyData", &node_chunk);
       PQfreemem(buffer);
       copied = PQgetCopyData(connection_, &buffer, 1);

@@ -9,15 +9,15 @@ test("COPY TO large amount of data from postgres", function () {
   var con = new Client(helper.config),
     rowCount = 100000,
     stdoutStream = con.copyTo('COPY (select generate_series(1, ' + rowCount + ')) TO STDOUT');
-  con.connect();
   stdoutStream.on('data', function () {
-    rowCount --;
+    rowCount--;
   });
   stdoutStream.on('end', function () {
-    assert.equal(rowCount, 1, "copy to should load exactly requested number of rows" + rowCount);
+    assert.equal(rowCount, 0, "copy to should load exactly requested number of rows");
     con.query("SELECT 1", assert.calls(function (error, result) {
       assert.ok(!error && result, "loading large amount of data by copy to should not break connection");
       con.end();
     }));
   });
+  con.connect();
 });
