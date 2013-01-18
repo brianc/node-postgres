@@ -95,4 +95,66 @@ test('COPY TO, queue queries', function () {
     });
   });
 });
+test("COPY TO incorrect usage with large data", function () {
+  //when many data is loaded from database (and it takes a lot of time) 
+  //there are chance, that query will be canceled before it ends
+  //but if there are not so much data, cancel message may be 
+  //send after copy query ends
+  //so we need to test both situations
+  pg.connect(helper.config, function (error, client) {
+    assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
+    //intentionally incorrect usage of copy. 
+    //this has to report error in standart way, instead of just throwing exception
+    client.query(
+      "COPY (SELECT GENERATE_SERIES(1, 10000000)) TO STDOUT WITH CSV",
+      assert.calls(function (error) {
+        assert.ok(error, "error should be reported when sending copy to query with query method");
+        client.query("SELECT 1", assert.calls(function (error, result) {
+          assert.isNull(error, "incorrect copy usage should not break connection");
+          assert.ok(result, "incorrect copy usage should not break connection");
+          pg.end(helper.config);     
+        }));
+      })
+    );
+  });
+});
+test("COPY TO incorrect usage with small data", function () {
+  pg.connect(helper.config, function (error, client) {
+    assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
+    //intentionally incorrect usage of copy. 
+    //this has to report error in standart way, instead of just throwing exception
+    client.query(
+      "COPY (SELECT GENERATE_SERIES(1, 1)) TO STDOUT WITH CSV",
+      assert.calls(function (error) {
+        assert.ok(error, "error should be reported when sending copy to query with query method");
+        client.query("SELECT 1", assert.calls(function (error, result) {
+          assert.isNull(error, "incorrect copy usage should not break connection");
+          assert.ok(result, "incorrect copy usage should not break connection");
+          pg.end(helper.config);     
+        }));
+      })
+    );
+  });
+});
+
+test("COPY FROM incorrect usage", function () {
+  pg.connect(helper.config, function (error, client) {
+    assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
+    prepareTable(client, function () {
+      //intentionally incorrect usage of copy. 
+      //this has to report error in standart way, instead of just throwing exception
+      client.query(
+        "COPY copy_test from STDIN WITH CSV",
+        assert.calls(function (error) {
+          assert.ok(error, "error should be reported when sending copy to query with query method");
+          client.query("SELECT 1", assert.calls(function (error, result) {
+            assert.isNull(error, "incorrect copy usage should not break connection");
+            assert.ok(result, "incorrect copy usage should not break connection");
+            pg.end(helper.config);     
+          }));
+        })
+      );
+    });
+  });
+});
 
