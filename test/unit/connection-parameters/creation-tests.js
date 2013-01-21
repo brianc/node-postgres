@@ -26,6 +26,7 @@ var compare = function(actual, expected, type) {
 test('ConnectionParameters initializing from defaults', function() {
   var subject = new ConnectionParameters();
   compare(subject, defaults, 'defaults');
+  assert.ok(subject.isDomainSocket === false);
 });
 
 test('ConnectionParameters initializing from config', function() {
@@ -43,4 +44,98 @@ test('ConnectionParameters initializing from config', function() {
   };
   var subject = new ConnectionParameters(config);
   compare(subject, config, 'config');
+  assert.ok(subject.isDomainSocket === false);
 });
+
+test('initializing with unix domain socket', function() {
+  var subject = new ConnectionParameters('/var/run/pg.sock');
+  assert.ok(subject.isDomainSocket);
+  assert.equal(subject.host, '/var/run/pg.sock');
+});
+
+test('libpq connection string building', function() {
+  var checkForPart = function(array, part) {
+    assert.ok(array.indexOf(part) > -1, array.join(" ") + " did not contain " + part);
+  }
+
+  test('builds simple string', function() {
+    var config = {
+      user: 'brian',
+      password: 'xyz',
+      port: 888,
+      host: 'localhost',
+      database: 'bam'
+    }
+    var subject = new ConnectionParameters(config);
+    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
+      assert.isNull(err);
+      var parts = constring.split(" ");
+      checkForPart(parts, "user='brian'");
+      checkForPart(parts, "password='xyz'");
+      checkForPart(parts, "port='888'");
+      checkForPart(parts, "hostaddr=127.0.0.1");
+      checkForPart(parts, "dbname='bam'");
+    }));
+  });
+
+  test('builds dns string', function() {
+    var config = {
+      user: 'brian',
+      password: 'asdf',
+      port: 5432,
+      host: 'localhost'
+    };
+    var subject = new ConnectionParameters(config);
+    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
+      assert.isNull(err);
+      var parts = constring.split(" ");
+      checkForPart(parts, "user='brian'");
+      checkForPart(parts, "hostaddr=127.0.0.1");
+    }));
+  });
+
+  test('error when dns fails', function() {
+    var config = {
+      user: 'brian',
+      password: 'asf',
+      port: 5432,
+      host: 'asdlfkjasldfkksfd#!$!!!!..com'
+    };
+    var subject = new ConnectionParameters(config);
+    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
+      assert.ok(err);
+      assert.isNull(constring)
+    }));
+  });
+
+  test('connecting to unix domain socket', function() {
+    var config = {
+      user: 'brian',
+      password: 'asf',
+      port: 5432,
+      host: '/var/run/pgsockbla'
+    };
+    var subject = new ConnectionParameters(config);
+    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
+      assert.isNull(err);
+      var parts = constring.split(" ");
+      checkForPart(parts, "user='brian'");
+      checkForPart(parts, "host=/var/run/pgsockbla");
+    }));
+  });
+
+  test('password contains  < and/or >  characters', function () {
+    return false;
+    var sourceConfig = {
+      user:'brian',
+      password: 'hello<ther>e',
+      port: 5432,
+      host: 'localhost',
+      database: 'postgres'
+    }
+    var connectionString = 'pg://' + sourceConfig.user + ':' + sourceConfig.password + '@' + sourceConfig.host + ':' + sourceConfig.port + '/' + sourceConfig.database;
+    var subject = new ConnectionParameters(connectionString);
+    assert.equal(subject.password, sourceConfig.password);
+  });
+
+})
