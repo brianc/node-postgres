@@ -48,9 +48,20 @@ test('ConnectionParameters initializing from config', function() {
 });
 
 test('initializing with unix domain socket', function() {
-  var subject = new ConnectionParameters('/var/run/pg.sock');
+  var subject = new ConnectionParameters('/var/run/');
   assert.ok(subject.isDomainSocket);
-  assert.equal(subject.host, '/var/run/pg.sock');
+  assert.equal(subject.host, '/var/run/');
+});
+
+test('builds domain socket', function() {
+  var subject = new ConnectionParameters({
+    host: '/var/run/',
+    port: 1234
+  });
+  assert.equal(subject.getDomainSocketName(), '/var/run/.s.PGSQL.1234');
+  subject.host = '/tmp';
+  assert.equal(subject.getDomainSocketName(), '/tmp/.s.PGSQL.1234');
+  assert.equal(subject.getDomainSocketName(), '/tmp/.s.PGSQL.1234');
 });
 
 test('libpq connection string building', function() {
@@ -113,14 +124,14 @@ test('libpq connection string building', function() {
       user: 'brian',
       password: 'asf',
       port: 5432,
-      host: '/var/run/pgsockbla'
+      host: '/tmp/'
     };
     var subject = new ConnectionParameters(config);
     subject.getLibpqConnectionString(assert.calls(function(err, constring) {
       assert.isNull(err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
-      checkForPart(parts, "host=/var/run/pgsockbla");
+      checkForPart(parts, "host=/tmp/.s.PGSQL.5432");
     }));
   });
 
@@ -138,4 +149,4 @@ test('libpq connection string building', function() {
     assert.equal(subject.password, sourceConfig.password);
   });
 
-})
+});
