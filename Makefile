@@ -6,7 +6,8 @@ params := $(connectionString)
 
 node-command := xargs -n 1 -I file node file $(params)
 
-.PHONY : test test-connection test-integration bench test-native build/default/binding.node
+.PHONY : test test-connection test-integration bench test-native \
+	build/default/binding.node jshint
 
 help:
 	@echo "make prepare-test-db [connectionString=pg://<your connection string>]"
@@ -50,3 +51,6 @@ prepare-test-db:
 	@echo "***Preparing the database for tests***"
 	@find script/create-test-tables.js  | $(node-command)
 
+jshint:
+	@echo "***Starting jshint***"
+	@./node_modules/.bin/jshint lib
