@@ -4,6 +4,7 @@ if(helper.args.native) {
   pg = require(__dirname + '/../../../lib').native;
 }
 var ROWS_TO_INSERT  = 1000;
+
 var prepareTable = function (client, callback) {
   client.query(
     'CREATE TEMP TABLE copy_test (id SERIAL, name CHARACTER VARYING(10), age INT)',
@@ -13,8 +14,9 @@ var prepareTable = function (client, callback) {
     })
   );
 };
+
 test('COPY FROM', function () {
-  pg.connect(helper.config, function (error, client) {
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     prepareTable(client, function () {
       var stream = client.copyFrom("COPY  copy_test (name, age)  FROM stdin WITH CSV");
@@ -25,20 +27,21 @@ test('COPY FROM', function () {
         stream.write( String(Date.now() + Math.random()).slice(0,10) + ',' + i + '\n');
       }
       assert.emits(stream, 'close', function () {
-        client.query("SELECT count(*), sum(age) from copy_test", function (err, result) {
+        client.query("SELECT count(*), sum(age) from copy_test", assert.calls(function (err, result) {
           assert.equal(err, null, "Query should not fail");
           assert.lengthIs(result.rows, 1)
           assert.equal(result.rows[0].sum, ROWS_TO_INSERT * (0 + ROWS_TO_INSERT -1)/2);
           assert.equal(result.rows[0].count, ROWS_TO_INSERT);
           pg.end(helper.config);     
-        });
+        }));
       }, "COPY FROM stream should emit close after query end");
       stream.end();
     });
-  });
+  }));
 });
+
 test('COPY TO', function () {
-  pg.connect(helper.config, function (error, client) {
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     prepareTable(client, function () {
       var stream = client.copyTo("COPY  person (id, name, age)  TO stdin WITH CSV");
@@ -56,10 +59,11 @@ test('COPY TO', function () {
         pg.end(helper.config);     
       }, "COPY IN stream should emit end event after all rows");
     });
-  });
+  }));
 });
+
 test('COPY TO, queue queries', function () {
-  pg.connect(helper.config, function (error, client) {
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     prepareTable(client, function () {
       var query1Done = false,
@@ -73,10 +77,10 @@ test('COPY TO, queue queries', function () {
       //imitate long query, to make impossible,
       //that copy query end callback runs after 
       //second query callback
-      client.query("SELECT pg_sleep(5)", function () {
+      client.query("SELECT pg_sleep(1)", assert.calls(function () {
         query2Done = true;
         assert.ok(copyQueryDone && query2Done, "second query has to be executed after others");
-      });
+      }));
       var  buf = new Buffer(0);
       stream.on('error', function (error) {
         assert.ok(false, "COPY TO stream should not emit errors" + helper.sys.inspect(error)); 
@@ -93,15 +97,16 @@ test('COPY TO, queue queries', function () {
         pg.end(helper.config);     
       }, "COPY IN stream should emit end event after all rows");
     });
-  });
+  }));
 });
+
 test("COPY TO incorrect usage with large data", function () {
   //when many data is loaded from database (and it takes a lot of time) 
   //there are chance, that query will be canceled before it ends
   //but if there are not so much data, cancel message may be 
   //send after copy query ends
   //so we need to test both situations
-  pg.connect(helper.config, function (error, client) {
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     //intentionally incorrect usage of copy. 
     //this has to report error in standart way, instead of just throwing exception
@@ -116,10 +121,11 @@ test("COPY TO incorrect usage with large data", function () {
         }));
       })
     );
-  });
+  }));
 });
+
 test("COPY TO incorrect usage with small data", function () {
-  pg.connect(helper.config, function (error, client) {
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     //intentionally incorrect usage of copy. 
     //this has to report error in standart way, instead of just throwing exception
@@ -134,11 +140,11 @@ test("COPY TO incorrect usage with small data", function () {
         }));
       })
     );
-  });
+  }));
 });
 
 test("COPY FROM incorrect usage", function () {
-  pg.connect(helper.config, function (error, client) {
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     prepareTable(client, function () {
       //intentionally incorrect usage of copy. 
@@ -155,6 +161,6 @@ test("COPY FROM incorrect usage", function () {
         })
       );
     });
-  });
+  }));
 });
 
