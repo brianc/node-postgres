@@ -13,7 +13,7 @@
     "generic-pool" : "2.0.2"
   },
   "devDependencies" : {
-    "jshint" : "*"
+    "jshint" : "git://github.com/jshint/jshint.git"
   },
   "scripts" : {
     "test" : "make test-all connectionString=pg://postgres@localhost:5432/postgres",
