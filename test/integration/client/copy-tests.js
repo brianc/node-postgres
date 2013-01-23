@@ -58,8 +58,10 @@ test('COPY TO', function () {
     });
   });
 });
+
 test('COPY TO, queue queries', function () {
-  pg.connect(helper.config, function (error, client) {
+  if(helper.config.native) return false;
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     prepareTable(client, function () {
       var query1Done = false,
@@ -73,7 +75,7 @@ test('COPY TO, queue queries', function () {
       //imitate long query, to make impossible,
       //that copy query end callback runs after 
       //second query callback
-      client.query("SELECT pg_sleep(5)", function () {
+      client.query("SELECT pg_sleep(1)", function () {
         query2Done = true;
         assert.ok(copyQueryDone && query2Done, "second query has to be executed after others");
       });
@@ -93,15 +95,17 @@ test('COPY TO, queue queries', function () {
         pg.end(helper.config);     
       }, "COPY IN stream should emit end event after all rows");
     });
-  });
+  }));
 });
+
 test("COPY TO incorrect usage with large data", function () {
+  if(helper.config.native) return false;
   //when many data is loaded from database (and it takes a lot of time) 
   //there are chance, that query will be canceled before it ends
   //but if there are not so much data, cancel message may be 
   //send after copy query ends
   //so we need to test both situations
-  pg.connect(helper.config, function (error, client) {
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     //intentionally incorrect usage of copy. 
     //this has to report error in standart way, instead of just throwing exception
@@ -116,10 +120,12 @@ test("COPY TO incorrect usage with large data", function () {
         }));
       })
     );
-  });
+  }));
 });
+
 test("COPY TO incorrect usage with small data", function () {
-  pg.connect(helper.config, function (error, client) {
+  if(helper.config.native) return false;
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     //intentionally incorrect usage of copy. 
     //this has to report error in standart way, instead of just throwing exception
@@ -134,7 +140,7 @@ test("COPY TO incorrect usage with small data", function () {
         }));
       })
     );
-  });
+  }));
 });
 
 test("COPY FROM incorrect usage", function () {
