@@ -503,7 +503,7 @@ protected:
       this->copyOutMode_ = false;
       return true;
     }
-    return true;
+    return false;
   }
   bool HandleResult(PGresult* result)
   {
@@ -533,7 +533,7 @@ protected:
       {
         this->copyInMode_ = true;
         Emit("copyInResponse");
-        return false;  
+        return false;
       }
       break;
     case PGRES_COPY_OUT:
