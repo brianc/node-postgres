@@ -165,6 +165,31 @@ test('typed results', function() {
     }
   },
 
+  {
+    name : 'array/char',
+    format : 'text',
+    dataTypeID: 1014,
+    actual: '{asdf,asdf}',
+    expected : function(val){
+      assert.deepEqual(val, ['asdf','asdf']);
+    }
+  },{
+    name : 'array/varchar',
+    format : 'text',
+    dataTypeID: 1015,
+    actual: '{asdf,asdf}',
+    expected :function(val){
+      assert.deepEqual(val, ['asdf','asdf']);
+    }
+  },{
+    name : 'array/text',
+    format : 'text',
+    dataTypeID: 1008,
+    actual: '{"hello world"}',
+    expected :function(val){
+      assert.deepEqual(val, ['hello world']);
+    }
+  },
 
   {
     name: 'binary-string/varchar',
