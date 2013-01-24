@@ -494,7 +494,7 @@ protected:
     }
     if (copied == 0) {
       //wait for next read ready
-      //result was not handled copmpletely
+      //result was not handled completely
       return false;
     } else if (copied == -1) {
       this->copyOutMode_ = false;
@@ -503,6 +503,7 @@ protected:
       this->copyOutMode_ = false;
       return true;
     }
+    return false;
   }
   bool HandleResult(PGresult* result)
   {
@@ -532,7 +533,7 @@ protected:
       {
         this->copyInMode_ = true;
         Emit("copyInResponse");
-        return false;  
+        return false;
       }
       break;
     case PGRES_COPY_OUT:
@@ -546,6 +547,7 @@ protected:
       printf("YOU SHOULD NEVER SEE THIS! PLEASE OPEN AN ISSUE ON GITHUB! Unrecogized query status: %s\n", PQresStatus(status));
       break;
     }
+    return true;
   }
 
   void EmitCommandMetaData(PGresult* result)
