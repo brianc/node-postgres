@@ -1,5 +1,4 @@
 {
   "trailing": true,
-  "indent": 2,
-  "maxlen": 80
+  "indent": 2
 }
