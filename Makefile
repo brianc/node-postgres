@@ -15,7 +15,7 @@ help:
 
 test: test-unit 
 
-test-all: test-unit test-integration test-native test-binary jshint
+test-all: jshint test-unit test-integration test-native test-binary
 
 bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
