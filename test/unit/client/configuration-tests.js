@@ -39,6 +39,15 @@ test('initializing from a config string', function() {
     assert.equal(client.database, "databasename")
   })
 
+  test('uses the correct values from the config string with space in password', function() {
+    var client = new Client("pg://brian:pass word@host1:333/databasename")
+    assert.equal(client.user, 'brian')
+    assert.equal(client.password, "pass word")
+    assert.equal(client.host, "host1")
+    assert.equal(client.port, 333)
+    assert.equal(client.database, "databasename")
+  })
+
   test('when not including all values the defaults are used', function() {
     var client = new Client("pg://host1")
     assert.equal(client.user, process.env['PGUSER'] || process.env.USER)
