@@ -12,7 +12,10 @@
   "dependencies" : {
     "generic-pool" : "2.0.2"
   },
-  "scripts" : { 
+  "devDependencies" : {
+    "jshint" : "git://github.com/jshint/jshint.git"
+  },
+  "scripts" : {
     "test" : "make test-all connectionString=pg://postgres@localhost:5432/postgres",
     "prepublish": "rm -r build || (exit 0)",
     "install" : "node-gyp rebuild || (exit 0)"

@@ -115,6 +115,9 @@ I will __happily__ accept your pull request if it:
 - _has tests_
 - looks reasonable
 - does not break backwards compatibility
+- satisfies jshint
+
+Information about the testing processes is in the [wiki](https://github.com/brianc/node-postgres/wiki/Testing).
 
 If you need help or have questions about constructing a pull request I'll be glad to help out as well.
 
