@@ -149,4 +149,12 @@ test('libpq connection string building', function() {
     assert.equal(subject.password, sourceConfig.password);
   });
 
+  test('password contains weird characters', function() {
+    var strang = 'pg://my first name:is&%awesome!@localhost:9000';
+    var subject = new ConnectionParameters(strang);
+    assert.equal(subject.user, 'my first name');
+    assert.equal(subject.password, 'is&%awesome!');
+    assert.equal(subject.host, 'localhost');
+  });
+
 });
