@@ -44,4 +44,7 @@ test('normalizing query configs', function() {
 
 	config = utils.normalizeQueryConfig({text: 'TEXT', values: [10]}, callback)
 	assert.deepEqual(config, {text: 'TEXT', values: [10], callback: callback})
+
+	config = utils.normalizeQueryConfig({toQuery: function() { return {text: 'TEXT', values: [10]}; }})
+	assert.deepEqual(config, {text: 'TEXT', values: [10]})
 })
