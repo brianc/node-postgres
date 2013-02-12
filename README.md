@@ -81,6 +81,16 @@ The two share the same interface so __no other code changes should be required__
   * async notifications with `LISTEN/NOTIFY`
   * bulk import & export with `COPY TO/COPY FROM`
   * extensible js<->postgresql data-type coercion
+  
+### numeric datatype
+Since the `numeric` datatype may have an arbitrary precision,
+values of this datatype will be returned as a string from a query. If you need 
+to do any computations on the value, you should be aware of this, as you may 
+need to use a JavaScript library for handling the value of arbitrary precision.
+
+Simply taking the value and doing any computation such as addition or subtraction
+may lead to unexpected/wrong results since JavaScript will handle the value as
+a floating-point number.
 
 ## Documentation
 

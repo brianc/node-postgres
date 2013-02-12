@@ -43,7 +43,7 @@ test('typed results', function() {
     format: 'text',
     dataTypeID: 1700,
     actual: '12.34',
-    expected: 12.34
+    expected: '12.34'
   },{
     name: 'real/float4',
     dataTypeID: 700,
