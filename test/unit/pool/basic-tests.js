@@ -19,7 +19,7 @@ FakeClient.prototype.connect = function(cb) {
 }
 
 FakeClient.prototype.end = function() {
-  
+  this.endCalled = true;
 }
 
 //Hangs the event loop until 'end' is called on client
@@ -59,7 +59,7 @@ test('pool creates pool on miss', function() {
   assert.equal(Object.keys(pool.all).length, 2);
 });
 
-test('pool follows default limits', function() {
+test('pool follows defaults', function() {
   var p = pool(poolId++);
   for(var i = 0; i < 100; i++) {
     p.acquire(function(err, client) {
@@ -99,5 +99,80 @@ test('pool#connect with 3 parameters', function() {
     assert.equal(p.availableObjectsCount(), 1);
     assert.equal(p.getPoolSize(), 1);
     p.destroyAllNow();
+  });
+});
+
+test('on client error, client is removed from pool', function() {
+  var p = pool(poolId++);
+  p.connect(assert.success(function(client) {
+    assert.ok(client);
+    client.emit('drain');
+    assert.equal(p.availableObjectsCount(), 1);
+    assert.equal(p.getPoolSize(), 1);
+    //error event fires on pool BEFORE pool.destroy is called with client
+    assert.emits(p, 'error', function(err) {
+      assert.equal(err.message, 'test error');
+      assert.ok(!client.endCalled);
+      assert.equal(p.availableObjectsCount(), 1);
+      assert.equal(p.getPoolSize(), 1);
+      //after we're done in our callback, pool.destroy is called
+      process.nextTick(function() {
+        assert.ok(client.endCalled);
+        assert.equal(p.availableObjectsCount(), 0);
+        assert.equal(p.getPoolSize(), 0);
+        p.destroyAllNow();
+      });
+    });
+    client.emit('error', new Error('test error'));
+  }));
+});
+
+test('pool with connection error on connection', function() {
+  pool.Client = function() {
+    return {
+      connect: function(cb) {
+        process.nextTick(function() {
+          cb(new Error('Could not connect'));
+        });
+      }
+    };
+  }
+  test('two parameters', function() {
+    var p = pool(poolId++);
+    p.connect(assert.calls(function(err, client) {
+      assert.ok(err);
+      assert.equal(client, null);
+      //client automatically removed
+      assert.equal(p.availableObjectsCount(), 0);
+      assert.equal(p.getPoolSize(), 0);
+    }));
+  });
+  test('three parameters', function() {
+    var p = pool(poolId++);
+    var tid = setTimeout(function() {
+      assert.fail('Did not call connect callback');
+    }, 100);
+    p.connect(function(err, client, done) {
+      clearTimeout(tid);
+      assert.ok(err);
+      assert.equal(client, null);
+      //done does nothing
+      done(new Error('OH NOOOO'));
+      done();
+      assert.equal(p.availableObjectsCount(), 0);
+      assert.equal(p.getPoolSize(), 0);
+    });
+  });
+});
+
+test('returnning an error to done()', function() {
+  var p = pool(poolId++);
+  pool.Client = FakeClient;
+  p.connect(function(err, client, done) {
+    assert.equal(err, null);
+    assert(client);
+    done(new Error("BROKEN"));
+    assert.equal(p.availableObjectsCount(), 0);
+    assert.equal(p.getPoolSize(), 0);
   });
 });
