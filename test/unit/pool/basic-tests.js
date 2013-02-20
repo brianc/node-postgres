@@ -3,7 +3,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var libDir = __dirname + '/../../../lib';
 var defaults = require(libDir + '/defaults');
-var pool = require(libDir + '/pool');
+var pools = require(libDir + '/pool');
 var poolId = 0;
 
 require(__dirname + '/../../test-helper');
@@ -41,26 +41,26 @@ HangingClient.prototype.end = function() {
   clearInterval(this.intervalId);
 }
 
-pool.Client = FakeClient;
+pools.Client = FakeClient;
 
 test('no pools exist', function() {
-  assert.empty(Object.keys(pool.all));
+  assert.empty(Object.keys(pools.all));
 });
 
 test('pool creates pool on miss', function() {
-  var p = pool();
+  var p = pools.getOrCreate();
   assert.ok(p);
-  assert.equal(Object.keys(pool.all).length, 1);
-  var p2 = pool();
+  assert.equal(Object.keys(pools.all).length, 1);
+  var p2 = pools.getOrCreate();
   assert.equal(p, p2);
-  assert.equal(Object.keys(pool.all).length, 1);
-  var p3 = pool("pg://postgres:password@localhost:5432/postgres");
+  assert.equal(Object.keys(pools.all).length, 1);
+  var p3 = pools.getOrCreate("pg://postgres:password@localhost:5432/postgres");
   assert.notEqual(p, p3);
-  assert.equal(Object.keys(pool.all).length, 2);
+  assert.equal(Object.keys(pools.all).length, 2);
 });
 
 test('pool follows defaults', function() {
-  var p = pool(poolId++);
+  var p = pools.getOrCreate(poolId++);
   for(var i = 0; i < 100; i++) {
     p.acquire(function(err, client) {
     });
@@ -69,7 +69,7 @@ test('pool follows defaults', function() {
 });
 
 test('pool#connect with 2 parameters (legacy, for backwards compat)', function() {
-  var p = pool(poolId++);
+  var p = pools.getOrCreate(poolId++);
   p.connect(assert.success(function(client) {
     assert.ok(client);
     assert.equal(p.availableObjectsCount(), 0);
@@ -82,7 +82,7 @@ test('pool#connect with 2 parameters (legacy, for backwards compat)', function()
 });
 
 test('pool#connect with 3 parameters', function() {
-  var p = pool(poolId++);
+  var p = pools.getOrCreate(poolId++);
   var tid = setTimeout(function() {
     throw new Error("Connection callback was never called");
   }, 100);
@@ -103,7 +103,7 @@ test('pool#connect with 3 parameters', function() {
 });
 
 test('on client error, client is removed from pool', function() {
-  var p = pool(poolId++);
+  var p = pools.getOrCreate(poolId++);
   p.connect(assert.success(function(client) {
     assert.ok(client);
     client.emit('drain');
@@ -128,7 +128,7 @@ test('on client error, client is removed from pool', function() {
 });
 
 test('pool with connection error on connection', function() {
-  pool.Client = function() {
+  pools.Client = function() {
     return {
       connect: function(cb) {
         process.nextTick(function() {
@@ -138,7 +138,7 @@ test('pool with connection error on connection', function() {
     };
   }
   test('two parameters', function() {
-    var p = pool(poolId++);
+    var p = pools.getOrCreate(poolId++);
     p.connect(assert.calls(function(err, client) {
       assert.ok(err);
       assert.equal(client, null);
@@ -148,7 +148,7 @@ test('pool with connection error on connection', function() {
     }));
   });
   test('three parameters', function() {
-    var p = pool(poolId++);
+    var p = pools.getOrCreate(poolId++);
     var tid = setTimeout(function() {
       assert.fail('Did not call connect callback');
     }, 100);
@@ -166,8 +166,8 @@ test('pool with connection error on connection', function() {
 });
 
 test('returnning an error to done()', function() {
-  var p = pool(poolId++);
-  pool.Client = FakeClient;
+  var p = pools.getOrCreate(poolId++);
+  pools.Client = FakeClient;
   p.connect(function(err, client, done) {
     assert.equal(err, null);
     assert(client);
@@ -175,4 +175,18 @@ test('returnning an error to done()', function() {
     assert.equal(p.availableObjectsCount(), 0);
     assert.equal(p.getPoolSize(), 0);
   });
+});
+
+test('fetching pool by object', function() {
+  var p = pools.getOrCreate({
+    user: 'brian',
+    host: 'localhost',
+    password: 'password'
+  });
+  var p2 = pools.getOrCreate({
+    user: 'brian',
+    host: 'localhost',
+    password: 'password'
+  });
+  assert.equal(p, p2);
 });
