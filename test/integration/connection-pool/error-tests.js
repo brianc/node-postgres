@@ -17,7 +17,6 @@ helper.pg.connect(helper.config, assert.success(function(client) {
       assert.ok(error);
       assert.ok(brokenClient);
       assert.equal(client.id, brokenClient.id);
-      client.emit('drain');
       helper.pg.end();
     });
     //kill the connection from client
