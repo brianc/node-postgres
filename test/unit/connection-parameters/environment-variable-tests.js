@@ -54,6 +54,28 @@ test('connection string parsing', function(t) {
   assert.equal(subject.database, 'lala', 'string database');
 });
 
+test('connection string parsing - ssl', function(t) {
+  var string = 'postgres://brian:pw@boom:381/lala?ssl=true';
+  var subject = new ConnectionParameters(string);
+  assert.equal(subject.ssl, true, 'ssl');
+
+  string = 'postgres://brian:pw@boom:381/lala?ssl=1';
+  subject = new ConnectionParameters(string);
+  assert.equal(subject.ssl, true, 'ssl');
+
+  string = 'postgres://brian:pw@boom:381/lala?other&ssl=true';
+  subject = new ConnectionParameters(string);
+  assert.equal(subject.ssl, true, 'ssl');
+
+  string = 'postgres://brian:pw@boom:381/lala?ssl=0';
+  subject = new ConnectionParameters(string);
+  assert.equal(!!subject.ssl, false, 'ssl');
+
+  string = 'postgres://brian:pw@boom:381/lala';
+  subject = new ConnectionParameters(string);
+  assert.equal(!!subject.ssl, false, 'ssl');
+});
+
 //restore process.env
 for(var key in realEnv) {
   process.env[key] = realEnv[key];
