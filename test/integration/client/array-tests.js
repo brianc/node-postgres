@@ -122,6 +122,22 @@ test('parsing array results', function() {
       }))
     })
     
+    test('JS array parameter', function(){
+      client.query("SELECT $1::integer[] as names", [[[1,100],[2,100],[3,100]]], assert.success(function(result) {
+        var names = result.rows[0].names;
+        assert.lengthIs(names, 3);
+        assert.equal(names[0][0], 1);
+        assert.equal(names[0][1], 100);
+
+        assert.equal(names[1][0], 2);
+        assert.equal(names[1][1], 100);
+
+        assert.equal(names[2][0], 3);
+        assert.equal(names[2][1], 100);
+        pg.end();
+      }))
+    })
+    
   }))
 })
 
