@@ -58,7 +58,7 @@ var types = [{
 },{
   //TODO get some actual huge numbers here
   name: 'numeric',
-  values: [-12.34, 0, 12.34, null]
+  values: ['-12.34', '0', '12.34', null]
 },{
   name: 'real',
   values: [101.1, 0, -101.3, null]
