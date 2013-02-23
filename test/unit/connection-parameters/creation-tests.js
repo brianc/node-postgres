@@ -53,17 +53,6 @@ test('initializing with unix domain socket', function() {
   assert.equal(subject.host, '/var/run/');
 });
 
-test('builds domain socket', function() {
-  var subject = new ConnectionParameters({
-    host: '/var/run/',
-    port: 1234
-  });
-  assert.equal(subject.getDomainSocketName(), '/var/run/.s.PGSQL.1234');
-  subject.host = '/tmp';
-  assert.equal(subject.getDomainSocketName(), '/tmp/.s.PGSQL.1234');
-  assert.equal(subject.getDomainSocketName(), '/tmp/.s.PGSQL.1234');
-});
-
 test('libpq connection string building', function() {
   var checkForPart = function(array, part) {
     assert.ok(array.indexOf(part) > -1, array.join(" ") + " did not contain " + part);
@@ -131,7 +120,7 @@ test('libpq connection string building', function() {
       assert.isNull(err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
-      checkForPart(parts, "host=/tmp/.s.PGSQL.5432");
+      checkForPart(parts, "host=/tmp/");
     }));
   });
 
