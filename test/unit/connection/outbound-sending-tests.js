@@ -23,6 +23,8 @@ test("sends startup message", function() {
                   .addCString('brian')
                   .addCString('database')
                   .addCString('bang')
+                  .addCString('client_encoding')
+                  .addCString("'utf-8'")
                   .addCString('').join(true))
 });
 

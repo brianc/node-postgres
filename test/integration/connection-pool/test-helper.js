@@ -9,7 +9,7 @@ helper.testPoolSize = function(max) {
     for(var i = 0; i < max; i++) {
       helper.pg.poolSize = 10;
       test("connection  #" + i + " executes", function() {
-        helper.pg.connect(helper.config, function(err, client) {
+        helper.pg.connect(helper.config, function(err, client, done) {
           assert.isNull(err);
           client.query("select * from person", function(err, result) {
             assert.lengthIs(result.rows, 26)
@@ -19,7 +19,8 @@ helper.testPoolSize = function(max) {
           })
           var query = client.query("SELECT * FROM NOW()")
           query.on('end',function() {
-            sink.add()
+            sink.add();
+            done();
           })
         })
       })

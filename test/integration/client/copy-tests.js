@@ -58,8 +58,10 @@ test('COPY TO', function () {
     });
   });
 });
+
 test('COPY TO, queue queries', function () {
-  pg.connect(helper.config, function (error, client) {
+  if(helper.config.native) return false;
+  pg.connect(helper.config, assert.calls(function (error, client) {
     assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
     prepareTable(client, function () {
       var query1Done = false,
@@ -73,7 +75,7 @@ test('COPY TO, queue queries', function () {
       //imitate long query, to make impossible,
       //that copy query end callback runs after 
       //second query callback
-      client.query("SELECT pg_sleep(5)", function () {
+      client.query("SELECT pg_sleep(1)", function () {
         query2Done = true;
         assert.ok(copyQueryDone && query2Done, "second query has to be executed after others");
       });
@@ -92,6 +94,72 @@ test('COPY TO, queue queries', function () {
         assert.equal(lines[0].split(',').length, 3, "each line should consists of 3 fields");
         pg.end(helper.config);     
       }, "COPY IN stream should emit end event after all rows");
+    });
+  }));
+});
+
+test("COPY TO incorrect usage with large data", function () {
+  if(helper.config.native) return false;
+  //when many data is loaded from database (and it takes a lot of time) 
+  //there are chance, that query will be canceled before it ends
+  //but if there are not so much data, cancel message may be 
+  //send after copy query ends
+  //so we need to test both situations
+  pg.connect(helper.config, assert.calls(function (error, client) {
+    assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
+    //intentionally incorrect usage of copy. 
+    //this has to report error in standart way, instead of just throwing exception
+    client.query(
+      "COPY (SELECT GENERATE_SERIES(1, 10000000)) TO STDOUT WITH CSV",
+      assert.calls(function (error) {
+        assert.ok(error, "error should be reported when sending copy to query with query method");
+        client.query("SELECT 1", assert.calls(function (error, result) {
+          assert.isNull(error, "incorrect copy usage should not break connection");
+          assert.ok(result, "incorrect copy usage should not break connection");
+          pg.end(helper.config);     
+        }));
+      })
+    );
+  }));
+});
+
+test("COPY TO incorrect usage with small data", function () {
+  if(helper.config.native) return false;
+  pg.connect(helper.config, assert.calls(function (error, client) {
+    assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
+    //intentionally incorrect usage of copy. 
+    //this has to report error in standart way, instead of just throwing exception
+    client.query(
+      "COPY (SELECT GENERATE_SERIES(1, 1)) TO STDOUT WITH CSV",
+      assert.calls(function (error) {
+        assert.ok(error, "error should be reported when sending copy to query with query method");
+        client.query("SELECT 1", assert.calls(function (error, result) {
+          assert.isNull(error, "incorrect copy usage should not break connection");
+          assert.ok(result, "incorrect copy usage should not break connection");
+          pg.end(helper.config);     
+        }));
+      })
+    );
+  }));
+});
+
+test("COPY FROM incorrect usage", function () {
+  pg.connect(helper.config, function (error, client) {
+    assert.equal(error, null, "Failed to connect: " + helper.sys.inspect(error));
+    prepareTable(client, function () {
+      //intentionally incorrect usage of copy. 
+      //this has to report error in standart way, instead of just throwing exception
+      client.query(
+        "COPY copy_test from STDIN WITH CSV",
+        assert.calls(function (error) {
+          assert.ok(error, "error should be reported when sending copy to query with query method");
+          client.query("SELECT 1", assert.calls(function (error, result) {
+            assert.isNull(error, "incorrect copy usage should not break connection");
+            assert.ok(result, "incorrect copy usage should not break connection");
+            pg.end(helper.config);     
+          }));
+        })
+      );
     });
   });
 });

@@ -4,8 +4,8 @@ test('client settings', function() {
 
   test('defaults', function() {
     var client = new Client();
-    assert.equal(client.user, process.env.USER);
-    assert.equal(client.database, process.env.USER);
+    assert.equal(client.user, process.env['PGUSER'] || process.env.USER);
+    assert.equal(client.database, process.env['PGDATABASE'] || process.env.USER);
     assert.equal(client.port, 5432);
   });
 
@@ -39,13 +39,22 @@ test('initializing from a config string', function() {
     assert.equal(client.database, "databasename")
   })
 
+  test('uses the correct values from the config string with space in password', function() {
+    var client = new Client("pg://brian:pass word@host1:333/databasename")
+    assert.equal(client.user, 'brian')
+    assert.equal(client.password, "pass word")
+    assert.equal(client.host, "host1")
+    assert.equal(client.port, 333)
+    assert.equal(client.database, "databasename")
+  })
+
   test('when not including all values the defaults are used', function() {
     var client = new Client("pg://host1")
-    assert.equal(client.user, process.env.USER)
-    assert.equal(client.password, null)
+    assert.equal(client.user, process.env['PGUSER'] || process.env.USER)
+    assert.equal(client.password, process.env['PGPASSWORD'] || null)
     assert.equal(client.host, "host1")
-    assert.equal(client.port, 5432)
-    assert.equal(client.database, process.env.USER)
+    assert.equal(client.port, process.env['PGPORT'] || 5432)
+    assert.equal(client.database, process.env['PGDATABASE'] || process.env.USER)
   })
 
 

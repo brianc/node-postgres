@@ -97,13 +97,10 @@ If you have a question, post it to the FAQ section of the WIKI so everyone can r
 * [bayt.com](http://bayt.com)
 * [bitfloor.com](https://bitfloor.com)
 * [Vendly](http://www.vend.ly)
+* [SaferAging](http://www.saferaging.com)
 
 _if you use node-postgres in production and would like your site listed here, fork & add it_
 
-## Help
-
-If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
-    
 ## Contributing
 
 __I love contributions.__
@@ -114,6 +111,9 @@ I will __happily__ accept your pull request if it:
 - _has tests_
 - looks reasonable
 - does not break backwards compatibility
+- satisfies jshint
+
+Information about the testing processes is in the [wiki](https://github.com/brianc/node-postgres/wiki/Testing).
 
 If you need help or have questions about constructing a pull request I'll be glad to help out as well.
 
@@ -125,6 +125,12 @@ If at all possible when you open an issue please provide
 - smallest possible snippet of code to reproduce the problem
 
 Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  Then I make the test pass.  Then everyone's happy!
+
+
+If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
+
+I usually tweet about any important status updates or changes to node-postgres.  You can follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
+
 
 ## Extras
 
