@@ -1,24 +1,35 @@
-{ "name": "pg",
+{
+  "name": "pg",
   "version": "0.13.3",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
-  "keywords" : ["postgres", "pg", "libpq", "postgre", "database", "rdbms"],
+  "keywords": [
+    "postgres",
+    "pg",
+    "libpq",
+    "postgre",
+    "database",
+    "rdbms"
+  ],
   "homepage": "http://github.com/brianc/node-postgres",
-  "repository" : {
-    "type" : "git",
-    "url" : "git://github.com/brianc/node-postgres.git"
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-postgres.git"
   },
-  "author" : "Brian Carlson <brian.m.carlson@gmail.com>",
-  "main" : "./lib",
-  "dependencies" : {
-    "generic-pool" : "2.0.2"
+  "author": "Brian Carlson <brian.m.carlson@gmail.com>",
+  "main": "./lib",
+  "dependencies": {
+    "generic-pool": "2.0.2",
+    "deprecate": "~0.1.0"
   },
-  "devDependencies" : {
-    "jshint" : "git://github.com/jshint/jshint.git"
+  "devDependencies": {
+    "jshint": "git://github.com/jshint/jshint.git"
   },
-  "scripts" : {
-    "test" : "make test-all connectionString=pg://postgres@localhost:5432/postgres",
+  "scripts": {
+    "test": "make test-all connectionString=pg://postgres@localhost:5432/postgres",
     "prepublish": "rm -r build || (exit 0)",
-    "install" : "node-gyp rebuild || (exit 0)"
+    "install": "node-gyp rebuild || (exit 0)"
   },
-  "engines" : { "node": ">= 0.8.0" }
+  "engines": {
+    "node": ">= 0.8.0"
+  }
 }

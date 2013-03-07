@@ -7,6 +7,8 @@ var BufferList = require(__dirname+'/buffer-list')
 
 var Connection = require(__dirname + '/../lib/connection');
 
+require(__dirname + '/../lib').defaults.hideDeprecationWarnings = true;
+
 Client = require(__dirname + '/../lib').Client;
 
 process.on('uncaughtException', function(d) {
