@@ -2,7 +2,7 @@ var helper = require(__dirname + "/test-helper");
 var pg = helper.pg;
 
 test('should return insert metadata', function() {
-  pg.connect(helper.config, assert.calls(function(err, client) {
+  pg.connect(helper.config, assert.calls(function(err, client, done) {
     assert.isNull(err);
 
     client.query("CREATE TEMP TABLE zugzug(name varchar(10))", assert.calls(function(err, result) {
@@ -25,6 +25,7 @@ test('should return insert metadata', function() {
       assert.emits(q, 'end', function(result) {
         assert.equal(result.command, "INSERT");
         assert.equal(result.rowCount, 1);
+        done();
       });
 
     }));

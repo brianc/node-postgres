@@ -2,7 +2,7 @@ var helper = require(__dirname + '/test-helper');
 var sink;
 
 var testForTypeCoercion = function(type){
-  helper.pg.connect(helper.config, function(err, client) {
+  helper.pg.connect(helper.config, function(err, client, done) {
     assert.isNull(err);
     client.query("create temp table test_type(col " + type.name + ")", assert.calls(function(err, result) {
       assert.isNull(err);
@@ -31,6 +31,7 @@ var testForTypeCoercion = function(type){
 
         client.query('drop table test_type', function() {
           sink.add();
+          done();
         });
       })
     }));
@@ -133,7 +134,7 @@ test("timestampz round trip", function() {
   client.on('drain', client.end.bind(client));
 });
 
-helper.pg.connect(helper.config, assert.calls(function(err, client) {
+helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
   assert.isNull(err);
   client.query('select null as res;', assert.calls(function(err, res) {
     assert.isNull(err);
@@ -143,6 +144,7 @@ helper.pg.connect(helper.config, assert.calls(function(err, client) {
     assert.isNull(err);
     assert.strictEqual(res.rows[0].res, null);
     sink.add();
+    done();
   })
 }))
 
