@@ -101,12 +101,6 @@ If you have a question, post it to the FAQ section of the WIKI so everyone can r
 
 _if you use node-postgres in production and would like your site listed here, fork & add it_
 
-## Help
-
-If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
-
-I usually tweet about any important status updates or changes to ndoe-postgres.  You can follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
-    
 ## Contributing
 
 __I love contributions.__
@@ -131,6 +125,12 @@ If at all possible when you open an issue please provide
 - smallest possible snippet of code to reproduce the problem
 
 Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  Then I make the test pass.  Then everyone's happy!
+
+
+If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
+
+I usually tweet about any important status updates or changes to node-postgres.  You can follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
+
 
 ## Extras
 
