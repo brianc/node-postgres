@@ -57,15 +57,14 @@ var types = [{
   name: 'bool',
   values: [true, false, null]
 },{
-  //TODO get some actual huge numbers here
   name: 'numeric',
-  values: [-12.34, 0, 12.34, null]
+  values: ['-12.34', '0', '12.34', null]
 },{
   name: 'real',
-  values: [101.1, 0, -101.3, null]
+  values: ['101.1', '0', '-101.3', null]
 },{
   name: 'double precision',
-  values: [-1.2, 0, 1.2, null]
+  values: ['-1.2', '0', '1.2', null]
 },{
   name: 'timestamptz',
   values: [null]
@@ -83,7 +82,7 @@ var types = [{
 // ignore some tests in binary mode
 if (helper.config.binary) {
   types = types.filter(function(type) {
-    return !(type.name in {'real':1, 'timetz':1, 'time':1});
+    return !(type.name in {'real':1, 'timetz':1, 'time':1, 'numeric': 1, 'double precision': 1});
   });
 }
 
