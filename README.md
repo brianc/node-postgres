@@ -104,6 +104,8 @@ _if you use node-postgres in production and would like your site listed here, fo
 ## Help
 
 If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
+
+I usually tweet about any important status updates or changes to ndoe-postgres.  You can follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
     
 ## Contributing
 
