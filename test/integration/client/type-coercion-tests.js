@@ -2,7 +2,7 @@ var helper = require(__dirname + '/test-helper');
 var sink;
 
 var testForTypeCoercion = function(type){
-  helper.pg.connect(helper.config, function(err, client) {
+  helper.pg.connect(helper.config, function(err, client, done) {
     assert.isNull(err);
     client.query("create temp table test_type(col " + type.name + ")", assert.calls(function(err, result) {
       assert.isNull(err);
@@ -31,6 +31,7 @@ var testForTypeCoercion = function(type){
 
         client.query('drop table test_type', function() {
           sink.add();
+          done();
         });
       })
     }));
@@ -56,15 +57,14 @@ var types = [{
   name: 'bool',
   values: [true, false, null]
 },{
-  //TODO get some actual huge numbers here
   name: 'numeric',
-  values: [-12.34, 0, 12.34, null]
+  values: ['-12.34', '0', '12.34', null]
 },{
   name: 'real',
-  values: [101.1, 0, -101.3, null]
+  values: ['101.1', '0', '-101.3', null]
 },{
   name: 'double precision',
-  values: [-1.2, 0, 1.2, null]
+  values: ['-1.2', '0', '1.2', null]
 },{
   name: 'timestamptz',
   values: [null]
@@ -82,7 +82,7 @@ var types = [{
 // ignore some tests in binary mode
 if (helper.config.binary) {
   types = types.filter(function(type) {
-    return !(type.name in {'real':1, 'timetz':1, 'time':1});
+    return !(type.name in {'real':1, 'timetz':1, 'time':1, 'numeric': 1, 'double precision': 1});
   });
 }
 
@@ -133,7 +133,7 @@ test("timestampz round trip", function() {
   client.on('drain', client.end.bind(client));
 });
 
-helper.pg.connect(helper.config, assert.calls(function(err, client) {
+helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
   assert.isNull(err);
   client.query('select null as res;', assert.calls(function(err, res) {
     assert.isNull(err);
@@ -143,6 +143,7 @@ helper.pg.connect(helper.config, assert.calls(function(err, client) {
     assert.isNull(err);
     assert.strictEqual(res.rows[0].res, null);
     sink.add();
+    done();
   })
 }))
 
