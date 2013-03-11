@@ -82,6 +82,17 @@ The two share the same interface so __no other code changes should be required__
   * bulk import & export with `COPY TO/COPY FROM`
   * extensible js<->postgresql data-type coercion
 
+## Heads Up!!
+
+node-postgres is __very__ near to v1.0.0 release.  Up until now I've tried to maintain all backwards compatilbity, but there are a few breaking changes the community has recommended I introduce.
+
+The current version will spit out deprecation warnings when you use the soon-to-be-deprecated features.  They're meant to be obtrusive and annoying.  Understandable if you'd like to disable them.
+
+You can do so like this: `pg.defaults.hideDeprecationWarnings = true;`
+
+These are the breaking changes: https://github.com/brianc/node-postgres/pull/301
+
+
 ## Documentation
 
 Documentation is a work in progress primarily taking place on the github WIKI
