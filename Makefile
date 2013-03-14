@@ -9,6 +9,9 @@ node-command := xargs -n 1 -I file node file $(params)
 .PHONY : test test-connection test-integration bench test-native \
 	build/default/binding.node jshint
 
+all:
+	npm install
+
 help:
 	@echo "make prepare-test-db [connectionString=pg://<your connection string>]"
 	@echo "make test-all [connectionString=pg://<your connection string>]"
