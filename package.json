@@ -19,7 +19,7 @@
   "main": "./lib",
   "dependencies": {
     "generic-pool": "2.0.2",
-    "deprecate": "~0.1.0"
+    "buffer-writer": "1.0.0"
   },
   "devDependencies": {
     "jshint": "git://github.com/jshint/jshint.git"
