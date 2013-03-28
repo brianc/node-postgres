@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #define LOG(msg) printf("%s\n",msg);
-#define TRACE(msg) //printf("%s\n", msg);
+#define TRACE(msg) //printf(%s\n, msg);
 
 
 #define THROW(msg) return ThrowException(Exception::Error(String::New(msg)));
@@ -434,12 +434,15 @@ protected:
 
     if(revents & UV_READABLE) {
       TRACE("revents & UV_READABLE");
+      TRACE("about to consume input");
       if(PQconsumeInput(connection_) == 0) {
+        TRACE("could not read, terminating");
         End();
         EmitLastError();
         //LOG("Something happened, consume input is 0");
         return;
       }
+      TRACE("Consumed");
 
       //declare handlescope as this method is entered via a libuv callback
       //and not part of the public v8 interface
@@ -450,8 +453,11 @@ protected:
       if (!this->copyInMode_ && !this->copyOutMode_ && PQisBusy(connection_) == 0) {
         PGresult *result;
         bool didHandleResult = false;
+        TRACE("PQgetResult");
         while ((result = PQgetResult(connection_))) {
+          TRACE("HandleResult");
           didHandleResult = HandleResult(result);
+          TRACE("PQClear");
           PQclear(result);
           if(!didHandleResult) {
             //this means that we are in copy in or copy out mode
@@ -469,6 +475,7 @@ protected:
       }
 
       PGnotify *notify;
+      TRACE("PQnotifies");
       while ((notify = PQnotifies(connection_))) {
         Local<Object> result = Object::New();
         result->Set(channel_symbol, String::New(notify->relname));
@@ -515,6 +522,7 @@ protected:
   }
   bool HandleResult(PGresult* result)
   {
+    TRACE("PQresultStatus");
     ExecStatusType status = PQresultStatus(result);
     switch(status) {
     case PGRES_TUPLES_OK:
@@ -526,6 +534,7 @@ protected:
       break;
     case PGRES_FATAL_ERROR:
       {
+        TRACE("HandleErrorResult");
         HandleErrorResult(result);
         return true;
       }
@@ -610,8 +619,15 @@ protected:
   {
     HandleScope scope;
     //instantiate the return object as an Error with the summary Postgres message
-    Local<Object> msg = Local<Object>::Cast(Exception::Error(String::New(PQresultErrorField(result, PG_DIAG_MESSAGE_PRIMARY))));
-
+    TRACE("ReadResultField");
+    const char* errorMessage = PQresultErrorField(result, PG_DIAG_MESSAGE_PRIMARY);
+    if(!errorMessage) {
+      //there is no error, it has already been consumed in the last
+      //read-loop callback
+      return;
+    }
+    Local<Object> msg = Local<Object>::Cast(Exception::Error(String::New(errorMessage)));
+    TRACE("AttachErrorFields");
     //add the other information returned by Postgres to the error object
     AttachErrorField(result, msg, severity_symbol, PG_DIAG_SEVERITY);
     AttachErrorField(result, msg, code_symbol, PG_DIAG_SQLSTATE);
@@ -625,6 +641,7 @@ protected:
     AttachErrorField(result, msg, line_symbol, PG_DIAG_SOURCE_LINE);
     AttachErrorField(result, msg, routine_symbol, PG_DIAG_SOURCE_FUNCTION);
     Handle<Value> m = msg;
+    TRACE("EmitError");
     Emit("_error", &m);
   }
 
@@ -638,9 +655,11 @@ protected:
 
   void End()
   {
+    TRACE("stopping read & write");
     StopRead();
     StopWrite();
     DestroyConnection();
+    Emit("_end");
   }
 
 private:
@@ -719,7 +738,7 @@ private:
   void StopWrite()
   {
     TRACE("write STOP");
-    if(ioInitialized_) {
+    if(ioInitialized_ && writing_) {
       uv_poll_stop(&write_watcher_);
       writing_ = false;
     }
@@ -739,7 +758,7 @@ private:
   void StopRead()
   {
     TRACE("read STOP");
-    if(ioInitialized_) {
+    if(ioInitialized_ && reading_) {
       uv_poll_stop(&read_watcher_);
       reading_ = false;
     }

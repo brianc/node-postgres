@@ -22,7 +22,7 @@
     "deprecate": "~0.1.0"
   },
   "devDependencies": {
-    "jshint": "git://github.com/jshint/jshint.git"
+    "jshint": "1.1.0"
   },
   "scripts": {
     "test": "make test-all connectionString=pg://postgres@localhost:5432/postgres",

@@ -158,6 +158,16 @@ test('multiple connection errors (gh#31)', function() {
     var badConString = "tcp://aslkdfj:oi14081@"+helper.args.host+":"+helper.args.port+"/"+helper.args.database;
     return false;
   });
+});
 
+test('query receives error on client shutdown', function() {
+  var client = new Client(helper.config);
+  client.connect(assert.calls(function() {
+    client.query('SELECT pg_sleep(5)', assert.calls(function(err, res) {
+      assert(err);
+    }));
+    client.end();
+    assert.emits(client, 'end');
+  }));
 });
 
