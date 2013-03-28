@@ -5,6 +5,10 @@
     - Client#pauseDrain() / Client#resumeDrain removed
       - numeric, decimal, and float data types no longer parsed into float before being returned. Will be returned from query results as `String`
 
+### v0.15.0
+
+- client now emits `end` when disconnected from back-end server
+- if client is disconnected in the middle of a query, query receives an error
 
 ### v0.14.0
 
