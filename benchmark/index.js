@@ -1,5 +1,5 @@
 var async = require('async');
-var max = 40000;
+var max = 10000;
 var maxTimes = 3;
 var doLoops = function(bench, loops, times, cb) {
   var start = new Date();
