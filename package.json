@@ -1,10 +1,6 @@
 {
   "name": "pg",
-<<<<<<< HEAD
-  "version": "0.15.1",
-=======
   "version": "1.0.0",
->>>>>>> v1.0
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "postgres",
