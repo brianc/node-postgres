@@ -2,7 +2,7 @@ var helper = require(__dirname + "/test-helper");
 var pg = helper.pg;
 
 test('parsing array results', function() {
-  pg.connect(helper.config, assert.calls(function(err, client) {
+  pg.connect(helper.config, assert.calls(function(err, client, done) {
     assert.isNull(err);
     client.query("CREATE TEMP TABLE why(names text[], numbors integer[])");
     client.query('INSERT INTO why(names, numbors) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\')').on('error', console.log);
@@ -23,7 +23,6 @@ test('parsing array results', function() {
         assert.equal(names[0], 'aaron');
         assert.equal(names[1], 'brian');
         assert.equal(names[2], "a b c");
-        pg.end();
       }))
     })
     
@@ -31,7 +30,6 @@ test('parsing array results', function() {
       client.query("SELECT '{}'::text[] as names", assert.success(function(result) {
         var names = result.rows[0].names;
         assert.lengthIs(names, 0);
-        pg.end();
       }))
     })
 
@@ -41,7 +39,6 @@ test('parsing array results', function() {
         assert.lengthIs(names, 2);
         assert.equal(names[0], 'joe,bob');
         assert.equal(names[1], 'jim');
-        pg.end();
       }))
     })
 
@@ -51,7 +48,6 @@ test('parsing array results', function() {
         assert.lengthIs(names, 2);
         assert.equal(names[0], '{');
         assert.equal(names[1], '}');
-        pg.end();
       }))
     })
 
@@ -63,7 +59,6 @@ test('parsing array results', function() {
         assert.equal(names[1], null);
         assert.equal(names[2], 'bob');
         assert.equal(names[3], 'NULL');
-        pg.end();
       }))
     })
 
@@ -74,7 +69,6 @@ test('parsing array results', function() {
         assert.equal(names[0], 'joe\'');
         assert.equal(names[1], 'jim');
         assert.equal(names[2], 'bob"');
-        pg.end();
       }))
     })
 
@@ -91,7 +85,6 @@ test('parsing array results', function() {
         assert.equal(names[1][0], '2');
         assert.equal(names[1][1], 'bob');
 
-        pg.end();
       }))
     })
 
@@ -102,7 +95,6 @@ test('parsing array results', function() {
         assert.equal(names[0], 1);
         assert.equal(names[1], 2);
         assert.equal(names[2], 3);
-        pg.end();
       }))
     })
 
@@ -118,7 +110,6 @@ test('parsing array results', function() {
 
         assert.equal(names[2][0], 3);
         assert.equal(names[2][1], 100);
-        pg.end();
       }))
     })
     
@@ -134,6 +125,7 @@ test('parsing array results', function() {
 
         assert.equal(names[2][0], 3);
         assert.equal(names[2][1], 100);
+        done();
         pg.end();
       }))
     })

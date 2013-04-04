@@ -68,19 +68,6 @@ test('pool follows defaults', function() {
   assert.equal(p.getPoolSize(), defaults.poolSize);
 });
 
-test('pool#connect with 2 parameters (legacy, for backwards compat)', function() {
-  var p = pools.getOrCreate(poolId++);
-  p.connect(assert.success(function(client) {
-    assert.ok(client);
-    assert.equal(p.availableObjectsCount(), 0);
-    assert.equal(p.getPoolSize(), 1);
-    client.emit('drain');
-    assert.equal(p.availableObjectsCount(), 1);
-    assert.equal(p.getPoolSize(), 1);
-    p.destroyAllNow();
-  }));
-});
-
 test('pool#connect with 3 parameters', function() {
   var p = pools.getOrCreate(poolId++);
   var tid = setTimeout(function() {
@@ -88,7 +75,7 @@ test('pool#connect with 3 parameters', function() {
   }, 100);
   p.connect(function(err, client, done) {
     clearTimeout(tid);
-    assert.equal(err, null);
+    assert.ifError(err, null);
     assert.ok(client);
     assert.equal(p.availableObjectsCount(), 0);
     assert.equal(p.getPoolSize(), 1);
@@ -104,9 +91,9 @@ test('pool#connect with 3 parameters', function() {
 
 test('on client error, client is removed from pool', function() {
   var p = pools.getOrCreate(poolId++);
-  p.connect(assert.success(function(client) {
+  p.connect(assert.success(function(client, done) {
     assert.ok(client);
-    client.emit('drain');
+    done();
     assert.equal(p.availableObjectsCount(), 1);
     assert.equal(p.getPoolSize(), 1);
     //error event fires on pool BEFORE pool.destroy is called with client

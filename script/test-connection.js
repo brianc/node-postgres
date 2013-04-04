@@ -3,7 +3,7 @@ var helper = require(__dirname + '/../test/test-helper');
 console.log();
 console.log("testing ability to connect to '%j'", helper.config);
 var pg = require(__dirname + '/../lib');
-pg.connect(helper.config, function(err, client) {
+pg.connect(helper.config, function(err, client, done) {
   if(err !== null) {
     console.error("Recieved connection error when attempting to contact PostgreSQL:");
     console.error(err);
@@ -18,6 +18,7 @@ pg.connect(helper.config, function(err, client) {
       console.error(err);
       process.exit(255);
     }
+    done();
     pg.end();
   })
 })

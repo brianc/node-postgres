@@ -7,8 +7,6 @@ var BufferList = require(__dirname+'/buffer-list')
 
 var Connection = require(__dirname + '/../lib/connection');
 
-require(__dirname + '/../lib').defaults.hideDeprecationWarnings = true;
-
 Client = require(__dirname + '/../lib').Client;
 
 process.on('uncaughtException', function(d) {
@@ -98,13 +96,25 @@ assert.empty = function(actual) {
 };
 
 assert.success = function(callback) {
-  return assert.calls(function(err, arg) {
-    if(err) {
-      console.log(err);
-    }
-    assert.isNull(err);
-    callback(arg);
-  })
+  if(callback.length === 1) {
+    return assert.calls(function(err, arg) {
+      if(err) {
+        console.log(err);
+      }
+      assert.isNull(err);
+      callback(arg);
+    });
+  } else if (callback.length === 2) {
+    return assert.calls(function(err, arg1, arg2) {
+      if(err) {
+        console.log(err);
+      }
+      assert.isNull(err);
+      callback(arg1, arg2);
+    });
+  } else {
+    throw new Error('need to preserve arrity of wrapped function');
+  }
 }
 
 assert.throws = function(offender) {
@@ -127,13 +137,26 @@ var expect = function(callback, timeout) {
     assert.ok(executed, "Expected execution of function to be fired");
   }, timeout || 5000)
 
-  return function(err, queryResult) {
-    clearTimeout(id);
-    if (err) {
-      assert.ok(err instanceof Error, "Expected errors to be instances of Error: " + sys.inspect(err));
+  if(callback.length < 3) {
+    return function(err, queryResult) {
+      clearTimeout(id);
+      if (err) {
+        assert.ok(err instanceof Error, "Expected errors to be instances of Error: " + sys.inspect(err));
+      }
+      callback.apply(this, arguments)
     }
-    callback.apply(this, arguments)
+  } else if(callback.length == 3) {
+    return function(err, arg1, arg2) {
+      clearTimeout(id);
+      if (err) {
+        assert.ok(err instanceof Error, "Expected errors to be instances of Error: " + sys.inspect(err));
+      }
+      callback.apply(this, arguments)
+    }
+  } else {
+    throw new Error("Unsupported arrity " + callback.length);
   }
+
 }
 assert.calls = expect;
 
