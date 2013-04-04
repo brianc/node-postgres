@@ -96,7 +96,7 @@ assert.empty = function(actual) {
 };
 
 assert.success = function(callback) {
-  if(callback.length === 1) {
+  if(callback.length === 1 || callback.length === 0) {
     return assert.calls(function(err, arg) {
       if(err) {
         console.log(err);
