@@ -4,7 +4,7 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
-### v1.0 - not released yet
+### v1.0
 
 - remove deprecated functionality
   - `pg.connect` now __requires__ 3 arguments
