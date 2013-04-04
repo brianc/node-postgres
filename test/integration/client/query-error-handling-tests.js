@@ -8,7 +8,6 @@ test('error during query execution', function() {
     client.query(sleepQuery, assert.calls(function(err, result) {
       assert(err);
       client.end();
-      assert.emits(client, 'end');
     }));
     var client2 = new Client(helper.args);
     client2.connect(assert.success(function() {
