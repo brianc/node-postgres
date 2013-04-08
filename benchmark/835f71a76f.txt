@@ -1,0 +1,17 @@
+benchmark
+starting  simple-query-parsing
+3703 ops/sec - (100/0.027)
+7299 ops/sec - (1000/0.137)
+8888 ops/sec - (10000/1.125)
+8733 ops/sec - (10000/1.145)
+8810 ops/sec - (10000/1.135)
+8771 ops/sec - (10000/1.14)
+starting  prepared-statement-parsing
+3846 ops/sec - (100/0.026)
+7299 ops/sec - (1000/0.137)
+7225 ops/sec - (10000/1.384)
+7288 ops/sec - (10000/1.372)
+7225 ops/sec - (10000/1.384)
+7457 ops/sec - (10000/1.341)
+done
+
