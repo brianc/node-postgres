@@ -63,3 +63,17 @@ test("multiple select statements", function() {
   });
   client.on('drain', client.end.bind(client));
 });
+
+test("array rows", function() {
+  var client = helper.client();
+  client.query("create temp table t(a integer, b varchar(5)); insert into t values (1, 'one'), (2, 'two');");
+  client.query({
+    text: "select a,b from t order by a",
+    rowtype: "array"
+  }, function(error, result) {
+    assert.deepEqual(result.fieldNames, ["a", "b"]);
+    assert.deepEqual(result.rows, [[1,"one"], [2,"two"]]);
+    client.end();
+  });
+});
+
