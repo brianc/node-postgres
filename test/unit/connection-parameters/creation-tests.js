@@ -152,7 +152,7 @@ test('libpq connection string building', function() {
     assert.equal(subject.user, "bi%na%%ry ");
     assert.equal(subject.password, "s@f#");
     assert.equal(subject.host, 'localhost');
-    assert.equal(subject.path, " u%20rl");
+    assert.equal(subject.database, " u%20rl");
   });
 
 });
