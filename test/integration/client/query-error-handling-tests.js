@@ -21,7 +21,7 @@ test('error during query execution', function() {
         var killIdleQuery = "SELECT " + pidColName + ", (SELECT pg_terminate_backend(" + pidColName + ")) AS killed FROM pg_stat_activity WHERE " + queryColName + " = $1";
         client2.query(killIdleQuery, [sleepQuery], assert.calls(function(err, res) {
           assert.ifError(err);
-          assert.equal(res.rowCount, 1);
+          assert.equal(res.rows.length, 1);
           client2.end();
           assert.emits(client2, 'end');
         }));
