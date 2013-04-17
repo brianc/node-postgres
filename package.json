@@ -22,7 +22,8 @@
     "buffer-writer": "1.0.0"
   },
   "devDependencies": {
-    "jshint": "1.1.0"
+    "jshint": "1.1.0",
+    "semver": "~1.1.4"
   },
   "scripts": {
     "test": "make test-all connectionString=pg://postgres@localhost:5432/postgres",
