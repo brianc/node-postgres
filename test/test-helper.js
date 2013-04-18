@@ -10,6 +10,9 @@ var Connection = require(__dirname + '/../lib/connection');
 Client = require(__dirname + '/../lib').Client;
 
 process.on('uncaughtException', function(d) {
+  // quietly absorb fake errors
+  if (d.message === 'Fake Error') return;
+
   if ('stack' in d && 'message' in d) {
     console.log("Message: " + d.message);
     console.log(d.stack);
@@ -187,6 +190,9 @@ process.on('exit', function() {
 })
 
 process.on('uncaughtException', function(err) {
+  // quietly absorb fake errors
+  if (err.message === 'Fake Error') return;
+
   console.error("\n %s", err.stack || err.toString())
   //causes xargs to abort right away
   process.exit(255);
