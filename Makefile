@@ -7,7 +7,7 @@ params := $(connectionString)
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	build/default/binding.node jshint
+	build/default/binding.node jshint upgrade-pg
 
 all:
 	npm install
@@ -19,6 +19,12 @@ help:
 test: test-unit 
 
 test-all: jshint test-unit test-integration test-native test-binary
+
+test-travis: test-all upgrade-pg test-integration test-native test-binary
+
+upgrade-pg:
+	@chmod 755 script/travis-pg-9.2-install.sh
+	@./script/travis-pg-9.2-install.sh
 
 bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
