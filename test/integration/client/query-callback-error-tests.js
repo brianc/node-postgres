@@ -6,7 +6,6 @@ var withQuery = function(text, resultLength, cb) {
     var client = new Client(helper.args);
     process.removeAllListeners('uncaughtException');
     assert.emits(process, 'uncaughtException', function() {
-      console.log('got uncaught exception')
       assert.equal(client.activeQuery, null, 'should remove active query even if error happens in callback');
       client.query('SELECT * FROM blah', assert.success(function(result) {
         assert.equal(result.rows.length, resultLength);
