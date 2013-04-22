@@ -2,6 +2,7 @@ var helper = require(__dirname + '/test-helper');
 var assert = require('assert');
 //if you want binary support, pull request me!
 if (helper.config.binary) {
+  console.log('binary mode does not support JSON right now');
   return;
 }
 
