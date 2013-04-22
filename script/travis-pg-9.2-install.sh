@@ -15,4 +15,6 @@ sudo echo "host    all         all         ::1/128               trust" >> /etc/
 sudo echo "host    all         all         0.0.0.0/0             trust" >> /etc/postgresql/9.2/main/pg_hba.conf
 sudo echo "host    all         all         0.0.0.0 255.255.255.255 trust" >> /etc/postgresql/9.2/main/pg_hba.conf
 sudo /etc/init.d/postgresql restart
-#node script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
+# for some reason both postgres 9.1 and 9.2 are started
+# 9.2 is running on port 5433
+node script/create-test-tables.js pg://postgres@localhost:5433/postgres
