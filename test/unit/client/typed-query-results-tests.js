@@ -78,11 +78,11 @@ test('typed results', function() {
     name: 'timestamptz with minutes in timezone',
     format: 'text',
     dataTypeID: 1184,
-    actual: '2010-10-31 14:54:13.74-0530',
+    actual: '2010-10-31 14:54:13.74-05:30',
     expected: function(val) {
       assert.UTCDate(val, 2010, 9, 31, 20, 24, 13, 740);
     }
-  },{
+  }, {
     name: 'timestamptz with other milisecond digits dropped',
     format: 'text',
     dataTypeID: 1184,
