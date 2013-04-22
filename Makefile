@@ -20,7 +20,8 @@ test: test-unit
 
 test-all: jshint test-unit test-integration test-native test-binary
 
-test-travis: test-all upgrade-pg test-integration test-native test-binary
+test-travis: test-all upgrade-pg
+	@make test-all
 
 upgrade-pg:
 	@chmod 755 script/travis-pg-9.2-install.sh
