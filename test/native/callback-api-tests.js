@@ -1,3 +1,4 @@
+var domain = require('domain');
 var helper = require(__dirname + "/../test-helper");
 var Client = require(__dirname + "/../../lib/native");
 
@@ -13,4 +14,18 @@ test('fires callback with results', function() {
       client.end();
     }))
   }));
+})
+
+test('preserves domain', function() {
+  var dom = domain.create();
+
+  dom.run(function() {
+    var client = new Client(helper.config);
+    assert.ok(dom === require('domain').active, 'domain is active');
+    client.connect()
+    client.query('select 1', function() {
+      assert.ok(dom === require('domain').active, 'domain is still active');
+      client.end();
+    });
+  });
 })
