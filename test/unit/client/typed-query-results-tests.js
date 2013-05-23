@@ -30,8 +30,8 @@ test('typed results', function() {
     name: 'bigint/int8',
     format: 'text',
     dataTypeID: 20,
-    actual: '102',
-    expected: 102
+    actual: '9223372036854775807',
+    expected: '9223372036854775807'
   },{
     name: 'oid',
     format: 'text',
@@ -222,13 +222,13 @@ test('typed results', function() {
     format: 'binary',
     dataTypeID: 20,
     actual: [0, 0, 0, 0, 0, 0, 0, 102],
-    expected: 102
+    expected: '102'
   },{
     name: 'binary-bigint/int8-full',
     format: 'binary',
     dataTypeID: 20,
     actual: [1, 0, 0, 0, 0, 0, 0, 102],
-    expected: 72057594037928030
+    expected: '72057594037928038'
   },{
     name: 'binary-oid',
     format: 'binary',
