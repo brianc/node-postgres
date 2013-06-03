@@ -7,7 +7,7 @@ params := $(connectionString)
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	build/default/binding.node jshint upgrade-pg
+	build/default/binding.node jshint upgrade-pg publish
 
 all:
 	npm install
@@ -64,3 +64,7 @@ prepare-test-db:
 jshint:
 	@echo "***Starting jshint***"
 	@./node_modules/.bin/jshint lib
+
+publish:
+	@rm -r build || (exit 0)
+	@npm publish
