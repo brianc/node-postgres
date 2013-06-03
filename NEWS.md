@@ -11,9 +11,9 @@ We do not include break-fix version release in this file.
 ### v1.0
 
 - remove deprecated functionality
-  - `pg.connect` now __requires__ 3 arguments
-    - Client#pauseDrain() / Client#resumeDrain removed
-      - numeric, decimal, and float data types no longer parsed into float before being returned. Will be returned from query results as `String`
+  - Callback function passed to `pg.connect` now __requires__ 3 arguments
+  - Client#pauseDrain() / Client#resumeDrain removed
+  - numeric, decimal, and float data types no longer parsed into float before being returned. Will be returned from query results as `String`
 
 ### v0.15.0
 
