@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v1.3
+
+- Make client_encoding configurable and optional
+
 ### v1.2
 
 - return field metadata on result object: access via result.fields[i].name/dataTypeID
