@@ -124,6 +124,18 @@ test('libpq connection string building', function() {
     }));
   });
 
+  test("encoding can be specified by config", function() {
+    var config = {
+      client_encoding: "utf-8"
+    }
+    var subject = new ConnectionParameters(config);
+    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
+      assert.isNull(err);
+      var parts = constring.split(" ");
+      checkForPart(parts, "client_encoding='utf-8'");
+    }));
+  })
+
   test('password contains  < and/or >  characters', function () {
     return false;
     var sourceConfig = {
