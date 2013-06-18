@@ -134,7 +134,7 @@ test("COPY TO incorrect usage with small data", function () {
       assert.calls(function (error) {
         assert.ok(error, "error should be reported when sending copy to query with query method");
         client.query("SELECT 1", assert.calls(function (error, result) {
-          assert.isNull(error, "incorrect copy usage should not break connection");
+          assert.isNull(error, "incorrect copy usage should not break connection: " + error);
           assert.ok(result, "incorrect copy usage should not break connection");
           done();
         }));
@@ -154,7 +154,7 @@ test("COPY FROM incorrect usage", function () {
         assert.calls(function (error) {
           assert.ok(error, "error should be reported when sending copy to query with query method");
           client.query("SELECT 1", assert.calls(function (error, result) {
-            assert.isNull(error, "incorrect copy usage should not break connection");
+            assert.isNull(error, "incorrect copy usage should not break connection: " + error);
             assert.ok(result, "incorrect copy usage should not break connection");
             done();
             pg.end(helper.config);     
