@@ -23,7 +23,9 @@ var testForTypeCoercion = function(type){
           });
 
           assert.emits(query, 'row', function(row) {
-            assert.strictEqual(row.col, val, "expected " + type.name + " of " + val + " but got " + row.col);
+            var expected = val + " (" + typeof val + ")";
+            var returned = row.col + " (" + typeof row.col + ")";
+            assert.strictEqual(row.col, val, "expected " + type.name + " of " + expected + " but got " + returned);
           }, "row should have been called for " + type.name + " of " + val);
 
           client.query('delete from test_type');
@@ -40,13 +42,21 @@ var testForTypeCoercion = function(type){
 
 var types = [{
   name: 'integer',
-  values: [1, -1, null]
+  values: [-2147483648, -1, 0, 1, 2147483647, null]
 },{
   name: 'smallint',
-  values: [-1, 0, 1, null]
+  values: [-32768, -1, 0, 1, 32767, null]
 },{
   name: 'bigint',
-  values: [-10000, 0, 10000, null]
+  values: [
+    '-9223372036854775808',
+    '-9007199254740992',
+    '0',
+    '9007199254740992',
+    '72057594037928030',
+    '9223372036854775807',
+    null
+  ]
 },{
   name: 'varchar(5)',
   values: ['yo', '', 'zomg!', null]
@@ -58,13 +68,20 @@ var types = [{
   values: [true, false, null]
 },{
   name: 'numeric',
-  values: ['-12.34', '0', '12.34', null]
+  values: [
+    '-12.34',
+    '0',
+    '12.34',
+    '-3141592653589793238462643383279502.1618033988749894848204586834365638',
+    '3141592653589793238462643383279502.1618033988749894848204586834365638',
+    null
+  ]
 },{
   name: 'real',
-  values: ['101.1', '0', '-101.3', null]
+  values: [-101.3, -1.2, 0, 1.2, 101.1, null]
 },{
   name: 'double precision',
-  values: ['-1.2', '0', '1.2', null]
+  values: [-101.3, -1.2, 0, 1.2, 101.1, null]
 },{
   name: 'timestamptz',
   values: [null]
@@ -82,7 +99,7 @@ var types = [{
 // ignore some tests in binary mode
 if (helper.config.binary) {
   types = types.filter(function(type) {
-    return !(type.name in {'real':1, 'timetz':1, 'time':1, 'numeric': 1, 'double precision': 1});
+    return !(type.name in {'real': 1, 'timetz':1, 'time':1, 'numeric': 1});
   });
 }
 
