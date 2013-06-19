@@ -4,6 +4,23 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v2.0
+
+- Properly handle various PostgreSQL to JavaScript type conversions to avoid data loss:
+
+```
+PostgreSQL | pg@v2.0 JavaScript | pg@v1.0 JavaScript
+--------------------------------|----------------
+float4     | number (float)     | string
+float8     | number (float)     | string
+int8       | string             | number (int)
+numeric    | string             | number (float)
+decimal    | string             | number (float)
+```
+
+For more information see https://github.com/brianc/node-postgres/pull/353
+If you are unhappy with these changes you can always [override the built in type parsing fairly easily](https://github.com/brianc/node-pg-parse-float). 
+
 ### v1.3
 
 - Make client_encoding configurable and optional
