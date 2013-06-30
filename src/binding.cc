@@ -87,8 +87,7 @@ public:
     TRACE("Received IO event");
 
     if(status == -1) {
-      LOG("Connection error.");
-      return;
+      TRACE("Connection error. -1 status from lib_uv_poll");
     }
 
     Connection *connection = static_cast<Connection*>(w->data);
