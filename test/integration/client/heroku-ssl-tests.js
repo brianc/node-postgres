@@ -17,6 +17,9 @@ var config = {
 
 //connect & disconnect from heroku
 pg.connect(config, assert.success(function(client, done) {
-  done();
-  pg.end();
+  client.query('SELECT NOW() as time', assert.success(function(res) {
+    assert(res.rows[0].time.getTime());
+    done();
+    pg.end();
+  }))
 }));
