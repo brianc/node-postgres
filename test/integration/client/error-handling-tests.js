@@ -114,7 +114,6 @@ test('non-error calls supplied callback', function() {
 });
 
 test('when connecting to invalid host', function() {
-  return false;
   var client = new Client({
     user: 'aslkdjfsdf',
     password: '1234',
@@ -125,7 +124,6 @@ test('when connecting to invalid host', function() {
 });
 
 test('when connecting to invalid host with callback', function() {
-  return false;
   var client = new Client({
     user: 'brian',
     password: '1234',
@@ -137,8 +135,8 @@ test('when connecting to invalid host with callback', function() {
 });
 
 test('multiple connection errors (gh#31)', function() {
-  return false;
   test('with single client', function() {
+    return false;
     //don't run yet...this test fails...need to think of fix
     var client = new Client({
       user: 'blaksdjf',
@@ -152,11 +150,6 @@ test('multiple connection errors (gh#31)', function() {
       client.connect();
       assert.emits(client, 'error');
     });
-  });
-
-  test('with callback method', function() {
-    var badConString = "tcp://aslkdfj:oi14081@"+helper.args.host+":"+helper.args.port+"/"+helper.args.database;
-    return false;
   });
 });
 
