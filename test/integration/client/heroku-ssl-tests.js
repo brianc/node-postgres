@@ -11,6 +11,7 @@ var config = {
   port: port,
   database: database,
   user: user,
+  password: 'uaZoSSHgi7mVM7kYaROtusClKu',
   ssl: true
 };
 
