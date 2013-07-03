@@ -24,17 +24,15 @@ var conString = "tcp://postgres:1234@localhost/postgres";
 var client = new pg.Client(conString);
 client.connect(function(err) {
   if(err) {
-    console.error('could not connect to postgres', err);
-    return;
+    return console.error('could not connect to postgres', err);
   }
   client.query('SELECT NOW() AS "theTime"', function(err, result) {
-      if(err) {
-        console.error('error running query', err);
-        return;
-      }
-      console.log(result.rows[0].theTime);
-      //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
-      client.end();
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log(result.rows[0].theTime);
+    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
+    client.end();
   });
 });
 
@@ -50,16 +48,14 @@ var conString = "tcp://postgres:1234@localhost/postgres";
 
 pg.connect(conString, function(err, client, done) {
   if(err) {
-  	console.error('error fetching client from pool', err);
-    return;
+  	return console.error('error fetching client from pool', err);
   }
   client.query('SELECT $1::int AS numbor', ['1'], function(err, result) {
     //call `done()` to release the client back to the pool
     done();
     
     if(err) {
-      console.error('error running query', err);
-      return;
+      return console.error('error running query', err);
     }
     console.log(result.rows[0].numbor);
     //output: 1
