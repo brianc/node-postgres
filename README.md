@@ -35,7 +35,7 @@ client.connect(function(err) {
       console.log(result.rows[0].theTime);
       //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
       client.end();
-  })
+  });
 });
 
 ```
@@ -65,6 +65,7 @@ pg.connect(conString, function(err, client, done) {
     //output: 1
   });
 });
+
 ```
 
 ## Documentation
@@ -80,7 +81,6 @@ node-postgres contains a pure JavaScript driver and also exposes JavaScript bind
 To use native libpq bindings replace `require('pg')` with `require('pg').native`.
 
 The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg.native`, please report an issue.
-
 
 ## Features
 
@@ -121,7 +121,8 @@ Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  T
 
 If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
 
-I usually tweet about any important status updates or changes to node-postgres.  You can follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
+I usually tweet about any important status updates or changes to node-postgres.  
+Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 
 ## Extras
