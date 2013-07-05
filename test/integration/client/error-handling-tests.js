@@ -119,7 +119,13 @@ test('when connecting to invalid host', function() {
     password: '1234',
     host: 'asldkfjasdf!!#1308140.com'
   });
-  assert.emits(client, 'error');
+  var delay = 5000;
+  var tid = setTimeout(function() {
+    assert(false, "When connecting to an invalid host the error event should be emitted but it has been " + delay + " and still no error event.");
+  }, delay);
+  client.on('error', function() {
+    clearTimeout(tid);
+  })
   client.connect();
 });
 
@@ -135,8 +141,8 @@ test('when connecting to invalid host with callback', function() {
 });
 
 test('multiple connection errors (gh#31)', function() {
+  return false;
   test('with single client', function() {
-    return false;
     //don't run yet...this test fails...need to think of fix
     var client = new Client({
       user: 'blaksdjf',
@@ -150,6 +156,11 @@ test('multiple connection errors (gh#31)', function() {
       client.connect();
       assert.emits(client, 'error');
     });
+  });
+
+  test('with callback method', function() {
+    var badConString = "tcp://aslkdfj:oi14081@"+helper.args.host+":"+helper.args.port+"/"+helper.args.database;
+    return false;
   });
 });
 
