@@ -114,18 +114,22 @@ test('non-error calls supplied callback', function() {
 });
 
 test('when connecting to invalid host', function() {
-  return false;
   var client = new Client({
     user: 'aslkdjfsdf',
     password: '1234',
     host: 'asldkfjasdf!!#1308140.com'
   });
-  assert.emits(client, 'error');
+  var delay = 5000;
+  var tid = setTimeout(function() {
+    assert(false, "When connecting to an invalid host the error event should be emitted but it has been " + delay + " and still no error event.");
+  }, delay);
+  client.on('error', function() {
+    clearTimeout(tid);
+  })
   client.connect();
 });
 
 test('when connecting to invalid host with callback', function() {
-  return false;
   var client = new Client({
     user: 'brian',
     password: '1234',
