@@ -61,7 +61,7 @@ public:
     routine_symbol = NODE_PSYMBOL("routine");
     name_symbol = NODE_PSYMBOL("name");
     value_symbol = NODE_PSYMBOL("value");
-    type_symbol = NODE_PSYMBOL("type");
+    type_symbol = NODE_PSYMBOL("dataTypeID");
     channel_symbol = NODE_PSYMBOL("channel");
     payload_symbol = NODE_PSYMBOL("payload");
     command_symbol = NODE_PSYMBOL("command");
@@ -522,6 +522,33 @@ protected:
     }
     return false;
   }
+
+  //maps the postgres tuple results to v8 objects
+  //and emits row events
+  //TODO look at emitting fewer events because the back & forth between
+  //javascript & c++ might introduce overhead (requires benchmarking)
+  void EmitRowDescription(const PGresult* result)
+  {
+    HandleScope scope;
+    Local<Array> row = Array::New();
+    int fieldCount = PQnfields(result);
+    for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
+      Local<Object> field = Object::New();
+      //name of field
+      char* fieldName = PQfname(result, fieldNumber);
+      field->Set(name_symbol, String::New(fieldName));
+
+      //oid of type of field
+      int fieldType = PQftype(result, fieldNumber);
+      field->Set(type_symbol, Integer::New(fieldType));
+
+      row->Set(Integer::New(fieldNumber), field);
+    }
+
+    Handle<Value> e = (Handle<Value>)row;
+    Emit("_rowDescription", &e);
+  }
+
   bool HandleResult(PGresult* result)
   {
     TRACE("PQresultStatus");
@@ -529,6 +556,7 @@ protected:
     switch(status) {
     case PGRES_TUPLES_OK:
       {
+        EmitRowDescription(result);
         HandleTuplesResult(result);
         EmitCommandMetaData(result);
         return true;
@@ -592,24 +620,14 @@ protected:
       Local<Array> row = Array::New();
       int fieldCount = PQnfields(result);
       for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
-        Local<Object> field = Object::New();
-        //name of field
-        char* fieldName = PQfname(result, fieldNumber);
-        field->Set(name_symbol, String::New(fieldName));
-
-        //oid of type of field
-        int fieldType = PQftype(result, fieldNumber);
-        field->Set(type_symbol, Integer::New(fieldType));
 
         //value of field
         if(PQgetisnull(result, rowNumber, fieldNumber)) {
-          field->Set(value_symbol, Null());
+          row->Set(Integer::New(fieldNumber), Null());
         } else {
           char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
-          field->Set(value_symbol, String::New(fieldValue));
+          row->Set(Integer::New(fieldNumber), String::New(fieldValue));
         }
-
-        row->Set(Integer::New(fieldNumber), field);
       }
 
       Handle<Value> e = (Handle<Value>)row;
