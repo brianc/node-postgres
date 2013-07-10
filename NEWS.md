@@ -4,13 +4,13 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
-### v2.1
+### v2.1.0
 - Add support for SSL connections in JavaScript driver
  - this means you can connect to heroku postgres locally without the native bindings!
 - [Add field metadata to result object](https://github.com/brianc/node-postgres/blob/master/test/integration/client/row-description-on-results-tests.js)
 - [Add ability for rows to be returned as arrays instead of objects](https://github.com/brianc/node-postgres/blob/master/test/integration/client/results-as-array-tests.js)
 
-### v2.0
+### v2.0.0
 
 - Properly handle various PostgreSQL to JavaScript type conversions to avoid data loss:
 
@@ -27,19 +27,19 @@ decimal    | string             | number (float)
 For more information see https://github.com/brianc/node-postgres/pull/353
 If you are unhappy with these changes you can always [override the built in type parsing fairly easily](https://github.com/brianc/node-pg-parse-float). 
 
-### v1.3
+### v1.3.0
 
 - Make client_encoding configurable and optional
 
-### v1.2
+### v1.2.0
 
 - return field metadata on result object: access via result.fields[i].name/dataTypeID
 
-### v1.1
+### v1.1.0
 
 - built in support for `JSON` data type for PostgreSQL Server @ v9.2.0 or greater
 
-### v1.0
+### v1.0.0
 
 - remove deprecated functionality
   - Callback function passed to `pg.connect` now __requires__ 3 arguments
