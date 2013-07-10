@@ -6,7 +6,7 @@ We do not include break-fix version release in this file.
 
 ### v2.1.0
 - Add support for SSL connections in JavaScript driver
- - this means you can connect to heroku postgres locally without the native bindings!
+ - this means you can connect to heroku postgres from your local machine without the native bindings!
 - [Add field metadata to result object](https://github.com/brianc/node-postgres/blob/master/test/integration/client/row-description-on-results-tests.js)
 - [Add ability for rows to be returned as arrays instead of objects](https://github.com/brianc/node-postgres/blob/master/test/integration/client/results-as-array-tests.js)
 
