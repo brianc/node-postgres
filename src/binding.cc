@@ -67,6 +67,8 @@ public:
     command_symbol = NODE_PSYMBOL("command");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
+    NODE_SET_PROTOTYPE_METHOD(t, "escapeIdentifier", EscapeIdentifier);
+    NODE_SET_PROTOTYPE_METHOD(t, "escapeLiteral", EscapeLiteral);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryWithParams", SendQueryWithParams);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendPrepare", SendPrepare);
@@ -128,6 +130,48 @@ public:
     }
 
     return Undefined();
+  }
+
+  //v8 entry point into Connection#escapeIdentifier
+  static Handle<Value>
+  EscapeIdentifier(const Arguments& args)
+  {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+
+    char* inputStr = MallocCString(args[0]);
+    char* escapedStr = self->EscapeIdentifier(inputStr);
+    free(inputStr);
+
+    if(escapedStr == NULL) {
+      THROW(self->GetLastError());
+    }
+
+    Local<Value> jsStr = String::New(escapedStr, strlen(escapedStr));
+    PQfreemem(escapedStr);
+
+    return scope.Close(jsStr);
+  }
+
+  //v8 entry point into Connection#escapeLiteral
+  static Handle<Value>
+  EscapeLiteral(const Arguments& args)
+  {
+    HandleScope scope;
+    Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
+
+    char* inputStr = MallocCString(args[0]);
+    char* escapedStr = self->EscapeLiteral(inputStr);
+    free(inputStr);
+
+    if(escapedStr == NULL) {
+      THROW(self->GetLastError());
+    }
+
+    Local<Value> jsStr = String::New(escapedStr, strlen(escapedStr));
+    PQfreemem(escapedStr);
+
+    return scope.Close(jsStr);
   }
 
   //v8 entry point into Connection#_sendQuery
@@ -305,6 +349,18 @@ protected:
     connection->Wrap(args.This());
 
     return args.This();
+  }
+
+  char * EscapeIdentifier(const char *str)
+  {
+    TRACE("js::EscapeIdentifier")
+    return PQescapeIdentifier(connection_, str, strlen(str));
+  }
+
+  char * EscapeLiteral(const char *str)
+  {
+    TRACE("js::EscapeLiteral")
+    return PQescapeLiteral(connection_, str, strlen(str));
   }
 
   int Send(const char *queryText)
