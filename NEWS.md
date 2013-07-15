@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v2.2.0
+- [Add support for excapeLiteral and escapeIdentifier in both JavaScript and the native bindings](https://github.com/brianc/node-postgres/pull/396)
+
 ### v2.1.0
 - Add support for SSL connections in JavaScript driver
  - this means you can connect to heroku postgres from your local machine without the native bindings!
