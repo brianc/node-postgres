@@ -140,6 +140,11 @@ public:
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
 
     char* inputStr = MallocCString(args[0]);
+
+    if(!inputStr) {
+      THROW("Unable to allocate memory for a string in EscapeIdentifier.")
+    }
+
     char* escapedStr = self->EscapeIdentifier(inputStr);
     free(inputStr);
 
@@ -161,6 +166,11 @@ public:
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
 
     char* inputStr = MallocCString(args[0]);
+
+    if(!inputStr) {
+      THROW("Unable to allocate memory for a string in EscapeIdentifier.")
+    }
+
     char* escapedStr = self->EscapeLiteral(inputStr);
     free(inputStr);
 
@@ -320,7 +330,7 @@ public:
     Connection *self = ObjectWrap::Unwrap<Connection>(args.This());
     //TODO handle errors in some way
     if (args.Length() < 1 && !Buffer::HasInstance(args[0])) {
-      THROW("SendCopyFromChunk requires 1 Buffer argument");  
+      THROW("SendCopyFromChunk requires 1 Buffer argument");
     }
     self->SendCopyFromChunk(args[0]->ToObject());
     return Undefined();
