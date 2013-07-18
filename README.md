@@ -136,8 +136,9 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 * [Vendly](http://www.vend.ly)
 * [SaferAging](http://www.saferaging.com)
 * [CartoDB](http://www.cartodb.com)
+* [Heap](https://heapanalytics.com)
 
-_if you use node-postgres in production and would like your site listed here, fork & add it_
+_If you use node-postgres in production and would like your site listed here, fork & add it._
 
 
 ## License
