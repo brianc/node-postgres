@@ -54,7 +54,7 @@ test('pool creates pool on miss', function() {
   var p2 = pools.getOrCreate();
   assert.equal(p, p2);
   assert.equal(Object.keys(pools.all).length, 1);
-  var p3 = pools.getOrCreate("pg://postgres:password@localhost:5432/postgres");
+  var p3 = pools.getOrCreate("postgres://postgres:password@localhost:5432/postgres");
   assert.notEqual(p, p3);
   assert.equal(Object.keys(pools.all).length, 2);
 });
