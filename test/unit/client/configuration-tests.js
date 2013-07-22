@@ -31,7 +31,7 @@ test('client settings', function() {
 test('initializing from a config string', function() {
 
   test('uses the correct values from the config string', function() {
-    var client = new Client("pg://brian:pass@host1:333/databasename")
+    var client = new Client("postgres://brian:pass@host1:333/databasename")
     assert.equal(client.user, 'brian')
     assert.equal(client.password, "pass")
     assert.equal(client.host, "host1")
@@ -40,7 +40,7 @@ test('initializing from a config string', function() {
   })
 
   test('uses the correct values from the config string with space in password', function() {
-    var client = new Client("pg://brian:pass word@host1:333/databasename")
+    var client = new Client("postgres://brian:pass word@host1:333/databasename")
     assert.equal(client.user, 'brian')
     assert.equal(client.password, "pass word")
     assert.equal(client.host, "host1")
@@ -49,7 +49,7 @@ test('initializing from a config string', function() {
   })
 
   test('when not including all values the defaults are used', function() {
-    var client = new Client("pg://host1")
+    var client = new Client("postgres://host1")
     assert.equal(client.user, process.env['PGUSER'] || process.env.USER)
     assert.equal(client.password, process.env['PGPASSWORD'] || null)
     assert.equal(client.host, "host1")

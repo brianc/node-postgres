@@ -19,7 +19,7 @@ var pg = require('pg');
 //or native libpq bindings
 //var pg = require('pg').native
 
-var conString = "tcp://postgres:1234@localhost/postgres";
+var conString = "postgres://postgres:1234@localhost/postgres";
 
 var client = new pg.Client(conString);
 client.connect(function(err) {
@@ -44,7 +44,7 @@ Typically you will access the PostgreSQL server through a pool of clients.  node
 
 ```javascript
 var pg = require('pg');
-var conString = "tcp://postgres:1234@localhost/postgres";
+var conString = "postgres://postgres:1234@localhost/postgres";
 
 pg.connect(conString, function(err, client, done) {
   if(err) {
