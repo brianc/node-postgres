@@ -1,3 +1,4 @@
+#include <pg_config.h>
 #include <libpq-fe.h>
 #include <node.h>
 #include <node_buffer.h>
