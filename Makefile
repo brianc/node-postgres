@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-connectionString=pg://
+connectionString=postgres://
 
 params := $(connectionString)
 
@@ -13,15 +13,15 @@ all:
 	npm install
 
 help:
-	@echo "make prepare-test-db [connectionString=pg://<your connection string>]"
-	@echo "make test-all [connectionString=pg://<your connection string>]"
+	@echo "make prepare-test-db [connectionString=postgres://<your connection string>]"
+	@echo "make test-all [connectionString=postgres://<your connection string>]"
 
 test: test-unit 
 
 test-all: jshint test-unit test-integration test-native test-binary
 
 test-travis: test-all upgrade-pg
-	@make test-all connectionString=pg://postgres@localhost:5433/postgres
+	@make test-all connectionString=postgres://postgres@localhost:5433/postgres
 
 upgrade-pg:
 	@chmod 755 script/travis-pg-9.2-install.sh

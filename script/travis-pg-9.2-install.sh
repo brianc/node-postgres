@@ -17,4 +17,4 @@ sudo echo "host    all         all         0.0.0.0 255.255.255.255 trust" >> /et
 sudo /etc/init.d/postgresql restart
 # for some reason both postgres 9.1 and 9.2 are started
 # 9.2 is running on port 5433
-node script/create-test-tables.js pg://postgres@localhost:5433/postgres
+node script/create-test-tables.js postgres://postgres@localhost:5433/postgres

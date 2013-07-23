@@ -11,7 +11,7 @@ for(var key in process.env) {
 test('ConnectionParameters construction', function() {
   assert.ok(new ConnectionParameters(), 'with null config');
   assert.ok(new ConnectionParameters({user: 'asdf'}), 'with config object');
-  assert.ok(new ConnectionParameters('pg://localhost/postgres'), 'with connection string');
+  assert.ok(new ConnectionParameters('postgres://localhost/postgres'), 'with connection string');
 });
 
 var compare = function(actual, expected, type) {
@@ -145,13 +145,13 @@ test('libpq connection string building', function() {
       host: 'localhost',
       database: 'postgres'
     }
-    var connectionString = 'pg://' + sourceConfig.user + ':' + sourceConfig.password + '@' + sourceConfig.host + ':' + sourceConfig.port + '/' + sourceConfig.database;
+    var connectionString = 'postgres://' + sourceConfig.user + ':' + sourceConfig.password + '@' + sourceConfig.host + ':' + sourceConfig.port + '/' + sourceConfig.database;
     var subject = new ConnectionParameters(connectionString);
     assert.equal(subject.password, sourceConfig.password);
   });
 
   test('password contains weird characters', function() {
-    var strang = 'pg://my first name:is&%awesome!@localhost:9000';
+    var strang = 'postgres://my first name:is&%awesome!@localhost:9000';
     var subject = new ConnectionParameters(strang);
     assert.equal(subject.user, 'my first name');
     assert.equal(subject.password, 'is&%awesome!');

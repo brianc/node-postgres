@@ -27,7 +27,7 @@
     "semver": "~1.1.4"
   },
   "scripts": {
-    "test": "make test-travis connectionString=pg://postgres@localhost:5432/postgres",
+    "test": "make test-travis connectionString=postgres://postgres@localhost:5432/postgres",
     "install": "node-gyp rebuild || (exit 0)"
   },
   "engines": {

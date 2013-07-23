@@ -163,7 +163,7 @@ test('multiple connection errors (gh#31)', function() {
   });
 
   test('with callback method', function() {
-    var badConString = "tcp://aslkdfj:oi14081@"+helper.args.host+":"+helper.args.port+"/"+helper.args.database;
+    var badConString = "postgres://aslkdfj:oi14081@"+helper.args.host+":"+helper.args.port+"/"+helper.args.database;
     return false;
   });
 });
