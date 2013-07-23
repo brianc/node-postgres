@@ -9,7 +9,7 @@
 #define LOG(msg) printf("%s\n",msg);
 #define TRACE(msg) //printf("%s\n", msg);
 
-#if PG_VERSION_NUM > 90000
+#if PG_VERSION_NUM >= 90000
 #define ESCAPE_SUPPORTED
 #endif
 
