@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v2.3.0
+- Remove built-in support for binary Int64 parsing.
+_Due to the low usage & required compiled dependency this will be pushed into a 3rd party add-on_
+
 ### v2.2.0
 - [Add support for excapeLiteral and escapeIdentifier in both JavaScript and the native bindings](https://github.com/brianc/node-postgres/pull/396)
 
