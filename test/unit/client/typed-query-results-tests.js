@@ -218,18 +218,18 @@ test('typed results', function() {
     actual: [0, 101],
     expected: 101
   },{
-    name: 'binary-bigint/int8',
-    format: 'binary',
-    dataTypeID: 20,
-    actual: [0, 0, 0, 0, 0, 0, 0, 102],
-    expected: '102'
-  },{
-    name: 'binary-bigint/int8-full',
-    format: 'binary',
-    dataTypeID: 20,
-    actual: [1, 0, 0, 0, 0, 0, 0, 102],
-    expected: '72057594037928038'
-  },{
+//    name: 'binary-bigint/int8',
+//    format: 'binary',
+//    dataTypeID: 20,
+//    actual: [0, 0, 0, 0, 0, 0, 0, 102],
+//    expected: '102'
+//  },{
+//    name: 'binary-bigint/int8-full',
+//    format: 'binary',
+//    dataTypeID: 20,
+//    actual: [1, 0, 0, 0, 0, 0, 0, 102],
+//    expected: '72057594037928038'
+//  },{
     name: 'binary-oid',
     format: 'binary',
     dataTypeID: 26,

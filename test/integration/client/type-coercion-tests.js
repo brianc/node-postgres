@@ -99,7 +99,7 @@ var types = [{
 // ignore some tests in binary mode
 if (helper.config.binary) {
   types = types.filter(function(type) {
-    return !(type.name in {'real': 1, 'timetz':1, 'time':1, 'numeric': 1});
+    return !(type.name in {'real': 1, 'timetz':1, 'time':1, 'numeric': 1, 'bigint': 1});
   });
 }
 

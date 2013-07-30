@@ -25,9 +25,6 @@
     "jshint": "1.1.0",
     "semver": "~1.1.4"
   },
-  "optionalDependencies": {
-    "ref": "0.1.3"
-  },
   "scripts": {
     "test": "make test-travis connectionString=postgres://postgres@localhost:5432/postgres",
     "install": "node-gyp rebuild || (exit 0)"
