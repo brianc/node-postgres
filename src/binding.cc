@@ -1,3 +1,4 @@
+#include <pg_config.h>
 #include <libpq-fe.h>
 #include <node.h>
 #include <node_buffer.h>
@@ -8,6 +9,9 @@
 #define LOG(msg) printf("%s\n",msg);
 #define TRACE(msg) //printf("%s\n", msg);
 
+#if PG_VERSION_NUM >= 90000
+#define ESCAPE_SUPPORTED
+#endif
 
 #define THROW(msg) return ThrowException(Exception::Error(String::New(msg)));
 
@@ -67,8 +71,10 @@ public:
     command_symbol = NODE_PSYMBOL("command");
 
     NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
+#ifdef ESCAPE_SUPPORTED
     NODE_SET_PROTOTYPE_METHOD(t, "escapeIdentifier", EscapeIdentifier);
     NODE_SET_PROTOTYPE_METHOD(t, "escapeLiteral", EscapeLiteral);
+#endif
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryWithParams", SendQueryWithParams);
     NODE_SET_PROTOTYPE_METHOD(t, "_sendPrepare", SendPrepare);
@@ -132,6 +138,7 @@ public:
     return Undefined();
   }
 
+#ifdef ESCAPE_SUPPORTED
   //v8 entry point into Connection#escapeIdentifier
   static Handle<Value>
   EscapeIdentifier(const Arguments& args)
@@ -183,6 +190,7 @@ public:
 
     return scope.Close(jsStr);
   }
+#endif
 
   //v8 entry point into Connection#_sendQuery
   static Handle<Value>
@@ -361,6 +369,7 @@ protected:
     return args.This();
   }
 
+#ifdef ESCAPE_SUPPORTED
   char * EscapeIdentifier(const char *str)
   {
     TRACE("js::EscapeIdentifier")
@@ -372,6 +381,7 @@ protected:
     TRACE("js::EscapeLiteral")
     return PQescapeLiteral(connection_, str, strlen(str));
   }
+#endif
 
   int Send(const char *queryText)
   {
