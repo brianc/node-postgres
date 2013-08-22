@@ -12,7 +12,7 @@ PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
 
 ### Simple
 
-Connect to a postgres instance, run a query, and disconnect.
+Connect to a postgres instance with a single client, run a query, and disconnect.
 
 ```javascript
 var pg = require('pg'); 
@@ -42,6 +42,11 @@ client.connect(function(err) {
 
 Typically you will access the PostgreSQL server through a pool of clients.  node-postgres ships with a built in pool to help get you up and running quickly.
 
+You can create a pool of clients and acquire client from the pool in two ways:
+
+
+1. To create a pool of clients and get a client immediatly: `pg.connect(consString, callback(err, client, done))`
+
 ```javascript
 var pg = require('pg');
 var conString = "postgres://postgres:1234@localhost/postgres";
@@ -63,6 +68,40 @@ pg.connect(conString, function(err, client, done) {
 });
 
 ```
+
+
+
+2. Create the pool first, so you can use is anywhere: `var pool = pg.pools.getOrCreate(configObj)` then, acquire a client: `pool.connect(callack(err,client,done))`
+
+```javascript
+var pg = require('pg');
+var config = {
+      host: 'localhost',
+      port: 5432,
+      user: 'me',
+      password: '123123',
+      database: 'test',
+      ssl: false,
+      poolSize: 4
+    }
+// Create a pool
+var pool = pg.pools.getOrCreate(config);
+
+// Acquire a client, and do the query:
+pool.connect(function(err, client, done) {
+  client.query('SELECT $1::int AS numbor', ['1'], function(err, result) {
+    done();
+    return callback(err, rows);
+  });
+});
+
+```
+Note: the `pool.connect` function won't make a connection to the server everytime, it just simply acquire a client from the pool.
+
+The clients are mannaged by module generic-pool automatically.
+
+
+
 
 ## Documentation
 
