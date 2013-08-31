@@ -40,7 +40,7 @@ var con = new pg.Client({
 con.connect();
 if(args.down) {
   console.log("Dropping table 'person'")
-  var query = con.query("drop table person");
+  var query = con.query("drop table if exists person");
   query.on('end', function() {
     console.log("Dropped!");
     con.end();
