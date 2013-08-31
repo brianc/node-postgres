@@ -82,8 +82,8 @@ test("named prepared statement", function() {
 
 test("prepared statements on different clients", function() {
   var statementName = "differ";
-  var statement1 = "select count(*) as count from person";
-  var statement2 = "select count(*) as count from person where age < $1";
+  var statement1 = "select count(*)::int4 as count from person";
+  var statement2 = "select count(*)::int4 as count from person where age < $1";
 
   var client1Finished = false;
   var client2Finished = false;

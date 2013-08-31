@@ -6,6 +6,7 @@ MemoryStream = function() {
   this.packets = [];
 };
 
+
 helper.sys.inherits(MemoryStream, EventEmitter);
 
 var p = MemoryStream.prototype;
@@ -13,6 +14,8 @@ var p = MemoryStream.prototype;
 p.write = function(packet) {
   this.packets.push(packet);
 };
+
+p.writable = true;
 
 createClient = function() {
   var stream = new MemoryStream();

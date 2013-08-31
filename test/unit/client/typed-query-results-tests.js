@@ -1,5 +1,5 @@
 var helper = require(__dirname + '/test-helper');
-//http://www.postgresql.org/docs/8.4/static/datatype.html
+//http://www.postgresql.org/docs/9.2/static/datatype.html
 test('typed results', function() {
   var client = helper.client();
   var con = client.connection;
@@ -18,20 +18,20 @@ test('typed results', function() {
     name: 'integer/int4',
     format: 'text',
     dataTypeID: 23,
-    actual: '100',
-    expected: 100
+    actual: '2147483647',
+    expected: 2147483647
   },{
     name: 'smallint/int2',
     format: 'text',
     dataTypeID: 21,
-    actual: '101',
-    expected: 101
+    actual: '32767',
+    expected: 32767
   },{
     name: 'bigint/int8',
     format: 'text',
     dataTypeID: 20,
-    actual: '102',
-    expected: 102
+    actual: '9223372036854775807',
+    expected: '9223372036854775807'
   },{
     name: 'oid',
     format: 'text',
@@ -42,8 +42,8 @@ test('typed results', function() {
     name: 'numeric',
     format: 'text',
     dataTypeID: 1700,
-    actual: '12.34',
-    expected: 12.34
+    actual: '31415926535897932384626433832795028841971693993751058.16180339887498948482045868343656381177203091798057628',
+    expected: '31415926535897932384626433832795028841971693993751058.16180339887498948482045868343656381177203091798057628'
   },{
     name: 'real/float4',
     dataTypeID: 700,
@@ -54,8 +54,8 @@ test('typed results', function() {
     name: 'double precision / float8',
     format: 'text',
     dataTypeID: 701,
-    actual: '1.2',
-    expected: 1.2
+    actual: '12345678.12345678',
+    expected: 12345678.12345678
   },{
     name: 'boolean true',
     format: 'text',
@@ -78,11 +78,11 @@ test('typed results', function() {
     name: 'timestamptz with minutes in timezone',
     format: 'text',
     dataTypeID: 1184,
-    actual: '2010-10-31 14:54:13.74-0530',
+    actual: '2010-10-31 14:54:13.74-05:30',
     expected: function(val) {
       assert.UTCDate(val, 2010, 9, 31, 20, 24, 13, 740);
     }
-  },{
+  }, {
     name: 'timestamptz with other milisecond digits dropped',
     format: 'text',
     dataTypeID: 1184,
@@ -111,6 +111,15 @@ test('typed results', function() {
     format: 'text',
     dataTypeID: 1114,
     actual:  '2010-10-31 00:00:00',
+    expected: function(val) {
+      assert.equal(val.toUTCString(), new Date(2010, 9, 31, 0, 0, 0, 0, 0).toUTCString());
+      assert.equal(val.toString(), new Date(2010, 9, 31, 0, 0, 0, 0, 0, 0).toString());
+    }
+  },{
+    name: 'date',
+    format: 'text',
+    dataTypeID: 1082,
+    actual: '2010-10-31',
     expected: function(val) {
       assert.UTCDate(val, 2010, 9, 31, 0, 0, 0, 0);
     }
@@ -156,6 +165,39 @@ test('typed results', function() {
     }
   },
 
+  {
+    name : 'array/char',
+    format : 'text',
+    dataTypeID: 1014,
+    actual: '{asdf,asdf}',
+    expected : function(val){
+      assert.deepEqual(val, ['asdf','asdf']);
+    }
+  },{
+    name : 'array/varchar',
+    format : 'text',
+    dataTypeID: 1015,
+    actual: '{asdf,asdf}',
+    expected :function(val){
+      assert.deepEqual(val, ['asdf','asdf']);
+    }
+  },{
+    name : 'array/text',
+    format : 'text',
+    dataTypeID: 1008,
+    actual: '{"hello world"}',
+    expected :function(val){
+      assert.deepEqual(val, ['hello world']);
+    }
+  },{
+    name : 'array/numeric',
+    format : 'text',
+    dataTypeID: 1231,
+    actual: '{1.2,3.4}',
+    expected :function(val){
+      assert.deepEqual(val, [1.2,3.4]);
+    }
+  },
 
   {
     name: 'binary-string/varchar',
@@ -176,18 +218,18 @@ test('typed results', function() {
     actual: [0, 101],
     expected: 101
   },{
-    name: 'binary-bigint/int8',
-    format: 'binary',
-    dataTypeID: 20,
-    actual: [0, 0, 0, 0, 0, 0, 0, 102],
-    expected: 102
-  },{
-    name: 'binary-bigint/int8-full',
-    format: 'binary',
-    dataTypeID: 20,
-    actual: [1, 0, 0, 0, 0, 0, 0, 102],
-    expected: 72057594037928030
-  },{
+//    name: 'binary-bigint/int8',
+//    format: 'binary',
+//    dataTypeID: 20,
+//    actual: [0, 0, 0, 0, 0, 0, 0, 102],
+//    expected: '102'
+//  },{
+//    name: 'binary-bigint/int8-full',
+//    format: 'binary',
+//    dataTypeID: 20,
+//    actual: [1, 0, 0, 0, 0, 0, 0, 102],
+//    expected: '72057594037928038'
+//  },{
     name: 'binary-oid',
     format: 'binary',
     dataTypeID: 26,

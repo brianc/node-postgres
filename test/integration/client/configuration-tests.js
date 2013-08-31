@@ -1,6 +1,13 @@
 var helper = require(__dirname + '/test-helper');
 var pg = helper.pg;
 
+//clear process.env
+var realEnv = {};
+for(var key in process.env) {
+  realEnv[key] = process.env[key];
+  if(!key.indexOf('PG')) delete process.env[key];
+}
+
 test('default values', function() {
   assert.same(pg.defaults,{
     user: process.env.USER,
@@ -44,3 +51,8 @@ if(!helper.args.native) {
   })
 }
 
+
+//restore process.env
+for(var key in realEnv) {
+  process.env[key] = realEnv[key];
+}
