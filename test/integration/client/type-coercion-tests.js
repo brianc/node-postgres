@@ -150,23 +150,25 @@ test("timestampz round trip", function() {
   client.on('drain', client.end.bind(client));
 });
 
-test('early AD date', function() {
-  var client = helper.client();
-  client.on('error', function(err) {
-    console.log(err);
-    client.end();
-  });
+if(!helper.config.binary) {
+  test('early AD & BC date', function() {
+    var client = helper.client();
+    client.on('error', function(err) {
+      console.log(err);
+      client.end();
+    });
 
-  client.query('SELECT $1::TIMESTAMPTZ as when', ["0062-03-08 14:32:00"], assert.success(function(res) {
-    assert.equal(res.rows[0].when.getFullYear(), 62);
-  }))
+    client.query('SELECT $1::TIMESTAMPTZ as when', ["0062-03-08 14:32:00"], assert.success(function(res) {
+      assert.equal(res.rows[0].when.getFullYear(), 62);
+    }))
 
-  client.query('SELECT $1::TIMESTAMPTZ as when', ["0062-03-08 14:32:00 BC"], assert.success(function(res) {
-    assert.equal(res.rows[0].when.getFullYear(), -62);
-  }))
+    client.query('SELECT $1::TIMESTAMPTZ as when', ["0062-03-08 14:32:00 BC"], assert.success(function(res) {
+      assert.equal(res.rows[0].when.getFullYear(), -62);
+    }))
 
-  client.on('drain', client.end.bind(client));
-})
+    client.on('drain', client.end.bind(client));
+  })
+}
 
 helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
   assert.isNull(err);
