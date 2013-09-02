@@ -12,11 +12,14 @@ node-command := xargs -n 1 -I file node file $(params)
 all:
 	npm install
 
+build:
+	node-gyp rebuild
+
 help:
 	@echo "make prepare-test-db [connectionString=postgres://<your connection string>]"
 	@echo "make test-all [connectionString=postgres://<your connection string>]"
 
-test: test-unit 
+test: test-unit
 
 test-all: jshint test-unit test-integration test-native test-binary
 
@@ -49,7 +52,7 @@ test-native: build/default/binding.node
 	@find test/native -name "*-tests.js" | $(node-command)
 	@find test/integration -name "*-tests.js" | $(node-command) native
 
-test-integration: test-connection 
+test-integration: test-connection build/default/binding.node
 	@echo "***Testing Pure Javascript***"
 	@find test/integration -name "*-tests.js" | $(node-command)
 
