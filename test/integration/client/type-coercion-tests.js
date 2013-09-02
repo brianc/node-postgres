@@ -162,8 +162,7 @@ test('early AD date', function() {
   }))
 
   client.query('SELECT $1::TIMESTAMPTZ as when', ["0062-03-08 14:32:00 BC"], assert.success(function(res) {
-    console.log(res.rows[0].when)
-    assert.equal(res.rows[0].when.getFullYear(), 62);
+    assert.equal(res.rows[0].when.getFullYear(), -62);
   }))
 
   client.on('drain', client.end.bind(client));
