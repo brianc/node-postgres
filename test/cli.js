@@ -9,6 +9,9 @@ for(var i = 0; i < process.argv.length; i++) {
   case 'binary':
     config.binary = true;
     break;
+  case 'down':
+    config.down = true;
+    break;
   default:
     break;
   }
