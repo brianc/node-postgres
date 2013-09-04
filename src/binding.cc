@@ -659,7 +659,9 @@ protected:
     ExecStatusType status = PQresultStatus(result);
     switch(status) {
     case PGRES_TUPLES_OK:
+#ifdef SINGLE_ROW_SUPPORTED
     case PGRES_SINGLE_TUPLE:
+#endif
       {
         EmitRowDescription(result);
         HandleTuplesResult(result);
