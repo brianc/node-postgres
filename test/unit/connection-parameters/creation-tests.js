@@ -151,11 +151,14 @@ test('libpq connection string building', function() {
   });
 
   test('password contains weird characters', function() {
+    var defaults = require('../../../lib/defaults');
+    defaults.ssl = true;
     var strang = 'postgres://my first name:is&%awesome!@localhost:9000';
     var subject = new ConnectionParameters(strang);
     assert.equal(subject.user, 'my first name');
     assert.equal(subject.password, 'is&%awesome!');
     assert.equal(subject.host, 'localhost');
+    assert.equal(subject.ssl, true);
   });
 
 });
