@@ -76,6 +76,38 @@ test('connection string parsing - ssl', function(t) {
   assert.equal(!!subject.ssl, false, 'ssl');
 });
 
+//clear process.env
+for(var key in process.env) {
+  delete process.env[key];
+}
+
+
+test('ssl is false by default', function() {
+  var subject = new ConnectionParameters()
+  assert.equal(subject.ssl, false)
+})
+
+var testVal = function(mode, expected) {
+  //clear process.env
+  for(var key in process.env) {
+    delete process.env[key];
+  }
+  process.env.PGSSLMODE = mode;
+  test('ssl is ' + expected + ' when $PGSSLMODE=' + mode, function() {
+    var subject = new ConnectionParameters();
+    assert.equal(subject.ssl, expected);
+  });
+};
+
+testVal('', false);
+testVal('disable', false);
+testVal('allow', false);
+testVal('prefer', true);
+testVal('require', true);
+testVal('verify-ca', true);
+testVal('verify-full', true);
+
+
 //restore process.env
 for(var key in realEnv) {
   process.env[key] = realEnv[key];
