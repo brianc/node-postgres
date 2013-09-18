@@ -116,6 +116,32 @@ test('bind messages', function() {
   });
 });
 
+test('with named statement, portal, and buffer value', function() {
+  con.bind({
+    portal: 'bang',
+    statement: 'woo',
+    values: ['1', 'hi', null, new Buffer('zing', 'UTF-8')]
+  });
+  var expectedBuffer = new BufferList()
+    .addCString('bang')  //portal name
+    .addCString('woo') //statement name
+    .addInt16(4)//value count
+    .addInt16(0)//string
+    .addInt16(0)//string
+    .addInt16(0)//string
+    .addInt16(1)//binary
+    .addInt16(4)
+    .addInt32(1)
+    .add(Buffer("1"))
+    .addInt32(2)
+    .add(Buffer("hi"))
+    .addInt32(-1)
+    .addInt32(4)
+    .add(new Buffer('zing', 'UTF-8'))
+    .addInt16(0)
+    .join(true, 'B');
+  assert.received(stream, expectedBuffer);
+});
 
 test("sends execute message", function() {
 
