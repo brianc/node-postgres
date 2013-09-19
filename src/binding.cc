@@ -901,7 +901,7 @@ private:
         paramValues[i] = cHexString;
       } else {
         //a paramter was not a string
-        LOG("Parameter not a string");
+        LOG("Parameter not a string or buffer");
         ReleaseCStringArray(paramValues, i-1);
         return 0;
       }
