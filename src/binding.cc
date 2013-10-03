@@ -892,7 +892,7 @@ private:
       } else if(val->IsNull()) {
         paramValues[i] = NULL;
       } else if(val->IsObject() && Buffer::HasInstance(val)) {
-        char *cHexString = MallocCHexString(val);
+        char *cHexString = MallocCHexString(val->ToObject());
         if(!cHexString) {
           LOG("ArgToCStringArray: OUT OF MEMORY OR SOMETHING BAD!");
           ReleaseCStringArray(paramValues, i-1);
@@ -931,23 +931,23 @@ private:
   }
 
   //helper function to Malloc a Bytea encoded Hex string from a buffer
-  static char* MallocCHexString(v8::Handle<Value> buf)
+  static char* MallocCHexString(v8::Handle<Object> buf)
   {
-      char* bufferData = Buffer::Data(buf);
-      size_t hexStringLen = Buffer::Length(buf)*2 + 3;
-      char *cHexString = (char *) malloc(hexStringLen);
-      if(!cHexString) {
-        return cHexString;
-      }
-      strcpy(cHexString, "\\x");
-      for (uint32_t i = 0, k = 2; k < hexStringLen; i += 1, k += 2) {
-        static const char hex[] = "0123456789abcdef";
-        uint8_t val = static_cast<uint8_t>(bufferData[i]);
-        cHexString[k + 0] = hex[val >> 4];
-        cHexString[k + 1] = hex[val & 15];
-      }
-      cHexString[hexStringLen-1] = 0;
+    char* bufferData = Buffer::Data(buf);
+    size_t hexStringLen = Buffer::Length(buf)*2 + 3;
+    char *cHexString = (char *) malloc(hexStringLen);
+    if(!cHexString) {
       return cHexString;
+    }
+    strcpy(cHexString, "\\x");
+    for (uint32_t i = 0, k = 2; k < hexStringLen; i += 1, k += 2) {
+      static const char hex[] = "0123456789abcdef";
+      uint8_t val = static_cast<uint8_t>(bufferData[i]);
+      cHexString[k + 0] = hex[val >> 4];
+      cHexString[k + 1] = hex[val & 15];
+    }
+    cHexString[hexStringLen-1] = 0;
+    return cHexString;
   }
 
   void SendCopyFromChunk(Handle<Object> chunk) {
