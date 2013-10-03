@@ -4,6 +4,11 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v2.7.0
+- Use single row mode in native bindings when available [@rpedela]
+  - reduces memory consumption when handling row values in 'row' event
+- Automatically bind buffer type parameters as binary [@eugeneware]
+
 ### v2.6.0
 - Respect PGSSLMODE environment variable
 
