@@ -31,7 +31,6 @@ pg.connect(helper.config, assert.success(function(client, done) {
         //kill the connection from client
         client2.query(killIdleQuery, params, assert.success(function(res) {
           //check to make sure client connection actually was killed
-          assert.lengthIs(res.rows, 1);
           //return client2 to the pool
           done2();
           pg.end();
