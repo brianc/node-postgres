@@ -1,0 +1,20 @@
+{
+  "name": "node-pg-cursor",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD",
+  "devDependencies": {
+    "gonna": "0.0.0"
+  },
+  "dependencies": {
+    "pg.js": "~2.7.0"
+  }
+}
