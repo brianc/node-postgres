@@ -76,7 +76,7 @@ test('read huge result', function(done) {
   var values = []
   cursor = pgCursor(text, values);
   var count = 0;
-  var more = function() {
+  var read = function() {
     cursor.read(1000, function(err, rows) {
       if(err) return done(err);
       if(!rows.length) {
@@ -90,5 +90,5 @@ test('read huge result', function(done) {
       setImmediate(more)
     })
   }
-  more()
+  read()
 }, 100000)
