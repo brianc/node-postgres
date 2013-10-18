@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v2.8.0
+- Add support for parsing JSON[] and UUID[] result types
+
 ### v2.7.0
 - Use single row mode in native bindings when available [@rpedela]
   - reduces memory consumption when handling row values in 'row' event
