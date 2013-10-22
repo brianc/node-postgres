@@ -4,7 +4,7 @@
   "description": "Postgres query result returned as readable stream",
   "main": "index.js",
   "scripts": {
-    "test": "node test"
+    "test": "make test"
   },
   "repository": {
     "type": "git",
