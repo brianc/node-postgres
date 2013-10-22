@@ -1,6 +1,5 @@
 var assert = require('assert')
 var Readable = require('stream').Readable
-var Result = require('pg')
 
 var path = require('path')
 
