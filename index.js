@@ -103,3 +103,8 @@ QueryStream.prototype.handleCommandComplete = function(msg) {
 QueryStream.prototype.handleReadyForQuery = function() {
   this.push(null)
 }
+
+QueryStream.prototype.handleError = function(err) {
+  this.connection.sync()
+  this.emit('error', err)
+}
