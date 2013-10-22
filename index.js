@@ -8,9 +8,10 @@ try {
   pgdir = path.dirname(require.resolve('pg'))
 } catch (e) {
   pgdir = path.dirname(require.resolve('pg.js'))
-}
-if(!pgdir) {
-  throw new Error("Please install either `pg` or `pg.js` to use this module")
+  if(!pgdir) {
+    throw new Error("Please install either `pg` or `pg.js` to use this module")
+  }
+  pgdir = path.join(pgdir, 'lib')
 }
 var Result = require(path.join(pgdir, 'result'))
 var utils = require(path.join(pgdir, 'utils'))
