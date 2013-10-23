@@ -17,20 +17,17 @@ var Result = require(path.join(pgdir, 'result'))
 var utils = require(path.join(pgdir, 'utils'))
 
 var QueryStream = module.exports = function(text, values, options) {
-  options = options || {
-    highWaterMark: 100,
-    batchSize: 100
-  }
+  options = options || { }
   Readable.call(this, {
     objectMode: true,
-    highWaterMark: 100
+    highWaterMark: options.highWaterMark || 1000
   })
   this.text = text
   assert(this.text, 'text cannot be falsy')
   this.values = (values || []).map(utils.prepareValue)
   this.name = ''
   this._result = new Result()
-  this.batchSize = 100
+  this.batchSize = options.batchSize || 100
   this._idle = true
 }
 
