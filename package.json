@@ -1,6 +1,6 @@
 {
   "name": "pg-query-stream",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Postgres query result returned as readable stream",
   "main": "index.js",
   "scripts": {
