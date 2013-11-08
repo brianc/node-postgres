@@ -77,7 +77,7 @@ it('read huge result', function(done) {
       }
       count += rows.length;
       if(count%100000 == 0) {
-        console.log(count)
+        //console.log(count)
       }
       setImmediate(read)
     })
