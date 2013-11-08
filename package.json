@@ -1,5 +1,5 @@
 {
-  "name": "node-pg-cursor",
+  "name": "pg-cursor",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
@@ -7,10 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/"
   },
-  "author": "",
-  "license": "BSD",
+  "author": "Brian M. Carlson",
+  "license": "MIT",
   "devDependencies": {
     "gonna": "0.0.0"
   },
