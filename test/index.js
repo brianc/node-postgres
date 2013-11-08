@@ -5,16 +5,7 @@ var gonna = require('gonna')
 var text = 'SELECT generate_series as num FROM generate_series(0, 5)'
 var values = []
 
-var test = function(name, fn, timeout) {
-  timeout = timeout || 1000
-  var done = gonna(name, timeout, function(err) {
-    console.log(name)
-    assert.ifError(err)
-  })
-  fn(done)
-}
-
-test('fetch 6 when asking for 10', function(done) {
+it('fetch 6 when asking for 10', function(done) {
   var cursor = pgCursor(text)
   cursor.read(10, function(err, res) {
     assert.ifError(err)
@@ -23,7 +14,7 @@ test('fetch 6 when asking for 10', function(done) {
   })
 })
 
-test('end before reading to end', function(done) {
+it('end before reading to end', function(done) {
   var cursor = pgCursor(text)
   cursor.read(3, function(err, res) {
     assert.equal(res.length, 3)
@@ -31,7 +22,7 @@ test('end before reading to end', function(done) {
   })
 })
 
-test('callback with error', function(done) {
+it('callback with error', function(done) {
   var cursor = pgCursor('select asdfasdf')
   cursor.read(1, function(err) {
     assert(err)
@@ -40,7 +31,7 @@ test('callback with error', function(done) {
 })
 
 
-test('read a partial chunk of data', function(done) {
+it('read a partial chunk of data', function(done) {
   var cursor = pgCursor(text)
   cursor.read(2, function(err, res) {
     assert.equal(res.length, 2)
@@ -58,7 +49,7 @@ test('read a partial chunk of data', function(done) {
   })
 })
 
-test('read return length 0 past the end', function(done) {
+it('read return length 0 past the end', function(done) {
   var cursor = pgCursor(text)
   cursor.read(2, function(err, res) {
     cursor.read(100, function(err, res) {
@@ -71,7 +62,8 @@ test('read return length 0 past the end', function(done) {
   })
 })
 
-test('read huge result', function(done) {
+it('read huge result', function(done) {
+  this.timeout(10000)
   var text = 'SELECT generate_series as num FROM generate_series(0, 1000000)'
   var values = []
   cursor = pgCursor(text, values);
@@ -91,4 +83,4 @@ test('read huge result', function(done) {
     })
   }
   read()
-}, 100000)
+})
