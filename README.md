@@ -6,7 +6,9 @@ Use a PostgreSQL result cursor from node with an easy to use API.
 ### why?
 
 Sometimes you need to itterate through a table in chunks.  It's extremely inefficient to use hand-crafted `LIMIT` and `OFFSET` queries to do this.
-PostgreSQL provides built-in functionality to fetch a "cursor" to your results and page through the cursor.  The page size is dynamic and async.
+PostgreSQL provides built-in functionality to fetch a "cursor" to your results and page through the cursor efficiently fetching chunks of the results with full MVCC compliance.  
+
+This actually ends up pairing very nicely with node's _asyncness_ and handling a lot of data.  PostgreSQL is rad.
 
 ### example
 
@@ -18,7 +20,7 @@ pg.connect(function(err, client, done) {
 
   //imagine some_table has 30,000,000 results where prop > 100
   //lets create a query cursor to efficiently deal with the huge result set
-  var cursor = client.query(new Cursor('SELECT * FROM some_table WHERE prop > $1', [100])
+  var cursor = client.query(new Cursor('SELECT * FROM some_table WHERE prop > $1', [100]))
   
   //read the first 100 rows from this cursor
   cursor.read(100, function(err, rows) {
@@ -41,6 +43,9 @@ pg.connect(function(err, client, done) {
     cursor.read(2000, function(err, rows) {
       //I think you get the picture, yeah?
       //if you dont...open an issue - I'd love to help you out!
+      
+      //Also - you probably want to use some sort of async or promise library to deal with paging
+      //through your cursor results.  node-pg-cursor makes no asumptions for you on that front.
     })
   })
 });
