@@ -65,7 +65,6 @@ Cursor.prototype.handlePortalSuspended = function() {
 }
 
 Cursor.prototype.handleReadyForQuery = function() {
-
 }
 
 Cursor.prototype.handleError = function(msg) {
@@ -79,10 +78,11 @@ Cursor.prototype.handleError = function(msg) {
   for(var i = 0; i < this._queue.length; i++) {
     this._queue.pop()[1](msg)
   }
+  //call sync to keep this connection from hanging
+  this.connection.sync()
 }
 
 Cursor.prototype._getRows = function(rows, cb) {
-  console.log('get', rows)
   this.state = 'busy'
   this._cb = cb
   this._rows = []
@@ -103,7 +103,6 @@ Cursor.prototype.end = function(cb) {
 }
 
 Cursor.prototype.read = function(rows, cb) {
-  console.log('read', rows, this.state)
   var self = this
   if(this.state == 'idle') {
     return this._getRows(rows, cb)

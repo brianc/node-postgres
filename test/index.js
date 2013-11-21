@@ -6,25 +6,23 @@ var text = 'SELECT generate_series as num FROM generate_series(0, 5)'
 
 describe('cursor', function() {
 
-  var client;
+  beforeEach(function(done) {
+    var client = this.client = new pg.Client()
+    client.connect(done)
 
-  var pgCursor = function(text, values) {
-    client.connect()
-    client.on('drain', client.end.bind(client))
-    return client.query(new Cursor(text, values || []))
-  }
-
-  before(function() {
-    client = new pg.Client()
+    this.pgCursor = function(text, values) {
+      client.on('drain', client.end.bind(client))
+      return client.query(new Cursor(text, values || []))
+    }
   })
 
 
-  after(function() {
-    client.end()
+  afterEach(function() {
+    this.client.end()
   })
 
   it('fetch 6 when asking for 10', function(done) {
-    var cursor = pgCursor(text)
+    var cursor = this.pgCursor(text)
     cursor.read(10, function(err, res) {
       assert.ifError(err)
       assert.equal(res.length, 6)
@@ -33,7 +31,7 @@ describe('cursor', function() {
   })
 
   it('end before reading to end', function(done) {
-    var cursor = pgCursor(text)
+    var cursor = this.pgCursor(text)
     cursor.read(3, function(err, res) {
       assert.ifError(err)
       assert.equal(res.length, 3)
@@ -42,7 +40,7 @@ describe('cursor', function() {
   })
 
   it('callback with error', function(done) {
-    var cursor = pgCursor('select asdfasdf')
+    var cursor = this.pgCursor('select asdfasdf')
     cursor.read(1, function(err) {
       assert(err)
       done()
@@ -51,7 +49,7 @@ describe('cursor', function() {
 
 
   it('read a partial chunk of data', function(done) {
-    var cursor = pgCursor(text)
+    var cursor = this.pgCursor(text)
     cursor.read(2, function(err, res) {
       assert.ifError(err)
       assert.equal(res.length, 2)
@@ -70,7 +68,7 @@ describe('cursor', function() {
   })
 
   it('read return length 0 past the end', function(done) {
-    var cursor = pgCursor(text)
+    var cursor = this.pgCursor(text)
     cursor.read(2, function(err, res) {
       cursor.read(100, function(err, res) {
         assert.equal(res.length, 4)
@@ -84,19 +82,19 @@ describe('cursor', function() {
 
   it('read huge result', function(done) {
     this.timeout(10000)
-    var text = 'SELECT generate_series as num FROM generate_series(0, 1000000)'
+    var text = 'SELECT generate_series as num FROM generate_series(0, 100000)'
     var values = []
-    cursor = pgCursor(text, values);
+    cursor = this.pgCursor(text, values);
     var count = 0;
     var read = function() {
-      cursor.read(1000, function(err, rows) {
+      cursor.read(100, function(err, rows) {
         if(err) return done(err);
         if(!rows.length) {
-          assert.equal(count, 1000001)
+          assert.equal(count, 100001)
           return done()
         }
         count += rows.length;
-        if(count%100000 == 0) {
+        if(count%10000 == 0) {
           //console.log(count)
         }
         setImmediate(read)
