@@ -126,6 +126,7 @@ Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 node-postgres is by design _low level_ with the bare minimum of abstraction.  These might help out:
 
 - https://github.com/brianc/node-pg-query-stream
+- https://github.com/brianc/node-pg-cursor
 - https://github.com/grncdr/node-any-db
 - https://github.com/brianc/node-sql
 
