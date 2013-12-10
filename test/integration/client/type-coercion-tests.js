@@ -151,19 +151,23 @@ test("timestampz round trip", function() {
 });
 
 if(!helper.config.binary) {
-  test('early AD & BC date', function() {
+  test('date range extremes', function() {
     var client = helper.client();
     client.on('error', function(err) {
       console.log(err);
       client.end();
     });
 
-    client.query('SELECT $1::TIMESTAMPTZ as when', ["0062-03-08 14:32:00"], assert.success(function(res) {
-      assert.equal(res.rows[0].when.getFullYear(), 62);
+    // PostgreSQL supports date range of 4713 BCE to 294276 CE
+    //   http://www.postgresql.org/docs/9.2/static/datatype-datetime.html
+    // ECMAScript supports date range of Apr 20 271821 BCE to Sep 13 275760 CE
+    //   http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
+    client.query('SELECT $1::TIMESTAMPTZ as when', ["275760-09-13 00:00:00 GMT"], assert.success(function(res) {
+      assert.equal(res.rows[0].when.getFullYear(), 275760);
     }))
 
-    client.query('SELECT $1::TIMESTAMPTZ as when', ["0062-03-08 14:32:00 BC"], assert.success(function(res) {
-      assert.equal(res.rows[0].when.getFullYear(), -62);
+    client.query('SELECT $1::TIMESTAMPTZ as when', ["4713-12-31 12:31:59 BC GMT"], assert.success(function(res) {
+      assert.equal(res.rows[0].when.getFullYear(), -4713);
     }))
 
     client.on('drain', client.end.bind(client));
