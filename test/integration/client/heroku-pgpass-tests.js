@@ -1,18 +1,12 @@
 var helper = require(__dirname + '/../test-helper');
 
-if (helper.args.native) {
-    // do not run testwith native bindings,
-    // see issue #475 (https://github.com/brianc/node-postgres/issues/475)
-    process.exit();
-}
-
 // Path to the password file
 var passfile = __dirname + '/heroku.pgpass';
 
 // Export the path to the password file
 process.env.PGPASSFILE = passfile;
 
-// Do a chmod 660, because git doesn't track thosepermissions
+// Do a chmod 660, because git doesn't track those permissions
 require('fs').chmodSync(passfile, 384);
 
 var pg = helper.pg;
