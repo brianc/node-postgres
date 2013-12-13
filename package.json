@@ -19,7 +19,8 @@
   "main": "./lib",
   "dependencies": {
     "generic-pool": "2.0.3",
-    "buffer-writer": "1.0.0"
+    "buffer-writer": "1.0.0",
+    "nan": "~0.6.0"
   },
   "devDependencies": {
     "jshint": "1.1.0",
