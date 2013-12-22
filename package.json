@@ -20,7 +20,7 @@
   "dependencies": {
     "generic-pool": "2.0.3",
     "buffer-writer": "1.0.0",
-    "pgpass": "git://github.com/hoegaarden/pgpass"
+    "pgpass": "0.0.1"
   },
   "devDependencies": {
     "jshint": "1.1.0",
