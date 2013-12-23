@@ -158,20 +158,31 @@ if(!helper.config.binary) {
       client.end();
     });
 
-    // PostgreSQL supports date range of 4713 BCE to 294276 CE
-    //   http://www.postgresql.org/docs/9.2/static/datatype-datetime.html
-    // ECMAScript supports date range of Apr 20 271821 BCE to Sep 13 275760 CE
-    //   http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
-    client.query('SELECT $1::TIMESTAMPTZ as when', ["275760-09-13 00:00:00 GMT"], assert.success(function(res) {
-      assert.equal(res.rows[0].when.getFullYear(), 275760);
-    }))
+    // Set teh server timeszone to the same as used for the test,
+    // otherwise (if server's timezone is ahead of GMT) in
+    // textParsers.js::parseDate() the timezone offest is added to the date;
+    // in the case of "275760-09-13 00:00:00 GMT" the timevalue overflows.
+    client.query('SET TIMEZONE TO GMT', [], assert.success(function(res){
 
-    client.query('SELECT $1::TIMESTAMPTZ as when', ["4713-12-31 12:31:59 BC GMT"], assert.success(function(res) {
-      assert.equal(res.rows[0].when.getFullYear(), -4713);
-    }))
+      // PostgreSQL supports date range of 4713 BCE to 294276 CE
+      //   http://www.postgresql.org/docs/9.2/static/datatype-datetime.html
+      // ECMAScript supports date range of Apr 20 271821 BCE to Sep 13 275760 CE
+      //   http://ecma-international.org/ecma-262/5.1/#sec-15.9.1.1
+      client.query('SELECT $1::TIMESTAMPTZ as when', ["275760-09-13 00:00:00 GMT"], assert.success(function(res) {
+        assert.equal(res.rows[0].when.getFullYear(), 275760);
+      }));
 
-    client.on('drain', client.end.bind(client));
-  })
+      client.query('SELECT $1::TIMESTAMPTZ as when', ["4713-12-31 12:31:59 BC GMT"], assert.success(function(res) {
+        assert.equal(res.rows[0].when.getFullYear(), -4713);
+      }));
+
+      client.query('SELECT $1::TIMESTAMPTZ as when', ["275760-09-13 00:00:00 -15:00"], assert.success(function(res) {
+        assert( isNaN(res.rows[0].when.getTime()) );
+      }));
+
+      client.on('drain', client.end.bind(client));
+    }));
+  });
 }
 
 helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
