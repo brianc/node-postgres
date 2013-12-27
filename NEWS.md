@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v2.10.0
+- Add support for [the password file](http://www.postgresql.org/docs/9.3/static/libpq-pgpass.html)
+
 ### v2.9.0
 - Add better support for [unix domain socket](https://github.com/brianc/node-postgres/pull/487) connections
 
