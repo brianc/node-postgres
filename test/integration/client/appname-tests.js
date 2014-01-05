@@ -69,7 +69,7 @@ test('application_name from connection string', function(){
   var conParams = require(__dirname + '/../../../lib/connection-parameters');
   var conf;
   if (process.argv[2]) {
-    conf = new conParams(process.argv[2]+'/?application_name='+appName);
+    conf = new conParams(process.argv[2]+'?application_name='+appName);
   } else {
     conf = 'postgres://?application_name='+appName;
   }
