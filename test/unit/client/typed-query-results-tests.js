@@ -213,6 +213,19 @@ test('typed results', function() {
     expected :function(val){
       assert.deepEqual(val, [-2147483648, -2147483647, 2147483646, 2147483647]);
     }
+  },{
+    name : 'array/int8',
+    format : 'text',
+    dataTypeID: 1016,
+    actual: '{-9223372036854775808, -9223372036854775807, 9223372036854775806, 9223372036854775807}',
+    expected :function(val){
+      assert.deepEqual(val, [
+        '-9223372036854775808',
+        '-9223372036854775807',
+        '9223372036854775806',
+        '9223372036854775807'
+      ]);
+    }
   },
 
   {
