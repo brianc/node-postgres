@@ -226,6 +226,14 @@ test('typed results', function() {
         '9223372036854775807'
       ]);
     }
+  },{
+    name : 'array/float4',
+    format : 'text',
+    dataTypeID: 1021,
+    actual: '{1.2, 3.4}',
+    expected :function(val){
+      assert.deepEqual(val, [1.2, 3.4]);
+    }
   },
 
   {
