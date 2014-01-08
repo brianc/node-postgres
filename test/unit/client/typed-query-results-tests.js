@@ -205,6 +205,14 @@ test('typed results', function() {
     expected :function(val){
       assert.deepEqual(val, [-32768, -32767, 32766, 32767]);
     }
+  },{
+    name : 'array/int4',
+    format : 'text',
+    dataTypeID: 1007,
+    actual: '{-2147483648, -2147483647, 2147483646, 2147483647}',
+    expected :function(val){
+      assert.deepEqual(val, [-2147483648, -2147483647, 2147483646, 2147483647]);
+    }
   },
 
   {
