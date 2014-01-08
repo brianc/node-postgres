@@ -234,6 +234,14 @@ test('typed results', function() {
     expected :function(val){
       assert.deepEqual(val, [1.2, 3.4]);
     }
+  },{
+    name : 'array/float8',
+    format : 'text',
+    dataTypeID: 1022,
+    actual: '{-12345678.1234567, 12345678.12345678}',
+    expected :function(val){
+      assert.deepEqual(val, [-12345678.1234567, 12345678.12345678]);
+    }
   },
 
   {
