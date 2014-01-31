@@ -34,6 +34,8 @@ pg.connect(function(err, client, done) {
   if(err) throw err;
   var query = new QueryStream('SELECT * FROM generate_series(0, $1) num', [1000000])
   var stream = client.query(query)
+  //release the client when the stream is finished
+  stream.on('end', done)
   stream.pipe(JSONStream.stringify()).pipe(process.stdout)
 })
 ```
