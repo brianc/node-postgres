@@ -130,6 +130,7 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 - https://github.com/brianc/node-pg-copy-streams
 - https://github.com/grncdr/node-any-db
 - https://github.com/brianc/node-sql
+- https://github.com/CSNW/sql-bricks
 
 
 ## Production Use
