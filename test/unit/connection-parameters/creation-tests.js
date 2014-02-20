@@ -72,19 +72,17 @@ test('initializing with unix domain socket and a specific database, the simple w
 });
 
 test('initializing with unix domain socket, the health way', function() {
-  var subject = new ConnectionParameters('socket:/some path/?db=my[db]&encoding=utf8');
+  var subject = new ConnectionParameters('socket:/some path/?db=my[db]');
   assert.ok(subject.isDomainSocket);
   assert.equal(subject.host, '/some path/');
   assert.equal(subject.database, 'my[db]', 'must to be escaped and unescaped trough "my%5Bdb%5D"');
-  assert.equal(subject.client_encoding, 'utf8');
 });
 
 test('initializing with unix domain socket, the escaped health way', function() {
-  var subject = new ConnectionParameters('socket:/some%20path/?db=my%2Bdb&encoding=utf8');
+  var subject = new ConnectionParameters('socket:/some%20path/?db=my%2Bdb');
   assert.ok(subject.isDomainSocket);
   assert.equal(subject.host, '/some path/');
   assert.equal(subject.database, 'my+db');
-  assert.equal(subject.client_encoding, 'utf8');
 });
 
 test('libpq connection string building', function() {
@@ -157,18 +155,6 @@ test('libpq connection string building', function() {
       checkForPart(parts, "host=/tmp/");
     }));
   });
-
-  test("encoding can be specified by config", function() {
-    var config = {
-      client_encoding: "utf-8"
-    }
-    var subject = new ConnectionParameters(config);
-    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
-      assert.isNull(err);
-      var parts = constring.split(" ");
-      checkForPart(parts, "client_encoding='utf-8'");
-    }));
-  })
 
   test('password contains  < and/or >  characters', function () {
     return false;
