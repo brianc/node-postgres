@@ -202,13 +202,14 @@ helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
 if(!helper.config.binary) {
   test("postgres date type", function() {
     var client = helper.client();
+    var testDate = new Date (2010, 9, 31);
     client.on('error', function(err) {
       console.log(err);
       client.end();
     });
-    client.query("SELECT '2010-10-31'::date", assert.calls(function(err, result){
+    client.query("SELECT $1::date", [testDate], assert.calls(function(err, result){
       assert.isNull(err);
-      assert.UTCDate(result.rows[0].date, 2010, 9, 31, 0, 0, 0, 0);
+      assert.strictEqual(result.rows[0].date.toString(), testDate.toString());
     }));
     client.on('drain', client.end.bind(client));
   });
