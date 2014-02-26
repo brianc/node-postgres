@@ -12,7 +12,7 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "https://github.com/visionmedia/mocha/tarball/master",
-    "pg.js": "~2.8.1"
+    "pg.js": "~2.8.1",
+    "mocha": "~1.17.1"
   }
 }
