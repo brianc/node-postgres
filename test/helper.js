@@ -1,4 +1,4 @@
-var pg = require('pg')
+var pg = require('pg.js')
 module.exports = function(cb) {
   describe('pg-query-stream', function() {
     var client = new pg.Client()

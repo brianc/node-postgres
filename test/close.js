@@ -7,8 +7,9 @@ var QueryStream = require('../')
 
 require('./helper')(function(client) {
   it('emits close', function(done) {
-    var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [3], {chunkSize: 2, highWaterMark: 2})
+    var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [3], {batchSize: 2, highWaterMark: 2})
     var query = client.query(stream)
+    query.pipe(concat(function() {}))
     query.on('close', done)
   })
 })

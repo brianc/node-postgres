@@ -7,7 +7,7 @@ var QueryStream = require('../')
 
 require('./helper')(function(client) {
   it('pauses', function(done) {
-    var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [200], {chunkSize: 2, highWaterMark: 2})
+    var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [200], {batchSize: 2, highWaterMark: 2})
     var query = client.query(stream)
     var pauser = tester.createPauseStream(0.1, 100)
     query.pipe(JSONStream.stringify()).pipe(concat(function(json) {

@@ -7,10 +7,13 @@ helper(function(client) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
     var query = client.query(stream)
     var result = []
+    var count = 0
     stream.on('readable', function() {
       var res = stream.read()
       assert(res, 'should not return null on evented reader')
-      result.push(res.num)
+      if(res) {
+        result.push(res.num)
+      }
     })
     stream.on('end', function() {
       var total = result.reduce(function(prev, cur) {
