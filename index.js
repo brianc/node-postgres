@@ -98,6 +98,7 @@ QueryStream.prototype.handleCommandComplete = function(msg) {
 }
 
 QueryStream.prototype.handleReadyForQuery = function() {
+  this.emit('close')
   this.push(null)
 }
 
