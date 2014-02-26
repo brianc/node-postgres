@@ -6,7 +6,7 @@ var pgPath;
 try {
   pgPath = path.dirname(require.resolve('pg'))
 } catch(e) {
-  pgPath = path.dirname(require.resolve('pg.js'))
+  pgPath = path.dirname(require.resolve('pg.js')) + '/lib'
 }
 
-module.exports = require(path.join(pgPath, 'lib', 'result.js'))
+module.exports = require(path.join(pgPath, 'result.js'))
