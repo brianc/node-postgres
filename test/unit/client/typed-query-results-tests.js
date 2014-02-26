@@ -197,6 +197,51 @@ test('typed results', function() {
     expected :function(val){
       assert.deepEqual(val, [1.2,3.4]);
     }
+  },{
+    name : 'array/int2',
+    format : 'text',
+    dataTypeID: 1005,
+    actual: '{-32768, -32767, 32766, 32767}',
+    expected :function(val){
+      assert.deepEqual(val, [-32768, -32767, 32766, 32767]);
+    }
+  },{
+    name : 'array/int4',
+    format : 'text',
+    dataTypeID: 1007,
+    actual: '{-2147483648, -2147483647, 2147483646, 2147483647}',
+    expected :function(val){
+      assert.deepEqual(val, [-2147483648, -2147483647, 2147483646, 2147483647]);
+    }
+  },{
+    name : 'array/int8',
+    format : 'text',
+    dataTypeID: 1016,
+    actual: '{-9223372036854775808, -9223372036854775807, 9223372036854775806, 9223372036854775807}',
+    expected :function(val){
+      assert.deepEqual(val, [
+        '-9223372036854775808',
+        '-9223372036854775807',
+        '9223372036854775806',
+        '9223372036854775807'
+      ]);
+    }
+  },{
+    name : 'array/float4',
+    format : 'text',
+    dataTypeID: 1021,
+    actual: '{1.2, 3.4}',
+    expected :function(val){
+      assert.deepEqual(val, [1.2, 3.4]);
+    }
+  },{
+    name : 'array/float8',
+    format : 'text',
+    dataTypeID: 1022,
+    actual: '{-12345678.1234567, 12345678.12345678}',
+    expected :function(val){
+      assert.deepEqual(val, [-12345678.1234567, 12345678.12345678]);
+    }
   },
 
   {
