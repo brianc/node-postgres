@@ -84,7 +84,7 @@ describe('cursor', function() {
     this.timeout(10000)
     var text = 'SELECT generate_series as num FROM generate_series(0, 100000)'
     var values = []
-    cursor = this.pgCursor(text, values);
+    var cursor = this.pgCursor(text, values);
     var count = 0;
     var read = function() {
       cursor.read(100, function(err, rows) {
@@ -101,5 +101,19 @@ describe('cursor', function() {
       })
     }
     read()
+  })
+
+  it('normalizes parameter values', function(done) {
+    var text = 'SELECT $1::json me'
+    var values = [{name: 'brian'}]
+    var cursor = this.pgCursor(text, values);
+    cursor.read(1, function(err, rows) {
+      if(err) return done(err);
+      assert.equal(rows[0].me.name, 'brian')
+      cursor.read(1, function(err, rows) {
+        assert.equal(rows.length, 0)
+        done()
+      })
+    })
   })
 })

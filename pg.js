@@ -9,4 +9,5 @@ try {
   pgPath = path.dirname(require.resolve('pg.js')) + '/lib'
 }
 
-module.exports = require(path.join(pgPath, 'result.js'))
+module.exports.Result = require(path.join(pgPath, 'result.js'))
+module.exports.prepareValue = require(path.join(pgPath, 'utils.js')).prepareValue

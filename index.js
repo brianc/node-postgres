@@ -1,8 +1,9 @@
-var Result = require('./result')
+var Result = require('./pg').Result
+var prepare = require('./pg').prepareValue
 
 var Cursor = function(text, values) {
   this.text = text
-  this.values = values
+  this.values = values ? values.map(prepare) : null
   this.connection = null
   this._queue = []
   this.state = 'initialized'

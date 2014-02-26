@@ -14,5 +14,6 @@
   "devDependencies": {
     "pg.js": "~2.8.1",
     "mocha": "~1.17.1"
-  }
+  },
+  "dependencies": {}
 }
