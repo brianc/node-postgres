@@ -184,15 +184,24 @@ test('libpq connection string building', function() {
     assert.equal(subject.password, sourceConfig.password);
   });
 
-  test('password contains weird characters', function() {
+  test('username or password contains weird characters', function() {
     var defaults = require('../../../lib/defaults');
     defaults.ssl = true;
-    var strang = 'postgres://my first name:is&%awesome!@localhost:9000';
+    var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000';
     var subject = new ConnectionParameters(strang);
-    assert.equal(subject.user, 'my first name');
+    assert.equal(subject.user, 'my f%irst name');
     assert.equal(subject.password, 'is&%awesome!');
     assert.equal(subject.host, 'localhost');
     assert.equal(subject.ssl, true);
+  });
+
+  test("url is properly encoded", function() {
+    var encoded = "pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl";
+    var subject = new ConnectionParameters(encoded);
+    assert.equal(subject.user, "bi%na%%ry ");
+    assert.equal(subject.password, "s@f#");
+    assert.equal(subject.host, 'localhost');
+    assert.equal(subject.database, " u%20rl");
   });
 
   test('ssl is set on client', function() {
