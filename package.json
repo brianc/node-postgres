@@ -30,6 +30,7 @@
     "stream-tester": "0.0.5",
     "stream-spec": "~0.3.5",
     "jsonstream": "0.0.1",
-    "JSONStream": "~0.7.1"
+    "JSONStream": "~0.7.1",
+    "mocha": "~1.17.1"
   }
 }
