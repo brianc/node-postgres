@@ -98,8 +98,11 @@ QueryStream.prototype.handleCommandComplete = function(msg) {
 }
 
 QueryStream.prototype.handleReadyForQuery = function() {
-  this.emit('close')
   this.push(null)
+  //ensure 'close' fires after end
+  setImmediate(function() {
+    this.emit('close')
+  }.bind(this))
 }
 
 QueryStream.prototype.handleError = function(err) {
