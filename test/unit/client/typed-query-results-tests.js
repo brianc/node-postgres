@@ -121,7 +121,9 @@ test('typed results', function() {
     dataTypeID: 1082,
     actual: '2010-10-31',
     expected: function(val) {
-      assert.UTCDate(val, 2010, 9, 31, 0, 0, 0, 0);
+      var now = new Date(2010, 9, 31)
+      assert.UTCDate(val, 2010, now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), 0, 0, 0);
+      assert.equal(val.getHours(), now.getHours())
     }
   },{
     name: 'interval time',
