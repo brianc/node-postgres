@@ -10,34 +10,6 @@ PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
        
 ## Examples
 
-### Simple
-
-Connect to a postgres instance, run a query, and disconnect.
-
-```javascript
-var pg = require('pg'); 
-//or native libpq bindings
-//var pg = require('pg').native
-
-var conString = "postgres://postgres:1234@localhost/postgres";
-
-var client = new pg.Client(conString);
-client.connect(function(err) {
-  if(err) {
-    return console.error('could not connect to postgres', err);
-  }
-  client.query('SELECT NOW() AS "theTime"', function(err, result) {
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log(result.rows[0].theTime);
-    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
-    client.end();
-  });
-});
-
-```
-
 ### Client pooling
 
 Typically you will access the PostgreSQL server through a pool of clients.  node-postgres ships with a built in pool to help get you up and running quickly.
@@ -59,6 +31,34 @@ pg.connect(conString, function(err, client, done) {
     }
     console.log(result.rows[0].numbor);
     //output: 1
+  });
+});
+
+```
+
+### Simple
+
+Sometimes you may not want to use a pool of connections.  You can easily connect a single client to a postgres instance, run a query, and disconnect.
+
+```javascript
+var pg = require('pg'); 
+//or native libpq bindings
+//var pg = require('pg').native
+
+var conString = "postgres://postgres:1234@localhost/postgres";
+
+var client = new pg.Client(conString);
+client.connect(function(err) {
+  if(err) {
+    return console.error('could not connect to postgres', err);
+  }
+  client.query('SELECT NOW() AS "theTime"', function(err, result) {
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log(result.rows[0].theTime);
+    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
+    client.end();
   });
 });
 
@@ -149,7 +149,7 @@ _If you use node-postgres in production and would like your site listed here, fo
 
 ## License
 
-Copyright (c) 2010 Brian Carlson (brian.m.carlson@gmail.com)
+Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
