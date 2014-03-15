@@ -1,7 +1,7 @@
 var helper = require(__dirname + '/test-helper');
 
 helper.pg.connect(helper.config, assert.success(function(client, done) {
-  var types = require(__dirname + '/../../../lib/types');
+  var types = require('pg-types');
   //1231 = numericOID
   types.setTypeParser(1700, function(){
     return 'yes';

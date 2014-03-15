@@ -22,7 +22,8 @@
     "buffer-writer": "1.0.0",
     "pgpass": "0.0.1",
     "nan": "~0.6.0",
-    "packet-reader": "0.2.0"
+    "packet-reader": "0.2.0",
+    "pg-types": "1.0.0"
   },
   "devDependencies": {
     "jshint": "1.1.0",
