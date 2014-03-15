@@ -28,7 +28,7 @@
   "devDependencies": {
     "jshint": "1.1.0",
     "semver": "~1.1.4",
-    "async": "^0.2.10"
+    "async": "0.2.10"
   },
   "scripts": {
     "test": "make test-travis connectionString=postgres://postgres@localhost:5432/postgres",
