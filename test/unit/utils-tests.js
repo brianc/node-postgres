@@ -2,6 +2,14 @@ require(__dirname + '/test-helper');
 var utils = require(__dirname + "/../../lib/utils");
 var defaults = require(__dirname + "/../../lib").defaults;
 
+
+test('ensure types is exported on root object', function() {
+  var pg = require('../../lib')
+  assert(pg.types)
+  assert(pg.types.getTypeParser)
+  assert(pg.types.setTypeParser)
+})
+
 //this tests the monkey patching
 //to ensure comptability with older
 //versions of node
