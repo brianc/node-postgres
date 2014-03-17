@@ -14,7 +14,8 @@ assert.received = function(stream, buffer) {
 test("sends startup message", function() {
   con.startup({
     user: 'brian',
-    database: 'bang'
+    database: 'bang',
+    client_encoding: 'UTF8'
   });
   assert.received(stream, new BufferList()
                   .addInt16(3)
@@ -24,7 +25,7 @@ test("sends startup message", function() {
                   .addCString('database')
                   .addCString('bang')
                   .addCString('client_encoding')
-                  .addCString("'utf-8'")
+                  .addCString('UTF8')
                   .addCString('').join(true))
 });
 
