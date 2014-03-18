@@ -1,12 +1,16 @@
 require(__dirname+'/test-helper');
 
+var pguser = process.env['PGUSER'] || process.env.USER;
+var pgdatabase = process.env['PGDATABASE'] || process.env.USER;
+var pgport = process.env['PGPORT'] || 5432;
+
 test('client settings', function() {
 
   test('defaults', function() {
     var client = new Client();
-    assert.equal(client.user, process.env['PGUSER'] || process.env.USER);
-    assert.equal(client.database, process.env['PGDATABASE'] || process.env.USER);
-    assert.equal(client.port, 5432);
+    assert.equal(client.user, pguser);
+    assert.equal(client.database, pgdatabase);
+    assert.equal(client.port, pgport);
   });
 
   test('custom', function() {
@@ -69,7 +73,7 @@ test('calls connect correctly on connection', function() {
     usedHost = host;
   };
   client.connect();
-  assert.equal(usedPort, "/tmp/.s.PGSQL.5432");
+  assert.equal(usedPort, "/tmp/.s.PGSQL." + pgport);
   assert.strictEqual(usedHost, undefined)
 })
 
