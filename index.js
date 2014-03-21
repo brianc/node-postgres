@@ -50,14 +50,19 @@ Cursor.prototype.handleDataRow = function(msg) {
 Cursor.prototype._sendRows = function() {
   this.state = 'idle'
   setImmediate(function() {
-    this._cb(null, this._rows)
+    var cb = this._cb
+    //remove callback before calling it
+    //because likely a new one will be added
+    //within the call to this callback
+    this._cb = null
+    if(cb) {
+      cb(null, this._rows)
+    }
     this._rows = []
   }.bind(this))
 }
 
 Cursor.prototype.handleCommandComplete = function() {
-  this._sendRows()
-  this.state = 'done'
   this.connection.sync()
 }
 
@@ -66,6 +71,8 @@ Cursor.prototype.handlePortalSuspended = function() {
 }
 
 Cursor.prototype.handleReadyForQuery = function() {
+  this._sendRows()
+  this.state = 'done'
 }
 
 Cursor.prototype.handleError = function(msg) {
