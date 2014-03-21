@@ -33,6 +33,6 @@
     "mocha": "~1.17.1"
   },
   "dependencies": {
-    "pg-cursor": "~0.1.2"
+    "pg-cursor": "0.1.3"
   }
 }
