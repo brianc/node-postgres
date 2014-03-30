@@ -95,9 +95,24 @@ test('prepareValue: string prepared properly', function() {
   assert.strictEqual(out, 'big bad wolf');
 });
 
-test('prepareValue: array prepared properly', function() {
+test('prepareValue: simple array prepared properly', function() {
   var out = utils.prepareValue([1, null, 3, undefined, [5, 6, "squ,awk"]]);
-  assert.strictEqual(out, '{1,NULL,3,NULL,{5,6,"squ,awk"}}');
+  assert.strictEqual(out, '{"1",NULL,"3",NULL,{"5","6","squ,awk"}}');
+});
+
+test('prepareValue: complex array prepared properly', function() {
+  var out = utils.prepareValue([{ x: 42 }, { y: 84 }]);
+  assert.strictEqual(out, '{"{\\"x\\":42}","{\\"y\\":84}"}');
+});
+
+test('prepareValue: date array prepared properly', function() {
+  helper.setTimezoneOffset(-330);
+
+  var date = new Date(2014, 1, 1, 11, 11, 1, 7);
+  var out = utils.prepareValue([date]);
+  assert.strictEqual(out, '{"2014-02-01T11:11:01.007+05:30"}');
+
+  helper.resetTimezoneOffset();
 });
 
 test('prepareValue: arbitrary objects prepared properly', function() {
