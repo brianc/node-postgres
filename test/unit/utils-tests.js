@@ -119,3 +119,43 @@ test('prepareValue: arbitrary objects prepared properly', function() {
   var out = utils.prepareValue({ x: 42 });
   assert.strictEqual(out, '{"x":42}');
 });
+
+test('prepareValue: objects with simple toPostgres prepared properly', function() {
+  var customType = {
+    toPostgres: function() {
+      return "zomgcustom!";
+    }
+  };
+  var out = utils.prepareValue(customType);
+  assert.strictEqual(out, "zomgcustom!");
+});
+
+test('prepareValue: objects with complex toPostgres prepared properly', function() {
+  var buf = new Buffer("zomgcustom!");
+  var customType = {
+    toPostgres: function() {
+      return [1, 2];
+    }
+  };
+  var out = utils.prepareValue(customType);
+  assert.strictEqual(out, '{"1","2"}');
+});
+
+test('prepareValue: objects with circular toPostgres rejected', function() {
+  var buf = new Buffer("zomgcustom!");
+  var customType = {
+    toPostgres: function() {
+      return { toPostgres: function () { return customType; } };
+    }
+  };
+
+  //can't use `assert.throws` since we need to distinguish circular reference
+  //errors from call stack exceeded errors
+  try {
+    utils.prepareValue(customType);
+  } catch (e) {
+    assert.ok(e.message.match(/circular/), "Expected circular reference error but got " + e);
+    return;
+  }
+  throw new Error("Expected prepareValue to throw exception");
+});
