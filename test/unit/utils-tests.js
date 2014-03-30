@@ -1,4 +1,4 @@
-require(__dirname + '/test-helper');
+var helper = require(__dirname + '/test-helper');
 var utils = require(__dirname + "/../../lib/utils");
 var defaults = require(__dirname + "/../../lib").defaults;
 
@@ -48,3 +48,59 @@ test('normalizing query configs', function() {
   config = utils.normalizeQueryConfig({text: 'TEXT', values: [10]}, callback)
   assert.deepEqual(config, {text: 'TEXT', values: [10], callback: callback})
 })
+
+test('prepareValues: buffer prepared properly', function() {
+  var buf = new Buffer("quack");
+  var out = utils.prepareValue(buf);
+  assert.strictEqual(buf, out);
+});
+
+test('prepareValues: date prepared properly', function() {
+  helper.setTimezoneOffset(-330);
+
+  var date = new Date(2014, 1, 1, 11, 11, 1, 7);
+  var out = utils.prepareValue(date);
+  assert.strictEqual(out, "2014-02-01T11:11:01.007+05:30");
+
+  helper.resetTimezoneOffset();
+});
+
+test('prepareValues: undefined prepared properly', function() {
+  var out = utils.prepareValue(void 0);
+  assert.strictEqual(out, null);
+});
+
+test('prepareValue: null prepared properly', function() {
+  var out = utils.prepareValue(null);
+  assert.strictEqual(out, null);
+});
+
+test('prepareValue: true prepared properly', function() {
+  var out = utils.prepareValue(true);
+  assert.strictEqual(out, 'true');
+});
+
+test('prepareValue: false prepared properly', function() {
+  var out = utils.prepareValue(false);
+  assert.strictEqual(out, 'false');
+});
+
+test('prepareValue: number prepared properly', function () {
+  var out = utils.prepareValue(3.042);
+  assert.strictEqual(out, '3.042');
+});
+
+test('prepareValue: string prepared properly', function() {
+  var out = utils.prepareValue('big bad wolf');
+  assert.strictEqual(out, 'big bad wolf');
+});
+
+test('prepareValue: array prepared properly', function() {
+  var out = utils.prepareValue([1, null, 3, undefined, [5, 6, "squ,awk"]]);
+  assert.strictEqual(out, '{1,NULL,3,NULL,{5,6,"squ,awk"}}');
+});
+
+test('prepareValue: arbitrary objects prepared properly', function() {
+  var out = utils.prepareValue({ x: 42 });
+  assert.strictEqual(out, '{"x":42}');
+});
