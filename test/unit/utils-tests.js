@@ -141,6 +141,18 @@ test('prepareValue: objects with complex toPostgres prepared properly', function
   assert.strictEqual(out, '{"1","2"}');
 });
 
+test('prepareValue: objects with toPostgres receive prepareValue', function() {
+  var customRange = {
+    lower: { toPostgres: function() { return 5; } },
+    upper: { toPostgres: function() { return 10; } },
+    toPostgres: function(prepare) {
+      return "[" + prepare(this.lower) + "," + prepare(this.upper) + "]";
+    }
+  };
+  var out = utils.prepareValue(customRange);
+  assert.strictEqual(out, "[5,10]");
+});
+
 test('prepareValue: objects with circular toPostgres rejected', function() {
   var buf = new Buffer("zomgcustom!");
   var customType = {
