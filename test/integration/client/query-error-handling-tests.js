@@ -20,7 +20,7 @@ test('error during query execution', function() {
       //because it was killed and received an error
       //https://github.com/brianc/node-postgres/issues/547
       query1.on('end', function() {
-        assert.fail('Client with an error should not emit "end" event')
+        assert.fail('Query with an error should not emit "end" event')
       })
       var client2 = new Client(helper.args);
       client2.connect(assert.success(function() {
