@@ -20,7 +20,7 @@ test('emits end when not in query', function() {
     assert.equal(client.queryQueue.length, 0);
     assert(client.activeQuery, 'client should have issued query');
     process.nextTick(function() {
-      stream.emit('end');
+      stream.emit('close');
     });
   });
 });
