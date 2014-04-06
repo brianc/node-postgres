@@ -12,10 +12,16 @@ test('error during query execution', function() {
         pidColName = 'pid';
         queryColName = 'query';
       }
-      client.query(sleepQuery, assert.calls(function(err, result) {
+      var query1 = client.query(sleepQuery, assert.calls(function(err, result) {
         assert(err);
         client.end();
       }));
+      //ensure query1 does not emit an 'end' event
+      //because it was killed and received an error
+      //https://github.com/brianc/node-postgres/issues/547
+      query1.on('end', function() {
+        assert.fail('Client with an error should not emit "end" event')
+      })
       var client2 = new Client(helper.args);
       client2.connect(assert.success(function() {
         var killIdleQuery = "SELECT " + pidColName + ", (SELECT pg_terminate_backend(" + pidColName + ")) AS killed FROM pg_stat_activity WHERE " + queryColName + " = $1";
