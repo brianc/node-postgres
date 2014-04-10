@@ -11,6 +11,9 @@ var QueryStream = module.exports = function(text, values, options) {
   })
   this.batchSize = options.batchSize || 100
   this._ready = false
+  this.once('end', function() {
+    setImmediate(function() { this.emit('close') }.bind(this));
+  })
   //kick reader
   this.read()
 }
@@ -35,7 +38,6 @@ QueryStream.prototype._read = function(n) {
     if(!rows.length) {
       setImmediate(function() {
         self.push(null)
-        self.once('end', self.emit.bind(self, 'close'))
       })
     }
     self._reading = false
