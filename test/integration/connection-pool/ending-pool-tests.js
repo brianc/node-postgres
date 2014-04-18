@@ -5,7 +5,7 @@ test('disconnects', function() {
   var sink = new helper.Sink(4, function() {
     called = true;
     var eventSink = new helper.Sink(1, function() {});
-    helper.pg.on('ended', function() {
+    helper.pg.on('end', function() {
       eventSink.add();
     });
 
