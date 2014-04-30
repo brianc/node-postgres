@@ -16,13 +16,13 @@ Typically you will access the PostgreSQL server through a pool of clients.  node
 
 ```javascript
 var pg = require('pg');
-var conString = "postgres://postgres:1234@localhost/postgres";
+var conString = "postgres://username:password@localhost/database";
 
 pg.connect(conString, function(err, client, done) {
   if(err) {
-  	return console.error('error fetching client from pool', err);
+    return console.error('error fetching client from pool', err);
   }
-  client.query('SELECT $1::int AS numbor', ['1'], function(err, result) {
+  client.query('SELECT $1::int AS number', ['1'], function(err, result) {
     //call `done()` to release the client back to the pool
     done();
     
@@ -45,7 +45,7 @@ var pg = require('pg');
 //or native libpq bindings
 //var pg = require('pg').native
 
-var conString = "postgres://postgres:1234@localhost/postgres";
+var conString = "postgres://username:password@localhost/database";
 
 var client = new pg.Client(conString);
 client.connect(function(err) {
