@@ -35,5 +35,5 @@ test('uses password file when PGPASSFILE env variable is set', function() {
       done();
       pg.end();
     }))
-  }, 15000));
+  }));
 });

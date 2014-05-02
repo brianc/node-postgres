@@ -24,5 +24,5 @@ test('connection with config ssl = true', function() {
       done();
       pg.end();
     }))
-  }, 15000));
+  }));
 });
