@@ -15,11 +15,14 @@ var config = {
   ssl: true
 };
 
-//connect & disconnect from heroku
-pg.connect(config, assert.success(function(client, done) {
-  client.query('SELECT NOW() as time', assert.success(function(res) {
-    assert(res.rows[0].time.getTime());
-    done();
-    pg.end();
-  }))
-}));
+test('connection with config ssl = true', function() {
+  //connect & disconnect from heroku
+  pg.connect(config, assert.calls(function(err, client, done) {
+    assert.isNull(err);
+    client.query('SELECT NOW() as time', assert.success(function(res) {
+      assert(res.rows[0].time.getTime());
+      done();
+      pg.end();
+    }))
+  }));
+});
