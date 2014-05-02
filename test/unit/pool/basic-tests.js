@@ -177,3 +177,38 @@ test('fetching pool by object', function() {
   });
   assert.equal(p, p2);
 });
+
+
+test('pool#connect client.poolCount', function() {
+  var p = pools.getOrCreate(poolId++);
+  var tid;
+
+  setConnectTimeout = function() {
+    tid = setTimeout(function() {
+      throw new Error("Connection callback was never called");
+    }, 100);
+  }
+
+  setConnectTimeout();
+  p.connect(function(err, client, done) {
+    clearTimeout(tid);
+    assert.equal(client.poolCount, 1,
+      'after connect, poolCount should be 1');
+    done();
+    assert.equal(client.poolCount, 1,
+      'after returning client to pool, poolCount should still be 1');
+    setConnectTimeout();
+    p.connect(function(err, client, done) {
+      clearTimeout(tid);
+      assert.equal(client.poolCount, 2,
+        'after second connect, poolCount should be 2');
+      done();
+      setConnectTimeout();
+      p.destroyAllNow(function() {
+        clearTimeout(tid);
+        assert.equal(client.poolCount, undefined,
+          'after pool is destroyed, count should be undefined');
+      });
+    })
+  });
+});
