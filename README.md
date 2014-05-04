@@ -29,7 +29,7 @@ pg.connect(conString, function(err, client, done) {
     if(err) {
       return console.error('error running query', err);
     }
-    console.log(result.rows[0].numbor);
+    console.log(result.rows[0].number);
     //output: 1
   });
 });
