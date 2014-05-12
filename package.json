@@ -23,7 +23,7 @@
     "pgpass": "0.0.3",
     "nan": "~0.6.0",
     "packet-reader": "0.2.0",
-    "pg-types": "1.0.0"
+    "pg-types": "1.1.0"
   },
   "devDependencies": {
     "jshint": "1.1.0",
