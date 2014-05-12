@@ -8,7 +8,7 @@ We do not include break-fix version release in this file.
 
 - Add support for parsing [date arrays](https://github.com/brianc/node-pg-types/pull/3)
 - Expose array parsers on [pg.types](https://github.com/brianc/node-pg-types/pull/2)
-- Add [count of the number of times a client has been checked out from the pool]
+- Add [count of the number of times a client has been checked out from the pool](https://github.com/brianc/node-postgres/pull/556)
 - Emit `end` from `pg` object [when a pool is drained](https://github.com/brianc/node-postgres/pull/571)
 
 ### v3.0.0
