@@ -11,6 +11,8 @@ helper('error', function(client) {
       assert(err)
       assert.equal(err.code, '42P01')
       done()
+    }).on('data', function () {
+      //noop to kick of reading
     })
   })
 
