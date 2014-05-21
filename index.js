@@ -103,7 +103,7 @@ Cursor.prototype._getRows = function(rows, cb) {
 }
 
 Cursor.prototype.end = function(cb) {
-  if(this.statue != 'initialized') {
+  if(this.state != 'initialized') {
     this.connection.sync()
   }
   this.connection.end()
