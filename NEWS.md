@@ -4,10 +4,15 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
-### v3.1.0
+### v3.2.0
 
 - Add support for parsing [date arrays](https://github.com/brianc/node-pg-types/pull/3)
 - Expose array parsers on [pg.types](https://github.com/brianc/node-pg-types/pull/2)
+- Allow [pool](https://github.com/brianc/node-postgres/pull/591) to be configured
+
+
+### v3.1.0
+
 - Add [count of the number of times a client has been checked out from the pool](https://github.com/brianc/node-postgres/pull/556)
 - Emit `end` from `pg` object [when a pool is drained](https://github.com/brianc/node-postgres/pull/571)
 
