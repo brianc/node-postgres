@@ -32,14 +32,28 @@ Cursor.prototype.submit = function(connection) {
   }, true)
 
   con.flush()
+
+  con.once('noData', ifNoData)
+  con.once('rowDescription', function () {
+    con.removeListener('noData', ifNoData);
+  });
+
+  function ifNoData () {
+    self.state = 'idle'
+    self._shiftQueue();
+  }
+}
+
+Cursor.prototype._shiftQueue = function () {
+  if(this._queue.length) {
+    this._getRows.apply(this, this._queue.shift())
+  }
 }
 
 Cursor.prototype.handleRowDescription = function(msg) {
   this._result.addFields(msg.fields)
   this.state = 'idle'
-  if(this._queue.length) {
-    this._getRows.apply(this, this._queue.shift())
-  }
+  this._shiftQueue();
 }
 
 Cursor.prototype.handleDataRow = function(msg) {
@@ -103,7 +117,7 @@ Cursor.prototype._getRows = function(rows, cb) {
 }
 
 Cursor.prototype.end = function(cb) {
-  if(this.statue != 'initialized') {
+  if(this.state != 'initialized') {
     this.connection.sync()
   }
   this.connection.end()

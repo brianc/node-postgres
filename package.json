@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node test/"
+    "test": "mocha test/"
   },
   "author": "Brian M. Carlson",
   "license": "MIT",
