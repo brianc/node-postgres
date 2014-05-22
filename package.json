@@ -27,7 +27,6 @@
     "through": "~2.3.4",
     "stream-tester": "0.0.5",
     "stream-spec": "~0.3.5",
-    "jsonstream": "*",
     "JSONStream": "~0.7.1",
     "mocha": "~1.17.1"
   },
