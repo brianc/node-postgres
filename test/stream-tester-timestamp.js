@@ -3,7 +3,7 @@ var QueryStream = require('../')
 var spec = require('stream-spec')
 var assert = require('assert')
 
-require('./helper')(function(client) {
+require('./helper')('stream tester timestamp', function(client) {
   it('should not warn about max listeners', function(done) {
     var sql = 'SELECT * FROM generate_series(\'1983-12-30 00:00\'::timestamp, \'2013-12-30 00:00\', \'1 years\')'
     var result = []

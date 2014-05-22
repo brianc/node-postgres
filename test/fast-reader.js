@@ -2,7 +2,7 @@ var assert = require('assert')
 var helper = require('./helper')
 var QueryStream = require('../')
 
-helper(function(client) {
+helper('fast reader', function(client) {
   it('works', function(done) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
     var query = client.query(stream)

@@ -3,7 +3,7 @@ var helper = require('./helper')
 
 var QueryStream = require('../')
 
-helper(function(client) {
+helper('error', function(client) {
   it('receives error on stream', function(done) {
     var stream = new QueryStream('SELECT * FROM asdf num', [])
     var query = client.query(stream)
@@ -11,6 +11,8 @@ helper(function(client) {
       assert(err)
       assert.equal(err.code, '42P01')
       done()
+    }).on('data', function () {
+      //noop to kick of reading
     })
   })
 

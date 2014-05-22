@@ -5,7 +5,7 @@ var JSONStream = require('JSONStream')
 
 var QueryStream = require('../')
 
-require('./helper')(function(client) {
+require('./helper')('pauses', function(client) {
   it('pauses', function(done) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [200], {batchSize: 2, highWaterMark: 2})
     var query = client.query(stream)

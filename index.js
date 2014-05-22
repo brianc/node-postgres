@@ -1,8 +1,9 @@
 var util = require('util')
 var Cursor = require('pg-cursor')
-var Readable = require('stream').Readable
+var Readable = require('readable-stream').Readable
 
 var QueryStream = module.exports = function(text, values, options) {
+  var self = this;
   options = options || { }
   Cursor.call(this, text, values)
   Readable.call(this, {
@@ -10,22 +11,23 @@ var QueryStream = module.exports = function(text, values, options) {
     highWaterMark: options.highWaterMark || 1000
   })
   this.batchSize = options.batchSize || 100
-  this._ready = false
   this.once('end', function() {
-    setImmediate(function() { this.emit('close') }.bind(this));
-  })
-  //kick reader
-  this.read()
+    process.nextTick(function() {
+      self.emit('close') 
+    });
+   })
 }
 
 util.inherits(QueryStream, Readable)
 for(var key in Cursor.prototype) {
-  if(key != 'read') {
+  if(key == 'read') {
+    QueryStream.prototype._fetch = Cursor.prototype.read
+  } else {
     QueryStream.prototype[key] = Cursor.prototype[key]
   }
 }
 
-QueryStream.prototype._fetch = Cursor.prototype.read
+
 
 QueryStream.prototype._read = function(n) {
   if(this._reading) return false;
@@ -36,9 +38,10 @@ QueryStream.prototype._read = function(n) {
       return self.emit('error', err)
     }
     if(!rows.length) {
-      setImmediate(function() {
+      process.nextTick(function() {
         self.push(null)
       })
+      return;
     }
     self._reading = false
     for(var i = 0; i < rows.length; i++) {

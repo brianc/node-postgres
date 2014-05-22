@@ -4,7 +4,7 @@
   "description": "Postgres query result returned as readable stream",
   "main": "index.js",
   "scripts": {
-    "test": "make test"
+    "test": "mocha test/*.js -R spec"
   },
   "repository": {
     "type": "git",
@@ -23,16 +23,15 @@
   },
   "devDependencies": {
     "pg.js": "*",
-    "lodash": "~2.2.1",
     "concat-stream": "~1.0.1",
     "through": "~2.3.4",
     "stream-tester": "0.0.5",
     "stream-spec": "~0.3.5",
-    "jsonstream": "*",
     "JSONStream": "~0.7.1",
     "mocha": "~1.17.1"
   },
   "dependencies": {
-    "pg-cursor": "0.2.0"
+    "pg-cursor": "0.2.0",
+    "readable-stream": "^1.0.27-1"
   }
 }

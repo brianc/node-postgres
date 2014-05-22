@@ -5,7 +5,7 @@ var helper = require('./helper')
 
 var QueryStream = require('../')
 
-helper(function(client) {
+helper('concat', function(client) {
   it('concats correctly', function(done) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
     var query = client.query(stream)
