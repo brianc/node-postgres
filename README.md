@@ -7,7 +7,14 @@ PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
 ## Installation
 
     npm install pg
-       
+
+### Windows
+ 
+ 1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
+ 2. Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
+ 3. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
+ 4. `npm install pg`
+
 ## Examples
 
 ### Client pooling
