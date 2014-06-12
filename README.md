@@ -132,12 +132,15 @@ Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 node-postgres is by design _low level_ with the bare minimum of abstraction.  These might help out:
 
-- https://github.com/brianc/node-pg-query-stream
-- https://github.com/brianc/node-pg-cursor
-- https://github.com/brianc/node-pg-copy-streams
-- https://github.com/grncdr/node-any-db
-- https://github.com/brianc/node-sql
-- https://github.com/CSNW/sql-bricks
+- [brianc/node-pg-query-stream](https://github.com/brianc/node-pg-query-stream) - Query results from node-postgres as a readable (object) stream
+- [brianc/node-pg-cursor](https://github.com/brianc/node-pg-cursor) - Query cursor extension for node-postgres
+- [brianc/node-pg-copy-streams](https://github.com/brianc/node-pg-copy-streams) - COPY FROM / COPY TO for node-postgres. Stream from one database to another, and stuff.
+- [brianc/node-postgres-pure](https://github.com/brianc/node-postgres-pure) - node-postgres without any of the C/C++ stuff
+- [brianc/node-pg-types](https://github.com/brianc/node-pg-types) - Type parsing for node-postgres
+- [grncdr/node-any-db](https://github.com/grncdr/node-any-db) - Thin and less-opinionated database abstraction layer for node.
+- [brianc/node-sql](https://github.com/brianc/node-sql) - SQL generation for node.js
+- [hiddentao/suqel](https://hiddentao.github.io/squel/) - SQL query string builder for Javascript
+- [CSNW/sql-bricks](https://github.com/CSNW/sql-bricks) - Transparent, Schemaless SQL Generation
 
 
 ## Production Use
