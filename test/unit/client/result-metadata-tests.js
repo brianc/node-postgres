@@ -36,4 +36,3 @@ testForTag("INSERT 0 3", check(0, 3, "INSERT"));
 testForTag("INSERT 841 1", check(841, 1, "INSERT"));
 testForTag("DELETE 10", check(null, 10, "DELETE"));
 testForTag("UPDATE 11", check(null, 11, "UPDATE"));
-testForTag("SELECT 20", check(null, 20, "SELECT"));

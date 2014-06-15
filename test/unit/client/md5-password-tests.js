@@ -1,4 +1,5 @@
-require(__dirname + '/test-helper')
+require(__dirname + '/test-helper');
+
 test('md5 authentication', function() {
   var client = createClient();
   client.password = "!";
@@ -13,7 +14,7 @@ test('md5 authentication', function() {
       var password = "md5" + encrypted
       //how do we want to test this?
       assert.equalBuffers(client.connection.stream.packets[0], new BufferList()
-                        .addCString(password).join(true,'p'))
+                        .addCString(password).join(true,'p'));
     });
   });
 

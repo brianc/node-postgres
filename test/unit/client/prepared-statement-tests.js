@@ -50,7 +50,7 @@ test('bound command', function() {
     assert.ok(client.connection.emit('readyForQuery'));
 
     var query = client.query({
-      text: 'select * where name = $1',
+      text: 'select * form X where name = $1',
       values: ['hi']
     });
 
