@@ -28,6 +28,7 @@ function parse(str) {
     config.fallback_application_name = result.query.fallback_application_name;
   }
 
+  config.port = result.port;
   if(result.protocol == 'socket:') {
     config.host = decodeURI(result.pathname);
     config.database = result.query.db;
@@ -39,7 +40,6 @@ function parse(str) {
   var auth = (result.auth || ':').split(':');
   config.user = auth[0];
   config.password = auth[1];
-  config.port = result.port;
 
   var ssl = result.query.ssl;
   if (ssl === 'true' || ssl === '1') {
