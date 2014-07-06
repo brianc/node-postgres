@@ -7,147 +7,66 @@ function createClient(callback) {
   });
 }
 
-test('escapeLiteral: no special characters', function() {
-  createClient(function(client) {
-    var expected = "'hello world'";
-    var actual = client.escapeLiteral('hello world');
+var testLit = function(testName, input, expected) {
+  test(testName, function(){
+    var client = new Client(helper.config);
+    var actual = client.escapeLiteral(input);
     assert.equal(expected, actual);
-    client.end();
   });
-});
+};
 
-test('escapeLiteral: contains double quotes only', function() {
-  createClient(function(client) {
-    var expected = "'hello \" world'";
-    var actual = client.escapeLiteral('hello " world');
+var testIdent = function(testName, input, expected) {
+  test(testName, function(){
+    var client = new Client(helper.config);
+    var actual = client.escapeIdentifier(input);
     assert.equal(expected, actual);
-    client.end();
   });
-});
+};
 
-test('escapeLiteral: contains single quotes only', function() {
-  createClient(function(client) {
-    var expected = "'hello \'\' world'";
-    var actual = client.escapeLiteral('hello \' world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: no special characters',
+        'hello world', "'hello world'");
 
-test('escapeLiteral: contains backslashes only', function() {
-  createClient(function(client) {
-    var expected = " E'hello \\\\ world'";
-    var actual = client.escapeLiteral('hello \\ world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: contains double quotes only',
+        'hello " world', "'hello \" world'");
 
-test('escapeLiteral: contains single quotes and double quotes', function() {
-  createClient(function(client) {
-    var expected = "'hello '' \" world'";
-    var actual = client.escapeLiteral('hello \' " world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: contains single quotes only',
+        'hello \' world', "'hello \'\' world'");
 
-test('escapeLiteral: contains double quotes and backslashes', function() {
-  createClient(function(client) {
-    var expected = " E'hello \\\\ \" world'";
-    var actual = client.escapeLiteral('hello \\ " world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: contains backslashes only',
+        'hello \\ world', " E'hello \\\\ world'");
 
-test('escapeLiteral: contains single quotes and backslashes', function() {
-  createClient(function(client) {
-    var expected = " E'hello \\\\ '' world'";
-    var actual = client.escapeLiteral('hello \\ \' world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: contains single quotes and double quotes',
+        'hello \' " world', "'hello '' \" world'");
 
-test('escapeLiteral: contains single quotes, double quotes, and backslashes', function() {
-  createClient(function(client) {
-    var expected = " E'hello \\\\ '' \" world'";
-    var actual = client.escapeLiteral('hello \\ \' " world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: contains double quotes and backslashes',
+        'hello \\ " world', " E'hello \\\\ \" world'");
 
-test('escapeIdentifier: no special characters', function() {
-  createClient(function(client) {
-    var expected = '"hello world"';
-    var actual = client.escapeIdentifier('hello world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: contains single quotes and backslashes',
+        'hello \\ \' world', " E'hello \\\\ '' world'");
 
-test('escapeIdentifier: contains double quotes only', function() {
-  createClient(function(client) {
-    var expected = '"hello "" world"';
-    var actual = client.escapeIdentifier('hello " world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testLit('escapeLiteral: contains single quotes, double quotes, and backslashes',
+        'hello \\ \' " world', " E'hello \\\\ '' \" world'");
 
-test('escapeIdentifier: contains single quotes only', function() {
-  createClient(function(client) {
-    var expected = '"hello \' world"';
-    var actual = client.escapeIdentifier('hello \' world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testIdent('escapeIdentifier: no special characters',
+        'hello world', '"hello world"');
 
-test('escapeIdentifier: contains backslashes only', function() {
-  createClient(function(client) {
-    var expected = '"hello \\ world"';
-    var actual = client.escapeIdentifier('hello \\ world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testIdent('escapeIdentifier: contains double quotes only',
+        'hello " world', '"hello "" world"');
 
-test('escapeIdentifier: contains single quotes and double quotes', function() {
-  createClient(function(client) {
-    var expected = '"hello \' "" world"';
-    var actual = client.escapeIdentifier('hello \' " world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testIdent('escapeIdentifier: contains single quotes only',
+        'hello \' world', '"hello \' world"');
 
-test('escapeIdentifier: contains double quotes and backslashes', function() {
-  return createClient(function(client) {
-    var expected = '"hello \\ "" world"';
-    var actual = client.escapeIdentifier('hello \\ " world');
-    assert.equal(expected, actual);
-    client.end();
-    return;
-  });
-});
+testIdent('escapeIdentifier: contains backslashes only',
+        'hello \\ world', '"hello \\ world"');
 
-test('escapeIdentifier: contains single quotes and backslashes', function() {
-  createClient(function(client) {
-    var expected = '"hello \\ \' world"';
-    var actual = client.escapeIdentifier('hello \\ \' world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testIdent('escapeIdentifier: contains single quotes and double quotes',
+        'hello \' " world', '"hello \' "" world"');
 
-test('escapeIdentifier: contains single quotes, double quotes, and backslashes', function() {
-  createClient(function(client) {
-    var expected = '"hello \\ \' "" world"';
-    var actual = client.escapeIdentifier('hello \\ \' " world');
-    assert.equal(expected, actual);
-    client.end();
-  });
-});
+testIdent('escapeIdentifier: contains double quotes and backslashes',
+        'hello \\ " world', '"hello \\ "" world"');
+
+testIdent('escapeIdentifier: contains single quotes and backslashes',
+        'hello \\ \' world', '"hello \\ \' world"');
+
+testIdent('escapeIdentifier: contains single quotes, double quotes, and backslashes',
+        'hello \\ \' " world', '"hello \\ \' "" world"');
