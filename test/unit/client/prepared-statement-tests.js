@@ -50,14 +50,14 @@ test('bound command', function() {
     assert.ok(client.connection.emit('readyForQuery'));
 
     var query = client.query({
-      text: 'select * where name = $1',
+      text: 'select * from X where name = $1',
       values: ['hi']
     });
 
     assert.emits(query,'end', function() {
       test('parse argument', function() {
         assert.equal(parseArg.name, null);
-        assert.equal(parseArg.text, 'select * where name = $1');
+        assert.equal(parseArg.text, 'select * from X where name = $1');
         assert.equal(parseArg.types, null);
       });
 

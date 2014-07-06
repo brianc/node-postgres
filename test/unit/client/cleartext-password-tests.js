@@ -1,5 +1,10 @@
 require(__dirname+'/test-helper');
 
+/*
+ * TODO: Add _some_ comments to explain what it is we're testing, and how the
+ * code-being-tested works behind the scenes.
+ */
+
 test('cleartext password authentication', function(){
 
   var client = createClient();
