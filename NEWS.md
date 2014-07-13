@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v3.3.0
+- Include port as connection parameter to [unix sockets](https://github.com/brianc/node-postgres/pull/604)
+- Better support for odd [date parsing](https://github.com/brianc/node-pg-types/pull/8)
+
 ### v3.2.0
 
 - Add support for parsing [date arrays](https://github.com/brianc/node-pg-types/pull/3)
