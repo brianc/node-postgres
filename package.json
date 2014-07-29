@@ -18,18 +18,18 @@
   "author": "Brian Carlson <brian.m.carlson@gmail.com>",
   "main": "./lib",
   "dependencies": {
-    "generic-pool": "2.0.3",
+    "generic-pool": "2.1.1",
     "buffer-writer": "1.0.0",
     "pgpass": "0.0.3",
-    "nan": "~0.6.0",
+    "nan": "~1.2.0",
     "packet-reader": "0.2.0",
     "pg-connection-string": "0.1.1",
     "pg-types": "1.4.0"
   },
   "devDependencies": {
-    "jshint": "1.1.0",
-    "semver": "~1.1.4",
-    "async": "0.2.10"
+    "jshint": "2.5.2",
+    "semver": "~3.0.1",
+    "async": "0.9.0"
   },
   "scripts": {
     "changelog": "npm i github-changes && ./node_modules/.bin/github-changes -o brianc -r node-postgres -d pulls -a -v",
