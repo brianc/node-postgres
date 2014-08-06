@@ -146,7 +146,6 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 ## Production Use
 * [yammer.com](http://www.yammer.com)
 * [bayt.com](http://bayt.com)
-* [bitfloor.com](https://bitfloor.com)
 * [Vendly](http://www.vend.ly)
 * [SaferAging](http://www.saferaging.com)
 * [CartoDB](http://www.cartodb.com)
