@@ -157,6 +157,7 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 * [Heap](https://heapanalytics.com)
 * [zoomsquare](http://www.zoomsquare.com/)
 * [WhenToManage](http://www.whentomanage.com)
+* [Treatz.me](http://www.treatz.me)
 
 _If you use node-postgres in production and would like your site listed here, fork & add it._
 
