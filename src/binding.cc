@@ -30,25 +30,25 @@ public:
   Init (Handle<Object> target)
   {
     NanScope();
-    Local<FunctionTemplate> t = FunctionTemplate::New(New);
+    Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
 
     t->InstanceTemplate()->SetInternalFieldCount(1);
-    t->SetClassName(NanSymbol("Connection"));
+    t->SetClassName(NanNew("Connection"));
 
-    NODE_SET_PROTOTYPE_METHOD(t, "connect", Connect);
+    NanSetPrototypeTemplate(t, "connect", NanNew<FunctionTemplate>(Connect));
 #ifdef ESCAPE_SUPPORTED
-    NODE_SET_PROTOTYPE_METHOD(t, "escapeIdentifier", EscapeIdentifier);
-    NODE_SET_PROTOTYPE_METHOD(t, "escapeLiteral", EscapeLiteral);
+    NanSetPrototypeTemplate(t, "escapeIdentifier", NanNew<FunctionTemplate>(EscapeIdentifier));
+    NanSetPrototypeTemplate(t, "escapeLiteral", NanNew<FunctionTemplate>(EscapeLiteral));
 #endif
-    NODE_SET_PROTOTYPE_METHOD(t, "_sendQuery", SendQuery);
-    NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryWithParams", SendQueryWithParams);
-    NODE_SET_PROTOTYPE_METHOD(t, "_sendPrepare", SendPrepare);
-    NODE_SET_PROTOTYPE_METHOD(t, "_sendQueryPrepared", SendQueryPrepared);
-    NODE_SET_PROTOTYPE_METHOD(t, "cancel", Cancel);
-    NODE_SET_PROTOTYPE_METHOD(t, "end", End);
-    NODE_SET_PROTOTYPE_METHOD(t, "_sendCopyFromChunk", SendCopyFromChunk);
-    NODE_SET_PROTOTYPE_METHOD(t, "_endCopyFrom", EndCopyFrom);
-    target->Set(String::NewSymbol("Connection"), t->GetFunction());
+    NanSetPrototypeTemplate(t, "_sendQuery", NanNew<FunctionTemplate>(SendQuery));
+    NanSetPrototypeTemplate(t, "_sendQueryWithParams", NanNew<FunctionTemplate>(SendQueryWithParams));
+    NanSetPrototypeTemplate(t, "_sendPrepare", NanNew<FunctionTemplate>(SendPrepare));
+    NanSetPrototypeTemplate(t, "_sendQueryPrepared", NanNew<FunctionTemplate>(SendQueryPrepared));
+    NanSetPrototypeTemplate(t, "cancel", NanNew<FunctionTemplate>(Cancel));
+    NanSetPrototypeTemplate(t, "end", NanNew<FunctionTemplate>(End));
+    NanSetPrototypeTemplate(t, "_sendCopyFromChunk", NanNew<FunctionTemplate>(SendCopyFromChunk));
+    NanSetPrototypeTemplate(t, "_endCopyFrom", NanNew<FunctionTemplate>(EndCopyFrom));
+    target->Set(NanNew("Connection"), t->GetFunction());
     TRACE("created class");
   }
 
@@ -121,7 +121,7 @@ public:
       THROW(self->GetLastError());
     }
 
-    Local<Value> jsStr = String::New(escapedStr, strlen(escapedStr));
+    Local<Value> jsStr = NanNew<String>(escapedStr, strlen(escapedStr));
     PQfreemem(escapedStr);
 
     NanReturnValue(jsStr);
@@ -146,7 +146,7 @@ public:
       THROW(self->GetLastError());
     }
 
-    Local<Value> jsStr = String::New(escapedStr, strlen(escapedStr));
+    Local<Value> jsStr = NanNew<String>(escapedStr, strlen(escapedStr));
     PQfreemem(escapedStr);
 
     NanReturnValue(jsStr);
@@ -477,7 +477,7 @@ protected:
   void HandleNotice(const char *message)
   {
     NanScope();
-    Handle<Value> notice = String::New(message);
+    Handle<Value> notice = NanNew<String>(message);
     Emit("notice", &notice);
   }
 
@@ -536,9 +536,9 @@ protected:
       PGnotify *notify;
       TRACE("PQnotifies");
       while ((notify = PQnotifies(connection_))) {
-        Local<Object> result = Object::New();
-        result->Set(NanSymbol("channel"), String::New(notify->relname));
-        result->Set(NanSymbol("payload"), String::New(notify->extra));
+        Local<Object> result = NanNew<Object>();
+        result->Set(NanNew("channel"), NanNew(notify->relname));
+        result->Set(NanNew("payload"), NanNew(notify->extra));
         Handle<Value> res = (Handle<Value>)result;
         Emit("notification", &res);
         PQfreemem(notify);
@@ -585,19 +585,19 @@ protected:
   void EmitRowDescription(const PGresult* result)
   {
     NanScope();
-    Local<Array> row = Array::New();
+    Local<Array> row = NanNew<Array>();
     int fieldCount = PQnfields(result);
     for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
-      Local<Object> field = Object::New();
+      Local<Object> field = NanNew<Object>();
       //name of field
       char* fieldName = PQfname(result, fieldNumber);
-      field->Set(NanSymbol("name"), String::New(fieldName));
+      field->Set(NanNew("name"), NanNew(fieldName));
 
       //oid of type of field
       int fieldType = PQftype(result, fieldNumber);
-      field->Set(NanSymbol("dataTypeID"), Integer::New(fieldType));
+      field->Set(NanNew("dataTypeID"), NanNew(fieldType));
 
-      row->Set(Integer::New(fieldNumber), field);
+      row->Set(NanNew(fieldNumber), field);
     }
 
     Handle<Value> e = (Handle<Value>)row;
@@ -658,9 +658,9 @@ protected:
   void EmitCommandMetaData(PGresult* result)
   {
     NanScope();
-    Local<Object> info = Object::New();
-    info->Set(NanSymbol("command"), String::New(PQcmdStatus(result)));
-    info->Set(NanSymbol("value"), String::New(PQcmdTuples(result)));
+    Local<Object> info = NanNew<Object>();
+    info->Set(NanNew("command"), NanNew(PQcmdStatus(result)));
+    info->Set(NanNew("value"), NanNew(PQcmdTuples(result)));
     Handle<Value> e = (Handle<Value>)info;
     Emit("_cmdStatus", &e);
   }
@@ -675,16 +675,16 @@ protected:
     int rowCount = PQntuples(result);
     for(int rowNumber = 0; rowNumber < rowCount; rowNumber++) {
       //create result object for this row
-      Local<Array> row = Array::New();
+      Local<Array> row = NanNew<Array>();
       int fieldCount = PQnfields(result);
       for(int fieldNumber = 0; fieldNumber < fieldCount; fieldNumber++) {
 
         //value of field
         if(PQgetisnull(result, rowNumber, fieldNumber)) {
-          row->Set(Integer::New(fieldNumber), Null());
+          row->Set(NanNew(fieldNumber), NanNull());
         } else {
           char* fieldValue = PQgetvalue(result, rowNumber, fieldNumber);
-          row->Set(Integer::New(fieldNumber), String::New(fieldValue));
+          row->Set(NanNew(fieldNumber), NanNew(fieldValue));
         }
       }
 
@@ -704,20 +704,20 @@ protected:
       //read-loop callback
       return;
     }
-    Local<Object> msg = Local<Object>::Cast(Exception::Error(String::New(errorMessage)));
+    Local<Object> msg = Local<Object>::Cast(NanError(errorMessage));
     TRACE("AttachErrorFields");
     //add the other information returned by Postgres to the error object
-    AttachErrorField(result, msg, NanSymbol("severity"), PG_DIAG_SEVERITY);
-    AttachErrorField(result, msg, NanSymbol("code"), PG_DIAG_SQLSTATE);
-    AttachErrorField(result, msg, NanSymbol("detail"), PG_DIAG_MESSAGE_DETAIL);
-    AttachErrorField(result, msg, NanSymbol("hint"), PG_DIAG_MESSAGE_HINT);
-    AttachErrorField(result, msg, NanSymbol("position"), PG_DIAG_STATEMENT_POSITION);
-    AttachErrorField(result, msg, NanSymbol("internalPosition"), PG_DIAG_INTERNAL_POSITION);
-    AttachErrorField(result, msg, NanSymbol("internalQuery"), PG_DIAG_INTERNAL_QUERY);
-    AttachErrorField(result, msg, NanSymbol("where"), PG_DIAG_CONTEXT);
-    AttachErrorField(result, msg, NanSymbol("file"), PG_DIAG_SOURCE_FILE);
-    AttachErrorField(result, msg, NanSymbol("line"), PG_DIAG_SOURCE_LINE);
-    AttachErrorField(result, msg, NanSymbol("routine"), PG_DIAG_SOURCE_FUNCTION);
+    AttachErrorField(result, msg, NanNew("severity"), PG_DIAG_SEVERITY);
+    AttachErrorField(result, msg, NanNew("code"), PG_DIAG_SQLSTATE);
+    AttachErrorField(result, msg, NanNew("detail"), PG_DIAG_MESSAGE_DETAIL);
+    AttachErrorField(result, msg, NanNew("hint"), PG_DIAG_MESSAGE_HINT);
+    AttachErrorField(result, msg, NanNew("position"), PG_DIAG_STATEMENT_POSITION);
+    AttachErrorField(result, msg, NanNew("internalPosition"), PG_DIAG_INTERNAL_POSITION);
+    AttachErrorField(result, msg, NanNew("internalQuery"), PG_DIAG_INTERNAL_QUERY);
+    AttachErrorField(result, msg, NanNew("where"), PG_DIAG_CONTEXT);
+    AttachErrorField(result, msg, NanNew("file"), PG_DIAG_SOURCE_FILE);
+    AttachErrorField(result, msg, NanNew("line"), PG_DIAG_SOURCE_LINE);
+    AttachErrorField(result, msg, NanNew("routine"), PG_DIAG_SOURCE_FUNCTION);
     Handle<Value> m = msg;
     TRACE("EmitError");
     Emit("_error", &m);
@@ -728,7 +728,7 @@ protected:
     NanScope();
     char *val = PQresultErrorField(result, fieldcode);
     if(val) {
-      msg->Set(symbol, String::New(val));
+      msg->Set(symbol, NanNew(val));
     }
   }
 
@@ -746,20 +746,20 @@ private:
   //EventEmitter was removed from c++ in node v0.5.x
   void Emit(const char* message) {
     NanScope();
-    Handle<Value> args[1] = { String::New(message) };
+    Handle<Value> args[1] = { NanNew(message) };
     Emit(1, args);
   }
 
   void Emit(const char* message, Handle<Value>* arg) {
     NanScope();
-    Handle<Value> args[2] = { String::New(message), *arg };
+    Handle<Value> args[2] = { NanNew(message), *arg };
     Emit(2, args);
   }
 
   void Emit(int length, Handle<Value> *args) {
     NanScope();
 
-    Local<Value> emit_v = NanObjectWrapHandle(this)->Get(NanSymbol("emit"));
+    Local<Value> emit_v = NanObjectWrapHandle(this)->Get(NanNew("emit"));
     assert(emit_v->IsFunction());
     Local<Function> emit_f = emit_v.As<Function>();
 
@@ -802,7 +802,7 @@ private:
   void EmitError(const char *message)
   {
     NanScope();
-    Local<Value> exception = Exception::Error(String::New(message));
+    Local<Value> exception = NanError(message);
     Emit("_error", &exception);
   }
 
