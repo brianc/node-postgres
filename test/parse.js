@@ -87,3 +87,26 @@ test('url is properly encoded', function(t){
   t.equal(subject.database, ' u%20rl');
   t.end();
 });
+
+test('relative url sets database', function(t){
+  var relative = 'different_db_on_default_host';
+  var subject = parse(relative);
+  t.equal(subject.database, 'different_db_on_default_host');
+  t.end();
+});
+
+test('no pathname returns null database', function (t) {
+  var subject = parse('pg://myhost');
+  t.equal(subject.host, 'myhost');
+  t.type(subject.database, 'null');
+
+  t.end();
+});
+
+test('pathname of "/" returns null database', function (t) {
+  var subject = parse('pg://myhost/');
+  t.equal(subject.host, 'myhost');
+  t.type(subject.database, 'null');
+
+  t.end();
+});
