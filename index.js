@@ -36,7 +36,15 @@ function parse(str) {
     return config;
   }
   config.host = result.hostname;
-  config.database = result.pathname ? decodeURI(result.pathname.slice(1)) : null;
+
+  // result.pathname is not always guaranteed to have a '/' prefix (e.g. relative urls)
+  // only strip the slash if it is present.
+  var pathname = result.pathname;
+  if (pathname && pathname.charAt(0) === '/') {
+    pathname = result.pathname.slice(1) || null;
+  }
+  config.database = pathname && decodeURI(pathname);
+
   var auth = (result.auth || ':').split(':');
   config.user = auth[0];
   config.password = auth[1];
