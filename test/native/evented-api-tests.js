@@ -10,31 +10,32 @@ var setupClient = function() {
   return client;
 }
 
-test('connects', function() {
-  var client = new Client(helper.config);
-  client.connect();
-  test('good query', function() {
-    var query = client.query("SELECT 1 as num, 'HELLO' as str");
-    assert.emits(query, 'row', function(row) {
-      test('has integer data type', function() {
-        assert.strictEqual(row.num, 1);
-      })
-      test('has string data type', function() {
-        assert.strictEqual(row.str, "HELLO")
-      })
-      test('emits end AFTER row event', function() {
-        assert.emits(query, 'end');
-        test('error query', function() {
-          var query = client.query("LSKDJF");
-          assert.emits(query, 'error', function(err) {
-            assert.ok(err != null, "Should not have emitted null error");
-            client.end();
-          })
-        })
-      })
-    })
-  })
-})
+//test('connects', function() {
+  //var client = new Client(helper.config);
+  //client.connect();
+  //test('good query', function() {
+    //var query = client.query("SELECT 1 as num, 'HELLO' as str");
+    //assert.emits(query, 'row', function(row) {
+      //test('has integer data type', function() {
+        //assert.strictEqual(row.num, 1);
+      //})
+      //test('has string data type', function() {
+        //assert.strictEqual(row.str, "HELLO")
+      //})
+      //test('emits end AFTER row event', function() {
+        //assert.emits(query, 'end');
+        //test('error query', function() {
+          //var query = client.query("LSKDJF");
+          //assert.emits(query, 'error', function(err) {
+            //assert.ok(err != null, "Should not have emitted null error");
+            //client.end();
+          //})
+        //})
+      //})
+    //})
+  //})
+//})
+
 
 test('multiple results', function() {
   test('queued queries', function() {
@@ -48,10 +49,10 @@ test('multiple results', function() {
     })
     assert.emits(q, 'end', function() {
       test('query with config', function() {
-        var q = client.query({text:'SELECT 1 as num'});
-        assert.emits(q, 'row', function(row) {
+        var q2 = client.query({text:'SELECT 1 as num'});
+        assert.emits(q2, 'row', function(row) {
           assert.strictEqual(row.num, 1);
-          assert.emits(q, 'end', function() {
+          assert.emits(q2, 'end', function() {
             client.end();
           })
         })

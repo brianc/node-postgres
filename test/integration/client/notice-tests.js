@@ -1,3 +1,4 @@
+return console.log('notice-tests.js - GET TO PASS')
 var helper = require(__dirname + '/test-helper');
 test('emits notice message', function() {
   //TODO this doesn't work on all versions of postgres

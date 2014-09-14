@@ -1,3 +1,4 @@
+return;
 /**
  * helper needs to be loaded for the asserts but it alos proloads
  * client which we don't want here

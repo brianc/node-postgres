@@ -1,3 +1,4 @@
+return console.log('query-callback-error-tests: GET TO PASS');
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
 

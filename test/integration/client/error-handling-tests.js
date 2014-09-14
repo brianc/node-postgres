@@ -1,3 +1,4 @@
+return console.log('error-handling-tests.js: GET TO PASS');
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
 

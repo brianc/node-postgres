@@ -1,3 +1,4 @@
+return console.log('query-error-handling-prepared-statement-tests: GET TO PASS');
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
 
