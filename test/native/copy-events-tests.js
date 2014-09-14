@@ -1,22 +1,18 @@
+return console.log('these tests leak pg internals and are not helpful');
 var helper = require(__dirname+"/../test-helper");
 var Client = require(__dirname + "/../../lib/native");
 test('COPY FROM events check', function () {
-  var con = new Client(helper.config),
-    stdinStream = con.copyFrom('COPY person FROM STDIN');
-  assert.emits(con, 'copyInResponse',
-    function () {
-      stdinStream.end();
-    },
-    "backend should  emit copyInResponse after COPY FROM query"
-  ); 
-  assert.emits(con, '_readyForQuery',
-    function () {
-      con.end();
-    },
-    "backend should  emit _readyForQuery after data will be coped to stdin stream"
-  ); 
+  var con = new Client(helper.config);
+  var stdinStream = con.copyFrom('COPY person FROM STDIN');
+
+  assert.emits(con, 'copyInResponse', function () { stdinStream.end(); },
+    "backend should  emit copyInResponse after COPY FROM query");
+
+  assert.emits(con, '_readyForQuery', function () { con.end(); },
+    "backend should  emit _readyForQuery after data will be coped to stdin stream");
   con.connect();
 });
+
 test('COPY TO events check', function () {
   var con = new Client(helper.config),
     stdoutStream = con.copyTo('COPY person TO STDOUT');
