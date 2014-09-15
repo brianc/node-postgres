@@ -37,7 +37,6 @@ test("simple query interface", function() {
 });
 
 test("multiple simple queries", function() {
-  return console.log('MUST SUPPORT MULTIPLE SIMPLE QURIES')
   var client = helper.client();
   client.query({ text: "create temp table bang(id serial, name varchar(5));insert into bang(name) VALUES('boom');"})
   client.query("insert into bang(name) VALUES ('yes');");

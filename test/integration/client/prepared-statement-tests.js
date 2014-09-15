@@ -1,4 +1,3 @@
-return console.log('prepared-statement-tests: GET TO PASS');
 var helper = require(__dirname +'/test-helper');
 
 test("simple, unnamed prepared statement", function(){

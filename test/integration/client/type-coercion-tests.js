@@ -158,11 +158,11 @@ if(!helper.config.binary) {
       client.end();
     });
 
-    // Set teh server timeszone to the same as used for the test,
+    // Set the server timeszone to the same as used for the test,
     // otherwise (if server's timezone is ahead of GMT) in
     // textParsers.js::parseDate() the timezone offest is added to the date;
     // in the case of "275760-09-13 00:00:00 GMT" the timevalue overflows.
-    client.query('SET TIMEZONE TO GMT', [], assert.success(function(res){
+    client.query('SET TIMEZONE TO GMT', assert.success(function(res){
 
       // PostgreSQL supports date range of 4713 BCE to 294276 CE
       //   http://www.postgresql.org/docs/9.2/static/datatype-datetime.html
@@ -186,7 +186,7 @@ if(!helper.config.binary) {
 }
 
 helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
-  assert.isNull(err);
+  assert.ifError(err);
   client.query('select null as res;', assert.calls(function(err, res) {
     assert.isNull(err);
     assert.strictEqual(res.rows[0].res, null)

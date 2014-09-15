@@ -1,4 +1,3 @@
-return console.log('query-error-handling-prepared-statement-tests: GET TO PASS');
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
 
@@ -64,7 +63,7 @@ test('client end during query execution of prepared statement', function() {
       text: sleepQuery,
       values: [5] },
       assert.calls(function(err, result) {
-        assert.equal(err.message, 'Connection was ended during query');
+        assert.equal(err.message, 'Connection terminated');
     }));
 
     query1.on('error', function(err) {
@@ -82,3 +81,4 @@ test('client end during query execution of prepared statement', function() {
     client.end();
   }));
 });
+return console.log('query-error-handling-prepared-statement-tests: GET TO PASS');
