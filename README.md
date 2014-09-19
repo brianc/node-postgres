@@ -137,6 +137,7 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 - [brianc/node-pg-copy-streams](https://github.com/brianc/node-pg-copy-streams) - COPY FROM / COPY TO for node-postgres. Stream from one database to another, and stuff.
 - [brianc/node-postgres-pure](https://github.com/brianc/node-postgres-pure) - node-postgres without any of the C/C++ stuff
 - [brianc/node-pg-types](https://github.com/brianc/node-pg-types) - Type parsing for node-postgres
+- [Suor/pg-bricks](https://github.com/Suor/pg-bricks) - A higher level wrapper around node-postgres to handle connection settings, sql generation, transactions and ease data access.
 - [grncdr/node-any-db](https://github.com/grncdr/node-any-db) - Thin and less-opinionated database abstraction layer for node.
 - [brianc/node-sql](https://github.com/brianc/node-sql) - SQL generation for node.js
 - [hiddentao/suqel](https://hiddentao.github.io/squel/) - SQL query string builder for Javascript
