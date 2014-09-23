@@ -81,4 +81,3 @@ test('client end during query execution of prepared statement', function() {
     client.end();
   }));
 });
-return console.log('query-error-handling-prepared-statement-tests: GET TO PASS');
