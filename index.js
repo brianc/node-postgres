@@ -124,6 +124,17 @@ Cursor.prototype.end = function(cb) {
   this.connection.stream.once('end', cb)
 }
 
+Cursor.prototype.close = function(cb) {
+  this.connection.close({type: 'P'})
+  this.connection.sync()
+  this.state = 'done'
+  if(cb) {
+    this.connection.once('closeComplete', function() {
+      cb()
+    })
+  }
+}
+
 Cursor.prototype.read = function(rows, cb) {
   var self = this
   if(this.state == 'idle') {

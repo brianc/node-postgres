@@ -12,7 +12,7 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "devDependencies": {
-    "pg.js": "~2.8.1",
+    "pg.js": "~3.4.4",
     "mocha": "~1.17.1"
   },
   "dependencies": {}

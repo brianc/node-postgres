@@ -65,6 +65,11 @@ Read `rowCount` rows from the cursor instance.  The `callback` will be called wh
 
 If the cursor has read to the end of the result sets all subsequent calls to `cursor#read` will return a 0 length array of rows.  I'm open to other ways to signal the end of a cursor, but this has worked out well for me so far.
 
+
+#### cursor#close(function callback(Error err))
+
+Closes the backend portal before itterating through the entire result set.  Useful when you want to 'abort' out of a read early but continue to use the same client for other queries after the cursor is finished.
+
 ### install
 
 ```sh
