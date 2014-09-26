@@ -47,7 +47,7 @@ function parse(str) {
 
   var auth = (result.auth || ':').split(':');
   config.user = auth[0];
-  config.password = auth[1];
+  config.password = auth.splice(1).join(':');
 
   var ssl = result.query.ssl;
   if (ssl === 'true' || ssl === '1') {
