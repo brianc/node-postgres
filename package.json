@@ -23,7 +23,7 @@
     "generic-pool": "2.1.1",
     "nan": "1.3.0",
     "packet-reader": "0.2.0",
-    "pg-connection-string": "0.1.2",
+    "pg-connection-string": "0.1.3",
     "pg-types": "1.4.0",
     "pgpass": "0.0.3"
   },
