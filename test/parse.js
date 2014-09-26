@@ -69,6 +69,20 @@ test('password contains  < and/or >  characters', function(t){
   t.end();
 });
 
+test('password contains colons', function(t){
+  var sourceConfig = {
+    user:'brian',
+    password: 'hello:pass:world',
+    port: 5432,
+    host: 'localhost',
+    database: 'postgres'
+  };
+  var connectionString = 'postgres://' + sourceConfig.user + ':' + sourceConfig.password + '@' + sourceConfig.host + ':' + sourceConfig.port + '/' + sourceConfig.database;
+  var subject = parse(connectionString);
+  t.equal(subject.password, sourceConfig.password);
+  t.end();
+});
+
 test('username or password contains weird characters', function(t){
   var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000';
   var subject = parse(strang);
