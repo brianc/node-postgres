@@ -79,7 +79,7 @@ Documentation is a work in progress primarily taking place on the github WIKI
 
 ## Native Bindings
 
-node-postgres contains a pure JavaScript driver and also exposes JavaScript bindings to libpq.  You can use either interface.  I personally use the JavaScript bindings as the are quite fast, and I like having everything implemented in JavaScript.
+node-postgres contains a pure JavaScript driver and also exposes JavaScript bindings to libpq.  You can use either interface.  I personally use the JavaScript bindings as they are quite fast, and I like having everything implemented in JavaScript.
 
 To use native libpq bindings replace `require('pg')` with `require('pg').native`.  If you __do not__ need or want the native bindings at all, consider using [node-postgres-pure](https://github.com/brianc/node-postgres-pure) instead which does not include them.
 
