@@ -21,16 +21,20 @@ PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
 
 Typically you will access the PostgreSQL server through a pool of clients.  node-postgres ships with a built in pool to help get you up and running quickly.
 
+To prevent the "leaking" of clients, `done()` must be called at all times to ensure the client is safely released back to the pool.
+
 ```javascript
 var pg = require('pg');
 var conString = "postgres://username:password@localhost/database";
 
 pg.connect(conString, function(err, client, done) {
   if(err) {
+    //Release the client back to the pool
+    done();
     return console.error('error fetching client from pool', err);
   }
   client.query('SELECT $1::int AS number', ['1'], function(err, result) {
-    //call `done()` to release the client back to the pool
+    //Release the client back to the pool
     done();
     
     if(err) {
@@ -42,6 +46,7 @@ pg.connect(conString, function(err, client, done) {
 });
 
 ```
+
 
 ### Simple
 
@@ -153,6 +158,7 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 * [Heap](https://heapanalytics.com)
 * [zoomsquare](http://www.zoomsquare.com/)
 * [WhenToManage](http://www.whentomanage.com)
+* [Treatz.me](http://www.treatz.me)
 
 _If you use node-postgres in production and would like your site listed here, fork & add it._
 
