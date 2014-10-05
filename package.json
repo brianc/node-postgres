@@ -23,14 +23,14 @@
     "nan": "~1.3.0",
     "packet-reader": "0.2.0",
     "pg-connection-string": "0.1.1",
-    "pg-native": "0.5.2",
+    "pg-native": "1.0.1",
     "pg-types": "1.4.0",
     "pgpass": "0.0.3"
   },
   "devDependencies": {
+    "async": "0.9.0",
     "jshint": "2.5.2",
-    "semver": "~3.0.1",
-    "async": "0.9.0"
+    "semver": "~3.0.1"
   },
   "scripts": {
     "changelog": "npm i github-changes && ./node_modules/.bin/github-changes -o brianc -r node-postgres -d pulls -a -v",
