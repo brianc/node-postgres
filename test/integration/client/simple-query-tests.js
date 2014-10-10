@@ -51,7 +51,7 @@ test("multiple simple queries", function() {
 });
 
 test("multiple select statements", function() {
-  return console.log('MUST SUPPORT MULTIPLE SIMPLE QURIES')
+  return console.log('DEPRECATED - multiple queries')
   var client = helper.client();
   client.query("create temp table boom(age integer); insert into boom(age) values(1); insert into boom(age) values(2); insert into boom(age) values(3)");
   client.query({text: "create temp table bang(name varchar(5)); insert into bang(name) values('zoom');"});

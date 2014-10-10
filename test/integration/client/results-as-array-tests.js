@@ -1,3 +1,7 @@
+console.log('results-as-array: GET TO PASS')
+console.log('results-as-array: GET TO PASS')
+console.log('results-as-array: GET TO PASS')
+console.log('results-as-array: GET TO PASS')
 return console.log('results-as-array: GET TO PASS')
 var util = require('util');
 var helper = require('./test-helper');
