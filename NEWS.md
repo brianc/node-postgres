@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v3.5.0
+- Include support for parsing boolean arrays
+
 ### v3.4.0
 - Include port as connection parameter to [unix sockets](https://github.com/brianc/node-postgres/pull/604)
 - Better support for odd [date parsing](https://github.com/brianc/node-pg-types/pull/8)

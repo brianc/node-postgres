@@ -1,6 +1,6 @@
 {
   "name": "pg",
-  "version": "3.4.2",
+  "version": "3.5.0",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "postgres",
@@ -20,11 +20,11 @@
   "dependencies": {
     "buffer-writer": "1.0.0",
     "generic-pool": "2.1.1",
-    "nan": "~1.3.0",
+    "nan": "1.3.0",
     "packet-reader": "0.2.0",
-    "pg-connection-string": "0.1.1",
-    "pg-native": "1.4.0",
-    "pg-types": "1.4.0",
+    "pg-connection-string": "0.1.3",
+    "pg-native": "1.4.1",
+    "pg-types": "1.5.0",
     "pgpass": "0.0.3"
   },
   "devDependencies": {

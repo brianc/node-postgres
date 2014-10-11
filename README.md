@@ -8,18 +8,12 @@ PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
 
     npm install pg
 
-### Windows
- 
- 1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
- 2. Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
- 3. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
- 4. `npm install pg`
 
 ## Examples
 
 ### Client pooling
 
-Typically you will access the PostgreSQL server through a pool of clients.  node-postgres ships with a built in pool to help get you up and running quickly.
+Generally you will access the PostgreSQL server through a pool of clients.  A client takes a non-trivial amount of time to establish a new connection. A client also consumes a non-trivial amount of resources on the PostgreSQL server - not something you want to do on every http request. Good news: node-postgres ships with built in client pooling.
 
 ```javascript
 var pg = require('pg');
@@ -42,6 +36,8 @@ pg.connect(conString, function(err, client, done) {
 });
 
 ```
+
+[Check this out for the get up and running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
 
 ### Simple
 
@@ -71,15 +67,11 @@ client.connect(function(err) {
 
 ```
 
-## Documentation
-
-Documentation is a work in progress primarily taking place on the github WIKI
-
-### [Documentation](https://github.com/brianc/node-postgres/wiki)
+## [Documentation](https://github.com/brianc/node-postgres/wiki)
 
 ## Native Bindings
 
-node-postgres contains a pure JavaScript driver and also exposes JavaScript bindings to libpq.  You can use either interface.  I personally use the JavaScript bindings as the are quite fast, and I like having everything implemented in JavaScript.
+node-postgres contains a pure JavaScript driver and also exposes JavaScript bindings via libpq.  You can use either interface.  I personally use the JavaScript bindings as they are quite fast, and I like having everything implemented in JavaScript.
 
 To use native libpq bindings replace `require('pg')` with `require('pg').native`.  If you __do not__ need or want the native bindings at all, consider using [node-postgres-pure](https://github.com/brianc/node-postgres-pure) instead which does not include them.
 
@@ -103,7 +95,7 @@ __I love contributions.__
 You are welcome contribute via pull requests.  If you need help getting the tests running locally feel free to email me or gchat me.
 
 I will __happily__ accept your pull request if it:
-- _has tests_
+- _)has tests__
 - looks reasonable
 - does not break backwards compatibility
 - satisfies jshint
@@ -132,28 +124,25 @@ Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 node-postgres is by design _low level_ with the bare minimum of abstraction.  These might help out:
 
+- [brianc/node-pg-native](https://github.com/brianc/node-pg-native) - Simple interface abstraction on top of [libpq](https://github.com/brianc/node-libpq)
 - [brianc/node-pg-query-stream](https://github.com/brianc/node-pg-query-stream) - Query results from node-postgres as a readable (object) stream
 - [brianc/node-pg-cursor](https://github.com/brianc/node-pg-cursor) - Query cursor extension for node-postgres
 - [brianc/node-pg-copy-streams](https://github.com/brianc/node-pg-copy-streams) - COPY FROM / COPY TO for node-postgres. Stream from one database to another, and stuff.
 - [brianc/node-postgres-pure](https://github.com/brianc/node-postgres-pure) - node-postgres without any of the C/C++ stuff
 - [brianc/node-pg-types](https://github.com/brianc/node-pg-types) - Type parsing for node-postgres
+- [Suor/pg-bricks](https://github.com/Suor/pg-bricks) - A higher level wrapper around node-postgres to handle connection settings, sql generation, transactions and ease data access.
 - [grncdr/node-any-db](https://github.com/grncdr/node-any-db) - Thin and less-opinionated database abstraction layer for node.
 - [brianc/node-sql](https://github.com/brianc/node-sql) - SQL generation for node.js
 - [hiddentao/suqel](https://hiddentao.github.io/squel/) - SQL query string builder for Javascript
 - [CSNW/sql-bricks](https://github.com/CSNW/sql-bricks) - Transparent, Schemaless SQL Generation
 
 
-## Production Use
-* [yammer.com](http://www.yammer.com)
-* [bayt.com](http://bayt.com)
-* [Vendly](http://www.vend.ly)
-* [SaferAging](http://www.saferaging.com)
-* [CartoDB](http://www.cartodb.com)
-* [Heap](https://heapanalytics.com)
-* [zoomsquare](http://www.zoomsquare.com/)
-* [WhenToManage](http://www.whentomanage.com)
-
-_If you use node-postgres in production and would like your site listed here, fork & add it._
+### Windows
+ 
+ 1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
+ 2. Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
+ 3. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
+ 4. `npm install pg`
 
 
 ## License
