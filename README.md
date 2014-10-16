@@ -1,6 +1,6 @@
 #node-postgres
 
-[![Build Status](https://secure.travis-ci.org/brianc/node-postgres.png?branch=master)](http://travis-ci.org/brianc/node-postgres)
+[![Build Status](https://secure.travis-ci.org/brianc/node-postgres.png?branch=master)](http://travis-ci.org/brianc/node-postgres) [![tip for next commit](https://tip4commit.com/projects/79.svg)](https://tip4commit.com/github/brianc/node-postgres)
 
 PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
 
