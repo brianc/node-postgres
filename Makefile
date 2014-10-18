@@ -7,7 +7,7 @@ params := $(connectionString)
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	build/default/binding.node jshint upgrade-pg publish
+	build/default/binding.node jshint upgrade-pg publish test-missing-native
 
 all:
 	npm install
@@ -21,7 +21,7 @@ help:
 
 test: test-unit
 
-test-all: jshint test-unit test-integration test-native test-binary
+test-all: jshint test-missing-native test-unit test-integration test-native test-binary
 
 test-travis: test-all upgrade-pg
 	#@make test-all connectionString=postgres://postgres@localhost:5433/postgres
@@ -44,7 +44,18 @@ test-connection-binary:
 	@echo "***Testing binary connection***"
 	@node script/test-connection.js $(params) binary
 
-test-native:
+test-missing-native:
+	@echo "***Testing optional native install***"
+	@rm -rf node_modules/pg-native
+	@node test/native/missing-native.js
+	@npm install pg-native@1.4.0
+	@node test/native/missing-native.js
+	@rm -rf node_modules/pg-native
+
+node_modules/pg-native/index.js:
+	@npm i pg-native
+
+test-native: node_modules/pg-native/index.js
 	@echo "***Testing native bindings***"
 	@find test/native -name "*-tests.js" | $(node-command)
 	@find test/integration -name "*-tests.js" | $(node-command) native
