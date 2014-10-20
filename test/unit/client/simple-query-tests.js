@@ -31,6 +31,7 @@ test('executing query', function() {
 
     test("multiple in the queue", function() {
       var client = helper.client();
+      client.sendImmediately = false;
       var connection = client.connection;
       var queries = connection.queries;
       client.query('one');
@@ -47,6 +48,38 @@ test('executing query', function() {
       test('after two ready for query', function() {
         connection.emit('readyForQuery');
         assert.lengthIs(queries, 2);
+      });
+
+      test("after a bunch more", function() {
+        connection.emit('readyForQuery');
+        connection.emit('readyForQuery');
+        connection.emit('readyForQuery');
+        assert.lengthIs(queries, 3);
+        assert.equal(queries[0], "one");
+        assert.equal(queries[1], 'two');
+        assert.equal(queries[2], 'three');
+      });
+    });
+
+    test("multiple in the queue, sending immediately", function() {
+      var client = helper.client();
+      client.sendImmediately = true;
+      var connection = client.connection;
+      var queries = connection.queries;
+      client.query('one');
+      client.query('two');
+      client.query('three');
+      assert.empty(queries);
+
+      test("after one ready for query",function() {
+        connection.emit('readyForQuery');
+        assert.lengthIs(queries, 3);
+        assert.equal(queries[0], "one");
+      });
+
+      test('after two ready for query', function() {
+        connection.emit('readyForQuery');
+        assert.lengthIs(queries, 3);
       });
 
       test("after a bunch more", function() {
