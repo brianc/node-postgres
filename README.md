@@ -135,6 +135,7 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 - [brianc/node-sql](https://github.com/brianc/node-sql) - SQL generation for node.js
 - [hiddentao/suqel](https://hiddentao.github.io/squel/) - SQL query string builder for Javascript
 - [CSNW/sql-bricks](https://github.com/CSNW/sql-bricks) - Transparent, Schemaless SQL Generation
+- [datalanche/node-pg-format](https://github.com/datalanche/node-pg-format) - Safely and easily create dynamic SQL queries with this Node implementation of [PostgreSQL format()](http://www.postgresql.org/docs/9.3/static/functions-string.html#FUNCTIONS-STRING-FORMAT).
 
 
 ### Windows
