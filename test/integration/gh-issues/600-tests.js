@@ -53,6 +53,25 @@ var steps = [
   insertDataBar
 ]
 
-async.series(steps, assert.success(function() {
-  db.end()
-}))
+test('test if query fails', function() {
+  async.series(steps, assert.success(function() {
+    db.end()
+  }))
+})
+
+test('test if prepare works but bind fails', function() {
+  var client = helper.client();
+  var q = {
+    text: 'SELECT $1::int as name',
+    values: ['brian'],
+    name: 'test'
+  };
+  client.query(q, assert.calls(function(err, res) {
+    q.values = [1];
+    client.query(q, assert.calls(function(err, res) {
+      assert.ifError(err);
+      client.end();
+    }));
+  }));
+});
+
