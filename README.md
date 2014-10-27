@@ -95,7 +95,7 @@ __I love contributions.__
 You are welcome contribute via pull requests.  If you need help getting the tests running locally feel free to email me or gchat me.
 
 I will __happily__ accept your pull request if it:
-- _)has tests__
+- __has tests__
 - looks reasonable
 - does not break backwards compatibility
 - satisfies jshint
