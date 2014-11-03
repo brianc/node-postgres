@@ -1,5 +1,7 @@
 # pg-query-stream
 
+[![Build Status](https://travis-ci.org/brianc/node-pg-query-stream.svg)](https://travis-ci.org/brianc/node-pg-query-stream)
+
 Receive result rows from [pg](https://github.com/brianc/node-postgres) as a readable (object) stream.
 
 This module __only works with the pure JavaScript client__.
