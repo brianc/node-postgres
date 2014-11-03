@@ -31,7 +31,7 @@
     "mocha": "~1.17.1"
   },
   "dependencies": {
-    "pg-cursor": "0.2.0",
+    "pg-cursor": "1.0.0",
     "readable-stream": "^1.0.27-1"
   }
 }
