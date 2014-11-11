@@ -3,3 +3,5 @@ node_js:
   - "0.10"
 before_script:
   - node script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
+env:
+  - PGUSER=postgres PGDATABASE=postgres
