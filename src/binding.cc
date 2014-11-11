@@ -876,13 +876,17 @@ private:
       } else if(val->IsNull()) {
         paramValues[i] = NULL;
       } else if(val->IsObject() && Buffer::HasInstance(val)) {
-        char *cHexString = MallocCHexString(val->ToObject());
-        if(!cHexString) {
-          LOG("ArgToCStringArray: OUT OF MEMORY OR SOMETHING BAD!");
-          ReleaseCStringArray(paramValues, i-1);
-          return 0;
+        if(Buffer::Length(val) > 0) {
+          char *cHexString = MallocCHexString(val->ToObject());
+          if(!cHexString) {
+            LOG("ArgToCStringArray: OUT OF MEMORY OR SOMETHING BAD!");
+            ReleaseCStringArray(paramValues, i-1);
+            return 0;
+          }
+          paramValues[i] = cHexString;
+        } else {
+          paramValues[i] = MallocCString(NanNew<String>(""));
         }
-        paramValues[i] = cHexString;
       } else {
         //a paramter was not a string
         LOG("Parameter not a string or buffer");
