@@ -35,7 +35,7 @@
   "scripts": {
     "changelog": "npm i github-changes && ./node_modules/.bin/github-changes -o brianc -r node-postgres -d pulls -a -v",
     "test": "make test-travis connectionString=postgres://postgres@localhost:5432/postgres",
-    "install": "node-gyp rebuild || (exit 0)"
+    "install": "node-gyp rebuild"
   },
   "engines": {
     "node": ">= 0.8.0"
