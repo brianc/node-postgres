@@ -31,7 +31,7 @@
     "async": "0.9.0",
     "jshint": "2.5.2"
   },
-  "minNativeVersion": "1.5.0",
+  "minNativeVersion": "1.6.0",
   "scripts": {
     "changelog": "npm i github-changes && ./node_modules/.bin/github-changes -o brianc -r node-postgres -d pulls -a -v",
     "test": "make test-travis connectionString=postgres://postgres@localhost:5432/postgres"
