@@ -7,13 +7,10 @@ params := $(connectionString)
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	build/default/binding.node jshint upgrade-pg publish test-missing-native
+	 jshint publish test-missing-native update-npm
 
 all:
 	npm install
-
-build:
-	node-gyp rebuild
 
 help:
 	@echo "make prepare-test-db [connectionString=postgres://<your connection string>]"
@@ -23,12 +20,9 @@ test: test-unit
 
 test-all: jshint test-missing-native test-unit test-integration test-native test-binary
 
-test-travis: test-all upgrade-pg
-	#@make test-all connectionString=postgres://postgres@localhost:5433/postgres
 
-upgrade-pg:
-	#@chmod 755 script/travis-pg-9.2-install.sh
-	#@./script/travis-pg-9.2-install.sh
+udpate-npm:
+	@npm i npm --global
 
 bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
@@ -75,7 +69,3 @@ prepare-test-db:
 jshint:
 	@echo "***Starting jshint***"
 	@./node_modules/.bin/jshint lib
-
-publish:
-	@rm -r build || (exit 0)
-	@npm publish
