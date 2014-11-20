@@ -4,6 +4,11 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v4.0.0
+- Make [native bindings](https://github.com/brianc/node-pg-native.git) an optional install with `npm install pg-native`
+- No longer surround query result callback with `try/catch` block.
+- Remove built in COPY IN / COPY OUT support - better implementations provided by [pg-copy-streams](https://github.com/brianc/node-pg-copy-streams.git) and [pg-native](https://github.com/brianc/node-pg-native.git)
+
 ### v3.6.0
 - Include support for (parsing JSONB)[https://github.com/brianc/node-pg-types/pull/13] (supported in postgres 9.4)
 
