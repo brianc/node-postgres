@@ -24,13 +24,13 @@ test('many queries', function() {
     var q = client.query("SELECT * FROM person");
     assert.emits(q, 'end', function() {
       count++;
-    })
+    });
   }
   assert.emits(client, 'drain', function() {
     client.end();
     assert.equal(count, expected);
-  })
-})
+  });
+});
 
 test('many clients', function() {
   var clients = [];

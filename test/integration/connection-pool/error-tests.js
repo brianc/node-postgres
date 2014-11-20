@@ -5,15 +5,14 @@ pg = pg;
 //first make pool hold 2 clients
 pg.defaults.poolSize = 2;
 
-
 //get first client
 pg.connect(helper.config, assert.success(function(client, done) {
   client.id = 1;
+  client.query('SELECT NOW()', function() {
     pg.connect(helper.config, assert.success(function(client2, done2) {
       client2.id = 2;
-      var pidColName = 'procpid'
+      var pidColName = 'procpid';
       helper.versionGTE(client2, '9.2.0', assert.success(function(isGreater) {
-        console.log(isGreater)
         var killIdleQuery = 'SELECT pid, (SELECT pg_terminate_backend(pid)) AS killed FROM pg_stat_activity WHERE state = $1';
         var params = ['idle'];
         if(!isGreater) {
@@ -37,4 +36,6 @@ pg.connect(helper.config, assert.success(function(client, done) {
         }));
       }));
     }));
+
+  })
 }));

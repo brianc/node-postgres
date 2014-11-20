@@ -3,8 +3,9 @@ var util = require('util');
 
 var createErorrClient = function() {
   var client = helper.client();
-  client.on('error', function(err) {
-    assert.ok(false, "client should not throw query error: " + util.inspect(err));
+  client.once('error', function(err) {
+    //console.log('error', util.inspect(err));
+    assert.fail('Client shoud not throw error during query execution');
   });
   client.on('drain', client.end.bind(client));
   return client;
@@ -18,11 +19,8 @@ test('error handling', function(){
     var query = client.query("select omfg from yodas_dsflsd where pixistix = 'zoiks!!!'");
 
     assert.emits(query, 'error', function(error) {
-      test('error is a psql error', function() {
-        assert.equal(error.severity, "ERROR");
-      });
+      assert.equal(error.severity, "ERROR");
     });
-
   });
 
   test('within a prepared statement', function() {
@@ -108,7 +106,7 @@ test('non-error calls supplied callback', function() {
   });
 
   client.connect(assert.calls(function(err) {
-    assert.isNull(err);
+    assert.ifError(err);
     client.end();
   }))
 });
@@ -123,9 +121,11 @@ test('when connecting to invalid host', function() {
     password: '1234',
     host: 'asldkfjasdf!!#1308140.com'
   });
+
   var delay = 5000;
   var tid = setTimeout(function() {
-    assert(false, "When connecting to an invalid host the error event should be emitted but it has been " + delay + " and still no error event.");
+    var msg = "When connecting to an invalid host the error event should be emitted but it has been " + delay + " and still no error event."
+    assert(false, msg);
   }, delay);
   client.on('error', function() {
     clearTimeout(tid);
@@ -140,7 +140,7 @@ test('when connecting to invalid host with callback', function() {
     host: 'asldkfjasdf!!#1308140.com'
   });
   client.connect(function(error, client) {
-    assert.ok(error);
+    assert(error);
   });
 });
 
