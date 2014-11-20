@@ -2,11 +2,13 @@
 
 [![Build Status](https://secure.travis-ci.org/brianc/node-postgres.png?branch=master)](http://travis-ci.org/brianc/node-postgres)
 
-PostgreSQL client for node.js.  Pure JavaScript and native libpq bindings.
+PostgreSQL client for node.js.  Pure JavaScript and optional native libpq bindings.
 
-## Installation
+## Install
 
-    npm install pg
+```sh
+$ npm install pg
+```
 
 
 ## Examples
@@ -34,19 +36,16 @@ pg.connect(conString, function(err, client, done) {
     //output: 1
   });
 });
-
 ```
 
 [Check this out for the get up and running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
 
-### Simple
+### Client instance
 
-Sometimes you may not want to use a pool of connections.  You can easily connect a single client to a postgres instance, run a query, and disconnect.
+Sometimes you may not want to use a pool of connections.  You can easily connect a single client to a postgres instance, run some queries, and disconnect.
 
 ```javascript
-var pg = require('pg'); 
-//or native libpq bindings
-//var pg = require('pg').native
+var pg = require('pg');
 
 var conString = "postgres://username:password@localhost/database";
 
@@ -67,15 +66,22 @@ client.connect(function(err) {
 
 ```
 
-## [Documentation](https://github.com/brianc/node-postgres/wiki)
+## [More Documentation](https://github.com/brianc/node-postgres/wiki)
 
 ## Native Bindings
 
-node-postgres contains a pure JavaScript driver and also exposes JavaScript bindings via libpq.  You can use either interface.  I personally use the JavaScript bindings as they are quite fast, and I like having everything implemented in JavaScript.
+To install the [native bindings](https://github.com/brianc/node-pg-native.git):
 
-To use native libpq bindings replace `require('pg')` with `require('pg').native`.  If you __do not__ need or want the native bindings at all, consider using [node-postgres-pure](https://github.com/brianc/node-postgres-pure) instead which does not include them.
+```sh
+$ npm install pg pg-native
+```
 
-The two share the same interface so __no other code changes should be required__.  If you find yourself having to change code other than the require statement when switching from `pg` to `pg.native` or `pg.js`, please report an issue.
+
+node-postgres contains a pure JavaScript protocol implementation which is quite fast, but you can optionally use native bindings for a 20-30% increase in parsing speed. Both versions are adequate for production workloads.
+
+To use the native bindings, first install [pg-native](https://github.com/brianc/node-pg-native.git).  Once `pg-native` is installed, simply replace `require('pg')` with `require('pg').native`.
+
+node-postgres abstracts over the [pg-native](https://github.com/brianc/node-pg-native.git) module to provide exactly the same interface as the pure JavaScript version. __No other code changes are required__.  If you find yourself having to change code other than the require statement when switching from `require('pg')` to `require('pg').native` please report an issue.
 
 ## Features
 
@@ -90,19 +96,18 @@ The two share the same interface so __no other code changes should be required__
 
 ## Contributing
 
-__I love contributions.__
+__We love contributions!__
 
-You are welcome contribute via pull requests.  If you need help getting the tests running locally feel free to email me or gchat me.
+If you need help getting the tests running locally or have any questions about the code when working on a patch please feel free to email me or gchat me.
 
 I will __happily__ accept your pull request if it:
 - __has tests__
 - looks reasonable
 - does not break backwards compatibility
-- satisfies jshint
 
 Information about the testing processes is in the [wiki](https://github.com/brianc/node-postgres/wiki/Testing).
 
-If you need help or have questions about constructing a pull request I'll be glad to help out as well.
+Open source belongs to all of us, and we're all invited to participate!
 
 ## Support
 
@@ -113,16 +118,15 @@ If at all possible when you open an issue please provide
 
 Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  Then I make the test pass.  Then everyone's happy!
 
-
 If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
 
-I usually tweet about any important status updates or changes to node-postgres.  
+I usually tweet about any important status updates or changes to node-postgres on twitter.  
 Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 
 ## Extras
 
-node-postgres is by design _low level_ with the bare minimum of abstraction.  These might help out:
+node-postgres is by design pretty light on abstractions.  These are some handy modules we've been using over the years to complete the picture:
 
 - [brianc/node-pg-native](https://github.com/brianc/node-pg-native) - Simple interface abstraction on top of [libpq](https://github.com/brianc/node-libpq)
 - [brianc/node-pg-query-stream](https://github.com/brianc/node-pg-query-stream) - Query results from node-postgres as a readable (object) stream
@@ -137,15 +141,6 @@ node-postgres is by design _low level_ with the bare minimum of abstraction.  Th
 - [CSNW/sql-bricks](https://github.com/CSNW/sql-bricks) - Transparent, Schemaless SQL Generation
 - [datalanche/node-pg-format](https://github.com/datalanche/node-pg-format) - Safely and easily create dynamic SQL queries with this Node implementation of [PostgreSQL format()](http://www.postgresql.org/docs/9.3/static/functions-string.html#FUNCTIONS-STRING-FORMAT).
 - [iceddev/pg-transact](https://github.com/iceddev/pg-transact) - A nicer API on node-postgres transactions
-
-
-### Windows
- 
- 1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
- 2. Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
- 3. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
- 4. `npm install pg`
-
 
 ## License
 
