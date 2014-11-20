@@ -79,9 +79,9 @@ $ npm install pg pg-native
 
 node-postgres contains a pure JavaScript protocol implementation which is quite fast, but you can optionally use native bindings for a 20-30% increase in parsing speed. Both versions are adequate for production workloads.
 
-To use the native bindings, first install [pg-native](https://github.com/brianc/node-pg-native.git).  Once `pg-native` is installed, simply replace `require('pg')` with `require('pg').native`.
+To use the native bindings, first install [pg-native](https://github.com/brianc/node-pg-native.git).  Once pg-native is installed, simply replace `require('pg')` with `require('pg').native`.
 
-node-postgres abstracts over the [pg-native](https://github.com/brianc/node-pg-native.git) module to provide exactly the same interface as the pure JavaScript version. __No other code changes are required__.  If you find yourself having to change code other than the require statement when switching from `require('pg')` to `require('pg').native` please report an issue.
+node-postgres abstracts over the pg-native module to provide exactly the same interface as the pure JavaScript version. __No other code changes are required__.  If you find yourself having to change code other than the require statement when switching from `require('pg')` to `require('pg').native` please report an issue.
 
 ## Features
 
