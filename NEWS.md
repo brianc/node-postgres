@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v4.1.0
+- Allow type parser overrides on a [per-client basis](https://github.com/brianc/node-postgres/pull/679)
+
 ### v4.0.0
 - Make [native bindings](https://github.com/brianc/node-pg-native.git) an optional install with `npm install pg-native`
 - No longer surround query result callback with `try/catch` block.
