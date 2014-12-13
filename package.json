@@ -1,6 +1,6 @@
 {
   "name": "pg",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "postgres",
@@ -25,7 +25,7 @@
     "pg-types": "1.6.0",
     "pgpass": "0.0.3",
     "semver": "^4.1.0",
-    "pg-copy-streams":"~0.3.0"
+    "pg-copy-streams": "~0.3.0"
   },
   "devDependencies": {
     "async": "0.9.0",
