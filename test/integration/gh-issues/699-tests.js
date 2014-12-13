@@ -2,6 +2,7 @@ var helper = require('../test-helper');
 var assert = require('assert');
 var copyFrom = require('pg-copy-streams').from;
 
+if(helper.args.native) return;
 
 helper.pg.connect(function (err, client, done) {
   if (err) throw err;
@@ -11,14 +12,10 @@ helper.pg.connect(function (err, client, done) {
   client.query(c, function (err) {
     if (err) throw err;
 
-    var stream = con.query(copyFrom("COPY employee FROM STDIN"));
+    var stream = client.query(copyFrom("COPY employee FROM STDIN"));
     stream.on('end', function () {
       done();
       helper.pg.end();
-    });
-
-    stream.on('error', function () {
-      throw new Error('Error in copy stream');
     });
 
     for (var i = 1; i <= 5; i++) {
