@@ -137,7 +137,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [Suor/pg-bricks](https://github.com/Suor/pg-bricks) - A higher level wrapper around node-postgres to handle connection settings, sql generation, transactions and ease data access.
 - [grncdr/node-any-db](https://github.com/grncdr/node-any-db) - Thin and less-opinionated database abstraction layer for node.
 - [brianc/node-sql](https://github.com/brianc/node-sql) - SQL generation for node.js
-- [hiddentao/suqel](https://hiddentao.github.io/squel/) - SQL query string builder for Javascript
+- [hiddentao/squel](https://hiddentao.github.io/squel/) - SQL query string builder for Javascript
 - [CSNW/sql-bricks](https://github.com/CSNW/sql-bricks) - Transparent, Schemaless SQL Generation
 - [datalanche/node-pg-format](https://github.com/datalanche/node-pg-format) - Safely and easily create dynamic SQL queries with this Node implementation of [PostgreSQL format()](http://www.postgresql.org/docs/9.3/static/functions-string.html#FUNCTIONS-STRING-FORMAT).
 - [iceddev/pg-transact](https://github.com/iceddev/pg-transact) - A nicer API on node-postgres transactions
