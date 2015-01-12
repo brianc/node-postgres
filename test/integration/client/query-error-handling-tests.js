@@ -35,3 +35,50 @@ test('error during query execution', function() {
     }));
   }));
 });
+
+test('9.3 column error fields', function() {
+  var client = new Client(helper.args);
+  client.connect(assert.success(function() {
+    helper.versionGTE(client, '9.3.0', assert.success(function(isGreater) {
+      if(!isGreater) {
+        console.log('skip 9.3 error field on older versions of postgres');
+        return client.end();
+      }
+
+      client.query('DROP TABLE IF EXISTS column_err_test');
+      client.query('CREATE TABLE column_err_test(a int NOT NULL)');
+      client.query('INSERT INTO column_err_test(a) VALUES (NULL)', function (err) {
+        assert.equal(err.severity, 'ERROR');
+        assert.equal(err.code, '23502');
+        assert.equal(err.schema, 'public');
+        assert.equal(err.table, 'column_err_test');
+        assert.equal(err.column, 'a');
+        return client.end();
+      });
+    }));
+  }));
+});
+
+test('9.3 constraint error fields', function() {
+  var client = new Client(helper.args);
+  client.connect(assert.success(function() {
+    helper.versionGTE(client, '9.3.0', assert.success(function(isGreater) {
+      if(!isGreater) {
+        console.log('skip 9.3 error field on older versions of postgres');
+        return client.end();
+      }
+
+      client.query('DROP TABLE IF EXISTS constraint_err_test');
+      client.query('CREATE TABLE constraint_err_test(a int PRIMARY KEY)');
+      client.query('INSERT INTO constraint_err_test(a) VALUES (1)');
+      client.query('INSERT INTO constraint_err_test(a) VALUES (1)', function (err) {
+        assert.equal(err.severity, 'ERROR');
+        assert.equal(err.code, '23505');
+        assert.equal(err.schema, 'public');
+        assert.equal(err.table, 'constraint_err_test');
+        assert.equal(err.constraint, 'constraint_err_test_pkey');
+        return client.end();
+      });
+    }));
+  }));
+});
