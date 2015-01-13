@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v4.2.0
+- Support for additional error fields in postgres >= 9.3 if available.
+
 ### v4.1.0
 - Allow type parser overrides on a [per-client basis](https://github.com/brianc/node-postgres/pull/679)
 
