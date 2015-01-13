@@ -36,12 +36,13 @@ test('error during query execution', function() {
   }));
 });
 
+if(helper.config.native) return;
+
 test('9.3 column error fields', function() {
   var client = new Client(helper.args);
   client.connect(assert.success(function() {
     helper.versionGTE(client, '9.3.0', assert.success(function(isGreater) {
       if(!isGreater) {
-        console.log('skip 9.3 error field on older versions of postgres');
         return client.end();
       }
 
