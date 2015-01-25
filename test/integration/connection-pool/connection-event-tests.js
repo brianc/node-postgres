@@ -11,26 +11,14 @@ test('connection event', function(){
 
     // console.dir(pool);
 
-    // pool.connect(function(err, cbclient){
-    //     assert.same(client, cbclient);
-    // });
-
-    helper.pg.connect(helper.config, function(err, cbclient){
-        //console.log(cbclient);
-        assert.same(client, cbclient);
+    pool.connect(function(err, cbclient){
+        //assert.same(client, cbclient);
+        console.log(err);
+        console.dir(cbclient);
+            setTimeout(function(){
+                process.exit();
+            }, 1000);
     });
 
-    // pool.create(function(err, cbclient){
-    //     assert.same(client, cbclient);
-    // });
-
-    // //console.dir(pool);
-    // helper.pg.connect(helper.config, function(err, client, done){
-    //     client = client;
-    //     //console.log(client);
-    //     setTimeout(function(){
-    //         process.exit();
-    //     }, 1000);
-    // });
 
 });
