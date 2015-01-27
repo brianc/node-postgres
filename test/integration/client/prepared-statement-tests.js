@@ -17,6 +17,32 @@ test("simple, unnamed prepared statement", function(){
   });
 });
 
+test("use interval in prepared statement", function(){
+  var client = helper.client();
+
+  client.query('SELECT interval \'15 days 2 months 3 years 6:12:05\' as interval', assert.success(function(result) {
+      var interval = result.rows[0].interval;
+
+      var query = client.query({
+        text: 'select cast($1 as interval) as interval',
+        values: [interval]
+      });
+
+      assert.emits(query, 'row', function(row) {
+        assert.equal(row.interval.seconds, 5);
+        assert.equal(row.interval.minutes, 12);
+        assert.equal(row.interval.hours, 6);
+        assert.equal(row.interval.days, 15);
+        assert.equal(row.interval.months, 2);
+        assert.equal(row.interval.years, 3);
+      });
+
+      assert.emits(query, 'end', function() {
+        client.end();
+      });
+  }));
+});
+
 test("named prepared statement", function() {
 
   var client = helper.client();
