@@ -34,6 +34,7 @@ pg.connect(conString, function(err, client, done) {
     }
     console.log(result.rows[0].number);
     //output: 1
+    client.end();
   });
 });
 ```
