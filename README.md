@@ -129,7 +129,6 @@ Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 node-postgres is by design pretty light on abstractions.  These are some handy modules we've been using over the years to complete the picture:
 
-- [vitaly-t/pg-promise](https://github.com/vitaly-t/pg-promise) - Use node-postgres entirely via [Promise](https://github.com/then/promise).
 - [brianc/node-pg-native](https://github.com/brianc/node-pg-native) - Simple interface abstraction on top of [libpq](https://github.com/brianc/node-libpq)
 - [brianc/node-pg-query-stream](https://github.com/brianc/node-pg-query-stream) - Query results from node-postgres as a readable (object) stream
 - [brianc/node-pg-cursor](https://github.com/brianc/node-pg-cursor) - Query cursor extension for node-postgres
@@ -144,6 +143,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [datalanche/node-pg-format](https://github.com/datalanche/node-pg-format) - Safely and easily create dynamic SQL queries with this Node implementation of [PostgreSQL format()](http://www.postgresql.org/docs/9.3/static/functions-string.html#FUNCTIONS-STRING-FORMAT).
 - [iceddev/pg-transact](https://github.com/iceddev/pg-transact) - A nicer API on node-postgres transactions
 - [sehrope/node-pg-db](https://github.com/sehrope/node-pg-db) - Simpler interface, named parameter support, transaction management and event hooks.
+- [vitaly-t/pg-promise](https://github.com/vitaly-t/pg-promise) - Use node-postgres entirely via [Promise](https://github.com/then/promise).
 
 ## License
 
