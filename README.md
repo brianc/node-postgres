@@ -5,7 +5,7 @@ Use a PostgreSQL result cursor from node with an easy to use API.
 
 ### why?
 
-Sometimes you need to itterate through a table in chunks.  It's extremely inefficient to use hand-crafted `LIMIT` and `OFFSET` queries to do this.
+Sometimes you need to iterate through a table in chunks.  It's extremely inefficient to use hand-crafted `LIMIT` and `OFFSET` queries to do this.
 PostgreSQL provides built-in functionality to fetch a "cursor" to your results and page through the cursor efficiently fetching chunks of the results with full MVCC compliance.  
 
 This actually ends up pairing very nicely with node's _asyncness_ and handling a lot of data.  PostgreSQL is rad.
