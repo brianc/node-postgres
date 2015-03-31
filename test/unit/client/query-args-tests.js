@@ -1,9 +1,7 @@
 var helper = require(__dirname + '/test-helper');
-var Client = helper.Client;
-var conInfo = helper.config;
 
 test('check that passed values types have not been changed during the query phase', function() {
-	var client = new Client(conInfo);
+	var client = helper.client();
 	client.connect(assert.success(function() {
 		var originalValues = [1,new Date()];
 		var values = originalValues.slice();
