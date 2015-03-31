@@ -8,8 +8,8 @@ test('check that passed arguments types are not changed during the query phase',
 		// Check for length
 		assert.equal(arguments.length,originalArguments.length);
 		// Check values
-		assert.equal(arguments[0],originalArguments[0]);
-		assert.equal(arguments[1],originalArguments[1]);
-		assert.equal(arguments[2],originalArguments[2]);
+		assert.deepEqual(arguments[0],originalArguments[0]);
+		assert.deepEqual(arguments[1],originalArguments[1]);
+		assert.deepEqual(arguments[2],originalArguments[2]);
 	});
 });
