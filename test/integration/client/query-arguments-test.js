@@ -13,6 +13,7 @@ test('check that passed arguments types have not been changed during the query p
 		};
 		client.query(config, assert.success(function(result) {
 			assert.equal(result.rows.length, 1);
+			console.log('result:',result.rows[0]);
 			assert.equal(arguments.length,originalArguments.length,'expecting same length as given array!');
 			assert.strictEqual(isNaN(arguments[0]),false,'expecting a number!');
 			assert.strictEqual(arguments[1] instanceof Date,true,'expecting a Date object!');
