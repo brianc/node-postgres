@@ -1,6 +1,3 @@
-/**
- * Created by nick on 31/03/15.
- */
 var helper = require(__dirname + '/test-helper');
 var Client = helper.Client;
 var conInfo = helper.config;
