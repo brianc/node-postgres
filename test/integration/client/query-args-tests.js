@@ -8,11 +8,9 @@ test('check that passed values types have not been changed during the query phas
 		var originalValues = [1,2];
 		var values = originalValues.slice();
 
-		client.query('SELECT 1 WHERE 0 <> $1 AND 0 <> $2',values, assert.success(function(err,result) {
-			//assert.isNull(err);
-			console.log('err:',err);
-			assert.equal(result.rows.length, 1);
-			console.log('result:',result.rows[0]);
+		client.query('SELECT 1 WHERE 0 <> $1 AND 0 <> $2',values, assert.success(function(result) {
+			console.log('result:',result);
+			assert.equal(result.rowCount, 1);
 			assert.equal(values.length,originalValues.length,'expecting same length as given array!');
 			assert.strictEqual(isNaN(values[0]),false,'expecting a number!');
 			assert.strictEqual(isNaN(values[1]),false,'expecting a number!');
