@@ -5,10 +5,7 @@ test('executing query', function() {
 	var originalArguments = [1,new Date()];
 	var arguments = originalArguments.slice();
 
-	var query = client.query({
-		text: 'SELECT 1 WHERE 0 <> $1 AND 0 <> $2',
-		values: arguments
-	});
+	var query = client.query('SELECT 1 WHERE 0 <> $1 AND 0 <> $2',arguments);
 
 	assert.emits(query,'row', function(row) {
 		test('check that passed arguments types have not been changed during the query phase', function() {
