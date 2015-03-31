@@ -4,7 +4,14 @@ test('check that passed arguments types are not changed during the query phase',
 	var client = helper.client();
 	var originalArguments = [1,new Date()];
 	var arguments = originalArguments.slice();
-	var query = client.query('SELECT 1 WHERE 0 <> $1 AND 0 <> $2',arguments);
+	//var query = client.query('SELECT 1 WHERE 0 <> $1 AND 0 <> $2',arguments);
+
+
+	var query = client.query({
+		text: 'SELECT 1 WHERE 0 <> $1 AND 0 <> $2',
+		values: arguments
+	});
+
 	// Check for length
 	assert.equal(arguments.length,originalArguments.length,'expecting same length as given array!');
 	// Check values types
