@@ -6,11 +6,14 @@ test('check that passed arguments types are not changed during the query phase',
 	var arguments = originalArguments.slice();
 	client.query('SELECT 1 WHERE 0 <> $1 AND 0 <> $2',arguments, function(err, result) {
 		assert.equal(err,null,'expecting no error');
+		console.log('err:',err);
+		console.log('result:',result.rows[0]);
+		console.log(arguments);
 		assert.equal(result.rows.length,1,'expecting 1 row');
 		// Check for length
 		assert.equal(arguments.length,originalArguments.length,'expecting same lenght as given array!');
 		// Check values types
-		assert.deepEqual(isNaN(arguments[0]),false,'expecting a number!');
-		assert.deepEqual(arguments[1] instanceof Date,true,'expecting a Date object!');
+		assert.strictEqual(isNaN(arguments[0]),false,'expecting a number!');
+		assert.strictEqual(arguments[1] instanceof Date,true,'expecting a Date object!');
 	});
 });
