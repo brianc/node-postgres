@@ -1,4 +1,4 @@
-var helper = require('./test-helper');
+var helper = require(__dirname + '/test-helper');
 var Client = helper.Client;
 var conInfo = helper.config;
 
@@ -11,7 +11,7 @@ test('check that passed arguments types have not been changed during the query p
 			text: 'SELECT 1 WHERE 0 <> $1 AND 0 <> $2',
 			values: arguments
 		};
-		var query = client.query(config, assert.success(function(result) {
+		client.query(config, assert.success(function(result) {
 			assert.equal(result.rows.length, 1);
 			assert.equal(arguments.length,originalArguments.length,'expecting same length as given array!');
 			assert.strictEqual(isNaN(arguments[0]),false,'expecting a number!');
