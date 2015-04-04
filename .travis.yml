@@ -1,9 +1,56 @@
 language: node_js
-node_js:
-  - "0.10"
-  - "0.12"
-  - "iojs"
 before_script:
   - node script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
 env:
   - PGUSER=postgres PGDATABASE=postgres
+
+matrix:
+  include:
+    - node_js: "0.10"
+      addons:
+        postgresql: "9.1"
+    - node_js: "0.10"
+      addons:
+        postgresql: "9.2"
+    - node_js: "0.10"
+      addons:
+        postgresql: "9.3"
+    - node_js: "0.10"
+      addons:
+        postgresql: "9.4"
+    - node_js: "0.11"
+      addons:
+        postgresql: "9.1"
+    - node_js: "0.11"
+      addons:
+        postgresql: "9.2"
+    - node_js: "0.11"
+      addons:
+        postgresql: "9.3"
+    - node_js: "0.11"
+      addons:
+        postgresql: "9.4"
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.1"
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.2"
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.3"
+    - node_js: "0.12"
+      addons:
+        postgresql: "9.4"
+    - node_js: "iojs-v1"
+      addons:
+        postgresql: "9.1"
+    - node_js: "iojs-v1"
+      addons:
+        postgresql: "9.2"
+    - node_js: "iojs-v1"
+      addons:
+        postgresql: "9.3"
+    - node_js: "iojs-v1"
+      addons:
+        postgresql: "9.4"
