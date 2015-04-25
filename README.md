@@ -149,7 +149,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 
 ## License
 
-Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
+Copyright (c) 2010-2015 Brian Carlson (brian.m.carlson@gmail.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
