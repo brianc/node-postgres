@@ -1,6 +1,7 @@
 #node-postgres
 
 [![Build Status](https://secure.travis-ci.org/brianc/node-postgres.svg?branch=master)](http://travis-ci.org/brianc/node-postgres)
+![io.js supported](https://img.shields.io/badge/io.js-supported-green.svg)
 
 PostgreSQL client for node.js.  Pure JavaScript and optional native libpq bindings.
 
