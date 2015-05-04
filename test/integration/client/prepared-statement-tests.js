@@ -211,4 +211,20 @@ test('prepared statement', function() {
     checkForResults(query);
   })
 
+  test('with long name', function() {
+    var queryA = client.query({
+      name: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      text: 'SELECT name FROM zoom ORDER BY name',
+      rows: 1000
+    })
+    checkForResults(queryA);
+
+    var queryB = client.query({
+      name: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab',
+      text: 'SELECT name FROM zoom ORDER BY name',
+      rows: 1000
+    })
+    checkForResults(queryB);
+  })
+
 })
