@@ -1,6 +1,6 @@
 {
   "name": "pg",
-  "version": "4.3.0",
+  "version": "4.4.0",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "postgres",
@@ -36,6 +36,7 @@
     "changelog": "npm i github-changes && ./node_modules/.bin/github-changes -o brianc -r node-postgres -d pulls -a -v",
     "test": "make test-all connectionString=postgres://postgres@localhost:5432/postgres"
   },
+  "license": "MIT",
   "engines": {
     "node": ">= 0.8.0"
   }
