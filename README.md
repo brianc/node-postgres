@@ -148,6 +148,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [sehrope/node-pg-db](https://github.com/sehrope/node-pg-db) - Simpler interface, named parameter support, transaction management and event hooks.
 - [vitaly-t/pg-promise](https://github.com/vitaly-t/pg-promise) - Use node-postgres via [Promises/A+](https://promisesaplus.com/).
 - [pg-then](https://github.com/coderhaoxin/pg-then) A tiny wrapper of `pg` for promise api.
+- [acarl/pg-restify](https://github.com/acarl/pg-restify) - Creates a generic REST API for a postgres database using restify.
 
 ## License
 
