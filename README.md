@@ -22,7 +22,7 @@ Generally you will access the PostgreSQL server through a pool of clients.  A cl
 var pg = require('pg');
 var conString = "postgres://username:password@localhost/database";
 
-//this starts initializes a connection pool
+//this initializes a connection pool
 //it will keep idle connections open for a (configurable) 30 seconds
 //and set a limit of 20 (also configurable)
 pg.connect(conString, function(err, client, done) {
