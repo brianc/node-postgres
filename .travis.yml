@@ -31,15 +31,15 @@ matrix:
     - node_js: "0.12"
       addons:
         postgresql: "9.4"
-    - node_js: "iojs-v1"
+    - node_js: "iojs-v2"
       addons:
         postgresql: "9.1"
-    - node_js: "iojs-v1"
+    - node_js: "iojs-v2"
       addons:
         postgresql: "9.2"
-    - node_js: "iojs-v1"
+    - node_js: "iojs-v2"
       addons:
         postgresql: "9.3"
-    - node_js: "iojs-v1"
+    - node_js: "iojs-v2"
       addons:
         postgresql: "9.4"
