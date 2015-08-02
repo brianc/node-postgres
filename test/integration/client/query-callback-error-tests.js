@@ -1,4 +1,4 @@
-return console.log('query-callback-error-tests: DEPRECATED - if you want saftey in your callback, you can try/catch your own functions');
+return console.log('query-callback-error-tests: DEPRECATED - if you want safety in your callback, you can try/catch your own functions');
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
 
