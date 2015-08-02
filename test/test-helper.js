@@ -248,5 +248,3 @@ module.exports = {
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset
 };
-
-
