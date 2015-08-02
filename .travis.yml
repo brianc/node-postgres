@@ -1,4 +1,5 @@
 language: node_js
+sudo: false
 before_script:
   - node script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
 env:
