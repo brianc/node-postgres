@@ -21,7 +21,7 @@ test: test-unit
 test-all: jshint test-missing-native test-unit test-integration test-native test-binary
 
 
-udpate-npm:
+update-npm:
 	@npm i npm --global
 
 bench:
