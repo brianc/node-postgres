@@ -30,12 +30,37 @@ test('client settings', function() {
     assert.equal(client.password, password);
   });
 
+  test('password function', function() {
+    var user = 'brian';
+    var database = 'pgjstest';
+    var password = function(params, cb) {
+      cb(null, 'boom');
+    };
+    var client = createClient({
+      user: user,
+      database: database,
+      port: 321,
+      password: password
+    });
+
+    assert.equal(client.user, user);
+    assert.equal(client.database, database);
+    assert.equal(client.port, 321);
+    var sent = false;
+    client.connection.on('sentPassword', function() {
+      sent = true;
+    });
+    client.connection.emit('authenticationCleartextPassword');
+    assert.ok(sent);
+    assert.equal(client.password, 'boom');
+  });
+
 });
 
 test('initializing from a config string', function() {
 
   test('uses the correct values from the config string', function() {
-    var client = new Client("postgres://brian:pass@host1:333/databasename")
+    var client = new Client("postgres://brian:pass@host1:333/databasename");
     assert.equal(client.user, 'brian');
     assert.equal(client.password, "pass");
     assert.equal(client.host, "host1");

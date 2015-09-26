@@ -17,13 +17,17 @@ p.write = function(packet) {
 
 p.writable = true;
 
-createClient = function() {
+createClient = function(config) {
   var stream = new MemoryStream();
   stream.readyState = "open";
-  var client = new Client({
-    connection: new Connection({stream: stream})
-  });
+  var connection = new Connection({stream: stream});
+  config = config || {};
+  if (typeof(config) === 'object')
+    config.connection = connection;
+  var client = new Client(config);
+  client.connection = connection;
   client.connect();
+  client.connection.emit('connect');
   return client;
 };
 

@@ -4,8 +4,15 @@ test('md5 authentication', function() {
   var client = createClient();
   client.password = "!";
   var salt = Buffer([1, 2, 3, 4]);
+
+  var sent = false;
+  client.connection.on('sentPassword', function() {
+    sent = true;
+  });
+  client.connection.stream.packets = [];
   client.connection.emit('authenticationMD5Password', {salt: salt});
 
+  assert.ok(sent);
   test('responds', function() {
     assert.lengthIs(client.connection.stream.packets, 1);
     test('should have correct encrypted data', function() {
@@ -17,5 +24,4 @@ test('md5 authentication', function() {
                         .addCString(password).join(true,'p'));
     });
   });
-
 });

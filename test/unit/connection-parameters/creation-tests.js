@@ -47,6 +47,27 @@ test('ConnectionParameters initializing from config', function() {
   assert.ok(subject.isDomainSocket === false);
 });
 
+test('ConnectionParameters initializing from config with password function', function() {
+  var config = {
+    user: 'brian',
+    database: 'home',
+    port: 7777,
+    password: function (params, cb) {
+      cb(null, 'pizza');
+    },
+    binary: true,
+    encoding: 'utf8',
+    host: 'yo',
+    ssl: {
+      asdf: 'blah'
+    }
+  };
+  var subject = new ConnectionParameters(config);
+  config.password = 'pizza';
+  compare(subject, config, 'config');
+  assert.ok(subject.isDomainSocket === false);
+});
+
 test('escape spaces if present', function() {
   subject = new ConnectionParameters('postgres://localhost/post gres');
   assert.equal(subject.database, 'post gres');

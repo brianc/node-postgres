@@ -10,7 +10,12 @@ test('cleartext password authentication', function(){
   var client = createClient();
   client.password = "!";
   client.connection.stream.packets = [];
+  var sent = false;
+  client.connection.on('sentPassword', function() {
+    sent = true;
+  });
   client.connection.emit('authenticationCleartextPassword');
+  assert.ok(sent);
   test('responds with password', function() {
     var packets = client.connection.stream.packets;
     assert.lengthIs(packets, 1);
