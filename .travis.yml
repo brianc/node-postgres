@@ -5,6 +5,13 @@ before_script:
 env:
   - PGUSER=postgres PGDATABASE=postgres
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+
 matrix:
   include:
     - node_js: "0.10"
