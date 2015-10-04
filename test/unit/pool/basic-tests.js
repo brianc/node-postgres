@@ -121,9 +121,10 @@ test('pool with connection error on connection', function() {
         process.nextTick(function() {
           cb(new Error('Could not connect'));
         });
-      }
+      },
+      on: Function.prototype
     };
-  }
+  };
   test('two parameters', function() {
     var p = pools.getOrCreate(poolId++);
     p.connect(assert.calls(function(err, client) {

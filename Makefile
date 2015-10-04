@@ -42,8 +42,6 @@ test-missing-native:
 	@echo "***Testing optional native install***"
 	@rm -rf node_modules/pg-native
 	@node test/native/missing-native.js
-	@npm install pg-native@1.4.0
-	@node test/native/missing-native.js
 	@rm -rf node_modules/pg-native
 
 node_modules/pg-native/index.js:
