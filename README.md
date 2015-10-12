@@ -14,5 +14,5 @@ MIT License
 ```js
 var parse = require('pg-connection-string').parse;
 
-var config = parse('postgres://someuser:somepassword@somehost:381/sometable')
+var config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
 ```
