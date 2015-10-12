@@ -42,6 +42,15 @@ test('initializing from a config string', function() {
     assert.equal(client.port, 333);
     assert.equal(client.database, "databasename");
   });
+  
+  test('uses the string in the `connection` property', function() {
+    var client = new Client({ connection: "postgres://brian:pass@host1:333/databasename" })
+    assert.equal(client.user, 'brian');
+    assert.equal(client.password, "pass");
+    assert.equal(client.host, "host1");
+    assert.equal(client.port, 333);
+    assert.equal(client.database, "databasename");
+  });
 
   test('uses the correct values from the config string with space in password', function() {
     var client = new Client("postgres://brian:pass word@host1:333/databasename")
