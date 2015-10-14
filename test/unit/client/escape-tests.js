@@ -82,11 +82,9 @@ testLit('escapeLiteral: false Boolean object',
         new Boolean(false), "FALSE");
 
 test('escapeLiteral: Date', function(){
-  var d = new Date();
-  d.setUTCFullYear(2015, 9, 27); // note: Javascript month range is 0 - 11
-  d.setUTCHours(7, 0, 0, 0);
-
   testDateHelper.setTimezoneOffset(420);
+
+  var d = new Date(2015, 9, 27); // note: Javascript month range is 0 - 11  
 
   var client = new Client(helper.config);
   var actual = client.escapeLiteral(d);
