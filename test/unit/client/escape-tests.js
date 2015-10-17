@@ -81,7 +81,7 @@ testLit('escapeLiteral: true Boolean object',
 testLit('escapeLiteral: false Boolean object',
         new Boolean(false), "FALSE");
 
-test('escapeLiteral: Date', function(){
+test('escapeLiteral: Date', function() {
   testDateHelper.setTimezoneOffset(420);
 
   var d = new Date(2015, 9, 27); // note: Javascript month range is 0 - 11  
