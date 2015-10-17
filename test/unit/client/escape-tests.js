@@ -1,4 +1,5 @@
 var helper = require(__dirname + '/test-helper');
+var testDateHelper = require('../test-helper');
 
 function createClient(callback) {
   var client = new Client(helper.config);
@@ -46,6 +47,54 @@ testLit('escapeLiteral: contains single quotes and backslashes',
 
 testLit('escapeLiteral: contains single quotes, double quotes, and backslashes',
         'hello \\ \' " world', " E'hello \\\\ '' \" world'");
+
+testLit('escapeLiteral: empty string',
+        '', "''");
+
+testLit('escapeLiteral: null',
+        null, "NULL");
+
+testLit('escapeLiteral: undefined',
+        undefined, "NULL");
+
+testLit('escapeLiteral: zero as a string',
+        '0', "'0'");
+
+testLit('escapeLiteral: zero as a number',
+        0, "0");
+
+testLit('escapeLiteral: number',
+        42, "42");
+
+testLit('escapeLiteral: Number object',
+        new Number(88), "88");
+
+testLit('escapeLiteral: true',
+        true, "TRUE");
+
+testLit('escapeLiteral: false',
+        false, "FALSE");
+
+testLit('escapeLiteral: true Boolean object',
+        new Boolean(true), "TRUE");
+
+testLit('escapeLiteral: false Boolean object',
+        new Boolean(false), "FALSE");
+
+test('escapeLiteral: Date', function() {
+  testDateHelper.setTimezoneOffset(420);
+
+  var d = new Date(2015, 9, 27); // note: Javascript month range is 0 - 11  
+
+  var client = new Client(helper.config);
+  var actual = client.escapeLiteral(d);
+  assert.equal('2015-10-27T00:00:00.000-07:00', actual);
+
+  testDateHelper.resetTimezoneOffset();
+});
+
+testLit('escapeLiteral: array',
+        ['Nintendo', 64], '{"Nintendo","64"}');
 
 testIdent('escapeIdentifier: no special characters',
         'hello world', '"hello world"');
