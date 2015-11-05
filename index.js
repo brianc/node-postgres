@@ -51,6 +51,9 @@ QueryStream.prototype._read = function(n) {
     if(err) {
       return self.emit('error', err)
     }
+
+    if (self._closing) { return; }
+
     if(!rows.length) {
       process.nextTick(function() {
         self.push(null)
