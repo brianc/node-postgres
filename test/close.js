@@ -34,7 +34,6 @@ helper('early close', function(client) {
   })
 })
 
-
 helper('should not throw errors after early close', function(client) {
   it('can be closed early without error', function(done) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, 2000) num');
@@ -77,6 +76,25 @@ helper('should not throw errors after early close', function(client) {
 
     query.on('readable', function () {
       query.read();
+    });
+  });
+});
+
+helper('close callback', function (client) {
+  it('notifies an optional callback when the conneciton is closed', function (done) {
+    var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [10], {batchSize: 2, highWaterMark: 2});
+    var query = client.query(stream);
+    query.once('readable', function() { // only reading once
+      query.read();
+    });
+    query.once('readable', function() {
+      query.close(function () {
+        // nothing to assert.  This test will time out if the callback does not work.
+        done();
+      });
+    });
+    query.on('close', function () {
+      assert(false, "close event should not fire"); // no close event because we did not read to the end of the stream.
     });
   });
 });

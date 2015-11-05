@@ -32,10 +32,11 @@ for(var key in Cursor.prototype) {
   }
 }
 
-QueryStream.prototype.close = function() {
+QueryStream.prototype.close = function(cb) {
   this._closing = true
   var self = this
   Cursor.prototype.close.call(this, function(err) {
+    if (cb) { cb(err); }
     if(err) return self.emit('error', err)
     process.nextTick(function() {
       self.push(null)
