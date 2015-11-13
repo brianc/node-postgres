@@ -10,7 +10,13 @@ helper('fast reader', function(client) {
     var count = 0
     stream.on('readable', function() {
       var res = stream.read()
-      assert(res, 'should not return null on evented reader')
+      if (result.length !== 201) {
+        assert(res, 'should not return null on evented reader')
+      } else {
+        //a readable stream will emit a null datum when it finishes being readable
+        //https://nodejs.org/api/stream.html#stream_event_readable
+        assert.equal(res, null)
+      }
       if(res) {
         result.push(res.num)
       }
