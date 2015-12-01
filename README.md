@@ -32,7 +32,7 @@ pg.connect(conString, function(err, client, done) {
   client.query('SELECT $1::int AS number', ['1'], function(err, result) {
     //call `done()` to release the client back to the pool
     done();
-    
+
     if(err) {
       return console.error('error running query', err);
     }
@@ -124,7 +124,7 @@ Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  T
 
 If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
 
-I usually tweet about any important status updates or changes to node-postgres on twitter.  
+I usually tweet about any important status updates or changes to node-postgres on twitter.
 Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 
@@ -150,6 +150,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [pg-then](https://github.com/coderhaoxin/pg-then) A tiny wrapper of `pg` for promise api.
 - [acarl/pg-restify](https://github.com/acarl/pg-restify) - Creates a generic REST API for a postgres database using restify.
 - [XeCycle/pg-template-tag](https://github.com/XeCycle/pg-template-tag) - Write queries with ES6 tagged template literals, a "poor man's query builder".
+- [jray/pg-gen](https://github.com/jray/pg-gen) - Use ES6 Generators to paginate through large Postgres result sets
 
 ## License
 
