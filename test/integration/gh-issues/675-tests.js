@@ -1,7 +1,7 @@
 var helper = require('../test-helper');
 var assert = require('assert');
 
-helper.pg.connect(function(err, client, done) {
+helper.pg.connect(helper.config, function(err, client, done) {
   if (err) throw err;
 
   var c = 'CREATE TEMP TABLE posts (body TEXT)';
