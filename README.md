@@ -150,7 +150,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [pg-then](https://github.com/coderhaoxin/pg-then) A tiny wrapper of `pg` for promise api.
 - [acarl/pg-restify](https://github.com/acarl/pg-restify) - Creates a generic REST API for a postgres database using restify.
 - [XeCycle/pg-template-tag](https://github.com/XeCycle/pg-template-tag) - Write queries with ES6 tagged template literals, a "poor man's query builder".
-- [jray/pg-gen](https://github.com/jray/pg-gen) - Use ES6 Generators to paginate through large Postgres result sets
+- [recursivefunk/pg-gen](https://github.com/recursivefunk/pg-gen) - Use ES6 Generators to paginate through large Postgres result sets
 
 ## License
 
