@@ -98,7 +98,8 @@ test('libpq connection string building', function() {
       password: 'xyz',
       port: 888,
       host: 'localhost',
-      database: 'bam'
+      database: 'bam',
+      keepalives: true
     }
     var subject = new ConnectionParameters(config);
     subject.getLibpqConnectionString(assert.calls(function(err, constring) {
@@ -109,6 +110,7 @@ test('libpq connection string building', function() {
       checkForPart(parts, "port='888'");
       checkForPart(parts, "hostaddr=127.0.0.1");
       checkForPart(parts, "dbname='bam'");
+      checkForPart(parts, "keepalives=1");
     }));
   });
 
