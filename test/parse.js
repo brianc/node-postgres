@@ -124,3 +124,67 @@ test('pathname of "/" returns null database', function (t) {
 
   t.end();
 });
+
+test('configuration parameter application_name', function(t){
+  var connectionString = 'pg:///?application_name=TheApp';
+  var subject = parse(connectionString);
+  t.equal(subject.application_name, 'TheApp');
+  t.end();
+});
+
+test('configuration parameter fallback_application_name', function(t){
+  var connectionString = 'pg:///?fallback_application_name=TheAppFallback';
+  var subject = parse(connectionString);
+  t.equal(subject.fallback_application_name, 'TheAppFallback');
+  t.end();
+});
+
+test('configuration parameter fallback_application_name', function(t){
+  var connectionString = 'pg:///?fallback_application_name=TheAppFallback';
+  var subject = parse(connectionString);
+  t.equal(subject.fallback_application_name, 'TheAppFallback');
+  t.end();
+});
+
+test('configuration parameter ssl=true', function(t){
+  var connectionString = 'pg:///?ssl=true';
+  var subject = parse(connectionString);
+  t.equal(subject.ssl, true);
+  t.end();
+});
+
+test('configuration parameter ssl=1', function(t){
+  var connectionString = 'pg:///?ssl=1';
+  var subject = parse(connectionString);
+  t.equal(subject.ssl, true);
+  t.end();
+});
+
+test('configuration parameter keepalives', function(t){
+  var connectionString = 'pg:///?keepalives=1';
+  var subject = parse(connectionString);
+  t.equal(subject.keepalives, '1');
+  t.end();
+});
+
+test('unknown configuration parameter is passed into client', function(t){
+  var connectionString = 'pg:///?ThereIsNoSuchPostgresParameter=1234';
+  var subject = parse(connectionString);
+  t.equal(subject.ThereIsNoSuchPostgresParameter, '1234');
+  t.end();
+});
+
+test('do not override a config field with value from query string', function(t){
+  var subject = parse('socket:/some path/?db=my[db]&encoding=utf8&client_encoding=bogus');
+  t.equal(subject.host, '/some path/');
+  t.equal(subject.database, 'my[db]', 'must to be escaped and unescaped trough "my%5Bdb%5D"');
+  t.equal(subject.client_encoding, 'utf8');
+  t.end();
+});
+
+test('return last value of repeated parameter', function(t){
+  var connectionString = 'pg:///?keepalives=1&keepalives=0';
+  var subject = parse(connectionString);
+  t.equal(subject.keepalives, '0');
+  t.end();
+});

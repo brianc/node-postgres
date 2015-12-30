@@ -21,13 +21,6 @@ function parse(str) {
   var result = url.parse(str, true);
   config = {};
 
-  if (result.query.application_name) {
-    config.application_name = result.query.application_name;
-  }
-  if (result.query.fallback_application_name) {
-    config.fallback_application_name = result.query.fallback_application_name;
-  }
-
   config.port = result.port;
   if(result.protocol == 'socket:') {
     config.host = decodeURI(result.pathname);
@@ -53,6 +46,18 @@ function parse(str) {
   if (ssl === 'true' || ssl === '1') {
     config.ssl = true;
   }
+
+  ['db', 'database', 'encoding', 'client_encoding', 'host', 'port', 'user', 'password', 'ssl']
+  .forEach(function(key) {
+    delete result.query[key];
+  });
+
+  Object.getOwnPropertyNames(result.query).forEach(function(key) {
+    var value = result.query[key];
+    if (Array.isArray(value))
+      value = value[value.length-1];
+    config[key] = value;
+  });
 
   return config;
 }
