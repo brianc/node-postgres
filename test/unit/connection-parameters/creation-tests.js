@@ -29,6 +29,25 @@ test('ConnectionParameters initializing from defaults', function() {
   assert.ok(subject.isDomainSocket === false);
 });
 
+test('ConnectionParameters initializing from defaults with connectionString set', function() {
+  var config = {
+    user     : 'brians-are-the-best',
+    database : 'scoobysnacks',
+    port     : 7777,
+    password : 'mypassword',
+    host     : 'foo.bar.net',
+    binary   : defaults.binary
+  };
+
+  var original_value = defaults.connectionString;
+  // Just changing this here doesn't actually work because it's no longer in scope when viewed inside of
+  // of ConnectionParameters() so we have to pass in the defaults explicitly to test it
+  defaults.connectionString = 'postgres://brians-are-the-best:mypassword@foo.bar.net:7777/scoobysnacks';
+  var subject = new ConnectionParameters(defaults);
+  defaults.connectionString = original_value;
+  compare(subject, config, 'defaults-connectionString');
+});
+
 test('ConnectionParameters initializing from config', function() {
   var config = {
     user: 'brian',
