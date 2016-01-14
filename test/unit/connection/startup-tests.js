@@ -48,7 +48,7 @@ test('using closed stream', function() {
 
     var res = false;
 
-    con.setKeepAlive = function(bit) {
+    stream.setKeepAlive = function(bit) {
       res = bit;
     };
 
