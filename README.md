@@ -148,6 +148,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [sehrope/node-pg-db](https://github.com/sehrope/node-pg-db) - Simpler interface, named parameter support, transaction management and event hooks.
 - [vitaly-t/pg-promise](https://github.com/vitaly-t/pg-promise) - Use node-postgres via [Promises/A+](https://promisesaplus.com/).
 - [pg-then](https://github.com/coderhaoxin/pg-then) A tiny wrapper of `pg` for promise api.
+- [pg-rxjs](https://github.com/jadbox/pg-rxjs) Another tiny wrapper like `pg-then` but for [RxJS](https://github.com/Reactive-Extensions/RxJS)
 - [acarl/pg-restify](https://github.com/acarl/pg-restify) - Creates a generic REST API for a postgres database using restify.
 - [XeCycle/pg-template-tag](https://github.com/XeCycle/pg-template-tag) - Write queries with ES6 tagged template literals, a "poor man's query builder".
 - [recursivefunk/pg-gen](https://github.com/recursivefunk/pg-gen) - Use ES6 Generators to paginate through large Postgres result sets
