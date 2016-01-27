@@ -152,6 +152,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [XeCycle/pg-template-tag](https://github.com/XeCycle/pg-template-tag) - Write queries with ES6 tagged template literals, a "poor man's query builder".
 - [recursivefunk/pg-gen](https://github.com/recursivefunk/pg-gen) - Use ES6 Generators to paginate through large Postgres result sets
 - [vitaly-t/pg-minify](https://github.com/vitaly-t/pg-minify) - Minifies PostgreSQL scripts.
+- [MassiveJS](https://github.com/robconery/massive-js) - A simple relational data access tool that has full JSONB document support for Postgres.
 
 ## License
 
