@@ -151,6 +151,7 @@ node-postgres is by design pretty light on abstractions.  These are some handy m
 - [acarl/pg-restify](https://github.com/acarl/pg-restify) - Creates a generic REST API for a postgres database using restify.
 - [XeCycle/pg-template-tag](https://github.com/XeCycle/pg-template-tag) - Write queries with ES6 tagged template literals, a "poor man's query builder".
 - [recursivefunk/pg-gen](https://github.com/recursivefunk/pg-gen) - Use ES6 Generators to paginate through large Postgres result sets
+- [vitaly-t/pg-minify](https://github.com/vitaly-t/pg-minify) - Minifies PostgreSQL scripts.
 
 ## License
 
