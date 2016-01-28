@@ -171,3 +171,14 @@ test('prepareValue: objects with circular toPostgres rejected', function() {
   }
   throw new Error("Expected prepareValue to throw exception");
 });
+
+test('prepareValue: can safely be used to map an array of values including those with toPostgres functions', function() {
+  var customType = {
+    toPostgres: function() {
+      return "zomgcustom!";
+    }
+  };
+  var values = [1, "test", customType]
+  var out = values.map(utils.prepareValue)
+  assert.deepEqual(out, [1, "test", "zomgcustom!"])
+})
