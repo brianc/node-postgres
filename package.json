@@ -18,7 +18,7 @@
   "author": "Brian Carlson <brian.m.carlson@gmail.com>",
   "main": "./lib",
   "dependencies": {
-    "buffer-writer": "1.0.0",
+    "buffer-writer": "1.0.1",
     "generic-pool": "2.1.1",
     "packet-reader": "0.2.0",
     "pg-connection-string": "0.1.3",
