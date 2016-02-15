@@ -36,6 +36,27 @@ test("simple query interface", function() {
   });
 });
 
+test("simple query interface using addRow", function() {
+
+  var client = helper.client();
+
+  var query = client.query("select name from person order by name");
+
+  client.on('drain', client.end.bind(client));
+
+  query.on('row', function(row, result) {
+    assert.ok(result);
+    result.addRow(row);
+  });
+
+  query.on('end', function(result) {
+    assert.lengthIs(result.rows, 26, "result returned wrong number of rows");
+    assert.lengthIs(result.rows, result.rowCount);
+    assert.equal(result.rows[0].name, "Aaron");
+    assert.equal(result.rows[25].name, "Zanzabar");
+  });
+});
+
 test("multiple simple queries", function() {
   var client = helper.client();
   client.query({ text: "create temp table bang(id serial, name varchar(5));insert into bang(name) VALUES('boom');"})
