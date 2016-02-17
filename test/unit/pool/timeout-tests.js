@@ -10,17 +10,17 @@ require(__dirname + '/../../test-helper');
 
 var FakeClient = function() {
   EventEmitter.call(this);
-}
+};
 
 util.inherits(FakeClient, EventEmitter);
 
 FakeClient.prototype.connect = function(cb) {
   process.nextTick(cb);
-}
+};
 
 FakeClient.prototype.end = function() {
   this.endCalled = true;
-}
+};
 
 defaults.poolIdleTimeout = 10;
 defaults.reapIntervalMillis = 10;

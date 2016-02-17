@@ -9,7 +9,7 @@ pg.connect(helper.config, function(err, client, done) {
     console.error(err);
     process.exit(255);
   }
-  console.log("Checking for existance of required test table 'person'")
+  console.log("Checking for existence of required test table 'person'")
   client.query("SELECT COUNT(name) FROM person", function(err, callback) {
     if(err != null) {
       console.error("Recieved error when executing query 'SELECT COUNT(name) FROM person'")
