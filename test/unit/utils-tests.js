@@ -65,6 +65,17 @@ test('prepareValues: date prepared properly', function() {
   helper.resetTimezoneOffset();
 });
 
+test('prepareValues: date prepared properly as UTC', function() {
+  defaults.parseInputDatesAsUTC = true;
+
+  // make a date in the local timezone that represents a specific UTC point in time
+  var date = new Date(Date.UTC(2014, 1, 1, 11, 11, 1, 7));
+  var out = utils.prepareValue(date);
+  assert.strictEqual(out, "2014-02-01T11:11:01.007+00:00");
+
+  defaults.parseInputDatesAsUTC = false;
+});
+
 test('prepareValues: undefined prepared properly', function() {
   var out = utils.prepareValue(void 0);
   assert.strictEqual(out, null);
