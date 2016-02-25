@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v4.5.0
+- Add option to parse JS date objects in query parameters as [UTC](https://github.com/brianc/node-postgres/pull/943)
+
 ### v4.4.0
 - Warn to `stderr` if a named query exceeds 63 characters which is the max lenght supported by postgres.
 
