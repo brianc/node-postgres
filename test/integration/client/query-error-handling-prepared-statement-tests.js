@@ -1,5 +1,6 @@
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
+var PgTypes = require('pg-types');
 
 function killIdleQuery(targetQuery) {
   var client2 = new Client(helper.args);
@@ -78,6 +79,25 @@ test('client end during query execution of prepared statement', function() {
       assert.fail('Prepared statement when executed should not return before being killed');
     });
 
+    client.end();
+  }));
+});
+
+test('parseRow error during query execution of prepared statement', function() {
+  PgTypes.setTypeParser(23, 'text', function () {
+    throw new Error("Type Parser Error")
+  });
+  var client = new Client(helper.args);
+  client.connect(assert.success(function() {
+    var query1 = client.query('SELECT $1::int', ['1'], assert.calls(function(err, result) {
+      PgTypes.setTypeParser(23, 'text', null);
+      assert(err);
+    }));
+    // ensure query does not emit an 'end' event since error was thrown
+    query1.on('end', function() {
+      PgTypes.setTypeParser(23, 'text', null);
+      assert.fail('Query with an error should not emit "end" event');
+    });
     client.end();
   }));
 });

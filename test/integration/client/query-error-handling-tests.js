@@ -1,5 +1,6 @@
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
+var PgTypes = require('pg-types');
 
 test('error during query execution', function() {
   var client = new Client(helper.args);
@@ -33,6 +34,25 @@ test('error during query execution', function() {
         }));
       }));
     }));
+  }));
+});
+
+test('parseRow error is handled', function() {
+  PgTypes.setTypeParser(23, 'text', function () {
+    throw new Error("Type Parser Error")
+  });
+  var client = new Client(helper.args);
+  client.connect(assert.success(function() {
+    var query1 = client.query('SELECT 1', assert.calls(function(err, result) {
+      PgTypes.setTypeParser(23, 'text', null);
+      assert(err);
+      return client.end();
+    }));
+    // ensure query does not emit an 'end' event since error was thrown
+    query1.on('end', function() {
+      PgTypes.setTypeParser(23, 'text', null);
+      assert.fail('Query with an error should not emit "end" event');
+    });
   }));
 });
 
