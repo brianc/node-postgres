@@ -2,8 +2,8 @@ var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
 var libDir = __dirname + '/../../../lib';
+var poolsFactory = require(libDir + '/pool')
 var defaults = require(libDir + '/defaults');
-var pools = require(libDir + '/pool');
 var poolId = 0;
 
 require(__dirname + '/../../test-helper');
@@ -21,6 +21,7 @@ FakeClient.prototype.connect = function(cb) {
 FakeClient.prototype.end = function() {
   this.endCalled = true;
 }
+var pools = poolsFactory(FakeClient);
 
 //Hangs the event loop until 'end' is called on client
 var HangingClient = function(config) {
@@ -40,8 +41,6 @@ HangingClient.prototype.connect = function(cb) {
 HangingClient.prototype.end = function() {
   clearInterval(this.intervalId);
 }
-
-pools.Client = FakeClient;
 
 test('no pools exist', function() {
   assert.empty(Object.keys(pools.all));
@@ -115,7 +114,7 @@ test('on client error, client is removed from pool', function() {
 });
 
 test('pool with connection error on connection', function() {
-  pools.Client = function() {
+  var errorPools = poolsFactory(function() {
     return {
       connect: function(cb) {
         process.nextTick(function() {
@@ -124,9 +123,10 @@ test('pool with connection error on connection', function() {
       },
       on: Function.prototype
     };
-  };
+  })
+
   test('two parameters', function() {
-    var p = pools.getOrCreate(poolId++);
+    var p = errorPools.getOrCreate(poolId++);
     p.connect(assert.calls(function(err, client) {
       assert.ok(err);
       assert.equal(client, null);
@@ -136,7 +136,7 @@ test('pool with connection error on connection', function() {
     }));
   });
   test('three parameters', function() {
-    var p = pools.getOrCreate(poolId++);
+    var p = errorPools.getOrCreate(poolId++);
     var tid = setTimeout(function() {
       assert.fail('Did not call connect callback');
     }, 100);
@@ -155,7 +155,6 @@ test('pool with connection error on connection', function() {
 
 test('returnning an error to done()', function() {
   var p = pools.getOrCreate(poolId++);
-  pools.Client = FakeClient;
   p.connect(function(err, client, done) {
     assert.equal(err, null);
     assert(client);

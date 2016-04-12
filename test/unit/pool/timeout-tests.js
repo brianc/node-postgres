@@ -3,7 +3,7 @@ var EventEmitter = require('events').EventEmitter;
 
 var libDir = __dirname + '/../../../lib';
 var defaults = require(libDir + '/defaults');
-var pools = require(libDir + '/pool');
+var poolsFactory = require(libDir + '/pool');
 var poolId = 0;
 
 require(__dirname + '/../../test-helper');
@@ -25,8 +25,9 @@ FakeClient.prototype.end = function() {
 defaults.poolIdleTimeout = 10;
 defaults.reapIntervalMillis = 10;
 
+var pools = poolsFactory(FakeClient)
+
 test('client times out from idle', function() {
-  pools.Client = FakeClient;
   var p = pools.getOrCreate(poolId++);
   p.connect(function(err, client, done) {
     done();
