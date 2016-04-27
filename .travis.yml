@@ -20,7 +20,7 @@ matrix:
     - node_js: "0.12"
       addons:
         postgresql: "9.4"
-    - node_js: "4.1"
+    - node_js: "4"
       addons:
         postgresql: "9.4"
     - node_js: "5"
