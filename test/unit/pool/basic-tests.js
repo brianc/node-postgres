@@ -113,6 +113,27 @@ test('on client error, client is removed from pool', function() {
   }));
 });
 
+test('on client error, connection stays out of pool after calling done', function() {
+  var p = pools.getOrCreate(poolId++);
+  p.connect(assert.success(function(client, done) {
+    assert.ok(client);
+    //error event fires on pool BEFORE pool.destroy is called with client
+    assert.emits(p, 'error', function(err) {
+      assert.equal(err.message, 'test error');
+      assert.ok(!client.endCalled);
+      //after we're done in our callback, pool.destroy is called
+      setImmediate(function() {
+        assert.ok(client.endCalled);
+        done();
+        assert.equal(p.availableObjectsCount(), 0);
+        assert.equal(p.getPoolSize(), 0);
+        p.destroyAllNow();
+      });
+    });
+    client.emit('error', new Error('test error'));
+  }));
+});
+
 test('pool with connection error on connection', function() {
   var errorPools = poolsFactory(function() {
     return {
