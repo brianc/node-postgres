@@ -4,10 +4,10 @@ connectionString=postgres://
 
 params := $(connectionString)
 
-node-command := xargs -n 1 -I file node file $(params)
+node-command := TZ=GMT xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	 jshint publish test-missing-native update-npm
+	 jshint publish test-missing-native update-npm clean
 
 all:
 	npm install
@@ -67,3 +67,6 @@ prepare-test-db:
 jshint:
 	@echo "***Starting jshint***"
 	@./node_modules/.bin/jshint lib
+
+clean:
+	@rm -rf node_modules

@@ -3,7 +3,7 @@ assert = require('assert');
 
 var EventEmitter = require('events').EventEmitter;
 var sys = require('util');
-var BufferList = require(__dirname+'/buffer-list')
+var BufferList = require(__dirname+'/buffer-list');
 
 var Connection = require(__dirname + '/../lib/connection');
 
@@ -160,7 +160,7 @@ var expect = function(callback, timeout) {
       callback.apply(this, arguments)
     }
   } else {
-    throw new Error("Unsupported arrity " + callback.length);
+    throw new Error("Unsupported arity " + callback.length);
   }
 
 }
@@ -193,7 +193,7 @@ process.on('exit', function() {
 })
 
 process.on('uncaughtException', function(err) {
-  console.error("\n %s", err.stack || err.toString())
+  console.error("\n %s", err.stack || err.toString());
   //causes xargs to abort right away
   process.exit(255);
 });
@@ -248,5 +248,3 @@ module.exports = {
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset
 };
-
-

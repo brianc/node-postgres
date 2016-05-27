@@ -46,7 +46,7 @@ test('drain', function() {
     test("emits drain", function() {
       process.nextTick(function() {
         assert.ok(raisedDrain);
-      })
+      });
     });
   });
 });
