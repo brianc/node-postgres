@@ -17,7 +17,7 @@ pg.connect(helper.config, assert.success(function(client, done) {
         var params = ['idle'];
         if(!isGreater) {
           killIdleQuery = 'SELECT procpid, (SELECT pg_terminate_backend(procpid)) AS killed FROM pg_stat_activity WHERE current_query LIKE $1';
-          params = ['%IDLE%']
+          params = ['%IDLE%'];
         }
 
         //subscribe to the pg error event
@@ -37,5 +37,5 @@ pg.connect(helper.config, assert.success(function(client, done) {
       }));
     }));
 
-  })
+  });
 }));

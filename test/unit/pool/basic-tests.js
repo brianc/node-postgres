@@ -5,29 +5,30 @@ var libDir = __dirname + '/../../../lib';
 var poolsFactory = require(libDir + '/pool')
 var defaults = require(libDir + '/defaults');
 var poolId = 0;
+var pg = require(libDir);
 
 require(__dirname + '/../../test-helper');
 
 var FakeClient = function() {
   EventEmitter.call(this);
-}
+};
 
 util.inherits(FakeClient, EventEmitter);
 
 FakeClient.prototype.connect = function(cb) {
   process.nextTick(cb);
-}
+};
 
 FakeClient.prototype.end = function() {
   this.endCalled = true;
-}
+};
 var pools = poolsFactory(FakeClient);
 
 //Hangs the event loop until 'end' is called on client
 var HangingClient = function(config) {
   EventEmitter.call(this);
   this.config = config;
-}
+};
 
 util.inherits(HangingClient, EventEmitter);
 
@@ -36,11 +37,11 @@ HangingClient.prototype.connect = function(cb) {
     console.log('hung client...');
   }, 1000);
   process.nextTick(cb);
-}
+};
 
 HangingClient.prototype.end = function() {
   clearInterval(this.intervalId);
-}
+};
 
 test('no pools exist', function() {
   assert.empty(Object.keys(pools.all));
@@ -153,7 +154,7 @@ test('pool with connection error on connection', function() {
   });
 });
 
-test('returnning an error to done()', function() {
+test('returning an error to done()', function() {
   var p = pools.getOrCreate(poolId++);
   p.connect(function(err, client, done) {
     assert.equal(err, null);
@@ -178,7 +179,6 @@ test('fetching pool by object', function() {
   assert.equal(p, p2);
 });
 
-
 test('pool#connect client.poolCount', function() {
   var p = pools.getOrCreate(poolId++);
   var tid;
@@ -187,7 +187,7 @@ test('pool#connect client.poolCount', function() {
     tid = setTimeout(function() {
       throw new Error("Connection callback was never called");
     }, 100);
-  }
+  };
 
   setConnectTimeout();
   p.connect(function(err, client, done) {
@@ -209,6 +209,54 @@ test('pool#connect client.poolCount', function() {
         assert.equal(client.poolCount, undefined,
           'after pool is destroyed, count should be undefined');
       });
-    })
+    });
+  });
+});
+
+pg.defaults.poolSize = 1;
+
+test('pool#connect acquire errors if the pool is full', function() {
+  var p = pools.getOrCreate(poolId++);
+  p.connect(function(err, client, done1) {
+    p.connect(function(err, client, done2) {
+      assert.equal(err.message, "Cannot acquire resource because the pool is full");
+    });
+  });
+});
+
+pg.defaults.poolSize = 1;
+
+pg.defaults.poolSize = 1;
+pg.defaults.acquireTimeout = 10;
+pg.defaults.poolIdleTimeout = 10;
+
+test('pool#connect acquire errors if acquisition times out', function() {
+  var p = pools.getOrCreate(poolId++);
+  p.connect(function(err, client, done1) {
+    setTimeout(function() {
+      done1();
+    }, 40);
+
+    var start = Date.now();
+    p.connect(function(err, client, done2) {
+      assert.equal(err.message, "Cannot acquire resource because the pool is full");
+      assert.ok((Date.now() - start) < 15);
+    });
+  });
+});
+
+pg.defaults.acquireTimeout = 20;
+
+test('pool#connect acquire returns a resource if one becomes available before the timeout', function() {
+  var p = pools.getOrCreate(poolId++);
+  p.connect(function(err, client, done1) {
+    setTimeout(function() {
+      done1();
+    }, 10);
+
+    p.connect(function(err, client, done2) {
+      assert.equal(err, null);
+      done2();
+    });
   });
 });
