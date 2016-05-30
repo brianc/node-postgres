@@ -16,37 +16,25 @@ matrix:
   include:
     - node_js: "0.10"
       addons:
-        postgresql: "9.1"
-    - node_js: "0.10"
-      addons:
-        postgresql: "9.2"
-    - node_js: "0.10"
-      addons:
-        postgresql: "9.3"
-    - node_js: "0.10"
-      addons:
         postgresql: "9.4"
     - node_js: "0.12"
       addons:
-        postgresql: "9.1"
-    - node_js: "0.12"
-      addons:
-        postgresql: "9.2"
-    - node_js: "0.12"
-      addons:
-        postgresql: "9.3"
-    - node_js: "0.12"
+        postgresql: "9.4"
+    - node_js: "4"
       addons:
         postgresql: "9.4"
-    - node_js: "4.1"
+    - node_js: "5"
+      addons:
+        postgresql: "9.4"
+    - node_js: "6"
       addons:
         postgresql: "9.1"
-    - node_js: "4.1"
+    - node_js: "6"
       addons:
         postgresql: "9.2"
-    - node_js: "4.1"
+    - node_js: "6"
       addons:
         postgresql: "9.3"
-    - node_js: "4.1"
+    - node_js: "6"
       addons:
         postgresql: "9.4"

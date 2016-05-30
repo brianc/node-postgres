@@ -65,6 +65,17 @@ test('prepareValues: date prepared properly', function() {
   helper.resetTimezoneOffset();
 });
 
+test('prepareValues: date prepared properly as UTC', function() {
+  defaults.parseInputDatesAsUTC = true;
+
+  // make a date in the local timezone that represents a specific UTC point in time
+  var date = new Date(Date.UTC(2014, 1, 1, 11, 11, 1, 7));
+  var out = utils.prepareValue(date);
+  assert.strictEqual(out, "2014-02-01T11:11:01.007+00:00");
+
+  defaults.parseInputDatesAsUTC = false;
+});
+
 test('prepareValues: undefined prepared properly', function() {
   var out = utils.prepareValue(void 0);
   assert.strictEqual(out, null);
@@ -171,3 +182,14 @@ test('prepareValue: objects with circular toPostgres rejected', function() {
   }
   throw new Error("Expected prepareValue to throw exception");
 });
+
+test('prepareValue: can safely be used to map an array of values including those with toPostgres functions', function() {
+  var customType = {
+    toPostgres: function() {
+      return "zomgcustom!";
+    }
+  };
+  var values = [1, "test", customType]
+  var out = values.map(utils.prepareValue)
+  assert.deepEqual(out, [1, "test", "zomgcustom!"])
+})
