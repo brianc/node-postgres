@@ -135,7 +135,7 @@ Entire list can be found on [wiki](https://github.com/brianc/node-postgres/wiki/
 
 ## License
 
-Copyright (c) 2010-2015 Brian Carlson (brian.m.carlson@gmail.com)
+Copyright (c) 2010-2016 Brian Carlson (brian.m.carlson@gmail.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
