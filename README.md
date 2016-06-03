@@ -24,7 +24,7 @@ var conString = "postgres://username:password@localhost/database";
 
 //this initializes a connection pool
 //it will keep idle connections open for a (configurable) 30 seconds
-//and set a limit of 20 (also configurable)
+//and set a limit of 10 (also configurable)
 pg.connect(conString, function(err, client, done) {
   if(err) {
     return console.error('error fetching client from pool', err);
@@ -130,31 +130,8 @@ Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 ## Extras
 
-node-postgres is by design pretty light on abstractions.  These are some handy modules we've been using over the years to complete the picture:
-
-- [brianc/node-pg-native](https://github.com/brianc/node-pg-native) - Simple interface abstraction on top of [libpq](https://github.com/brianc/node-libpq)
-- [brianc/node-pg-query-stream](https://github.com/brianc/node-pg-query-stream) - Query results from node-postgres as a readable (object) stream
-- [brianc/node-pg-cursor](https://github.com/brianc/node-pg-cursor) - Query cursor extension for node-postgres
-- [brianc/node-pg-copy-streams](https://github.com/brianc/node-pg-copy-streams) - COPY FROM / COPY TO for node-postgres. Stream from one database to another, and stuff.
-- [brianc/node-postgres-pure](https://github.com/brianc/node-postgres-pure) - node-postgres without any of the C/C++ stuff
-- [brianc/node-pg-types](https://github.com/brianc/node-pg-types) - Type parsing for node-postgres
-- [Suor/pg-bricks](https://github.com/Suor/pg-bricks) - A higher level wrapper around node-postgres to handle connection settings, sql generation, transactions and ease data access.
-- [grncdr/node-any-db](https://github.com/grncdr/node-any-db) - Thin and less-opinionated database abstraction layer for node.
-- [brianc/node-sql](https://github.com/brianc/node-sql) - SQL generation for node.js
-- [hiddentao/squel](https://hiddentao.github.io/squel/) - SQL query string builder for Javascript
-- [CSNW/sql-bricks](https://github.com/CSNW/sql-bricks) - Transparent, Schemaless SQL Generation
-- [datalanche/node-pg-format](https://github.com/datalanche/node-pg-format) - Safely and easily create dynamic SQL queries with this Node implementation of [PostgreSQL format()](http://www.postgresql.org/docs/9.3/static/functions-string.html#FUNCTIONS-STRING-FORMAT).
-- [iceddev/pg-transact](https://github.com/iceddev/pg-transact) - A nicer API on node-postgres transactions
-- [sehrope/node-pg-db](https://github.com/sehrope/node-pg-db) - Simpler interface, named parameter support, transaction management and event hooks.
-- [vitaly-t/pg-promise](https://github.com/vitaly-t/pg-promise) - Use node-postgres via [Promises/A+](https://promisesaplus.com/).
-- [kriasoft/node-pg-client](https://github.com/kriasoft/node-pg-client) - Promise-based wrapper for `node-postgres` designed for easy use with ES7 async/await.
-- [pg-then](https://github.com/coderhaoxin/pg-then) A tiny wrapper of `pg` for promise api.
-- [pg-rxjs](https://github.com/jadbox/pg-rxjs) Another tiny wrapper like `pg-then` but for [RxJS](https://github.com/Reactive-Extensions/RxJS)
-- [acarl/pg-restify](https://github.com/acarl/pg-restify) - Creates a generic REST API for a postgres database using restify.
-- [XeCycle/pg-template-tag](https://github.com/XeCycle/pg-template-tag) - Write queries with ES6 tagged template literals, a "poor man's query builder".
-- [recursivefunk/pg-gen](https://github.com/recursivefunk/pg-gen) - Use ES6 Generators to paginate through large Postgres result sets
-- [vitaly-t/pg-minify](https://github.com/vitaly-t/pg-minify) - Minifies PostgreSQL scripts.
-- [MassiveJS](https://github.com/robconery/massive-js) - A simple relational data access tool that has full JSONB document support for Postgres.
+node-postgres is by design pretty light on abstractions.  These are some handy modules we've been using over the years to complete the picture.
+Entire list can be found on [wiki](https://github.com/brianc/node-postgres/wiki/Extras)
 
 ## License
 
