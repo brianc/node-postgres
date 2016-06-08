@@ -3,11 +3,11 @@ var util = require('util')
 var EventEmitter = require('events').EventEmitter
 var debug = require('debug')
 
-var Pool = module.exports = function(options) {
+var Pool = module.exports = function (options, Client) {
   EventEmitter.call(this)
   this.options = options || {}
   this.log = this.options.log || debug('pg:pool')
-  this.Client = this.options.Client || require('pg').Client
+  this.Client = this.options.Client || Client || require('pg').Client
   this.Promise = this.options.Promise || Promise
 
   this.options.max = this.options.max || this.options.poolSize || 10
@@ -18,33 +18,33 @@ var Pool = module.exports = function(options) {
 
 util.inherits(Pool, EventEmitter)
 
-Pool.prototype._destroy = function(client) {
+Pool.prototype._destroy = function (client) {
   if (client._destroying) return
   client._destroying = true
   client.end()
 }
 
-Pool.prototype._create = function(cb) {
+Pool.prototype._create = function (cb) {
   this.log('connecting new client')
   var client = new this.Client(this.options)
 
-  client.on('error', function(e) {
+  client.on('error', function (e) {
     this.log('connected client error:', e)
     this.pool.destroy(client)
     e.client = client
     this.emit('error', e)
   }.bind(this))
 
-  client.connect(function(err) {
+  client.connect(function (err) {
     this.log('client connected')
     if (err) {
-      this.log('client connection error:', e)
+      this.log('client connection error:', err)
       cb(err)
     }
 
-    client.queryAsync = function(text, values) {
+    client.queryAsync = function (text, values) {
       return new this.Promise((resolve, reject) => {
-        client.query(text, values, function(err, res) {
+        client.query(text, values, function (err, res) {
           err ? reject(err) : resolve(res)
         })
       })
@@ -54,21 +54,21 @@ Pool.prototype._create = function(cb) {
   }.bind(this))
 }
 
-Pool.prototype.connect = function(cb) {
-  return new this.Promise(function(resolve, reject) {
+Pool.prototype.connect = function (cb) {
+  return new this.Promise(function (resolve, reject) {
     this.log('acquire client begin')
-    this.pool.acquire(function(err, client) {
+    this.pool.acquire(function (err, client) {
       if (err) {
         this.log('acquire client. error:', err)
         if (cb) {
-          cb(err, null, function() { })
+          cb(err, null, function () {})
         }
         return reject(err)
       }
 
       this.log('acquire client')
 
-      client.release = function(err) {
+      client.release = function (err) {
         if (err) {
           this.log('release client. error:', err)
           this.pool.destroy(client)
@@ -89,26 +89,26 @@ Pool.prototype.connect = function(cb) {
 
 Pool.prototype.take = Pool.prototype.connect
 
-Pool.prototype.query = function(text, values) {
-  return this.take().then(function(client) {
+Pool.prototype.query = function (text, values) {
+  return this.take().then(function (client) {
     return client.queryAsync(text, values)
-      .then(function(res) {
+      .then(function (res) {
         client.release()
         return res
-      }).catch(function(error) {
+      }).catch(function (error) {
         client.release(error)
         throw error
       })
   })
 }
 
-Pool.prototype.end = function(cb) {
+Pool.prototype.end = function (cb) {
   this.log('draining pool')
-  return new this.Promise(function(resolve, reject) {
-    this.pool.drain(function() {
+  return new this.Promise(function (resolve, reject) {
+    this.pool.drain(function () {
       this.log('pool drained, calling destroy all now')
-      this.pool.destroyAllNow(function() {
-        if(cb) {
+      this.pool.destroyAllNow(function () {
+        if (cb) {
           cb()
         }
         resolve()

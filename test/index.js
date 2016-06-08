@@ -1,19 +1,20 @@
 var expect = require('expect.js')
-var Client = require('pg').Client
 var co = require('co')
 var Promise = require('bluebird')
 var _ = require('lodash')
 
+var describe = require('mocha').describe
+var it = require('mocha').it
+
 var Pool = require('../')
 
-describe('pool', function() {
-
-  describe('with callbacks', function() {
-    it('works totally unconfigured', function(done) {
+describe('pool', function () {
+  describe('with callbacks', function () {
+    it('works totally unconfigured', function (done) {
       const pool = new Pool()
-      pool.connect(function(err, client, release) {
+      pool.connect(function (err, client, release) {
         if (err) return done(err)
-        client.query('SELECT NOW()', function(err, res) {
+        client.query('SELECT NOW()', function (err, res) {
           release()
           if (err) return done(err)
           expect(res.rows).to.have.length(1)
@@ -22,37 +23,39 @@ describe('pool', function() {
       })
     })
 
-    it('passes props to clients', function(done) {
+    it('passes props to clients', function (done) {
       const pool = new Pool({ binary: true })
-      pool.connect(function(err, client, release) {
+      pool.connect(function (err, client, release) {
         release()
+        if (err) return done(err)
         expect(client.binary).to.eql(true)
         pool.end(done)
       })
     })
 
-    it('removes client if it errors in background', function(done) {
+    it('removes client if it errors in background', function (done) {
       const pool = new Pool()
-      pool.connect(function(err, client, release) {
+      pool.connect(function (err, client, release) {
         release()
+        if (err) return done(err)
         client.testString = 'foo'
-        setTimeout(function() {
+        setTimeout(function () {
           client.emit('error', new Error('on purpose'))
         }, 10)
       })
-      pool.on('error', function(err) {
+      pool.on('error', function (err) {
         expect(err.message).to.be('on purpose')
         expect(err.client).to.not.be(undefined)
         expect(err.client.testString).to.be('foo')
-        err.client.connection.stream.on('end', function() {
+        err.client.connection.stream.on('end', function () {
           pool.end(done)
         })
       })
     })
   })
 
-  describe('with promises', function() {
-    it('connects and disconnects', co.wrap(function*() {
+  describe('with promises', function () {
+    it('connects and disconnects', co.wrap(function * () {
       var pool = new Pool()
       var client = yield pool.connect()
       expect(pool.pool.availableObjectsCount()).to.be(0)
@@ -64,13 +67,13 @@ describe('pool', function() {
       return yield pool.end()
     }))
 
-    it('properly pools clients', co.wrap(function*() {
+    it('properly pools clients', co.wrap(function * () {
       var pool = new Pool({ poolSize: 9 })
       var count = 0
       while (count < 30) {
         count++
-        pool.connect().then(function(client) {
-          client.queryAsync('select $1::text as name', ['hi']).then(function(res) {
+        pool.connect().then(function (client) {
+          client.queryAsync('select $1::text as name', ['hi']).then(function (res) {
             client.release()
           })
         })
@@ -80,28 +83,25 @@ describe('pool', function() {
       return yield pool.end()
     }))
 
-    it('supports just running queries', co.wrap(function*() {
+    it('supports just running queries', co.wrap(function * () {
       var pool = new Pool({ poolSize: 9 })
-      var count = 0
-      var queries = _.times(30).map(function() {
+      var queries = _.times(30).map(function () {
         return pool.query('SELECT $1::text as name', ['hi'])
       })
-      console.log('executing')
       yield queries
       expect(pool.pool.getPoolSize()).to.be(9)
       expect(pool.pool.availableObjectsCount()).to.be(9)
       return yield pool.end()
     }))
 
-    it('recovers from all errors', co.wrap(function*() {
+    it('recovers from all errors', co.wrap(function * () {
       var pool = new Pool({ poolSize: 9 })
       var count = 0
 
-      while(count++ < 30) {
+      while (count++ < 30) {
         try {
           yield pool.query('SELECT lksjdfd')
-        } catch(e) {
-        }
+        } catch (e) {}
       }
       var res = yield pool.query('SELECT $1::text as name', ['hi'])
       expect(res.rows).to.eql([{ name: 'hi' }])
