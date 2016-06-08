@@ -1,0 +1,40 @@
+{
+  "name": "pg-pool",
+  "version": "0.0.1",
+  "description": "Connection pool for node-postgres",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-pg-pool.git"
+  },
+  "keywords": [
+    "pg",
+    "postgres",
+    "pool",
+    "database"
+  ],
+  "author": "Brian M. Carlson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brianc/node-pg-pool/issues"
+  },
+  "homepage": "https://github.com/brianc/node-pg-pool#readme",
+  "devDependencies": {
+    "bluebird": "3.4.0",
+    "co": "4.6.0",
+    "expect.js": "0.3.1",
+    "lodash": "4.13.1",
+    "mocha": "^2.3.3",
+    "pg": "4.5.6"
+  },
+  "dependencies": {
+    "debug": "^2.2.0",
+    "generic-pool": "2.4.2"
+  }
+}
