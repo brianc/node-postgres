@@ -56,13 +56,39 @@ pool.connect().then(client => {
 })
 ```
 
-pg-pool supports the traditional callback api for acquiring a client that node-postgres has shipped with internally for years:
+this ends up looking much nicer if you're using [co](https://github.com/tj/co) or async/await:
+
+```js
+const pool = new Pool()
+const client = await pool.connect()
+try {
+  const result = await client.query('select $1::text as name', ['brianc'])
+  console.log('hello from', result.rows[0])
+} finally {
+  client.release()
+}
+```
+
+because its so common to just run a query and return the client to the pool afterward pg-pool has this built-in:
+
+```js
+const pool = new Pool()
+const time = await pool.query('SELECT NOW()')
+const name = await pool.query('select $1::text as name', ['brianc'])
+console.log(name.rows[0].name, 'says hello at', time.rows[0].name)
+```
+__pro tip:__ unless you need to run a transaction (which requires a single client for multiple queries) or you
+have some other edge case like [streaming rows](https://github.com/brianc/node-pg-query-stream) or using a [cursor](https://github.com/brianc/node-pg-cursor)
+you should almost always just use `pool.query`.  Its easy, it does the right thing :tm:, and wont ever forget to return
+clients back to the pool after the query is done.
+
+pg-pool still and will always support the traditional callback api for acquiring a client that node-postgres has shipped with internally for years:
 
 ```js
 const pool = new Pool()
 pool.connect((err, client, done) => {
   if (err) return done(err)
-  
+
   client.query('SELECT $1::text as name', ['pg-pool'], (err, res) => {
     done()
     if (err) {
@@ -72,6 +98,8 @@ pool.connect((err, client, done) => {
   })
 })
 ```
+
+That means you can drop pg-pool into your app and 99% of the cases you wont even notice a difference.  In fact, very soon I will be using pg-pool internally within node-postgres itself!
 
 When you are finished with the pool if all the clients are idle the pool will close them after `config.idleTimeoutMillis` and your app
 will shutdown gracefully.  If you don't want to wait for the timeout you can end the pool as follows:
@@ -87,6 +115,10 @@ await pool.end()
 ## tests
 
 To run tests clone the repo, `npm i` in the working dir, and then run `npm test`
+
+## contributions
+
+I love contributions.  Please make sure they have tests, and submit a PR.  If you're not sure if the issue is worth it or will be accepted it never hurts to open an issue to begin the conversation.  Don't forget to follow me on twitter at [@briancarlson](https://twitter.com/briancarlson) - I generally announce any noteworthy updates there.
 
 ## license
 

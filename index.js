@@ -42,6 +42,8 @@ Pool.prototype._create = function (cb) {
       cb(err)
     }
 
+    var query = client.query;
+
     client.queryAsync = function (text, values) {
       return new this.Promise((resolve, reject) => {
         client.query(text, values, function (err, res) {
