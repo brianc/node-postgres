@@ -8,6 +8,8 @@ npm i pg-pool pg
 
 ## use
 
+### create
+
 to use pg-pool you must first create an instance of a pool
 
 ```js
@@ -40,6 +42,8 @@ const PgNativeClient = require('pg-native')
 const pgNativePool = new Pool({ Client: PgNativeClient })
 ```
 
+### acquire clients with a promise
+
 pg-pool supports a fully promise-based api for acquiring clients
 
 ```js
@@ -56,6 +60,8 @@ pool.connect().then(client => {
 })
 ```
 
+### plays nice with async/await
+
 this ends up looking much nicer if you're using [co](https://github.com/tj/co) or async/await:
 
 ```js
@@ -68,6 +74,8 @@ try {
   client.release()
 }
 ```
+
+### your new favorite helper method
 
 because its so common to just run a query and return the client to the pool afterward pg-pool has this built-in:
 
@@ -82,7 +90,9 @@ have some other edge case like [streaming rows](https://github.com/brianc/node-p
 you should almost always just use `pool.query`.  Its easy, it does the right thing :tm:, and wont ever forget to return
 clients back to the pool after the query is done.
 
-pg-pool still and will always support the traditional callback api for acquiring a client that node-postgres has shipped with internally for years:
+### drop-in backwards compatible
+
+pg-pool still and will always support the traditional callback api for acquiring a client.  This is the exact API node-postgres has shipped with internally for years:
 
 ```js
 const pool = new Pool()
@@ -100,6 +110,8 @@ pool.connect((err, client, done) => {
 ```
 
 That means you can drop pg-pool into your app and 99% of the cases you wont even notice a difference.  In fact, very soon I will be using pg-pool internally within node-postgres itself!
+
+### shut it down
 
 When you are finished with the pool if all the clients are idle the pool will close them after `config.idleTimeoutMillis` and your app
 will shutdown gracefully.  If you don't want to wait for the timeout you can end the pool as follows:
