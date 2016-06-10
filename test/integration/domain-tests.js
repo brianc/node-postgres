@@ -4,7 +4,6 @@ var async = require('async')
 var testWithoutDomain = function(cb) {
   test('no domain', function() {
     assert(!process.domain)
-    console.log(helper.pg.Client)
     helper.pg.connect(helper.config, assert.success(function(client, done) {
       assert(!process.domain)
       done()
