@@ -70,15 +70,11 @@ describe('pool', function () {
     it('properly pools clients', co.wrap(function * () {
       var pool = new Pool({ poolSize: 9 })
       var count = 0
-      while (count < 30) {
-        count++
-        pool.connect().then(function (client) {
-          client.queryAsync('select $1::text as name', ['hi']).then(function (res) {
-            client.release()
-          })
-        })
-      }
-      yield Promise.delay(100)
+      yield _.times(30).map(function * () {
+        var client = yield pool.connect()
+        var result = yield client.queryAsync('select $1::text as name', ['hi'])
+        client.release()
+      })
       expect(pool.pool.getPoolSize()).to.be(9)
       return yield pool.end()
     }))
