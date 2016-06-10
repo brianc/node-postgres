@@ -4,6 +4,20 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v5.1.0
+- Make the query object returned from `client.query` implement the promise interface. This is the first step towards promisifying more of the node-postgres api.
+
+Example:
+```js
+var client = new Client()
+client.connect()
+client.query('SELECT $1::text as name', ['brianc'])
+  .then(function(res) {
+    console.log('hello from', res.rows[0])
+    client.end()
+  })
+```
+
 ### v5.0.0
 
 #### Breaking Changes
