@@ -2,8 +2,8 @@ var helper = require(__dirname + '/../test-helper');
 var pg = helper.pg;
 
 process.on('unhandledRejection', function(e) {
-  //console.error(e, e.stack)
-  //process.exit(1)
+  console.error(e, e.stack)
+  process.exit(1)
 })
 
 pg.connect(helper.config, assert.success(function(client, done) {
@@ -15,7 +15,7 @@ pg.connect(helper.config, assert.success(function(client, done) {
     .then(function(client) {
       client.query('ALKJSDF')
         .catch(function(e) {
-          assert(e instanceof error)
+          assert(e instanceof Error)
         })
     })
 
