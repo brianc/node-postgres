@@ -60,6 +60,9 @@ test-binary: test-connection-binary
 	@echo "***Testing Pure Javascript (binary)***"
 	@find test/integration -name "*-tests.js" | $(node-command) binary
 
+test-pool:
+	@find test/integration/connection-pool -name "*.js" | $(node-command) binary
+
 prepare-test-db:
 	@echo "***Preparing the database for tests***"
 	@find script/create-test-tables.js  | $(node-command)

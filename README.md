@@ -19,13 +19,21 @@ $ npm install pg
 Generally you will access the PostgreSQL server through a pool of clients.  A client takes a non-trivial amount of time to establish a new connection. A client also consumes a non-trivial amount of resources on the PostgreSQL server - not something you want to do on every http request. Good news: node-postgres ships with built in client pooling.
 
 ```javascript
-var pg = require('pg');
-var conString = "postgres://username:password@localhost/database";
+var Pool = require('pg').Pool;
+
+var config = {
+  user: 'foo', //env var: PGUSER
+  database: 'my_db', //env var: PGDATABASE
+  password: 'secret', //env var: PGPASSWORD
+  port: 5432 //env var: PGPORT
+};
+
+var pool = new Pool(config);
 
 //this initializes a connection pool
 //it will keep idle connections open for a (configurable) 30 seconds
 //and set a limit of 10 (also configurable)
-pg.connect(conString, function(err, client, done) {
+pool.connect(function(err, client, done) {
   if(err) {
     return console.error('error fetching client from pool', err);
   }
@@ -41,6 +49,8 @@ pg.connect(conString, function(err, client, done) {
   });
 });
 ```
+
+node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling and only provides a very thin layer on top.  It's highly recommend you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git)
 
 [Check this out for the get up and running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
 
@@ -85,7 +95,7 @@ node-postgres contains a pure JavaScript protocol implementation which is quite 
 
 To use the native bindings, first install [pg-native](https://github.com/brianc/node-pg-native.git).  Once pg-native is installed, simply replace `require('pg')` with `require('pg').native`.
 
-node-postgres abstracts over the pg-native module to provide exactly the same interface as the pure JavaScript version. __No other code changes are required__.  If you find yourself having to change code other than the require statement when switching from `require('pg')` to `require('pg').native` please report an issue.
+node-postgres abstracts over the pg-native module to provide exactly the same interface as the pure JavaScript version. Care has been taken to keep the number of api differences between the two modules to a minimum; however, it is recommend you use either the pure JavaScript or native bindings in both development and production and don't mix & match them in the same process - it can get confusing!
 
 ## Features
 

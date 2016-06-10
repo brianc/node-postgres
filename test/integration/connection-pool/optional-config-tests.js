@@ -15,7 +15,6 @@ helper.pg.connect(assert.calls(function(err, client, done) {
     setTimeout(function() {
       helper.pg.end();
       done();
-      
     }, 10);
   });
 }));
