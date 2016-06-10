@@ -1,4 +1,4 @@
-# node-pg-pool
+# pg-pool
 A connection pool for node-postgres
 
 ## install
