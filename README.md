@@ -1,7 +1,7 @@
 #node-postgres
 
 [![Build Status](https://secure.travis-ci.org/brianc/node-postgres.svg?branch=master)](http://travis-ci.org/brianc/node-postgres)
-![io.js supported](https://img.shields.io/badge/io.js-supported-green.svg)
+[![Dependency Status](https://david-dm.org/brianc/node-postgres.svg)](https://david-dm.org/brianc/node-postgres)
 
 PostgreSQL client for node.js.  Pure JavaScript and optional native libpq bindings.
 
@@ -135,7 +135,7 @@ Entire list can be found on [wiki](https://github.com/brianc/node-postgres/wiki/
 
 ## License
 
-Copyright (c) 2010-2015 Brian Carlson (brian.m.carlson@gmail.com)
+Copyright (c) 2010-2016 Brian Carlson (brian.m.carlson@gmail.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal

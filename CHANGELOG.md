@@ -4,6 +4,30 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v5.1.0
+- Make the query object returned from `client.query` implement the promise interface. This is the first step towards promisifying more of the node-postgres api.
+
+Example:
+```js
+var client = new Client()
+client.connect()
+client.query('SELECT $1::text as name', ['brianc'])
+  .then(function(res) {
+    console.log('hello from', res.rows[0])
+    client.end()
+  })
+```
+
+### v5.0.0
+
+#### Breaking Changes
+- `require('pg').native` now returns null if the native bindings cannot be found; previously, this threw an exception.
+
+#### New Features
+- better error message when passing `undefined` as a query parameter
+- support for `defaults.connectionString`
+- support for `returnToHead` being passed to [generic pool](https://github.com/coopernurse/node-pool)
+
 ### v4.5.0
 - Add option to parse JS date objects in query parameters as [UTC](https://github.com/brianc/node-postgres/pull/943)
 

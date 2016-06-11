@@ -3,6 +3,4 @@
 
 var assert = require('assert');
 
-assert.throws(function() {
-  require('../../lib').native;
-});
+assert.equal(require('../../lib').native, null);
