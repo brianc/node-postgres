@@ -1,6 +1,5 @@
 var expect = require('expect.js')
 var co = require('co')
-var Promise = require('bluebird')
 var _ = require('lodash')
 
 var describe = require('mocha').describe
@@ -59,7 +58,7 @@ describe('pool', function () {
       var pool = new Pool()
       var client = yield pool.connect()
       expect(pool.pool.availableObjectsCount()).to.be(0)
-      var res = yield client.queryAsync('select $1::text as name', ['hi'])
+      var res = yield client.query('select $1::text as name', ['hi'])
       expect(res.rows).to.eql([{ name: 'hi' }])
       client.release()
       expect(pool.pool.getPoolSize()).to.be(1)
@@ -69,10 +68,9 @@ describe('pool', function () {
 
     it('properly pools clients', co.wrap(function * () {
       var pool = new Pool({ poolSize: 9 })
-      var count = 0
       yield _.times(30).map(function * () {
         var client = yield pool.connect()
-        var result = yield client.queryAsync('select $1::text as name', ['hi'])
+        yield client.query('select $1::text as name', ['hi'])
         client.release()
       })
       expect(pool.pool.getPoolSize()).to.be(9)

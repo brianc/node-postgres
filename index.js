@@ -41,17 +41,6 @@ Pool.prototype._create = function (cb) {
       this.log('client connection error:', err)
       cb(err)
     }
-
-    var query = client.query;
-
-    client.queryAsync = function (text, values) {
-      return new this.Promise((resolve, reject) => {
-        client.query(text, values, function (err, res) {
-          err ? reject(err) : resolve(res)
-        })
-      })
-    }.bind(this)
-
     cb(err, err ? null : client)
   }.bind(this))
 }
@@ -92,16 +81,15 @@ Pool.prototype.connect = function (cb) {
 Pool.prototype.take = Pool.prototype.connect
 
 Pool.prototype.query = function (text, values) {
-  return this.take().then(function (client) {
-    return client.queryAsync(text, values)
-      .then(function (res) {
-        client.release()
-        return res
-      }).catch(function (error) {
-        client.release(error)
-        throw error
+  return new this.Promise(function (resolve, reject) {
+    this.connect(function (err, client, done) {
+      if (err) return reject(err)
+      client.query(text, values, function (err, res) {
+        done(err)
+        err ? reject(err) : resolve(res)
       })
-  })
+    })
+  }.bind(this))
 }
 
 Pool.prototype.end = function (cb) {

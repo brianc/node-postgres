@@ -31,7 +31,7 @@
     "expect.js": "0.3.1",
     "lodash": "4.13.1",
     "mocha": "^2.3.3",
-    "pg": "4.5.6",
+    "pg": "5.1.0",
     "standard": "7.1.2",
     "standard-format": "2.2.1"
   },
