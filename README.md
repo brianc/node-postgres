@@ -13,6 +13,8 @@ npm i pg-pool pg
 to use pg-pool you must first create an instance of a pool
 
 ```js
+const Pool = require('pg-pool')
+
 //by default the pool uses the same
 //configuration as whatever `pg` version you have installed
 const pool = new Pool()
