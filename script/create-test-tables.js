@@ -38,23 +38,17 @@ var con = new pg.Client({
   database: args.database
 });
 con.connect();
-if(args.down) {
-  console.log("Dropping table 'person'")
-  var query = con.query("drop table if exists person");
-  query.on('end', function() {
-    console.log("Dropped!");
-    con.end();
-  });
-} else {
-  console.log("Creating table 'person'");
-  con.query("create table person(id serial, name varchar(10), age integer)").on('end', function(){
-    console.log("Created!");
-    console.log("Filling it with people");
-  });;
-  people.map(function(person) {
-    return con.query("insert into person(name, age) values('"+person.name + "', '" + person.age + "')");
-  }).pop().on('end', function(){
-    console.log("Inserted 26 people");
-    con.end();
-  });
-}
+var query = con.query("drop table if exists person");
+query.on('end', function() {
+  console.log("Dropped table 'person'")
+});
+con.query("create table person(id serial, name varchar(10), age integer)").on('end', function(){
+  console.log("Created table person");
+  console.log("Filling it with people");
+});
+people.map(function(person) {
+  return con.query("insert into person(name, age) values('"+person.name + "', '" + person.age + "')");
+}).pop().on('end', function(){
+  console.log("Inserted 26 people");
+  con.end();
+});
