@@ -22,16 +22,18 @@ test('error during query execution', function() {
       query1.on('end', function() {
         assert.fail('Query with an error should not emit "end" event')
       })
-      var client2 = new Client(helper.args);
-      client2.connect(assert.success(function() {
-        var killIdleQuery = "SELECT " + pidColName + ", (SELECT pg_terminate_backend(" + pidColName + ")) AS killed FROM pg_stat_activity WHERE " + queryColName + " = $1";
-        client2.query(killIdleQuery, [sleepQuery], assert.calls(function(err, res) {
-          assert.ifError(err);
-          assert.equal(res.rows.length, 1);
-          client2.end();
-          assert.emits(client2, 'end');
+      setTimeout(function() {
+        var client2 = new Client(helper.args);
+        client2.connect(assert.success(function() {
+          var killIdleQuery = "SELECT " + pidColName + ", (SELECT pg_terminate_backend(" + pidColName + ")) AS killed FROM pg_stat_activity WHERE " + queryColName + " = $1";
+          client2.query(killIdleQuery, [sleepQuery], assert.calls(function(err, res) {
+            assert.ifError(err);
+            assert.equal(res.rows.length, 1);
+            client2.end();
+            assert.emits(client2, 'end');
+          }));
         }));
-      }));
+      }, 100)
     }));
   }));
 });

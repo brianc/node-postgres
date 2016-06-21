@@ -1,12 +1,13 @@
 var helper = require(__dirname + '/test-helper');
+var _ = require('lodash')
 
-helper.pg.defaults.poolIdleTimeout = 200;
+const config = _.extend({ }, helper.config, { idleTimeoutMillis: 50 })
 
 test('idle timeout', function() {
- helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
+ helper.pg.connect(config, assert.calls(function(err, client, done) {
    assert.isNull(err);
    client.query('SELECT NOW()');
-  //just let this one time out 
+  //just let this one time out
   //test will hang if pool doesn't timeout
    done();
  }));
