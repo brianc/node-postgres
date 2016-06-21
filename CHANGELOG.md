@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v5.2.0
+- Replace internal pooling code with [pg-pool](https://github.com/brianc/node-pg-pool). This is the first step in eventually deprecating and removing the singleton `pg.connect`.  The pg-pool constructor is exported from node-postgres at `require('pg').Pool`.  It provides a backwards compatible interface with `pg.connect` as well as a promise based interface & additional niceties. 
+
 ### v5.1.0
 - Make the query object returned from `client.query` implement the promise interface. This is the first step towards promisifying more of the node-postgres api.
 
