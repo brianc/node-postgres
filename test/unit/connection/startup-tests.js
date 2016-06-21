@@ -43,6 +43,18 @@ test('using closed stream', function() {
     assert.ok(hit);
 
   });
+
+  test('after stream emits connected event init TCP-keepalive', function() {
+
+    var res = false;
+
+    stream.setKeepAlive = function(bit) {
+      res = bit;
+    };
+
+    assert.ok(stream.emit('connect'));
+    assert.equal(res, true);
+  });
 });
 
 test('using opened stream', function() {

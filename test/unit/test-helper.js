@@ -15,6 +15,8 @@ p.write = function(packet) {
   this.packets.push(packet);
 };
 
+p.setKeepAlive = function(){};
+
 p.writable = true;
 
 createClient = function() {
