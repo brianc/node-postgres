@@ -7,13 +7,18 @@ test('connection can take existing stream', function() {
 });
 
 test('using closed stream', function() {
-  var stream = new MemoryStream();
-  stream.readyState = 'closed';
-  stream.connect = function(port, host) {
-    this.connectCalled = true;
-    this.port = port;
-    this.host = host;
-  }
+  var makeStream = function() {
+    var stream = new MemoryStream();
+    stream.readyState = 'closed';
+    stream.connect = function(port, host) {
+      this.connectCalled = true;
+      this.port = port;
+      this.host = host;
+    }
+    return stream;
+  };
+
+  var stream = makeStream();
 
   var con = new Connection({stream: stream});
 
@@ -46,6 +51,10 @@ test('using closed stream', function() {
 
   test('after stream emits connected event init TCP-keepalive', function() {
 
+    var stream = makeStream();
+    var con = new Connection({ stream: stream, keepAlive: true });
+    con.connect(123, 'test');
+
     var res = false;
 
     stream.setKeepAlive = function(bit) {
@@ -53,7 +62,9 @@ test('using closed stream', function() {
     };
 
     assert.ok(stream.emit('connect'));
-    assert.equal(res, true);
+    setTimeout(function() {
+      assert.equal(res, true);
+    })
   });
 });
 
