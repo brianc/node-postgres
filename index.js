@@ -60,13 +60,14 @@ Pool.prototype.connect = function (cb) {
       this.log('acquire client')
 
       client.release = function (err) {
-        if (err) {
-          this.log('release client. error:', err)
-          this.pool.destroy(client)
-        }
-        this.log('release client')
         delete client.release
-        this.pool.release(client)
+        if (err) {
+          this.log('destroy client. error:', err)
+          this.pool.destroy(client)
+        } else {
+          this.log('release client')
+          this.pool.release(client)
+        }
       }.bind(this)
 
       if (cb) {

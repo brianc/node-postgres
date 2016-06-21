@@ -89,7 +89,18 @@ describe('pool', function () {
     }))
 
     it('recovers from all errors', co.wrap(function * () {
-      var pool = new Pool({ poolSize: 9 })
+      var pool = new Pool({
+        poolSize: 9,
+        log: function (str, level) {
+          // Custom logging function to ensure we are not causing errors or warnings
+          // inside the `generic-pool` library.
+          if (level === 'error' || level === 'warn') {
+            expect().fail('An error or warning was logged from the generic pool library.\n' +
+                          'Level: ' + level + '\n' +
+                          'Message: ' + str + '\n')
+          }
+        }
+      })
       var count = 0
 
       while (count++ < 30) {
