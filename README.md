@@ -126,6 +126,20 @@ client.release()
 await pool.end()
 ```
 
+### environment variables
+
+pg-pool & node-postgres support some of the same environment variables as `psql` supports.  The most common are:
+
+```
+PGDATABASE=my_db
+PGUSER=username
+PGPASSWORD="my awesome password"
+PGPORT=5432
+PGSSLMODE=require
+```
+
+Usually I will export these into my local environment via a `.env` file with environment settings or expor them in `~/.bash_profile` or something similar.  This way I get configurability which works with both the postgres suite of tools (`psql`, `pg_dump`, `pg_restore`) and node, I can vary the environment variables locally and in production, and it supports the concept of a [12-factor app](http://12factor.net/) out of the box.
+
 ## tests
 
 To run tests clone the repo, `npm i` in the working dir, and then run `npm test`
