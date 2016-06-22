@@ -22,10 +22,10 @@ Generally you will access the PostgreSQL server through a pool of clients.  A cl
 var Pool = require('pg').Pool;
 
 var config = {
-  user: 'foo', //env var: PGUSER
-  database: 'my_db', //env var: PGDATABASE
-  password: 'secret', //env var: PGPASSWORD
-  port: 5432 //env var: PGPORT
+  user: 'foo',
+  password: 'secret',
+  database: 'my_db',
+  port: 5432
 };
 
 var pool = new Pool(config);
@@ -50,9 +50,12 @@ pool.connect(function(err, client, done) {
 });
 ```
 
-node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling and only provides a very thin layer on top.  It's highly recommend you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git)
+node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling and only provides a very thin layer on top.  
 
-[Check this out for the get up and running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
+It's _highly recommend_ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git)
+
+
+[Here is a tl;dr get up & running quickly exampe](https://github.com/brianc/node-postgres/wiki/Example)
 
 ### Client instance
 
