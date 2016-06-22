@@ -4,8 +4,40 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
-### v5.2.0
-- Replace internal pooling code with [pg-pool](https://github.com/brianc/node-pg-pool). This is the first step in eventually deprecating and removing the singleton `pg.connect`.  The pg-pool constructor is exported from node-postgres at `require('pg').Pool`.  It provides a backwards compatible interface with `pg.connect` as well as a promise based interface & additional niceties. 
+### v6.0.0
+
+#### Breaking Changes
+- Remove `pg.pools`.  There is still a reference kept to the pools created & tracked by `pg.connect` but is not considered private and should not be used.  `pg.connect` itself will be deprecated in favor of instantiating pools directly via `new pg.Pool()`.  Accessing this API directly was uncommon and was _supposed_ to be private but was incorrectly documented on the wiki.  Therefore, it is a breaking change of an (unintentionally) public interface to remove it.
+
+#### New features
+
+- Replace internal pooling code with [pg-pool](https://github.com/brianc/node-pg-pool). This is the first step in eventually deprecating and removing the singleton `pg.connect`.  The pg-pool constructor is exported from node-postgres at `require('pg').Pool`.  It provides a backwards compatible interface with `pg.connect` as well as a promise based interface & additional niceties.
+
+Basically what you can now do is create an instance of a pool and don't have to rely on the `pg` singleton for anything:
+
+```
+var pg = require('pg')
+
+var pool = new pg.Pool()
+
+// your friendly neighboorhood pool interface, without the singleton
+pool.connect(function(err, client, done) {
+  // ...
+})
+```
+
+Promise support & other goodness lives now in [pg-pool](https://github.com/brianc/node-pg-pool).
+
+__Please__ read the readme at [pg-pool](https://github.com/brianc/node-pg-pool) for the full api.
+
+- Included support for tcp keep alive.  Enable it as follows:
+
+```js
+var client = new Client({ keepAlive: true })
+```
+
+This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
+
 
 ### v5.1.0
 - Make the query object returned from `client.query` implement the promise interface. This is the first step towards promisifying more of the node-postgres api.
