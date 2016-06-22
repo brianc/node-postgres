@@ -51,6 +51,17 @@ describe('pool', function () {
         })
       })
     })
+
+    it('should not change given options', function (done) {
+      var options = { max: 10 }
+      var pool = new Pool(options)
+      pool.connect(function (err, client, release) {
+        release()
+        if (err) return done(err)
+        expect(options).to.eql({ max: 10 })
+        pool.end(done)
+      })
+    })
   })
 
   describe('with promises', function () {

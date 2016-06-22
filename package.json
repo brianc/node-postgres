@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "generic-pool": "2.4.2"
+    "generic-pool": "2.4.2",
+    "object-assign": "4.1.0"
   }
 }
