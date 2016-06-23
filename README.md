@@ -1,4 +1,6 @@
 # pg-pool
+[![Build Status](https://travis-ci.org/brianc/node-pg-pool.svg?branch=master)](https://travis-ci.org/brianc/node-pg-pool)
+
 A connection pool for node-postgres
 
 ## install
