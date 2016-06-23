@@ -69,14 +69,28 @@ pool.connect().then(client => {
 this ends up looking much nicer if you're using [co](https://github.com/tj/co) or async/await:
 
 ```js
-const pool = new Pool()
-const client = await pool.connect()
-try {
-  const result = await client.query('select $1::text as name', ['brianc'])
-  console.log('hello from', result.rows[0])
-} finally {
-  client.release()
-}
+// with async/await
+(async () => {
+  const pool = new Pool()
+  const client = await pool.connect()
+  try {
+    const result = await client.query('select $1::text as name', ['brianc'])
+    console.log('hello from', result.rows[0])
+  } finally {
+    client.release()
+  }
+})().catch(e => console.error(e.message, e.stack))
+
+// with co
+co(function * () {
+  const client = yield pool.connect()
+  try {
+    const result = yield client.query('select $1::text as name', ['brianc'])
+    console.log('hello from', result.rows[0])
+  } finally {
+    client.release()
+  }
+}).catch(e => console.error(e.message, e.stack))
 ```
 
 ### your new favorite helper method
@@ -89,6 +103,7 @@ const time = await pool.query('SELECT NOW()')
 const name = await pool.query('select $1::text as name', ['brianc'])
 console.log(name.rows[0].name, 'says hello at', time.rows[0].name)
 ```
+
 __pro tip:__ unless you need to run a transaction (which requires a single client for multiple queries) or you
 have some other edge case like [streaming rows](https://github.com/brianc/node-pg-query-stream) or using a [cursor](https://github.com/brianc/node-pg-cursor)
 you should almost always just use `pool.query`.  Its easy, it does the right thing :tm:, and wont ever forget to return
@@ -96,7 +111,7 @@ clients back to the pool after the query is done.
 
 ### drop-in backwards compatible
 
-pg-pool still and will always support the traditional callback api for acquiring a client.  This is the exact API node-postgres has shipped with internally for years:
+pg-pool still and will always support the traditional callback api for acquiring a client.  This is the exact API node-postgres has shipped with for years:
 
 ```js
 const pool = new Pool()
@@ -112,8 +127,6 @@ pool.connect((err, client, done) => {
   })
 })
 ```
-
-That means you can drop pg-pool into your app and 99% of the cases you wont even notice a difference.  In fact, very soon I will be using pg-pool internally within node-postgres itself!
 
 ### shut it down
 
@@ -142,7 +155,7 @@ Example:
 var pg = require('pg')
 var pool = new pg.Pool()
 
-// attach an error handler to the pool for when a connected, idle client 
+// attach an error handler to the pool for when a connected, idle client
 // receives an error by being disconnected, etc
 pool.on('error', function(error, client) {
   // handle this in the same way you would treat process.on('uncaughtException')
@@ -166,11 +179,15 @@ pool.on('connect', client => {
   client.count = count++
 })
 
-pool.connect()
+pool
+  .connect()
   .then(client => {
-    client.query('SELECT $1::int AS "clientCount', [client.count])
+    return client
+      .query('SELECT $1::int AS "clientCount', [client.count])
       .then(res => console.log(res.rows[0].clientCount)) // outputs 0
+      .then(() => client)
   }))
+  .then(client => client.release())
 
 ```
 
@@ -196,7 +213,7 @@ To run tests clone the repo, `npm i` in the working dir, and then run `npm test`
 
 ## contributions
 
-I love contributions.  Please make sure they have tests, and submit a PR.  If you're not sure if the issue is worth it or will be accepted it never hurts to open an issue to begin the conversation.  Don't forget to follow me on twitter at [@briancarlson](https://twitter.com/briancarlson) - I generally announce any noteworthy updates there.
+I love contributions.  Please make sure they have tests, and submit a PR.  If you're not sure if the issue is worth it or will be accepted it never hurts to open an issue to begin the conversation.  If you're interested in keeping up with node-postgres releated stuff, you can follow me on twitter at [@briancarlson](https://twitter.com/briancarlson) - I generally announce any noteworthy updates there.
 
 ## license
 
