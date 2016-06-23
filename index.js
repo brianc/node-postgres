@@ -1,13 +1,12 @@
 var genericPool = require('generic-pool')
 var util = require('util')
 var EventEmitter = require('events').EventEmitter
-var debug = require('debug')
 var objectAssign = require('object-assign')
 
 var Pool = module.exports = function (options, Client) {
   EventEmitter.call(this)
   this.options = objectAssign({}, options)
-  this.log = this.options.log || debug('pg:pool')
+  this.log = this.options.log || function () { }
   this.Client = this.options.Client || Client || require('pg').Client
   this.Promise = this.options.Promise || Promise
 

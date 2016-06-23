@@ -36,7 +36,6 @@
     "standard-format": "2.2.1"
   },
   "dependencies": {
-    "debug": "^2.2.0",
     "generic-pool": "2.4.2",
     "object-assign": "4.1.0"
   }
