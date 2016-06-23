@@ -21,6 +21,12 @@ test('api', function() {
   pg.connect(helper.config, assert.calls(function(err, client, done) {
     assert.equal(err, null, "Failed to connect: " + helper.sys.inspect(err));
 
+    if (helper.args.native) {
+      assert(client.native)
+    } else {
+      assert(!client.native)
+    }
+
     client.query('CREATE TEMP TABLE band(name varchar(100))');
 
     ['the flaming lips', 'wolf parade', 'radiohead', 'bright eyes', 'the beach boys', 'dead black hearts'].forEach(function(bandName) {
