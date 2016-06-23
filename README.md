@@ -172,7 +172,7 @@ pool.connect()
       .then(res => console.log(res.rows[0].clientCount)) // outputs 0
   }))
 
-``
+```
 
 This allows you to do custom bootstrapping and manipulation of clients after they have been successfully connected to the PostgreSQL backend, but before any queries have been issued.
 
