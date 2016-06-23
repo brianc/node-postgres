@@ -14,6 +14,7 @@ var Pool = module.exports = function (options, Client) {
   this.options.create = this.options.create || this._create.bind(this)
   this.options.destroy = this.options.destroy || this._destroy.bind(this)
   this.pool = new genericPool.Pool(this.options)
+  this.onCreate = this.options.onCreate
 }
 
 util.inherits(Pool, EventEmitter)
@@ -37,6 +38,7 @@ Pool.prototype._create = function (cb) {
 
   client.connect(function (err) {
     this.log('client connected')
+    this.emit('connect', client)
     if (err) {
       this.log('client connection error:', err)
       cb(err)
