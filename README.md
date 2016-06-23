@@ -126,6 +126,54 @@ client.release()
 await pool.end()
 ```
 
+### events
+
+Every instance of a `Pool` is an event emitter.  These instances emit the following events:
+
+#### error
+
+Emitted whenever an idle client in the pool encounters an error.  This is common when your PostgreSQL server shuts down, reboots, or a network partition otherwise causes it to become unavailable while your pool has connected clients.
+
+Example:
+
+```js
+var pg = require('pg')
+var pool = new pg.Pool()
+
+// attach an error handler to the pool for when a connected, idle client 
+// receives an error by being disconnected, etc
+pool.on('error', function(error, client) {
+  // handle this in the same way you would treat process.on('uncaughtException')
+  // it is supplied the error as well as the idle client which received the error
+})
+```
+
+#### connect
+
+Fired whenever the pool creates a __new__ `pg.Client` instance and successfully connects it to the backend.
+
+Example:
+
+```js
+var pg = require('pg')
+var pool = new pg.Pool()
+
+var count = 0
+
+pool.on('connect', client => {
+  client.count = count++
+})
+
+pool.connect()
+  .then(client => {
+    client.query('SELECT $1::int AS "clientCount', [client.count])
+      .then(res => console.log(res.rows[0].clientCount)) // outputs 0
+  }))
+
+``
+
+This allows you to do custom bootstrapping and manipulation of clients after they have been successfully connected to the PostgreSQL backend, but before any queries have been issued.
+
 ### environment variables
 
 pg-pool & node-postgres support some of the same environment variables as `psql` supports.  The most common are:
