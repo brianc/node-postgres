@@ -55,7 +55,7 @@ node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to mana
 It's _highly recommend_ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git)
 
 
-[Here is a tl;dr get up & running quickly exampe](https://github.com/brianc/node-postgres/wiki/Example)
+[Here is a tl;dr get up & running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
 
 ### Client instance
 
