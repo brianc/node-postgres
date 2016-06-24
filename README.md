@@ -141,6 +141,34 @@ client.release()
 await pool.end()
 ```
 
+### a note on instances
+
+The pool should be a __long-lived object__ in your application.  Generally you'll want to instantiate one pool when your app starts up and use the same instance of the pool throughout the lifetime of your application.  If you are frequently creating a new pool within your code you likely don't have your pool initialization code in the correct place.  Example:
+
+```
+// assume this is a file in your program at ./your-app/lib/db.js
+
+// correct usage: create the pool and let it live
+// 'globally' here, controlling access to it through exported methods
+const pool = new pg.Pool()
+
+// this is the right way to export the query method
+module.exports.query = (text, values) => {
+  console.log('query:', text, values)
+  return pool.query(text, values)
+}
+
+// this would be the WRONG way to export the connect method
+module.exports.connect = () => {
+  // notice how we would be creating a pool instance here
+  // every time we called 'connect' to get a new client?
+  // that's a bad thing & results in creating an unbounded
+  // number of pools & therefore connections
+  const aPool = new pg.Pool()
+  return aPool.connect()
+}
+```
+
 ### events
 
 Every instance of a `Pool` is an event emitter.  These instances emit the following events:
