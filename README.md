@@ -104,6 +104,15 @@ const name = await pool.query('select $1::text as name', ['brianc'])
 console.log(name.rows[0].name, 'says hello at', time.rows[0].name)
 ```
 
+you can also use a callback here if you'd like:
+
+```js
+const pool = new Pool()
+pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
+  console.log(res.rows[0].name) // brianc
+})
+```
+
 __pro tip:__ unless you need to run a transaction (which requires a single client for multiple queries) or you
 have some other edge case like [streaming rows](https://github.com/brianc/node-pg-query-stream) or using a [cursor](https://github.com/brianc/node-pg-cursor)
 you should almost always just use `pool.query`.  Its easy, it does the right thing :tm:, and wont ever forget to return
