@@ -32,6 +32,16 @@ describe('pool', function () {
       })
     })
 
+    it('can run a query with a callback', function (done) {
+      const pool = new Pool()
+      pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
+        expect(res.rows[0]).to.eql({ name: 'brianc' })
+        pool.end(function () {
+          done(err)
+        })
+      })
+    })
+
     it('removes client if it errors in background', function (done) {
       const pool = new Pool()
       pool.connect(function (err, client, release) {

@@ -83,13 +83,16 @@ Pool.prototype.connect = function (cb) {
 
 Pool.prototype.take = Pool.prototype.connect
 
-Pool.prototype.query = function (text, values) {
+Pool.prototype.query = function (text, values, cb) {
   return new this.Promise(function (resolve, reject) {
     this.connect(function (err, client, done) {
       if (err) return reject(err)
       client.query(text, values, function (err, res) {
         done(err)
         err ? reject(err) : resolve(res)
+        if (cb) {
+          cb(err, res)
+        }
       })
     })
   }.bind(this))
