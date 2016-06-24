@@ -32,6 +32,16 @@ describe('pool', function () {
       })
     })
 
+    it('can run a query with a callback without parameters', function (done) {
+      const pool = new Pool()
+      pool.query('SELECT 1 as num', function (err, res) {
+        expect(res.rows[0]).to.eql({ num: 1 })
+        pool.end(function () {
+          done(err)
+        })
+      })
+    })
+
     it('can run a query with a callback', function (done) {
       const pool = new Pool()
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
