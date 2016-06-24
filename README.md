@@ -3,7 +3,7 @@
 [![Build Status](https://secure.travis-ci.org/brianc/node-postgres.svg?branch=master)](http://travis-ci.org/brianc/node-postgres)
 [![Dependency Status](https://david-dm.org/brianc/node-postgres.svg)](https://david-dm.org/brianc/node-postgres)
 
-PostgreSQL client for node.js.  Pure JavaScript and optional native libpq bindings.
+Non-blocking PostgreSQL client for node.js.  Pure JavaScript and optional native libpq bindings.
 
 ## Install
 
@@ -11,28 +11,69 @@ PostgreSQL client for node.js.  Pure JavaScript and optional native libpq bindin
 $ npm install pg
 ```
 
+## Intro & Examples
 
-## Examples
+### Simple example
+
+```js
+var pg = require('pg');
+
+// instantiate a new client
+// the client will read connection information from
+// the same environment varaibles used by postgres cli tools
+var client = new pg.Client();
+
+// connect to our PostgreSQL server instance
+client.connect(function (err) {
+  if (err) throw err;
+
+  // execute a query on our database
+  client.query('SELECT $1::text as name', ['brianc'], function (err, result) {
+    if (err) throw err;
+
+    // just print the result to the console
+    console.log(result.rows[0]); // outputs: { name: 'brianc' }
+
+    // disconnect the client
+    client.end(function (err) {
+      if (err) throw err;
+    });
+  });
+});
+
+```
 
 ### Client pooling
 
-Generally you will access the PostgreSQL server through a pool of clients.  A client takes a non-trivial amount of time to establish a new connection. A client also consumes a non-trivial amount of resources on the PostgreSQL server - not something you want to do on every http request. Good news: node-postgres ships with built in client pooling.
+If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  There is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Also, PostgreSQL can only support a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a bad thing. :tm:  Finally
+PostgreSQL can only execute 1 query at a time per connected client.
+
+With that in mind we can imagine a situtation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >500 simultaneous requests your web server will attempt to open 500 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, it will become
+unresponsive, your app will seem to hang, and everything will break. Boooo!
+
+__Good news__: node-postgres ships with built in client pooling.
 
 ```javascript
-var Pool = require('pg').Pool;
+var pg = require('pg');
 
+// create a config to configure both pooling behavior
+// and client options
+// note: all config is optional and the environment variables
+// will be read if the config is not present
 var config = {
-  user: 'foo',
-  password: 'secret',
-  database: 'my_db',
-  port: 5432
+  user: 'foo', //env var: PGUSER
+  database: 'my_db', //env var: PGDATABASE
+  password: 'secret', //env var: PGPASSWORD
+  port: 5432, //env var: PGPORT
+  max: 10, // max number of clients in the pool
+  idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
 };
 
-var pool = new Pool(config);
+var pool = new pg.Pool(config);
 
 //this initializes a connection pool
-//it will keep idle connections open for a (configurable) 30 seconds
-//and set a limit of 10 (also configurable)
+//it will keep idle connections open for a 30 seconds
+//and set a limit of maximum 10 idle clients
 pool.connect(function(err, client, done) {
   if(err) {
     return console.error('error fetching client from pool', err);
@@ -50,38 +91,13 @@ pool.connect(function(err, client, done) {
 });
 ```
 
-node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling and only provides a very thin layer on top.  
+node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling and includes it and exports it for convienience.  If you want, you can `require('pg-pool')` and use it directly - its the same as the constructor exported at `pg.Pool`.
 
-It's _highly recommend_ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git)
+It's __highly recommend__ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git).
 
 
-[Here is a tl;dr get up & running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
+[Here is an up & running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
 
-### Client instance
-
-Sometimes you may not want to use a pool of connections.  You can easily connect a single client to a postgres instance, run some queries, and disconnect.
-
-```javascript
-var pg = require('pg');
-
-var conString = "postgres://username:password@localhost/database";
-
-var client = new pg.Client(conString);
-client.connect(function(err) {
-  if(err) {
-    return console.error('could not connect to postgres', err);
-  }
-  client.query('SELECT NOW() AS "theTime"', function(err, result) {
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log(result.rows[0].theTime);
-    //output: Tue Jan 15 2013 19:12:47 GMT-600 (CST)
-    client.end();
-  });
-});
-
-```
 
 ## [More Documentation](https://github.com/brianc/node-postgres/wiki)
 
@@ -94,16 +110,26 @@ $ npm install pg pg-native
 ```
 
 
-node-postgres contains a pure JavaScript protocol implementation which is quite fast, but you can optionally use native bindings for a 20-30% increase in parsing speed. Both versions are adequate for production workloads.
+node-postgres contains a pure JavaScript protocol implementation which is quite fast, but you can optionally use [native](https://github.com/brianc/node-pg-native) [bindings](https://github.com/brianc/node-libpq) for a 20-30% increase in parsing speed (YMMV). Both versions are adequate for production workloads. I personally use the pure JavaScript implementation because I like knowing whats going on all the way down to the binary on the socket, and it allows for some fancier [use](https://github.com/brianc/node-pg-cursor) [cases](https://github.com/brianc/node-pg-query-stream) which are difficult to do with libpq. :smile:
 
-To use the native bindings, first install [pg-native](https://github.com/brianc/node-pg-native.git).  Once pg-native is installed, simply replace `require('pg')` with `require('pg').native`.
+To use the native bindings, first install [pg-native](https://github.com/brianc/node-pg-native.git).  Once pg-native is installed, simply replace `var pg = require('pg')` with `var pg = require('pg').native`.  Make sure any exported constructors from `pg` are from the native instance.  Example:
+
+```js
+var pg = require('pg').native
+var Pool = require('pg').Pool // bad! this is not bound to the native client
+var Client = require('pg').Client // bad! this is the pure JavaScript client
+
+var pg = require('pg').native
+var Pool = pg.Pool // good! a pool bound to the native client
+var Client = pg.Client // good! this client uses libpq bindings
+```
 
 node-postgres abstracts over the pg-native module to provide exactly the same interface as the pure JavaScript version. Care has been taken to keep the number of api differences between the two modules to a minimum; however, it is recommend you use either the pure JavaScript or native bindings in both development and production and don't mix & match them in the same process - it can get confusing!
 
 ## Features
 
 * pure JavaScript client and native libpq bindings share _the same api_
-* optional connection pooling
+* connection pooling
 * extensible js<->postgresql data-type coercion
 * supported PostgreSQL features
   * parameterized queries
@@ -111,9 +137,14 @@ node-postgres abstracts over the pg-native module to provide exactly the same in
   * async notifications with `LISTEN/NOTIFY`
   * bulk import & export with `COPY TO/COPY FROM`
 
+## Extras
+
+node-postgres is by design pretty light on abstractions.  These are some handy modules we've been using over the years to complete the picture.
+Entire list can be found on [wiki](https://github.com/brianc/node-postgres/wiki/Extras)
+
 ## Contributing
 
-__We love contributions!__
+__:heart: contributions!__
 
 If you need help getting the tests running locally or have any questions about the code when working on a patch please feel free to email me or gchat me.
 
@@ -135,16 +166,13 @@ If at all possible when you open an issue please provide
 
 Usually I'll pop the code into the repo as a test.  Hopefully the test fails.  Then I make the test pass.  Then everyone's happy!
 
-If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.
+If you need help or run into _any_ issues getting node-postgres to work on your system please report a bug or contact me directly.  I am usually available via google-talk at my github account public email address.  Remember this is a labor of love, and though I try to get back to everything sometimes life takes priority, and I might take a while.  It helps if you use nice code formatting in your issue, search for existing answers before posting, and come back and close out the issue if you figure out a solution.  The easier you can make it for me, the quicker I'll try and respond to you!
+
+If you need deeper support, have application specific questions, would like to sponsor development, or want consulting around node & postgres please send me an email, I'm always happy to discuss!
 
 I usually tweet about any important status updates or changes to node-postgres on twitter.
 Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
-
-## Extras
-
-node-postgres is by design pretty light on abstractions.  These are some handy modules we've been using over the years to complete the picture.
-Entire list can be found on [wiki](https://github.com/brianc/node-postgres/wiki/Extras)
 
 ## License
 
