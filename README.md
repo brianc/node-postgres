@@ -45,9 +45,9 @@ client.connect(function (err) {
 
 ### Client pooling
 
-If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  For one thing, there is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Furthermore, PostgreSQL can only support a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a __very bad thing__. :tm: Additionally, PostgreSQL can only execute 1 query at a time per connected client, so pipelining all queries for all requests through a single, long-lived client will likely introduce a bottleneck into your application if you need high concurrency.
+If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  For one thing, there is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Furthermore, PostgreSQL can support only a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a __very bad thing__. :tm: Additionally, PostgreSQL can only execute 1 query at a time per connected client, so pipelining all queries for all requests through a single, long-lived client will likely introduce a bottleneck into your application if you need high concurrency.
 
-With that in mind we can imagine a situtation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >100 simultaneous requests your web server will attempt to open 100 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, your database will become unresponsive, your app will seem to hang, and everything will break. Boooo!
+With that in mind we can imagine a situation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >100 simultaneous requests your web server will attempt to open 100 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, your database will become unresponsive, your app will seem to hang, and everything will break. Boooo!
 
 __Good news__: node-postgres ships with built in client pooling.  Client pooling allows your application to use a pool of already connected clients and reuse them for each request to your application.  If your app needs to make more queries than there are available clients in the pool the queries will queue instead of overwhelming your database & causing a cascading failure. :thumbsup:
 
@@ -96,15 +96,15 @@ pool.on('error', function (err, client) {
   // the pool itself will emit an error event with both the error and
   // the client which emitted the original error
   // this is a rare occurrence but can happen if there is a network partition
-  // between your application and the database, the database restarts, etc
+  // between your application and the database, the database restarts, etc.
   // and so you might want to handle it and at least log it out
   console.error('idle client error', err.message, err.stack)
 })
 ```
 
-node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling. It bundles it and exports it for convienience.  If you want, you can `require('pg-pool')` and use it directly - its the same as the constructor exported at `pg.Pool`.
+node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling. It bundles it and exports it for convenience.  If you want, you can `require('pg-pool')` and use it directly - it's the same as the constructor exported at `pg.Pool`.
 
-It's __highly recommend__ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git).
+It's __highly recommended__ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git).
 
 
 [Here is an up & running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
@@ -121,7 +121,7 @@ $ npm install pg pg-native
 ```
 
 
-node-postgres contains a pure JavaScript protocol implementation which is quite fast, but you can optionally use [native](https://github.com/brianc/node-pg-native) [bindings](https://github.com/brianc/node-libpq) for a 20-30% increase in parsing speed (YMMV). Both versions are adequate for production workloads. I personally use the pure JavaScript implementation because I like knowing whats going on all the way down to the binary on the socket, and it allows for some fancier [use](https://github.com/brianc/node-pg-cursor) [cases](https://github.com/brianc/node-pg-query-stream) which are difficult to do with libpq. :smile:
+node-postgres contains a pure JavaScript protocol implementation which is quite fast, but you can optionally use [native](https://github.com/brianc/node-pg-native) [bindings](https://github.com/brianc/node-libpq) for a 20-30% increase in parsing speed (YMMV). Both versions are adequate for production workloads. I personally use the pure JavaScript implementation because I like knowing what's going on all the way down to the binary on the socket, and it allows for some fancier [use](https://github.com/brianc/node-pg-cursor) [cases](https://github.com/brianc/node-pg-query-stream) which are difficult to do with libpq. :smile:
 
 To use the native bindings, first install [pg-native](https://github.com/brianc/node-pg-native.git).  Once pg-native is installed, simply replace `var pg = require('pg')` with `var pg = require('pg').native`.  Make sure any exported constructors from `pg` are from the native instance.  Example:
 
@@ -135,7 +135,7 @@ var Pool = pg.Pool // good! a pool bound to the native client
 var Client = pg.Client // good! this client uses libpq bindings
 ```
 
-node-postgres abstracts over the pg-native module to provide exactly the same interface as the pure JavaScript version. Care has been taken to keep the number of api differences between the two modules to a minimum; however, it is recommend you use either the pure JavaScript or native bindings in both development and production and don't mix & match them in the same process - it can get confusing!
+node-postgres abstracts over the pg-native module to provide exactly the same interface as the pure JavaScript version. Care has been taken to keep the number of api differences between the two modules to a minimum; however, it is recommended you use either the pure JavaScript or native bindings in both development and production and don't mix & match them in the same process - it can get confusing!
 
 ## Features
 
