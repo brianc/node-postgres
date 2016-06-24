@@ -23,7 +23,7 @@ var pg = require('pg');
 // the same environment varaibles used by postgres cli tools
 var client = new pg.Client();
 
-// connect to our PostgreSQL server instance
+// connect to our database
 client.connect(function (err) {
   if (err) throw err;
 
@@ -45,13 +45,11 @@ client.connect(function (err) {
 
 ### Client pooling
 
-If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  There is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Also, PostgreSQL can only support a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a bad thing. :tm:  Finally
-PostgreSQL can only execute 1 query at a time per connected client.
+If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  For one thing, there is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Furthermore, PostgreSQL can only support a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a __very bad thing__. :tm: Additionally, PostgreSQL can only execute 1 query at a time per connected client, so pipelining all queries for all requests through a single, long-lived client will likely introduce a bottleneck into your application if you need high concurrency.
 
-With that in mind we can imagine a situtation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >500 simultaneous requests your web server will attempt to open 500 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, it will become
-unresponsive, your app will seem to hang, and everything will break. Boooo!
+With that in mind we can imagine a situtation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >100 simultaneous requests your web server will attempt to open 100 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, your database will become unresponsive, your app will seem to hang, and everything will break. Boooo!
 
-__Good news__: node-postgres ships with built in client pooling.
+__Good news__: node-postgres ships with built in client pooling.  Client pooling allows your application to use a pool of already connected clients and reuse them for each request to your application.  If your app needs to make more queries than there are available clients in the pool the queries will queue instead of overwhelming your database & causing a cascading failure. :thumbsup:
 
 ```javascript
 var pg = require('pg');
@@ -69,11 +67,14 @@ var config = {
   idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
 };
 
-var pool = new pg.Pool(config);
 
 //this initializes a connection pool
 //it will keep idle connections open for a 30 seconds
 //and set a limit of maximum 10 idle clients
+var pool = new pg.Pool(config);
+
+// to run a query we can acquire a client from the pool,
+// run a query on the client, and then return the client to the pool
 pool.connect(function(err, client, done) {
   if(err) {
     return console.error('error fetching client from pool', err);
@@ -89,9 +90,19 @@ pool.connect(function(err, client, done) {
     //output: 1
   });
 });
+
+pool.on('error', function (err, client) {
+  // if an error is encountered by a client while it sits idle in the pool
+  // the pool itself will emit an error event with both the error and
+  // the client which emitted the original error
+  // this is a rare occurrence but can happen if there is a network partition
+  // between your application and the database, the database restarts, etc
+  // and so you might want to handle it and at least log it out
+  console.error('idle client error', err.message, err.stack)
+})
 ```
 
-node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling and includes it and exports it for convienience.  If you want, you can `require('pg-pool')` and use it directly - its the same as the constructor exported at `pg.Pool`.
+node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling. It bundles it and exports it for convienience.  If you want, you can `require('pg-pool')` and use it directly - its the same as the constructor exported at `pg.Pool`.
 
 It's __highly recommend__ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git).
 
