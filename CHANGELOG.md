@@ -7,13 +7,13 @@ We do not include break-fix version release in this file.
 ### v6.0.0
 
 #### Breaking Changes
-- Remove `pg.pools`.  There is still a reference kept to the pools created & tracked by `pg.connect` but is not considered private and should not be used.  `pg.connect` itself will be deprecated in favor of instantiating pools directly via `new pg.Pool()`.  Accessing this API directly was uncommon and was _supposed_ to be private but was incorrectly documented on the wiki.  Therefore, it is a breaking change of an (unintentionally) public interface to remove it.
+- Remove `pg.pools`.  There is still a reference kept to the pools created & tracked by `pg.connect` but it has been renamed, is considered private, and should not be used.  Accessing this API directly was uncommon and was _supposed_ to be private but was incorrectly documented on the wiki.  Therefore, it is a breaking change of an (unintentionally) public interface to remove it by renaming it & making it private.  Eventually `pg.connect` itself will be deprecated in favor of instantiating pools directly via `new pg.Pool()` so this property should become completely moot at some point.  In the mean time...check out the new features...
 
 #### New features
 
 - Replace internal pooling code with [pg-pool](https://github.com/brianc/node-pg-pool). This is the first step in eventually deprecating and removing the singleton `pg.connect`.  The pg-pool constructor is exported from node-postgres at `require('pg').Pool`.  It provides a backwards compatible interface with `pg.connect` as well as a promise based interface & additional niceties.
 
-Basically what you can now do is create an instance of a pool and don't have to rely on the `pg` singleton for anything:
+You can now create an instance of a pool and don't have to rely on the `pg` singleton for anything:
 
 ```
 var pg = require('pg')
