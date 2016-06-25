@@ -207,8 +207,8 @@ Fired whenever the pool creates a __new__ `pg.Client` instance and successfully 
 Example:
 
 ```js
-var pg = require('pg')
-var pool = new pg.Pool()
+const Pool = require('pg-pool')
+const pool = new Pool()
 
 var count = 0
 
@@ -220,10 +220,10 @@ pool
   .connect()
   .then(client => {
     return client
-      .query('SELECT $1::int AS "clientCount', [client.count])
+      .query('SELECT $1::int AS "clientCount"', [client.count])
       .then(res => console.log(res.rows[0].clientCount)) // outputs 0
       .then(() => client)
-  }))
+  })
   .then(client => client.release())
 
 ```
