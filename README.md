@@ -189,8 +189,8 @@ Emitted whenever an idle client in the pool encounters an error.  This is common
 Example:
 
 ```js
-var pg = require('pg')
-var pool = new pg.Pool()
+const Pool = require('pg-pool')
+const pool = new Pool()
 
 // attach an error handler to the pool for when a connected, idle client
 // receives an error by being disconnected, etc
