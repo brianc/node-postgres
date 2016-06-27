@@ -15,17 +15,17 @@ npm i pg-pool pg
 to use pg-pool you must first create an instance of a pool
 
 ```js
-const Pool = require('pg-pool')
+var Pool = require('pg-pool')
 
 //by default the pool uses the same
 //configuration as whatever `pg` version you have installed
-const pool = new Pool()
+var pool = new Pool()
 
 //you can pass properties to the pool
 //these properties are passed unchanged to both the node-postgres Client constructor
 //and the node-pool (https://github.com/coopernurse/node-pool) constructor
 //allowing you to fully configure the behavior of both
-const pool2 = new Pool({
+var pool2 = new Pool({
   database: 'postgres',
   user: 'brianc',
   password: 'secret!',
@@ -38,12 +38,12 @@ const pool2 = new Pool({
 
 //you can supply a custom client constructor
 //if you want to use the native postgres client
-const NativeClient = require('pg').native.Client
-const nativePool = new Pool({ Client: NativeClient })
+var NativeClient = require('pg').native.Client
+var nativePool = new Pool({ Client: NativeClient })
 
 //you can even pool pg-native clients directly
-const PgNativeClient = require('pg-native')
-const pgNativePool = new Pool({ Client: PgNativeClient })
+var PgNativeClient = require('pg-native')
+var pgNativePool = new Pool({ Client: PgNativeClient })
 ```
 
 ### acquire clients with a promise
@@ -51,7 +51,7 @@ const pgNativePool = new Pool({ Client: PgNativeClient })
 pg-pool supports a fully promise-based api for acquiring clients
 
 ```js
-const pool = new Pool()
+var pool = new Pool()
 pool.connect().then(client => {
   client.query('select $1::text as name', ['pg-pool']).then(res => {
     client.release()
@@ -71,10 +71,10 @@ this ends up looking much nicer if you're using [co](https://github.com/tj/co) o
 ```js
 // with async/await
 (async () => {
-  const pool = new Pool()
-  const client = await pool.connect()
+  var pool = new Pool()
+  var client = await pool.connect()
   try {
-    const result = await client.query('select $1::text as name', ['brianc'])
+    var result = await client.query('select $1::text as name', ['brianc'])
     console.log('hello from', result.rows[0])
   } finally {
     client.release()
@@ -83,9 +83,9 @@ this ends up looking much nicer if you're using [co](https://github.com/tj/co) o
 
 // with co
 co(function * () {
-  const client = yield pool.connect()
+  var client = yield pool.connect()
   try {
-    const result = yield client.query('select $1::text as name', ['brianc'])
+    var result = yield client.query('select $1::text as name', ['brianc'])
     console.log('hello from', result.rows[0])
   } finally {
     client.release()
@@ -98,16 +98,16 @@ co(function * () {
 because its so common to just run a query and return the client to the pool afterward pg-pool has this built-in:
 
 ```js
-const pool = new Pool()
-const time = await pool.query('SELECT NOW()')
-const name = await pool.query('select $1::text as name', ['brianc'])
+var pool = new Pool()
+var time = await pool.query('SELECT NOW()')
+var name = await pool.query('select $1::text as name', ['brianc'])
 console.log(name.rows[0].name, 'says hello at', time.rows[0].name)
 ```
 
 you can also use a callback here if you'd like:
 
 ```js
-const pool = new Pool()
+var pool = new Pool()
 pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
   console.log(res.rows[0].name) // brianc
 })
@@ -123,7 +123,7 @@ clients back to the pool after the query is done.
 pg-pool still and will always support the traditional callback api for acquiring a client.  This is the exact API node-postgres has shipped with for years:
 
 ```js
-const pool = new Pool()
+var pool = new Pool()
 pool.connect((err, client, done) => {
   if (err) return done(err)
 
@@ -143,8 +143,8 @@ When you are finished with the pool if all the clients are idle the pool will cl
 will shutdown gracefully.  If you don't want to wait for the timeout you can end the pool as follows:
 
 ```js
-const pool = new Pool()
-const client = await pool.connect()
+var pool = new Pool()
+var client = await pool.connect()
 console.log(await client.query('select now()'))
 client.release()
 await pool.end()
@@ -159,7 +159,7 @@ The pool should be a __long-lived object__ in your application.  Generally you'l
 
 // correct usage: create the pool and let it live
 // 'globally' here, controlling access to it through exported methods
-const pool = new pg.Pool()
+var pool = new pg.Pool()
 
 // this is the right way to export the query method
 module.exports.query = (text, values) => {
@@ -173,7 +173,7 @@ module.exports.connect = () => {
   // every time we called 'connect' to get a new client?
   // that's a bad thing & results in creating an unbounded
   // number of pools & therefore connections
-  const aPool = new pg.Pool()
+  var aPool = new pg.Pool()
   return aPool.connect()
 }
 ```
@@ -228,7 +228,28 @@ pool
 
 ```
 
-This allows you to do custom bootstrapping and manipulation of clients after they have been successfully connected to the PostgreSQL backend, but before any queries have been issued.
+#### acquire
+
+Fired whenever the a client is acquired from the pool
+
+Example:
+
+This allows you to count the number of clients which have ever been acquired from the pool.
+
+```js
+var Pool = require('pg-pool')
+var pool = new Pool()
+
+var acquireCount = 0
+pool.on('acquire', function (client) {
+  console.log('acquired', (++acquireCount), 'clients')
+})
+
+for (var i = 0; i < 200; i++) {
+  pool.query('SELECT NOW()')
+}
+
+```
 
 ### environment variables
 

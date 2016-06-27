@@ -60,6 +60,7 @@ Pool.prototype.connect = function (cb) {
       }
 
       this.log('acquire client')
+      this.emit('acquire', client)
 
       client.release = function (err) {
         delete client.release
