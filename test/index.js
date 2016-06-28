@@ -1,6 +1,6 @@
 var assert = require('assert')
 var Cursor = require('../')
-var pg = require('pg.js')
+var pg = require('pg')
 
 var text = 'SELECT generate_series as num FROM generate_series(0, 5)'
 
