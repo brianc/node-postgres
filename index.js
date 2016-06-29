@@ -89,6 +89,12 @@ Cursor.prototype.handleReadyForQuery = function() {
   this.state = 'done'
 }
 
+Cursor.prototype.handleEmptyQuery = function(con) {
+  if (con.sync) {
+    con.sync()
+  }
+};
+
 Cursor.prototype.handleError = function(msg) {
   this.state = 'error'
   this._error = msg
