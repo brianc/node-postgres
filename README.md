@@ -275,6 +275,27 @@ PGSSLMODE=require
 
 Usually I will export these into my local environment via a `.env` file with environment settings or export them in `~/.bash_profile` or something similar.  This way I get configurability which works with both the postgres suite of tools (`psql`, `pg_dump`, `pg_restore`) and node, I can vary the environment variables locally and in production, and it supports the concept of a [12-factor app](http://12factor.net/) out of the box.
 
+## bring your own promise
+
+In versions of node `<=0.12.x` there is no native promise implementation available globally.  You can polyfill the promise globally like this:
+
+```js
+// first run `npm install promise-polyfill --save
+if (typeof Promise == 'undefined') {
+  global.Promise = require('promise-polyfill')
+}
+```
+
+You can use any other promise implementation you'd like.  The pool also allows you to configure the promise implementation on a per-pool level:
+
+```js
+var bluebirdPool = new Pool({
+  Promise: require('bluebird')
+})
+```
+
+__please note:__ in node `<=0.12.x` the pool will throw if you do not provide a promise constructor in one of the two ways mentioned above.  In node `>=4.0.0` the pool will use the native promise implementation by default; however, the two methods above still allow you to "bring your own."
+
 ## tests
 
 To run tests clone the repo, `npm i` in the working dir, and then run `npm test`
