@@ -1,16 +1,20 @@
 var expect = require('expect.js')
-var co = require('co')
 var _ = require('lodash')
 
 var describe = require('mocha').describe
 var it = require('mocha').it
+var Promise = require('bluebird')
 
 var Pool = require('../')
+
+if (typeof global.Promise === 'undefined') {
+  global.Promise = Promise
+}
 
 describe('pool', function () {
   describe('with callbacks', function () {
     it('works totally unconfigured', function (done) {
-      const pool = new Pool()
+      var pool = new Pool()
       pool.connect(function (err, client, release) {
         if (err) return done(err)
         client.query('SELECT NOW()', function (err, res) {
@@ -23,7 +27,7 @@ describe('pool', function () {
     })
 
     it('passes props to clients', function (done) {
-      const pool = new Pool({ binary: true })
+      var pool = new Pool({ binary: true })
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
@@ -33,7 +37,7 @@ describe('pool', function () {
     })
 
     it('can run a query with a callback without parameters', function (done) {
-      const pool = new Pool()
+      var pool = new Pool()
       pool.query('SELECT 1 as num', function (err, res) {
         expect(res.rows[0]).to.eql({ num: 1 })
         pool.end(function () {
@@ -43,7 +47,7 @@ describe('pool', function () {
     })
 
     it('can run a query with a callback', function (done) {
-      const pool = new Pool()
+      var pool = new Pool()
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
         expect(res.rows[0]).to.eql({ name: 'brianc' })
         pool.end(function () {
@@ -53,7 +57,7 @@ describe('pool', function () {
     })
 
     it('removes client if it errors in background', function (done) {
-      const pool = new Pool()
+      var pool = new Pool()
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
@@ -85,63 +89,71 @@ describe('pool', function () {
   })
 
   describe('with promises', function () {
-    it('connects and disconnects', co.wrap(function * () {
+    it('connects and disconnects', function () {
       var pool = new Pool()
-      var client = yield pool.connect()
-      expect(pool.pool.availableObjectsCount()).to.be(0)
-      var res = yield client.query('select $1::text as name', ['hi'])
-      expect(res.rows).to.eql([{ name: 'hi' }])
-      client.release()
-      expect(pool.pool.getPoolSize()).to.be(1)
-      expect(pool.pool.availableObjectsCount()).to.be(1)
-      return yield pool.end()
-    }))
-
-    it('properly pools clients', co.wrap(function * () {
-      var pool = new Pool({ poolSize: 9 })
-      yield _.times(30).map(function * () {
-        var client = yield pool.connect()
-        yield client.query('select $1::text as name', ['hi'])
-        client.release()
+      return pool.connect().then(function (client) {
+        expect(pool.pool.availableObjectsCount()).to.be(0)
+        return client.query('select $1::text as name', ['hi']).then(function (res) {
+          expect(res.rows).to.eql([{ name: 'hi' }])
+          client.release()
+          expect(pool.pool.getPoolSize()).to.be(1)
+          expect(pool.pool.availableObjectsCount()).to.be(1)
+          return pool.end()
+        })
       })
-      expect(pool.pool.getPoolSize()).to.be(9)
-      return yield pool.end()
-    }))
+    })
 
-    it('supports just running queries', co.wrap(function * () {
+    it('properly pools clients', function () {
       var pool = new Pool({ poolSize: 9 })
-      var queries = _.times(30).map(function () {
+      return Promise.map(_.times(30), function () {
+        return pool.connect().then(function (client) {
+          return client.query('select $1::text as name', ['hi']).then(function (res) {
+            client.release()
+            return res
+          })
+        })
+      }).then(function (res) {
+        expect(res).to.have.length(30)
+        expect(pool.pool.getPoolSize()).to.be(9)
+        return pool.end()
+      })
+    })
+
+    it('supports just running queries', function () {
+      var pool = new Pool({ poolSize: 9 })
+      return Promise.map(_.times(30), function () {
         return pool.query('SELECT $1::text as name', ['hi'])
+      }).then(function (queries) {
+        expect(queries).to.have.length(30)
+        expect(pool.pool.getPoolSize()).to.be(9)
+        expect(pool.pool.availableObjectsCount()).to.be(9)
+        return pool.end()
       })
-      yield queries
-      expect(pool.pool.getPoolSize()).to.be(9)
-      expect(pool.pool.availableObjectsCount()).to.be(9)
-      return yield pool.end()
-    }))
+    })
 
-    it('recovers from all errors', co.wrap(function * () {
-      var pool = new Pool({
-        poolSize: 9,
-        log: function (str, level) {
-          // Custom logging function to ensure we are not causing errors or warnings
-          // inside the `generic-pool` library.
-          if (level === 'error' || level === 'warn') {
-            expect().fail('An error or warning was logged from the generic pool library.\n' +
-                          'Level: ' + level + '\n' +
-                          'Message: ' + str + '\n')
-          }
-        }
+    it('recovers from all errors', function () {
+      var pool = new Pool()
+
+      var errors = []
+      return Promise.mapSeries(_.times(30), function () {
+        return pool.query('SELECT asldkfjasldkf')
+          .catch(function (e) {
+            errors.push(e)
+          })
+      }).then(function () {
+        return pool.query('SELECT $1::text as name', ['hi']).then(function (res) {
+          expect(errors).to.have.length(30)
+          expect(res.rows).to.eql([{ name: 'hi' }])
+          return pool.end()
+        })
       })
-      var count = 0
+    })
+  })
+})
 
-      while (count++ < 30) {
-        try {
-          yield pool.query('SELECT lksjdfd')
-        } catch (e) {}
-      }
-      var res = yield pool.query('SELECT $1::text as name', ['hi'])
-      expect(res.rows).to.eql([{ name: 'hi' }])
-      return yield pool.end()
-    }))
+process.on('unhandledRejection', function (e) {
+  console.error(e.message, e.stack)
+  setImmediate(function () {
+    throw e
   })
 })

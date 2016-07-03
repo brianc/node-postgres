@@ -89,6 +89,7 @@ Pool.prototype.query = function (text, values, cb) {
     cb = values
     values = undefined
   }
+
   return new this.Promise(function (resolve, reject) {
     this.connect(function (err, client, done) {
       if (err) return reject(err)

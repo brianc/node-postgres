@@ -26,8 +26,7 @@
   },
   "homepage": "https://github.com/brianc/node-pg-pool#readme",
   "devDependencies": {
-    "bluebird": "3.4.0",
-    "co": "4.6.0",
+    "bluebird": "3.4.1",
     "expect.js": "0.3.1",
     "lodash": "4.13.1",
     "mocha": "^2.3.3",
