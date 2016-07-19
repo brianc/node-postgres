@@ -2,7 +2,7 @@ var helper = require('./test-helper')
 var co = require('co')
 
 var tid = setTimeout(function() {
-  throw new Error('Tests did not complete in tme')
+  throw new Error('Tests did not complete in time')
 }, 1000)
 
 co(function * () {
