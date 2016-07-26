@@ -65,7 +65,7 @@ const config = {
   ssl: true
 };
 
-const pool = Pool(config);
+const pool = new Pool(config);
 
 /*
   Transforms, 'progres://DBuser:secret@DBHost:#####/myDB', into
