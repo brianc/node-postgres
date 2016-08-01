@@ -22,7 +22,7 @@ var pg = require('pg');
 
 // instantiate a new client
 // the client will read connection information from
-// the same environment varaibles used by postgres cli tools
+// the same environment variables used by postgres cli tools
 var client = new pg.Client();
 
 // connect to our database
