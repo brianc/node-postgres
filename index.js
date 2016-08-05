@@ -4,6 +4,9 @@ var EventEmitter = require('events').EventEmitter
 var objectAssign = require('object-assign')
 
 var Pool = module.exports = function (options, Client) {
+  if (!(this instanceof Pool)) {
+    return new Pool(options, Client)
+  }
   EventEmitter.call(this)
   this.options = objectAssign({}, options)
   this.log = this.options.log || function () { }

@@ -12,6 +12,12 @@ if (typeof global.Promise === 'undefined') {
 }
 
 describe('pool', function () {
+  it('can be used as a factory function', function () {
+    var pool = Pool()
+    expect(pool instanceof Pool).to.be.ok()
+    expect(typeof pool.connect).to.be('function')
+  })
+
   describe('with callbacks', function () {
     it('works totally unconfigured', function (done) {
       var pool = new Pool()
