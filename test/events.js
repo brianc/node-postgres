@@ -1,8 +1,8 @@
 var expect = require('expect.js')
-
+var EventEmitter = require('events').EventEmitter
 var describe = require('mocha').describe
 var it = require('mocha').it
-
+var objectAssign = require('object-assign')
 var Pool = require('../')
 
 describe('events', function () {
@@ -19,6 +19,24 @@ describe('events', function () {
       pool.end()
       expect(client).to.be(emittedClient)
       done()
+    })
+  })
+
+  it('emits "connect" only with a successful connection', function (done) {
+    var pool = new Pool({
+      // This client will always fail to connect
+      Client: mockClient({
+        connect: function (cb) {
+          process.nextTick(function () { cb(new Error('bad news')) })
+        }
+      })
+    })
+    pool.on('connect', function () {
+      throw new Error('should never get here')
+    })
+    pool._create(function (err) {
+      if (err) done()
+      else done(new Error('expected failure'))
     })
   })
 
@@ -43,3 +61,11 @@ describe('events', function () {
     }, 40)
   })
 })
+
+function mockClient (methods) {
+  return function () {
+    var client = new EventEmitter()
+    objectAssign(client, methods)
+    return client
+  }
+}
