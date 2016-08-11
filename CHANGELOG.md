@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v6.1.0
+
+- Add optional callback parameter to the pure JavaScript `client.end` method.  The native client already supported this.
+
 ### v6.0.0
 
 #### Breaking Changes
