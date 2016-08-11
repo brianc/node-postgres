@@ -37,9 +37,7 @@ client.connect(function (err) {
     console.log(result.rows[0]); // outputs: { name: 'brianc' }
 
     // disconnect the client
-    client.end(function (err) {
-      if (err) throw err;
-    });
+    client.end();
   });
 });
 
