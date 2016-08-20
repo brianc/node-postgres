@@ -1,0 +1,188 @@
+/* @flow
+ *
+**/
+const EventEmitter = require('events').EventEmitter;
+const Pool = require('pg-pool');
+import type {
+  PgPoolConfig,
+  PoolConnectCallback,
+  DoneCallback,
+  PoolClient
+} from 'pg-pool';
+
+// error
+type PG_ERROR = {
+  name: string,
+  length: number,
+  severity: string,
+  code: string,
+  detail: string|void,
+  hint: string|void,
+  position: string|void,
+  internalPosition: string|void,
+  internalQuery: string|void,
+  where: string|void,
+  schema: string|void,
+  table: string|void,
+  column: string|void,
+  dataType: string|void,
+  constraint: string|void,
+  file: string|void,
+  line: string|void,
+  routine: string|void
+};
+
+type ClientConfig = {
+  //database user's name
+  user: string,
+  //name of database to connect
+  database: string,
+  //database user's password
+  password: string,
+  //database port
+  port: number,
+  // database host. defaults to localhost
+  host: string,
+  // whether to try SSL/TLS to connect to server. default value: false
+  ssl: boolean,
+  // name displayed in the pg_stat_activity view and included in CSV log entries
+  // default value: process.env.PGAPPNAME
+  application_name: string,
+  // fallback value for the application_name configuration parameter
+  // default value: false
+  fallback_application_name: string,
+}
+
+type Row = {
+  [key: string]: any,
+};
+type ResultSet = {
+  command: string,
+  rowCount: number,
+  oid: number,
+  rows: Array<Row>,
+};
+type ResultBuilder = {
+  command: string,
+  rowCount: number,
+  oid: number,
+  rows: Array<Row>,
+  addRow: (row: Row) => void,
+};
+type QueryConfig = {
+  name?: string,
+  text: string,
+  values?: any[],
+};
+
+type QueryCallback = (err: PG_ERROR|null, result: ResultSet|void) => void;
+type ClientConnectCallback = (err: PG_ERROR|null, client: Client|void) => void;
+
+/*
+ * lib/query.js
+ * Query extends from EventEmitter in source code.
+ * but in Flow there is no multiple extends.
+ * And in Flow await is a `declare function $await<T>(p: Promise<T> | T): T;`
+ * seems can not resolve a Thenable's value type directly
+ * so `Query extends Promise` to make thing temporarily work.
+ * like this:
+ * const q = client.query('select * from some');
+ * q.on('row',cb); // Event
+ * const result = await q; // or await
+ *
+ * ToDo: should find a better way.
+*/
+declare class Query extends Promise<ResultSet> {
+  then<U>( onFulfill?: (value: ResultSet) => Promise<U> | U,
+    onReject?: (error: PG_ERROR) => Promise<U> | U
+  ): Promise<U>;
+  // Because then and catch return a Promise,
+  // .then.catch will lose catch's type information PG_ERROR.
+  catch<U>( onReject?: (error: PG_ERROR) => ?Promise<U> | U ): Promise<U>;
+
+  on :
+  ((event: 'row', listener: (row: Row, result: ResultBuilder) => void) => events$EventEmitter )&
+  ((event: 'end', listener: (result: ResultBuilder) => void) => events$EventEmitter )&
+  ((event: 'error', listener: (err: PG_ERROR) => void) => events$EventEmitter );
+}
+
+/*
+ * lib/client.js
+ * Note: not extends from EventEmitter, for This Type returned by on().
+ * Flow's EventEmitter force return a EventEmitter in on().
+ * ToDo: Not sure in on() if return events$EventEmitter or this will be more suitable
+ * return this will restrict event to given literial when chain on().on().on().
+ * return a events$EventEmitter will fallback to raw EventEmitter, when chains
+*/
+declare class Client {
+  constructor(config?: string | ClientConfig): void;
+  connect(callback?: ClientConnectCallback):void;
+  end(): void;
+
+  query:
+  ( (query: QueryConfig|string, callback?: QueryCallback) => Query ) &
+  ( (text: string, values: Array<any>, callback?: QueryCallback) => Query );
+
+  on:
+  ((event: 'drain', listener: () => void) => this )&
+  ((event: 'error', listener: (err: PG_ERROR) => void) => this )&
+  ((event: 'notification', listener: (message: any) => void) => this )&
+  ((event: 'notice', listener: (message: any) => void) => this )&
+  ((event: 'end', listener: () => void) => this );
+}
+
+/*
+ * require('pg-types')
+*/
+type TypeParserText = (value: string) => any;
+type TypeParserBinary = (value: Buffer) => any;
+type Types = {
+  getTypeParser:
+    ((oid: number, format?: 'text') => TypeParserText )&
+    ((oid: number, format: 'binary') => TypeParserBinary );
+
+  setTypeParser:
+    ((oid: number, format?: 'text', parseFn: TypeParserText) => void )&
+    ((oid: number, format: 'binary', parseFn: TypeParserBinary) => void),
+}
+
+/*
+ * lib/index.js ( class PG)
+*/
+declare class PG extends EventEmitter {
+  types: Types;
+  Client: Class<Client>;
+  Pool: Class<Pool>;
+  Connection: any; //Connection is used internally by the Client.
+  constructor(client: Client): void;
+  native: { // native binding, have the same capability like PG
+    types: Types;
+    Client: Class<Client>;
+    Pool: Class<Pool>;
+    Connection: any;
+  };
+// The end(),connect(),cancel() in PG is abandoned ?
+}
+
+// module export, keep same structure with index.js
+declare var pg:PG;
+module.exports = pg;
+
+// type output
+type QueryType = Query;
+export type {
+  ResultSet,
+  ResultBuilder,
+  ClientConfig,
+  QueryConfig,
+  QueryCallback,
+  ClientConnectCallback,
+  QueryType,
+  PG_ERROR,
+  Client,
+  PgPoolConfig,
+  PoolConnectCallback,
+  DoneCallback,
+  PoolClient,
+  Pool,
+};
