@@ -62,6 +62,17 @@ describe('pool', function () {
       })
     })
 
+    it('passes connection errors to callback', function (done) {
+      var pool = new Pool({host: 'no-postgres-server-here.com'})
+      pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
+        expect(res).to.be(undefined)
+        expect(err).to.be.an(Error)
+        pool.end(function (err) {
+          done(err)
+        })
+      })
+    })
+
     it('removes client if it errors in background', function (done) {
       var pool = new Pool()
       pool.connect(function (err, client, release) {
