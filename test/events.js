@@ -22,7 +22,7 @@ describe('events', function () {
     })
   })
 
-  it('emits "connect" only with a successful connection', function (done) {
+  it('emits "error" with a failed connection', function (done) {
     var pool = new Pool({
       // This client will always fail to connect
       Client: mockClient({
@@ -34,7 +34,29 @@ describe('events', function () {
     pool.on('connect', function () {
       throw new Error('should never get here')
     })
-    pool._create(function (err) {
+    pool.on('error', function (err) {
+      if (err) done()
+      else done(new Error('expected failure'))
+    })
+    pool.connect()
+  })
+
+  it('callback err with a failed connection', function (done) {
+    var pool = new Pool({
+      // This client will always fail to connect
+      Client: mockClient({
+        connect: function (cb) {
+          process.nextTick(function () { cb(new Error('bad news')) })
+        }
+      })
+    })
+    pool.on('connect', function () {
+      throw new Error('should never get here')
+    })
+    pool.on('error', function (err) {
+      if (!err) done(new Error('expected failure'))
+    })
+    pool.connect(function (err) {
       if (err) done()
       else done(new Error('expected failure'))
     })

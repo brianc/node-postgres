@@ -43,6 +43,7 @@ Pool.prototype._create = function (cb) {
     if (err) {
       this.log('client connection error:', err)
       cb(err)
+      this.emit('error', err)
     } else {
       this.log('client connected')
       this.emit('connect', client)
