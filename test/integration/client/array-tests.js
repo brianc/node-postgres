@@ -5,7 +5,7 @@ test('parsing array results', function() {
   pg.connect(helper.config, assert.calls(function(err, client, done) {
     assert.isNull(err);
     client.query("CREATE TEMP TABLE why(names text[], numbors integer[])");
-    client.query('INSERT INTO why(names, numbors) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\')').on('error', console.log);
+    client.query('INSERT INTO why(names, numbors) VALUES($1, \'{1, 2, 3}\')', [['aaron', 'brian\ncharlie','a b c']]).on('error', console.log);
     test('numbers', function() {
       //      client.connection.on('message', console.log)
       client.query('SELECT numbors FROM why', assert.success(function(result) {
@@ -21,11 +21,11 @@ test('parsing array results', function() {
         var names = result.rows[0].names;
         assert.lengthIs(names, 3);
         assert.equal(names[0], 'aaron');
-        assert.equal(names[1], 'brian');
+        assert.equal(names[1], 'brian\ncharlie');
         assert.equal(names[2], "a b c");
       }))
     })
-    
+
     test('empty array', function(){
       client.query("SELECT '{}'::text[] as names", assert.success(function(result) {
         var names = result.rows[0].names;
@@ -112,7 +112,7 @@ test('parsing array results', function() {
         assert.equal(names[2][1], 100);
       }))
     })
-    
+
     test('JS array parameter', function(){
       client.query("SELECT $1::integer[] as names", [[[1,100],[2,100],[3,100]]], assert.success(function(result) {
         var names = result.rows[0].names;
@@ -129,8 +129,6 @@ test('parsing array results', function() {
         pg.end();
       }))
     })
-    
+
   }))
 })
-
-
