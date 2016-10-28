@@ -1,6 +1,36 @@
 var helper = require(__dirname + "/test-helper");
 var pg = helper.pg;
 
+test('serializing arrays', function() {
+  pg.connect(helper.config, assert.calls(function(err, client, done) {
+    assert.isNull(err);
+
+    test('nulls', function() {
+      client.query('SELECT $1::text[] as array', [[null]], assert.success(function(result) {
+        var array = result.rows[0].array;
+        assert.lengthIs(array, 1);
+        assert.isNull(array[0]);
+      }));
+    });
+
+    test('elements containing JSON-escaped characters', function() {
+      var param = '\\"\\"';
+
+      for (var i = 1; i <= 0x1f; i++) {
+        param += String.fromCharCode(i);
+      }
+
+      client.query('SELECT $1::text[] as array', [[param]], assert.success(function(result) {
+        var array = result.rows[0].array;
+        assert.lengthIs(array, 1);
+        assert.equal(array[0], param);
+      }));
+
+      done();
+    });
+  }));
+});
+
 test('parsing array results', function() {
   pg.connect(helper.config, assert.calls(function(err, client, done) {
     assert.isNull(err);
