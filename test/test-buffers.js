@@ -4,7 +4,7 @@ require(__dirname+'/test-helper');
 var buffers = {};
 buffers.readyForQuery = function() {
   return new BufferList()
-    .add(Buffer('I'))
+    .add(new Buffer('I'))
     .join(true,'Z');
 };
 
@@ -23,7 +23,7 @@ buffers.authenticationCleartextPassword = function() {
 buffers.authenticationMD5Password = function() {
   return new BufferList()
     .addInt32(5)
-    .add(Buffer([1,2,3,4]))
+    .add(new Buffer([1, 2, 3, 4]))
     .join(true, 'R');
 };
 
@@ -94,7 +94,7 @@ var errorOrNotice = function(fields) {
     buf.addChar(field.type);
     buf.addCString(field.value);
   });
-  return buf.add(Buffer([0]));//terminator
+  return buf.add(new Buffer([0]));//terminator
 }
 
 buffers.parseComplete = function() {

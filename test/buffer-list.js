@@ -9,7 +9,7 @@ p.add = function(buffer, front) {
 };
 
 p.addInt16 = function(val, front) {
-  return this.add(Buffer([(val >>> 8),(val >>> 0)]),front);
+  return this.add(new Buffer([(val >>> 8), (val >>> 0)]), front);
 };
 
 p.getByteLength = function(initial) {
@@ -19,7 +19,7 @@ p.getByteLength = function(initial) {
 };
 
 p.addInt32 = function(val, first) {
-  return this.add(Buffer([
+  return this.add(new Buffer([
     (val >>> 24 & 0xFF),
     (val >>> 16 & 0xFF),
     (val >>> 8 & 0xFF),
@@ -36,7 +36,7 @@ p.addCString = function(val, front) {
 };
 
 p.addChar = function(char, first) {
-  return this.add(Buffer(char,'utf8'), first);
+  return this.add(new Buffer(char, 'utf8'), first);
 };
 
 p.join = function(appendLength, char) {
@@ -49,7 +49,7 @@ p.join = function(appendLength, char) {
     this.addChar(char, true);
     length++;
   }
-  var result = Buffer(length);
+  var result = new Buffer(length);
   var index = 0;
   this.buffers.forEach(function(buffer) {
     buffer.copy(result, index, 0);

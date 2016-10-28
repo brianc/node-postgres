@@ -158,7 +158,7 @@ test('Connection', function() {
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage);
   var msg = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage);
   test('md5 has right salt', function() {
-    assert.equalBuffers(msg.salt, Buffer([1,2,3,4]));
+    assert.equalBuffers(msg.salt, new Buffer([1, 2, 3, 4]));
   });
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage);
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage);
@@ -173,7 +173,7 @@ test('Connection', function() {
   });
 
   test("no data message", function() {
-    testForMessage(Buffer([0x6e, 0, 0, 0, 4]), {
+    testForMessage(new Buffer([0x6e, 0, 0, 0, 4]), {
       name: 'noData'
     });
   });

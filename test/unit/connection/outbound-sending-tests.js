@@ -104,12 +104,12 @@ test('bind messages', function() {
       .addInt16(0)
       .addInt16(4)
       .addInt32(1)
-      .add(Buffer("1"))
+      .add(new Buffer("1"))
       .addInt32(2)
-      .add(Buffer("hi"))
+      .add(new Buffer("hi"))
       .addInt32(-1)
       .addInt32(4)
-      .add(Buffer('zing'))
+      .add(new Buffer('zing'))
       .addInt16(0)
       .join(true, 'B');
     assert.received(stream, expectedBuffer);
@@ -132,9 +132,9 @@ test('with named statement, portal, and buffer value', function() {
     .addInt16(1)//binary
     .addInt16(4)
     .addInt32(1)
-    .add(Buffer("1"))
+    .add(new Buffer("1"))
     .addInt32(2)
-    .add(Buffer("hi"))
+    .add(new Buffer("hi"))
     .addInt32(-1)
     .addInt32(4)
     .add(new Buffer('zing', 'UTF-8'))
