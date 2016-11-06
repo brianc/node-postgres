@@ -1,5 +1,6 @@
 var helper = require('../test-helper');
 var assert = require('assert');
+var bufferFrom = require('buffer-from');
 
 helper.pg.connect(helper.config, function(err, client, done) {
   if (err) throw err;
@@ -11,11 +12,11 @@ helper.pg.connect(helper.config, function(err, client, done) {
 
     c = 'INSERT INTO posts (body) VALUES ($1) RETURNING *';
 
-    var body = new Buffer('foo');
+    var body = bufferFrom('foo');
     client.query(c, [body], function(err) {
       if (err) throw err;
 
-      body = new Buffer([]);
+      body = bufferFrom([]);
       client.query(c, [body], function(err, res) {
         done();
 

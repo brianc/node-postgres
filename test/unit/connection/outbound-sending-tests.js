@@ -1,4 +1,5 @@
 require(__dirname + "/test-helper");
+var bufferFrom = require('buffer-from');
 var Connection = require(__dirname + '/../../../lib/connection');
 var stream = new MemoryStream();
 var con = new Connection({
@@ -104,12 +105,12 @@ test('bind messages', function() {
       .addInt16(0)
       .addInt16(4)
       .addInt32(1)
-      .add(new Buffer("1"))
+      .add(bufferFrom("1"))
       .addInt32(2)
-      .add(new Buffer("hi"))
+      .add(bufferFrom("hi"))
       .addInt32(-1)
       .addInt32(4)
-      .add(new Buffer('zing'))
+      .add(bufferFrom('zing'))
       .addInt16(0)
       .join(true, 'B');
     assert.received(stream, expectedBuffer);
@@ -120,7 +121,7 @@ test('with named statement, portal, and buffer value', function() {
   con.bind({
     portal: 'bang',
     statement: 'woo',
-    values: ['1', 'hi', null, new Buffer('zing', 'UTF-8')]
+    values: ['1', 'hi', null, bufferFrom('zing', 'UTF-8')]
   });
   var expectedBuffer = new BufferList()
     .addCString('bang')  //portal name
@@ -132,12 +133,12 @@ test('with named statement, portal, and buffer value', function() {
     .addInt16(1)//binary
     .addInt16(4)
     .addInt32(1)
-    .add(new Buffer("1"))
+    .add(bufferFrom("1"))
     .addInt32(2)
-    .add(new Buffer("hi"))
+    .add(bufferFrom("hi"))
     .addInt32(-1)
     .addInt32(4)
-    .add(new Buffer('zing', 'UTF-8'))
+    .add(bufferFrom('zing', 'UTF-8'))
     .addInt16(0)
     .join(true, 'B');
   assert.received(stream, expectedBuffer);
@@ -181,7 +182,7 @@ test('sends sync command', function() {
 
 test('sends end command', function() {
   con.end();
-  var expected = new Buffer([0x58, 0, 0, 0, 4]);
+  var expected = bufferFrom([0x58, 0, 0, 0, 4]);
   assert.received(stream, expected);
 });
 

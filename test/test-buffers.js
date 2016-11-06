@@ -1,10 +1,11 @@
 require(__dirname+'/test-helper');
+var bufferFrom = require('buffer-from');
 //http://developer.postgresql.org/pgdocs/postgres/protocol-message-formats.html
 
 var buffers = {};
 buffers.readyForQuery = function() {
   return new BufferList()
-    .add(new Buffer('I'))
+    .add(bufferFrom('I'))
     .join(true,'Z');
 };
 
@@ -23,7 +24,7 @@ buffers.authenticationCleartextPassword = function() {
 buffers.authenticationMD5Password = function() {
   return new BufferList()
     .addInt32(5)
-    .add(new Buffer([1, 2, 3, 4]))
+    .add(bufferFrom([1, 2, 3, 4]))
     .join(true, 'R');
 };
 
@@ -71,7 +72,7 @@ buffers.dataRow = function(columns) {
     if(col == null) {
       buf.addInt32(-1);
     } else {
-      var strBuf = new Buffer(col, 'utf8');
+      var strBuf = bufferFrom(col, 'utf8');
       buf.addInt32(strBuf.length);
       buf.add(strBuf);
     }
@@ -94,7 +95,7 @@ var errorOrNotice = function(fields) {
     buf.addChar(field.type);
     buf.addCString(field.value);
   });
-  return buf.add(new Buffer([0]));//terminator
+  return buf.add(bufferFrom([0]));//terminator
 }
 
 buffers.parseComplete = function() {

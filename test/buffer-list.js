@@ -1,4 +1,5 @@
 var allocUnsafe = require('buffer-alloc-unsafe');
+var bufferFrom = require('buffer-from');
 
 BufferList = function() {
   this.buffers = [];
@@ -11,7 +12,7 @@ p.add = function(buffer, front) {
 };
 
 p.addInt16 = function(val, front) {
-  return this.add(new Buffer([(val >>> 8), (val >>> 0)]), front);
+  return this.add(bufferFrom([(val >>> 8), (val >>> 0)]), front);
 };
 
 p.getByteLength = function(initial) {
@@ -21,7 +22,7 @@ p.getByteLength = function(initial) {
 };
 
 p.addInt32 = function(val, first) {
-  return this.add(new Buffer([
+  return this.add(bufferFrom([
     (val >>> 24 & 0xFF),
     (val >>> 16 & 0xFF),
     (val >>> 8 & 0xFF),
@@ -38,7 +39,7 @@ p.addCString = function(val, front) {
 };
 
 p.addChar = function(char, first) {
-  return this.add(new Buffer(char, 'utf8'), first);
+  return this.add(bufferFrom(char, 'utf8'), first);
 };
 
 p.join = function(appendLength, char) {

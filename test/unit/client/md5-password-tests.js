@@ -1,9 +1,10 @@
 require(__dirname + '/test-helper');
+var bufferFrom = require('buffer-from');
 
 test('md5 authentication', function() {
   var client = createClient();
   client.password = "!";
-  var salt = new Buffer([1, 2, 3, 4]);
+  var salt = bufferFrom([1, 2, 3, 4]);
   client.connection.emit('authenticationMD5Password', {salt: salt});
 
   test('responds', function() {

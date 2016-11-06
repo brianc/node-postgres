@@ -1,6 +1,7 @@
 require(__dirname+'/test-helper');
 return false;
 var allocUnsafe = require('buffer-alloc-unsafe');
+var bufferFrom = require('buffer-from');
 var Connection = require(__dirname + '/../../../lib/connection');
 var buffers = require(__dirname + '/../../test-buffers');
 var PARSE = function(buffer) {
@@ -160,7 +161,7 @@ test('Connection', function() {
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage);
   var msg = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage);
   test('md5 has right salt', function() {
-    assert.equalBuffers(msg.salt, new Buffer([1, 2, 3, 4]));
+    assert.equalBuffers(msg.salt, bufferFrom([1, 2, 3, 4]));
   });
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage);
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage);
@@ -175,7 +176,7 @@ test('Connection', function() {
   });
 
   test("no data message", function() {
-    testForMessage(new Buffer([0x6e, 0, 0, 0, 4]), {
+    testForMessage(bufferFrom([0x6e, 0, 0, 0, 4]), {
       name: 'noData'
     });
   });
