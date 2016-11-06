@@ -1,3 +1,5 @@
+var allocUnsafe = require('buffer-alloc-unsafe');
+
 BufferList = function() {
   this.buffers = [];
 };
@@ -29,7 +31,7 @@ p.addInt32 = function(val, first) {
 
 p.addCString = function(val, front) {
   var len = Buffer.byteLength(val);
-  var buffer = new Buffer(len+1);
+  var buffer = allocUnsafe(len+1);
   buffer.write(val);
   buffer[len] = 0;
   return this.add(buffer, front);
@@ -49,7 +51,7 @@ p.join = function(appendLength, char) {
     this.addChar(char, true);
     length++;
   }
-  var result = new Buffer(length);
+  var result = allocUnsafe(length);
   var index = 0;
   this.buffers.forEach(function(buffer) {
     buffer.copy(result, index, 0);

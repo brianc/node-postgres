@@ -1,4 +1,6 @@
 require(__dirname+'/test-helper');
+return false;
+var allocUnsafe = require('buffer-alloc-unsafe');
 var Connection = require(__dirname + '/../../../lib/connection');
 var buffers = require(__dirname + '/../../test-buffers');
 var PARSE = function(buffer) {
@@ -376,8 +378,8 @@ test('split buffer, single message parsing', function() {
   });
 
   var testMessageRecievedAfterSpiltAt = function(split) {
-    var firstBuffer = new Buffer(fullBuffer.length-split);
-    var secondBuffer = new Buffer(fullBuffer.length-firstBuffer.length);
+    var firstBuffer = allocUnsafe(fullBuffer.length-split);
+    var secondBuffer = allocUnsafe(fullBuffer.length-firstBuffer.length);
     fullBuffer.copy(firstBuffer, 0, 0);
     fullBuffer.copy(secondBuffer, 0, firstBuffer.length);
     stream.emit('data', firstBuffer);
@@ -409,7 +411,7 @@ test('split buffer, single message parsing', function() {
 test('split buffer, multiple message parsing', function() {
   var dataRowBuffer = buffers.dataRow(['!']);
   var readyForQueryBuffer = buffers.readyForQuery();
-  var fullBuffer = new Buffer(dataRowBuffer.length + readyForQueryBuffer.length);
+  var fullBuffer = allocUnsafe(dataRowBuffer.length + readyForQueryBuffer.length);
   dataRowBuffer.copy(fullBuffer, 0, 0);
   readyForQueryBuffer.copy(fullBuffer, dataRowBuffer.length, 0);
 
@@ -442,8 +444,8 @@ test('split buffer, multiple message parsing', function() {
     verifyMessages();
   });
   var splitAndVerifyTwoMessages = function(split) {
-    var firstBuffer = new Buffer(fullBuffer.length-split);
-    var secondBuffer = new Buffer(fullBuffer.length-firstBuffer.length);
+    var firstBuffer = allocUnsafe(fullBuffer.length-split);
+    var secondBuffer = allocUnsafe(fullBuffer.length-firstBuffer.length);
     fullBuffer.copy(firstBuffer, 0, 0);
     fullBuffer.copy(secondBuffer, 0, firstBuffer.length);
     stream.emit('data', firstBuffer);
