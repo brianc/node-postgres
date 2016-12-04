@@ -22,6 +22,32 @@ var Pool = module.exports = function (options, Client) {
 
 util.inherits(Pool, EventEmitter)
 
+Pool.prototype._promise = function (cb, executor) {
+  if (!cb) {
+    return new this.Promise(executor)
+  }
+
+  function resolved (value) {
+    process.nextTick(function () {
+      cb(null, value)
+    })
+  }
+
+  function rejected (error) {
+    process.nextTick(function () {
+      cb(error)
+    })
+  }
+
+  executor(resolved, rejected)
+}
+
+Pool.prototype._promiseNoCallback = function (callback, executor) {
+  return callback
+    ? executor()
+    : new this.Promise(executor)
+}
+
 Pool.prototype._destroy = function (client) {
   if (client._destroying) return
   client._destroying = true
@@ -43,7 +69,6 @@ Pool.prototype._create = function (cb) {
     if (err) {
       this.log('client connection error:', err)
       cb(err)
-      this.emit('error', err)
     } else {
       this.log('client connected')
       this.emit('connect', client)
@@ -53,15 +78,17 @@ Pool.prototype._create = function (cb) {
 }
 
 Pool.prototype.connect = function (cb) {
-  return new this.Promise(function (resolve, reject) {
+  return this._promiseNoCallback(cb, function (resolve, reject) {
     this.log('acquire client begin')
     this.pool.acquire(function (err, client) {
       if (err) {
         this.log('acquire client. error:', err)
         if (cb) {
           cb(err, null, function () {})
+        } else {
+          reject(err)
         }
-        return reject(err)
+        return
       }
 
       this.log('acquire client')
@@ -80,9 +107,9 @@ Pool.prototype.connect = function (cb) {
 
       if (cb) {
         cb(null, client, client.release)
+      } else {
+        resolve(client)
       }
-
-      return resolve(client)
     }.bind(this))
   }.bind(this))
 }
@@ -95,20 +122,14 @@ Pool.prototype.query = function (text, values, cb) {
     values = undefined
   }
 
-  return new this.Promise(function (resolve, reject) {
+  return this._promise(cb, function (resolve, reject) {
     this.connect(function (err, client, done) {
       if (err) {
-        if (cb) {
-          cb(err)
-        }
         return reject(err)
       }
       client.query(text, values, function (err, res) {
         done(err)
         err ? reject(err) : resolve(res)
-        if (cb) {
-          cb(err, res)
-        }
       })
     })
   }.bind(this))
@@ -116,15 +137,10 @@ Pool.prototype.query = function (text, values, cb) {
 
 Pool.prototype.end = function (cb) {
   this.log('draining pool')
-  return new this.Promise(function (resolve, reject) {
+  return this._promise(cb, function (resolve, reject) {
     this.pool.drain(function () {
       this.log('pool drained, calling destroy all now')
-      this.pool.destroyAllNow(function () {
-        if (cb) {
-          cb()
-        }
-        resolve()
-      })
+      this.pool.destroyAllNow(resolve)
     }.bind(this))
   }.bind(this))
 }

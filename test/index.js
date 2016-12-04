@@ -103,6 +103,32 @@ describe('pool', function () {
         pool.end(done)
       })
     })
+
+    it('does not create promises when connecting', function (done) {
+      var pool = new Pool()
+      var returnValue = pool.connect(function (err, client, release) {
+        release()
+        if (err) return done(err)
+        pool.end(done)
+      })
+      expect(returnValue).to.be(undefined)
+    })
+
+    it('does not create promises when querying', function (done) {
+      var pool = new Pool()
+      var returnValue = pool.query('SELECT 1 as num', function (err) {
+        pool.end(function () {
+          done(err)
+        })
+      })
+      expect(returnValue).to.be(undefined)
+    })
+
+    it('does not create promises when ending', function (done) {
+      var pool = new Pool()
+      var returnValue = pool.end(done)
+      expect(returnValue).to.be(undefined)
+    })
   })
 
   describe('with promises', function () {
