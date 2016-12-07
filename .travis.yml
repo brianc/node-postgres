@@ -29,6 +29,7 @@ matrix:
     - node_js: "6"
       addons:
         postgresql: "9.1"
+      dist: precise
     - node_js: "6"
       addons:
         postgresql: "9.2"
