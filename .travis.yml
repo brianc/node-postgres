@@ -1,5 +1,5 @@
 language: node_js
-sudo: required
+sudo: false
 dist: trusty
 before_script:
   - node script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
@@ -41,4 +41,4 @@ matrix:
         postgresql: "9.4"
     - node_js: "6"
       addons:
-        postgresql: "9.5"        
+        postgresql: "9.5"
