@@ -6,13 +6,6 @@ before_script:
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-4.8
-
 matrix:
   include:
     - node_js: "0.10"
