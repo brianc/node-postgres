@@ -1,35 +1,35 @@
 language: node_js
-sudo: required
+sudo: false
 dist: trusty
 before_script:
   - node script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
 
+node_js: "6"
 addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-4.8
+  postgresql: "9.6"
 
 matrix:
   include:
     - node_js: "0.10"
       addons:
-        postgresql: "9.5"
+        postgresql: "9.6"
+      env: []
     - node_js: "0.12"
       addons:
-        postgresql: "9.5"
+        postgresql: "9.6"
+      env: []
     - node_js: "4"
       addons:
-        postgresql: "9.5"
+        postgresql: "9.6"
     - node_js: "5"
       addons:
-        postgresql: "9.5"
+        postgresql: "9.6"
     - node_js: "6"
       addons:
         postgresql: "9.1"
+      dist: precise
     - node_js: "6"
       addons:
         postgresql: "9.2"
@@ -41,4 +41,4 @@ matrix:
         postgresql: "9.4"
     - node_js: "6"
       addons:
-        postgresql: "9.5"        
+        postgresql: "9.5"
