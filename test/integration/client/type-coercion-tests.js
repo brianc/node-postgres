@@ -198,19 +198,3 @@ helper.pg.connect(helper.config, assert.calls(function(err, client, done) {
     done();
   })
 }))
-
-if(!helper.config.binary) {
-  test("postgres date type", function() {
-    var client = helper.client();
-    var testDate = new Date(2010, 9, 31);
-    client.on('error', function(err) {
-      console.log(err);
-      client.end();
-    });
-    client.query("SELECT $1::date", [testDate], assert.calls(function(err, result){
-      assert.isNull(err);
-      assert.strictEqual(result.rows[0].date.toString(), new Date(Date.UTC(2010, 9, 31)).toString());
-    }));
-    client.on('drain', client.end.bind(client));
-  });
-}
