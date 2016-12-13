@@ -17,5 +17,8 @@ test('md5 authentication', function() {
                         .addCString(password).join(true,'p'));
     });
   });
+});
 
+test('md5 of utf-8 strings', function() {
+  assert.equal(Client.md5('😊'), '5deda34cd95f304948d2bc1b4a62c11e');
 });
