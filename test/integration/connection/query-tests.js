@@ -6,7 +6,7 @@ var rows = [];
 //it's cumbersome to use the api this way
 test('simple query', function() {
   helper.connect(function(con) {
-    con.query('select * from ids');
+    con.query('select * from ids -- sample SQL comment');
     assert.emits(con, 'dataRow');
     con.on('dataRow', function(msg) {
       rows.push(msg.fields);
