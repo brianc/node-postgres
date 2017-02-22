@@ -2,9 +2,10 @@ var helper = require(__dirname + "/test-helper");
 var types = require('pg-types')
 
 test('handles throws in type parsers', function() {
+  var typeParserError = new Error('TEST: Throw in type parsers');
 
   types.setTypeParser('special oid that will throw', function () {
-    throw Object.assign(new Error('Test'), { throwInTypeParser: true });
+    throw typeParserError;
   });
 
   test('emits error', function() {
@@ -25,7 +26,7 @@ test('handles throws in type parsers', function() {
     assert.ok(handled, "should have handled row description");
 
     assert.emits(query, 'error', function(err) {
-      assert.equal(err.throwInTypeParser, true);
+      assert.equal(err, typeParserError);
     });
 
     handled = con.emit('dataRow', { fields: ["hi"] });
@@ -49,7 +50,7 @@ test('handles throws in type parsers', function() {
       callbackCalled += 1;
 
       assert.equal(callbackCalled, 1);
-      assert.equal(err.throwInTypeParser, true);
+      assert.equal(err, typeParserError);
     }));
 
     handled = con.emit('readyForQuery');
@@ -104,7 +105,7 @@ test('handles throws in type parsers', function() {
     assert.ok(handled, "should have handled ready for query");
 
     queryPromise.catch(assert.calls(function (err) {
-      assert.equal(err.throwInTypeParser, true);
+      assert.equal(err, typeParserError);
     }));
   });
 
