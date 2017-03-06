@@ -188,7 +188,7 @@ await pool.end()
 
 The pool should be a __long-lived object__ in your application.  Generally you'll want to instantiate one pool when your app starts up and use the same instance of the pool throughout the lifetime of your application.  If you are frequently creating a new pool within your code you likely don't have your pool initialization code in the correct place.  Example:
 
-```
+```js
 // assume this is a file in your program at ./your-app/lib/db.js
 
 // correct usage: create the pool and let it live
