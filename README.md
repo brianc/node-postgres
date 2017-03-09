@@ -84,7 +84,7 @@ module.exports.query = function (text, values, callback) {
 // the pool also supports checking out a client for
 // multiple operations, such as a transaction
 module.exports.connect = function (callback) {
-  pool.connect(callback);
+  return pool.connect(callback);
 };
 ```
 
@@ -129,6 +129,8 @@ pool.connect(function(err, client, done) {
   });
 });
 ```
+
+For more examples, including how to use a connection pool with promises and async/await see the [example](https://github.com/brianc/node-postgres/wiki/Example) page in the wiki.
 
 ### Obtaining an exclusive client, example
 
@@ -228,21 +230,9 @@ Information about the testing processes is in the [wiki](https://github.com/bria
 
 Open source belongs to all of us, and we're all invited to participate!
 
-## Troubleshooting
- 
-### I obtain `Promise { <pending> }` from a query
- 
-See https://github.com/brianc/node-postgres/issues/1130. The query returns a promise because of its asynchronous design. You should use a callback, the `then` method or await. Callback xample:
- 
- ```{js}
- pool.query('SELECT $1::int AS number', ['2'], function(err, res) {
-   if(err) {
-     return console.error('error running query', err);
-   }
-   
-   console.log('number:', res.rows[0].number);
- });
- ```
+## Troubleshooting and FAQ
+
+The causes and solutions to common errors can be found among the [Frequently Asked Questions(FAQ)](https://github.com/brianc/node-postgres/wiki/FAQ)
 
 ## Support
 
