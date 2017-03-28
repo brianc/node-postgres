@@ -15,7 +15,124 @@ $ npm install pg
 
 ## Intro & Examples
 
-### Simple example
+There are 3 ways of executing queries
+
+1. Passing the query to a pool
+2. Borrowing a client from a pool and executing the query with it
+3. Obtaining an exclusive client and executing the query with it
+
+It is recommended to pass the query to a pool as often as possible. If that isn't possible, because of long and complex transactions for example, borrow a client from a pool. Just remember to initialize the pool only once in your code so you maximize reusability of connections.
+
+### Why pooling?
+
+If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  For one thing, there is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Furthermore, PostgreSQL can support only a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a __very bad thing__. :tm: Additionally, PostgreSQL can only execute 1 query at a time per connected client, so pipelining all queries for all requests through a single, long-lived client will likely introduce a bottleneck into your application if you need high concurrency.
+
+With that in mind we can imagine a situation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >100 simultaneous requests your web server will attempt to open 100 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, your database will become unresponsive, your app will seem to hang, and everything will break. Boooo!
+
+__Good news__: node-postgres ships with built in client pooling.  Client pooling allows your application to use a pool of already connected clients and reuse them for each request to your application.  If your app needs to make more queries than there are available clients in the pool the queries will queue instead of overwhelming your database & causing a cascading failure. :thumbsup:
+
+node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling. It bundles it and exports it for convenience.  If you want, you can `require('pg-pool')` and use it directly - it's the same as the constructor exported at `pg.Pool`.
+
+It's __highly recommended__ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git).
+
+[Here is an up & running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
+
+For more information about `config.ssl` check [TLS (SSL) of nodejs](https://nodejs.org/dist/latest-v4.x/docs/api/tls.html)
+
+### Pooling example
+
+Let's create a pool in `./lib/db.js` which will be reused across the whole project
+
+```javascript
+const pg = require('pg')
+
+// create a config to configure both pooling behavior
+// and client options
+// note: all config is optional and the environment variables
+// will be read if the config is not present
+var config = {
+  user: 'foo', //env var: PGUSER
+  database: 'my_db', //env var: PGDATABASE
+  password: 'secret', //env var: PGPASSWORD
+  host: 'localhost', // Server hosting the postgres database
+  port: 5432, //env var: PGPORT
+  max: 10, // max number of clients in the pool
+  idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
+};
+
+//this initializes a connection pool
+//it will keep idle connections open for 30 seconds
+//and set a limit of maximum 10 idle clients
+const pool = new pg.Pool(config);
+
+pool.on('error', function (err, client) {
+  // if an error is encountered by a client while it sits idle in the pool
+  // the pool itself will emit an error event with both the error and
+  // the client which emitted the original error
+  // this is a rare occurrence but can happen if there is a network partition
+  // between your application and the database, the database restarts, etc.
+  // and so you might want to handle it and at least log it out
+  console.error('idle client error', err.message, err.stack)
+})
+
+//export the query method for passing queries to the pool
+module.exports.query = function (text, values, callback) {
+  console.log('query:', text, values);
+  return pool.query(text, values, callback);
+};
+
+// the pool also supports checking out a client for
+// multiple operations, such as a transaction
+module.exports.connect = function (callback) {
+  return pool.connect(callback);
+};
+```
+
+Now if in `./foo.js` you want to pass a query to the pool
+
+```js
+const pool = require('./lib/db');
+
+//to run a query we just pass it to the pool
+//after we're done nothing has to be taken care of
+//we don't have to return any client to the pool or close a connection
+pool.query('SELECT $1::int AS number', ['2'], function(err, res) {
+  if(err) {
+    return console.error('error running query', err);
+  }
+
+  console.log('number:', res.rows[0].number);
+});
+```
+
+Or if in `./bar.js` you want borrow a client from the pool
+
+```js
+const pool = require('./lib/db');
+
+//ask for a client from the pool
+pool.connect(function(err, client, done) {
+  if(err) {
+    return console.error('error fetching client from pool', err);
+  }
+  
+  //use the client for executing the query
+  client.query('SELECT $1::int AS number', ['1'], function(err, result) {
+    //call `done(err)` to release the client back to the pool (or destroy it if there is an error)
+    done(err);
+
+    if(err) {
+      return console.error('error running query', err);
+    }
+    console.log(result.rows[0].number);
+    //output: 1
+  });
+});
+```
+
+For more examples, including how to use a connection pool with promises and async/await see the [example](https://github.com/brianc/node-postgres/wiki/Example) page in the wiki.
+
+### Obtaining an exclusive client, example
 
 ```js
 var pg = require('pg');
@@ -44,76 +161,6 @@ client.connect(function (err) {
 });
 
 ```
-
-### Client pooling
-
-If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  For one thing, there is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Furthermore, PostgreSQL can support only a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a __very bad thing__. :tm: Additionally, PostgreSQL can only execute 1 query at a time per connected client, so pipelining all queries for all requests through a single, long-lived client will likely introduce a bottleneck into your application if you need high concurrency.
-
-With that in mind we can imagine a situation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >100 simultaneous requests your web server will attempt to open 100 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, your database will become unresponsive, your app will seem to hang, and everything will break. Boooo!
-
-__Good news__: node-postgres ships with built in client pooling.  Client pooling allows your application to use a pool of already connected clients and reuse them for each request to your application.  If your app needs to make more queries than there are available clients in the pool the queries will queue instead of overwhelming your database & causing a cascading failure. :thumbsup:
-
-```javascript
-var pg = require('pg');
-
-// create a config to configure both pooling behavior
-// and client options
-// note: all config is optional and the environment variables
-// will be read if the config is not present
-var config = {
-  user: 'foo', //env var: PGUSER
-  database: 'my_db', //env var: PGDATABASE
-  password: 'secret', //env var: PGPASSWORD
-  host: 'localhost', // Server hosting the postgres database
-  port: 5432, //env var: PGPORT
-  max: 10, // max number of clients in the pool
-  idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
-};
-
-
-//this initializes a connection pool
-//it will keep idle connections open for 30 seconds
-//and set a limit of maximum 10 idle clients
-var pool = new pg.Pool(config);
-
-// to run a query we can acquire a client from the pool,
-// run a query on the client, and then return the client to the pool
-pool.connect(function(err, client, done) {
-  if(err) {
-    return console.error('error fetching client from pool', err);
-  }
-  client.query('SELECT $1::int AS number', ['1'], function(err, result) {
-    //call `done(err)` to release the client back to the pool (or destroy it if there is an error)
-    done(err);
-
-    if(err) {
-      return console.error('error running query', err);
-    }
-    console.log(result.rows[0].number);
-    //output: 1
-  });
-});
-
-pool.on('error', function (err, client) {
-  // if an error is encountered by a client while it sits idle in the pool
-  // the pool itself will emit an error event with both the error and
-  // the client which emitted the original error
-  // this is a rare occurrence but can happen if there is a network partition
-  // between your application and the database, the database restarts, etc.
-  // and so you might want to handle it and at least log it out
-  console.error('idle client error', err.message, err.stack)
-})
-```
-
-node-postgres uses [pg-pool](https://github.com/brianc/node-pg-pool.git) to manage pooling. It bundles it and exports it for convenience.  If you want, you can `require('pg-pool')` and use it directly - it's the same as the constructor exported at `pg.Pool`.
-
-It's __highly recommended__ you read the documentation for [pg-pool](https://github.com/brianc/node-pg-pool.git).
-
-
-[Here is an up & running quickly example](https://github.com/brianc/node-postgres/wiki/Example)
-
-
-For more information about `config.ssl` check [TLS (SSL) of nodejs](https://nodejs.org/dist/latest-v4.x/docs/api/tls.html)
 
 ## [More Documentation](https://github.com/brianc/node-postgres/wiki)
 
@@ -182,6 +229,10 @@ I will __happily__ accept your pull request if it:
 Information about the testing processes is in the [wiki](https://github.com/brianc/node-postgres/wiki/Testing).
 
 Open source belongs to all of us, and we're all invited to participate!
+
+## Troubleshooting and FAQ
+
+The causes and solutions to common errors can be found among the [Frequently Asked Questions(FAQ)](https://github.com/brianc/node-postgres/wiki/FAQ)
 
 ## Support
 
