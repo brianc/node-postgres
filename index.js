@@ -11,7 +11,7 @@ var Pool = module.exports = function (options, Client) {
   this.options = objectAssign({}, options)
   this.log = this.options.log || function () { }
   this.Client = this.options.Client || Client || require('pg').Client
-  this.Promise = this.options.Promise || Promise
+  this.Promise = this.options.Promise || global.Promise
 
   this.options.max = this.options.max || this.options.poolSize || 10
   this.options.create = this.options.create || this._create.bind(this)
