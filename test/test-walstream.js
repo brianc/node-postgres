@@ -20,6 +20,8 @@ function proc() {
 
 walStream.on('data', function(msg) {
   lastLsn = msg.lsn || lastLsn;
+  
+  //DO SOMETHING. eg) replicate to other dbms(pgsql, mysql, ...)
   console.log('log recv', msg);
 }).on('error', function(err) {
   console.log('Error #2', err);
