@@ -3,6 +3,26 @@ var util = require('util')
 var EventEmitter = require('events').EventEmitter
 var objectAssign = require('object-assign')
 
+// there is a bug in the generic pool where it will not recreate
+// destroyed workers (even if there is waiting work to do) unless
+// there is a min specified. Make sure we keep some connections
+// SEE: https://github.com/coopernurse/node-pool/pull/186
+// SEE: https://github.com/brianc/node-pg-pool/issues/48
+// SEE: https://github.com/strongloop/loopback-connector-postgresql/issues/231
+function _ensureMinimum () {
+  var i, diff, waiting
+  if (this._draining) return
+  waiting = this._waitingClients.size()
+  if (this._factory.min > 0) { // we have positive specified minimum
+    diff = this._factory.min - this._count
+  } else if (waiting > 0) { // we have no minimum, but we do have work to do
+    diff = Math.min(waiting, this._factory.max - this._count)
+  }
+  for (i = 0; i < diff; i++) {
+    this._createResource()
+  }
+};
+
 var Pool = module.exports = function (options, Client) {
   if (!(this instanceof Pool)) {
     return new Pool(options, Client)
@@ -17,6 +37,14 @@ var Pool = module.exports = function (options, Client) {
   this.options.create = this.options.create || this._create.bind(this)
   this.options.destroy = this.options.destroy || this._destroy.bind(this)
   this.pool = new genericPool.Pool(this.options)
+  // Monkey patch to ensure we always finish our work
+  //  - There is a bug where callbacks go uncalled if min is not set
+  //  - We might still not want a connection to *always* exist
+  //  - but we do want to create up to max connections if we have work
+  //  - still waiting
+  // This should be safe till the version of pg-pool is upgraded
+  // SEE: https://github.com/coopernurse/node-pool/pull/186
+  this.pool._ensureMinimum = _ensureMinimum
   this.onCreate = this.options.onCreate
 }
 
