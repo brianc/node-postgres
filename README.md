@@ -44,7 +44,7 @@ For more information about `config.ssl` check [TLS (SSL) of nodejs](https://node
 Let's create a pool in `./lib/db.js` which will be reused across the whole project
 
 ```javascript
-const pg = require('pg')
+const pg = require('pg');
 
 // create a config to configure both pooling behavior
 // and client options
@@ -72,8 +72,8 @@ pool.on('error', function (err, client) {
   // this is a rare occurrence but can happen if there is a network partition
   // between your application and the database, the database restarts, etc.
   // and so you might want to handle it and at least log it out
-  console.error('idle client error', err.message, err.stack)
-})
+  console.error('idle client error', err.message, err.stack);
+});
 
 //export the query method for passing queries to the pool
 module.exports.query = function (text, values, callback) {
