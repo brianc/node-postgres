@@ -347,6 +347,13 @@ test('Connection', function() {
       name: 'portalSuspended'
     });
   });
+
+  test('parses replication start message', function() {
+    testForMessage(new Buffer([0x57, 0x00, 0x00, 0x00, 0x04]), {
+      name: 'replicationStart',
+      length: 4
+    });
+  });
 });
 
 //since the data message on a stream can randomly divide the incomming
@@ -465,5 +472,4 @@ test('split buffer, multiple message parsing', function() {
       splitAndVerifyTwoMessages(1);
     });
   });
-
 });
