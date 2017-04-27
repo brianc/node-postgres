@@ -116,4 +116,15 @@ describe('cursor', function() {
       })
     })
   })
+
+  it('returns result along with rows', function(done) {
+    var cursor = this.pgCursor(text)
+    cursor.read(1, function(err, rows, result) {
+      assert.ifError(err)
+      assert.equal(rows.length, 1)
+      assert.strictEqual(rows, result.rows)
+      assert.deepEqual(result.fields.map(f => f.name), ['num'])
+      done()
+    })
+  })
 })
