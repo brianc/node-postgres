@@ -70,7 +70,8 @@ Cursor.prototype._sendRows = function() {
     //within the call to this callback
     this._cb = null
     if(cb) {
-      cb(null, this._rows)
+      this._result.rows = this._rows
+      cb(null, this._rows, this._result)
     }
     this._rows = []
   }.bind(this))
