@@ -121,6 +121,53 @@ test('executing query', function() {
       });
     });
 
+    test('handleReadyForQuery emits \'end\' even if callback throws an exception', function() {
+      var client = helper.client();
+      var query = client.query('whatever');
+
+      query.callback = function() {
+        throw new Error('Fake Error');
+      };
+      assert.emits(query, 'end');
+
+      try {
+        query.handleReadyForQuery();
+      }
+      catch (e) {}
+    });
+
+    test('handleError emits \'end\' even if callback throws an exception', function() {
+      var client = helper.client();
+      var query = client.query('whatever');
+
+      query.callback = function() {
+        throw new Error('Fake Error');
+      };
+      assert.emits(query, 'end');
+
+      try {
+        query.handleReadyForQuery();
+      }
+      catch (e) {}
+    });
+
+    test('client \'readyForQuery\' handler sets readyForQuery to true even if callback throws an exception', function() {
+      var client = helper.client();
+      var query = client.query('whatever');
+
+      query.callback = function() {
+        throw new Error('Fake Error');
+      };
+      client.activeQuery = query;
+      client.readyForQuery = false;
+      client._pulseQueryQueue = function() {};
+      try {
+        client.connection.emit('readyForQuery');
+      }
+      catch (e) {}
+      assert.equal(true, client.readyForQuery);
+    });
+
   });
 
 });
