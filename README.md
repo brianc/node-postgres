@@ -21,11 +21,12 @@ There are 3 ways of executing queries
 2. Borrowing a client from a pool and executing the query with it
 3. Obtaining an exclusive client and executing the query with it
 
-It is recommended to pass the query to a pool as often as possible. If that isn't possible, because of long and complex transactions for example, borrow a client from a pool. Just remember to initialize the pool only once in your code so you maximize reusability of connections.
+It is recommended to pass the query to a pool as often as possible. If that isn't possible, because of long and complex transactions for example, borrow a client from a pool. Just remember to initialize the pool 
+once in your code so you maximize reusability of connections.
 
 ### Why pooling?
 
-If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  For one thing, there is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Furthermore, PostgreSQL can support only a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a __very bad thing__. :tm: Additionally, PostgreSQL can only execute 1 query at a time per connected client, so pipelining all queries for all requests through a single, long-lived client will likely introduce a bottleneck into your application if you need high concurrency.
+If you're working on something like a web application which makes frequent queries you'll want to access the PostgreSQL server through a pool of clients.  Why?  For one thing, there is ~20-30 millisecond delay (YMMV) when connecting a new client to the PostgreSQL server because of the startup handshake.  Furthermore, PostgreSQL can support only a limited number of clients...it depends on the amount of ram on your database server, but generally more than 100 clients at a time is a __very bad thing__. :tm: Additionally, PostgreSQL can execute only 1 query at a time per connected client, so pipelining all queries for all requests through a single, long-lived client will likely introduce a bottleneck into your application if you need high concurrency.
 
 With that in mind we can imagine a situation where you have a web server which connects and disconnects a new client for every web request or every query (don't do this!).  If you get only 1 request at a time everything will seem to work fine, though it will be a touch slower due to the connection overhead. Once you get >100 simultaneous requests your web server will attempt to open 100 connections to the PostgreSQL backend and :boom: you'll run out of memory on the PostgreSQL server, your database will become unresponsive, your app will seem to hang, and everything will break. Boooo!
 
