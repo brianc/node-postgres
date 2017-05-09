@@ -115,7 +115,11 @@ Cursor.prototype.handleError = function(msg) {
   for(var i = 0; i < this._queue.length; i++) {
     this._queue.pop()[1](msg)
   }
-  this.emit('error', msg)
+
+  if (this.eventNames().indexOf('error') >= 0) {
+    //only dispatch error events if we have a listener
+    this.emit('error', msg)
+  }
   //call sync to keep this connection from hanging
   this.connection.sync()
 }
