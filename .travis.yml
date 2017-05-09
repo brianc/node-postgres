@@ -1,5 +1,13 @@
 language: node_js
+dist: trusty
+sudo: false
 node_js:
   - "6"
 env:
   - PGUSER=postgres
+services:
+  - postgresql
+addons:
+  postgresql: "9.6"
+before_script:
+  - psql -c 'create database travis;' -U postgres | true
