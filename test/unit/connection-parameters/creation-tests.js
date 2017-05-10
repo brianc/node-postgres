@@ -126,7 +126,7 @@ test('libpq connection string building', function() {
       checkForPart(parts, "user='brian'");
       checkForPart(parts, "password='xyz'");
       checkForPart(parts, "port='888'");
-      checkForPart(parts, "hostaddr=127.0.0.1");
+      checkForPart(parts, "hostaddr='127.0.0.1'");
       checkForPart(parts, "dbname='bam'");
     }));
   });
@@ -143,7 +143,7 @@ test('libpq connection string building', function() {
       assert.isNull(err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
-      checkForPart(parts, "hostaddr=127.0.0.1");
+      checkForPart(parts, "hostaddr='127.0.0.1'");
     }));
   });
 
@@ -173,7 +173,7 @@ test('libpq connection string building', function() {
       assert.isNull(err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
-      checkForPart(parts, "host=/tmp/");
+      checkForPart(parts, "host='/tmp/'");
     }));
   });
 
