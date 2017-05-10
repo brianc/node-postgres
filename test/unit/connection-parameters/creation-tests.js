@@ -177,6 +177,22 @@ test('libpq connection string building', function() {
     }));
   });
 
+  test('config contains quotes and backslashes', function() {
+    var config = {
+      user: 'not\\brian',
+      password: 'bad\'chars',
+      port: 5432,
+      host: '/tmp/'
+    };
+    var subject = new ConnectionParameters(config);
+    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
+      assert.isNull(err);
+      var parts = constring.split(" ");
+      checkForPart(parts, "user='not\\\\brian'");
+      checkForPart(parts, "password='bad\\'chars'");
+    }));
+  });
+
   test("encoding can be specified by config", function() {
     var config = {
       client_encoding: "utf-8"
