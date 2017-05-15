@@ -126,7 +126,7 @@ test('libpq connection string building', function() {
       checkForPart(parts, "user='brian'");
       checkForPart(parts, "password='xyz'");
       checkForPart(parts, "port='888'");
-      checkForPart(parts, "hostaddr=127.0.0.1");
+      checkForPart(parts, "hostaddr='127.0.0.1'");
       checkForPart(parts, "dbname='bam'");
     }));
   });
@@ -143,7 +143,7 @@ test('libpq connection string building', function() {
       assert.isNull(err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
-      checkForPart(parts, "hostaddr=127.0.0.1");
+      checkForPart(parts, "hostaddr='127.0.0.1'");
     }));
   });
 
@@ -173,7 +173,23 @@ test('libpq connection string building', function() {
       assert.isNull(err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
-      checkForPart(parts, "host=/tmp/");
+      checkForPart(parts, "host='/tmp/'");
+    }));
+  });
+
+  test('config contains quotes and backslashes', function() {
+    var config = {
+      user: 'not\\brian',
+      password: 'bad\'chars',
+      port: 5432,
+      host: '/tmp/'
+    };
+    var subject = new ConnectionParameters(config);
+    subject.getLibpqConnectionString(assert.calls(function(err, constring) {
+      assert.isNull(err);
+      var parts = constring.split(" ");
+      checkForPart(parts, "user='not\\\\brian'");
+      checkForPart(parts, "password='bad\\'chars'");
     }));
   });
 
