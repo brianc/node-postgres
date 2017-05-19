@@ -31,3 +31,20 @@ pg.connect(helper.config, assert.success(function(client, done) {
       pg.end()
     })
 }))
+
+test('getting promise result after query completion (gh#1292)', function() {
+  pg.connect(helper.config, assert.success(function(client, done) {
+    var query = client.query('SELECT 1 AS value', assert.success(function() {
+      var timer = setTimeout(function() {
+        throw new Error('Timed out')
+      }, 1000)
+
+      query.then(function(result) {
+        clearTimeout(timer);
+        assert.equal(result.rows[0].value, 1)
+        done()
+        pg.end()
+      })
+    }))
+  }))
+})
