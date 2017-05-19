@@ -253,7 +253,7 @@ Follow me [@briancarlson](https://twitter.com/briancarlson) to keep up to date.
 
 ## License
 
-Copyright (c) 2010-2016 Brian Carlson (brian.m.carlson@gmail.com)
+Copyright (c) 2010-2017 Brian Carlson (brian.m.carlson@gmail.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
