@@ -171,3 +171,26 @@ test('null and undefined are both inserted as NULL', function() {
     }))
   }))
 })
+
+test('can configure multiResult option', function() {
+  pg.connect(helper.config, assert.calls(function(err, client, done) {
+    assert.isNull(err);
+    test('result is not an array by default', function() {
+      client.query({ text: 'select \'hi\' as val; select \'bye\' as val;' }, assert.calls(function(err, result) {
+        assert.isNull(err);
+        assert.equal(result instanceof Array, false);
+        done();
+      }))
+    })
+    test('result is an array when asked', function() {
+      client.query({ text: 'select \'hi\' as val; select \'bye\' as val;', multiResult: true }, assert.calls(function(err, results) {
+        assert.isNull(err);
+        assert.equal(results instanceof Array, true);
+        assert.equal(results.length, 2);
+        assert.equal(results[0].rows[0].val, 'hi');
+        assert.equal(results[1].rows[0].val, 'bye');
+        done();
+      }))
+    })
+  }))
+})
