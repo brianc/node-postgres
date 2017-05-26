@@ -24,4 +24,3 @@ helper.versionGTE = function(client, versionString, callback) {
 
 //export parent helper stuffs
 module.exports = helper;
-
