@@ -12,14 +12,6 @@ addons:
 
 matrix:
   include:
-    - node_js: "0.10"
-      addons:
-        postgresql: "9.6"
-      env: []
-    - node_js: "0.12"
-      addons:
-        postgresql: "9.6"
-      env: []
     - node_js: "4"
       addons:
         postgresql: "9.6"
