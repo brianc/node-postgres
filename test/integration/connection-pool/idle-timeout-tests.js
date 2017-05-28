@@ -1,7 +1,6 @@
 var helper = require(__dirname + '/test-helper');
-var _ = require('lodash')
 
-const config = _.extend({ }, helper.config, { idleTimeoutMillis: 50 })
+const config = Object.assign({ }, helper.config, { idleTimeoutMillis: 50 })
 
 test('idle timeout', function() {
  helper.pg.connect(config, assert.calls(function(err, client, done) {
