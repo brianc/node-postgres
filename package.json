@@ -31,8 +31,7 @@
     "co": "4.6.0",
     "jshint": "2.5.2",
     "lodash": "4.13.1",
-    "pg-copy-streams": "0.3.0",
-    "promise-polyfill": "5.2.1"
+    "pg-copy-streams": "0.3.0"
   },
   "minNativeVersion": "1.7.0",
   "scripts": {

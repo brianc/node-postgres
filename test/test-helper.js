@@ -1,11 +1,6 @@
 //make assert a global...
 assert = require('assert');
 
-//support for node@0.10.x
-if (typeof Promise == 'undefined') {
-  global.Promise = require('promise-polyfill')
-}
-
 var EventEmitter = require('events').EventEmitter;
 var sys = require('util');
 var BufferList = require(__dirname+'/buffer-list')
