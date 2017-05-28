@@ -3,7 +3,7 @@ require(__dirname + '/test-helper');
 test('md5 authentication', function() {
   var client = createClient();
   client.password = "!";
-  var salt = Buffer([1, 2, 3, 4]);
+  var salt = Buffer.from([1, 2, 3, 4]);
   client.connection.emit('authenticationMD5Password', {salt: salt});
 
   test('responds', function() {
