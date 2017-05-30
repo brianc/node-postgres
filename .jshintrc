@@ -1,5 +1,6 @@
 {
   "trailing": true,
   "indent": 2,
+  "eqnull": true,
   "evil": true
 }
