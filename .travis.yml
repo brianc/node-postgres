@@ -10,4 +10,4 @@ matrix:
         postgresql: "9.4"
     - node_js: "8"
       addons:
-        postgresql: "9.6"
+        postgresql: "9.4"
