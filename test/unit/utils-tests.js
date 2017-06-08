@@ -50,7 +50,7 @@ test('normalizing query configs', function() {
 })
 
 test('prepareValues: buffer prepared properly', function() {
-  var buf = new Buffer("quack");
+  var buf = Buffer.from("quack");
   var out = utils.prepareValue(buf);
   assert.strictEqual(buf, out);
 });
@@ -142,7 +142,7 @@ test('prepareValue: objects with simple toPostgres prepared properly', function(
 });
 
 test('prepareValue: objects with complex toPostgres prepared properly', function() {
-  var buf = new Buffer("zomgcustom!");
+  var buf = Buffer.from("zomgcustom!");
   var customType = {
     toPostgres: function() {
       return [1, 2];
@@ -165,7 +165,7 @@ test('prepareValue: objects with toPostgres receive prepareValue', function() {
 });
 
 test('prepareValue: objects with circular toPostgres rejected', function() {
-  var buf = new Buffer("zomgcustom!");
+  var buf = Buffer.from("zomgcustom!");
   var customType = {
     toPostgres: function() {
       return { toPostgres: function () { return customType; } };
