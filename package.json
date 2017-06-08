@@ -18,6 +18,8 @@
   "author": "Brian Carlson <brian.m.carlson@gmail.com>",
   "main": "./lib",
   "dependencies": {
+    "buffer-alloc-unsafe": "^1.0.0",
+    "buffer-from": "^0.1.1",
     "buffer-writer": "1.0.1",
     "packet-reader": "0.3.1",
     "pg-connection-string": "0.1.3",

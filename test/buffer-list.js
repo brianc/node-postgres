@@ -1,3 +1,6 @@
+var allocUnsafe = require('buffer-alloc-unsafe');
+var bufferFrom = require('buffer-from');
+
 BufferList = function() {
   this.buffers = [];
 };
@@ -9,7 +12,7 @@ p.add = function(buffer, front) {
 };
 
 p.addInt16 = function(val, front) {
-  return this.add(Buffer([(val >>> 8),(val >>> 0)]),front);
+  return this.add(bufferFrom([(val >>> 8), (val >>> 0)]), front);
 };
 
 p.getByteLength = function(initial) {
@@ -19,7 +22,7 @@ p.getByteLength = function(initial) {
 };
 
 p.addInt32 = function(val, first) {
-  return this.add(Buffer([
+  return this.add(bufferFrom([
     (val >>> 24 & 0xFF),
     (val >>> 16 & 0xFF),
     (val >>> 8 & 0xFF),
@@ -29,14 +32,14 @@ p.addInt32 = function(val, first) {
 
 p.addCString = function(val, front) {
   var len = Buffer.byteLength(val);
-  var buffer = new Buffer(len+1);
+  var buffer = allocUnsafe(len+1);
   buffer.write(val);
   buffer[len] = 0;
   return this.add(buffer, front);
 };
 
 p.addChar = function(char, first) {
-  return this.add(Buffer(char,'utf8'), first);
+  return this.add(bufferFrom(char, 'utf8'), first);
 };
 
 p.join = function(appendLength, char) {
@@ -49,7 +52,7 @@ p.join = function(appendLength, char) {
     this.addChar(char, true);
     length++;
   }
-  var result = Buffer(length);
+  var result = allocUnsafe(length);
   var index = 0;
   this.buffers.forEach(function(buffer) {
     buffer.copy(result, index, 0);

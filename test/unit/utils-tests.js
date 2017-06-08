@@ -1,7 +1,7 @@
 var helper = require(__dirname + '/test-helper');
 var utils = require(__dirname + "/../../lib/utils");
 var defaults = require(__dirname + "/../../lib").defaults;
-
+var bufferFrom = require('buffer-from');
 
 test('ensure types is exported on root object', function() {
   var pg = require('../../lib')
@@ -50,7 +50,7 @@ test('normalizing query configs', function() {
 })
 
 test('prepareValues: buffer prepared properly', function() {
-  var buf = new Buffer("quack");
+  var buf = bufferFrom("quack");
   var out = utils.prepareValue(buf);
   assert.strictEqual(buf, out);
 });
@@ -142,7 +142,7 @@ test('prepareValue: objects with simple toPostgres prepared properly', function(
 });
 
 test('prepareValue: objects with complex toPostgres prepared properly', function() {
-  var buf = new Buffer("zomgcustom!");
+  var buf = bufferFrom("zomgcustom!");
   var customType = {
     toPostgres: function() {
       return [1, 2];
@@ -165,7 +165,7 @@ test('prepareValue: objects with toPostgres receive prepareValue', function() {
 });
 
 test('prepareValue: objects with circular toPostgres rejected', function() {
-  var buf = new Buffer("zomgcustom!");
+  var buf = bufferFrom("zomgcustom!");
   var customType = {
     toPostgres: function() {
       return { toPostgres: function () { return customType; } };
