@@ -4,18 +4,26 @@ var it = require('mocha').it
 var Pool = require('../')
 
 describe('Connection strings', function () {
-  it('pool delegates connectionString property to client', function () {
+  it('pool delegates connectionString property to client', function (done) {
+    var connectionString = 'postgres://foo:bar@baz:1234/xur'
+
     var pool = new Pool({
-      connectionString: 'postgres://foo:bar@baz:1234/xur'
+      // use a fake client so we can check we're passed the connectionString
+      Client: function (args) {
+        expect(args.connectionString).to.equal(connectionString)
+        return {
+          connect: function (cb) {
+            cb(new Error('testing'))
+          },
+          on: function () { }
+        }
+      },
+      connectionString: connectionString
     })
+
     pool.connect(function (err, client) {
       expect(err).to.not.be(undefined)
-      expect(client).to.not.be(undefined)
-      expect(client.username).to.equal('foo')
-      expect(client.password).to.equal('bar')
-      expect(client.database).to.equal('baz')
-      expect(client.port).to.equal(1234)
-      expect(client.database).to.equal('xur')
+      done()
     })
   })
 })
