@@ -158,7 +158,7 @@ test('Connection', function() {
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage);
   var msg = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage);
   test('md5 has right salt', function() {
-    assert.equalBuffers(msg.salt, Buffer([1,2,3,4]));
+    assert.equalBuffers(msg.salt, Buffer.from([1,2,3,4]));
   });
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage);
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage);
@@ -173,7 +173,7 @@ test('Connection', function() {
   });
 
   test("no data message", function() {
-    testForMessage(Buffer([0x6e, 0, 0, 0, 4]), {
+    testForMessage(Buffer.from([0x6e, 0, 0, 0, 4]), {
       name: 'noData'
     });
   });
@@ -349,7 +349,7 @@ test('Connection', function() {
   });
 
   test('parses replication start message', function() {
-    testForMessage(new Buffer([0x57, 0x00, 0x00, 0x00, 0x04]), {
+    testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
       name: 'replicationStart',
       length: 4
     });
@@ -383,8 +383,8 @@ test('split buffer, single message parsing', function() {
   });
 
   var testMessageRecievedAfterSpiltAt = function(split) {
-    var firstBuffer = new Buffer(fullBuffer.length-split);
-    var secondBuffer = new Buffer(fullBuffer.length-firstBuffer.length);
+    var firstBuffer = Buffer.alloc(fullBuffer.length-split);
+    var secondBuffer = Buffer.alloc(fullBuffer.length-firstBuffer.length);
     fullBuffer.copy(firstBuffer, 0, 0);
     fullBuffer.copy(secondBuffer, 0, firstBuffer.length);
     stream.emit('data', firstBuffer);
@@ -416,7 +416,7 @@ test('split buffer, single message parsing', function() {
 test('split buffer, multiple message parsing', function() {
   var dataRowBuffer = buffers.dataRow(['!']);
   var readyForQueryBuffer = buffers.readyForQuery();
-  var fullBuffer = new Buffer(dataRowBuffer.length + readyForQueryBuffer.length);
+  var fullBuffer = Buffer.alloc(dataRowBuffer.length + readyForQueryBuffer.length);
   dataRowBuffer.copy(fullBuffer, 0, 0);
   readyForQueryBuffer.copy(fullBuffer, dataRowBuffer.length, 0);
 
@@ -449,8 +449,8 @@ test('split buffer, multiple message parsing', function() {
     verifyMessages();
   });
   var splitAndVerifyTwoMessages = function(split) {
-    var firstBuffer = new Buffer(fullBuffer.length-split);
-    var secondBuffer = new Buffer(fullBuffer.length-firstBuffer.length);
+    var firstBuffer = Buffer.alloc(fullBuffer.length-split);
+    var secondBuffer = Buffer.alloc(fullBuffer.length-firstBuffer.length);
     fullBuffer.copy(firstBuffer, 0, 0);
     fullBuffer.copy(secondBuffer, 0, firstBuffer.length);
     stream.emit('data', firstBuffer);

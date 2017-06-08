@@ -4,7 +4,7 @@ require(__dirname+'/test-helper');
 var buffers = {};
 buffers.readyForQuery = function() {
   return new BufferList()
-    .add(Buffer('I'))
+    .add(Buffer.from('I'))
     .join(true,'Z');
 };
 
@@ -23,7 +23,7 @@ buffers.authenticationCleartextPassword = function() {
 buffers.authenticationMD5Password = function() {
   return new BufferList()
     .addInt32(5)
-    .add(Buffer([1,2,3,4]))
+    .add(Buffer.from([1,2,3,4]))
     .join(true, 'R');
 };
 
@@ -71,7 +71,7 @@ buffers.dataRow = function(columns) {
     if(col == null) {
       buf.addInt32(-1);
     } else {
-      var strBuf = new Buffer(col, 'utf8');
+      var strBuf = Buffer.from(col, 'utf8');
       buf.addInt32(strBuf.length);
       buf.add(strBuf);
     }
@@ -94,7 +94,7 @@ var errorOrNotice = function(fields) {
     buf.addChar(field.type);
     buf.addCString(field.value);
   });
-  return buf.add(Buffer([0]));//terminator
+  return buf.add(Buffer.from([0]));//terminator
 }
 
 buffers.parseComplete = function() {

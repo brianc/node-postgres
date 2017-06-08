@@ -104,12 +104,12 @@ test('bind messages', function() {
       .addInt16(0)
       .addInt16(4)
       .addInt32(1)
-      .add(Buffer("1"))
+      .add(Buffer.from("1"))
       .addInt32(2)
-      .add(Buffer("hi"))
+      .add(Buffer.from("hi"))
       .addInt32(-1)
       .addInt32(4)
-      .add(Buffer('zing'))
+      .add(Buffer.from('zing'))
       .addInt16(0)
       .join(true, 'B');
     assert.received(stream, expectedBuffer);
@@ -120,7 +120,7 @@ test('with named statement, portal, and buffer value', function() {
   con.bind({
     portal: 'bang',
     statement: 'woo',
-    values: ['1', 'hi', null, new Buffer('zing', 'UTF-8')]
+    values: ['1', 'hi', null, Buffer.from('zing', 'utf8')]
   });
   var expectedBuffer = new BufferList()
     .addCString('bang')  //portal name
@@ -132,12 +132,12 @@ test('with named statement, portal, and buffer value', function() {
     .addInt16(1)//binary
     .addInt16(4)
     .addInt32(1)
-    .add(Buffer("1"))
+    .add(Buffer.from("1"))
     .addInt32(2)
-    .add(Buffer("hi"))
+    .add(Buffer.from("hi"))
     .addInt32(-1)
     .addInt32(4)
-    .add(new Buffer('zing', 'UTF-8'))
+    .add(Buffer.from('zing', 'UTF-8'))
     .addInt16(0)
     .join(true, 'B');
   assert.received(stream, expectedBuffer);
@@ -181,7 +181,7 @@ test('sends sync command', function() {
 
 test('sends end command', function() {
   con.end();
-  var expected = new Buffer([0x58, 0, 0, 0, 4]);
+  var expected = Buffer.from([0x58, 0, 0, 0, 4]);
   assert.received(stream, expected);
 });
 
