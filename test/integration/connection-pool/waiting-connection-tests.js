@@ -1,2 +1,2 @@
-var helper = require(__dirname + "/test-helper")
+var helper = require("./test-helper")
 helper.testPoolSize(200);

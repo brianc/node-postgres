@@ -1,6 +1,7 @@
-var helper = require(__dirname + '/test-helper')
+var helper = require('./test-helper')
 
 var called = false;
+
 test('disconnects', function() {
   var sink = new helper.Sink(4, function() {
     called = true;
