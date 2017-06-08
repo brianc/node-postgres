@@ -1,4 +1,4 @@
-var helper = require(__dirname + '/test-helper');
+var helper = require('./test-helper');
 var _ = require('lodash')
 
 const config = _.extend({ }, helper.config, { idleTimeoutMillis: 50 })
