@@ -1,5 +1,5 @@
-var helper = require(__dirname + "/../test-helper");
-var pg = require(__dirname + "/../../../lib");
+var helper = require("../test-helper");
+var pg = require("../../../lib");
 
 pg.connect(helper.config, assert.success(function(client, done) {
     assert.equal(Object.keys(pg._pools).length, 1);
