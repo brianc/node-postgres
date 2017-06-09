@@ -1,10 +1,5 @@
 var helper = require(__dirname + '/../test-helper');
 var pg = helper.pg;
-var semver = require('semver')
-
-if (semver.lt(process.version, '0.12.0')) {
-  return console.log('promises are not supported in node < v0.10')
-}
 
 process.on('unhandledRejection', function(e) {
   console.error(e, e.stack)

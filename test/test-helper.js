@@ -1,10 +1,7 @@
 //make assert a global...
 assert = require('assert');
 
-//support for node@0.10.x
-if (typeof Promise == 'undefined') {
-  global.Promise = require('promise-polyfill')
-}
+require('deprecate').silence = true;
 
 var EventEmitter = require('events').EventEmitter;
 var sys = require('util');

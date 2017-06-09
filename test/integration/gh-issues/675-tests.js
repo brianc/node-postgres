@@ -11,11 +11,11 @@ helper.pg.connect(helper.config, function(err, client, done) {
 
     c = 'INSERT INTO posts (body) VALUES ($1) RETURNING *';
 
-    var body = new Buffer('foo');
+    var body = Buffer.from('foo');
     client.query(c, [body], function(err) {
       if (err) throw err;
 
-      body = new Buffer([]);
+      body = Buffer.from([]);
       client.query(c, [body], function(err, res) {
         done();
 
