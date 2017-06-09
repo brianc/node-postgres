@@ -1,4 +1,4 @@
-var helper = require(__dirname + '/test-helper');
+var helper = require('./test-helper');
 
 //setup defaults
 helper.pg.defaults.user = helper.args.user;

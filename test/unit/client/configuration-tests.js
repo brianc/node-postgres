@@ -59,6 +59,17 @@ test('client settings', function() {
 
 test('initializing from a config string', function() {
 
+  test('uses connectionString property', function () {
+    var client = new Client({
+      connectionString: 'postgres://brian:pass@host1:333/databasename'
+    })
+    assert.equal(client.user, 'brian');
+    assert.equal(client.password, "pass");
+    assert.equal(client.host, "host1");
+    assert.equal(client.port, 333);
+    assert.equal(client.database, "databasename");
+  })
+
   test('uses the correct values from the config string', function() {
     var client = new Client("postgres://brian:pass@host1:333/databasename")
     assert.equal(client.user, 'brian');

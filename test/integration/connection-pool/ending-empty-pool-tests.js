@@ -1,4 +1,4 @@
-var helper = require(__dirname + '/test-helper')
+var helper = require('./test-helper')
 
 var called = false;
 test('disconnects', function() {

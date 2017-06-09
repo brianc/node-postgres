@@ -1,5 +1,5 @@
-var helper = require(__dirname + "/../test-helper");
-var pg = require(__dirname + "/../../../lib");
+var helper = require("../test-helper");
+var pg = require("../../../lib");
 
 //first make pool hold 2 clients
 pg.defaults.poolSize = 2;
