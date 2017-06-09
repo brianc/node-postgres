@@ -6,10 +6,6 @@ before_script:
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
 
-node_js: "6"
-addons:
-  postgresql: "9.6"
-
 matrix:
   include:
     - node_js: "4"
@@ -34,3 +30,6 @@ matrix:
     - node_js: "6"
       addons:
         postgresql: "9.5"
+    - node_js: "6"
+      addons:
+        postgresql: "9.6"
