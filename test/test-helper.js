@@ -1,8 +1,6 @@
 //make assert a global...
 assert = require('assert');
-
-require('deprecate').silence = true;
-
+process.noDeprecation = true;
 var EventEmitter = require('events').EventEmitter;
 var sys = require('util');
 var BufferList = require(__dirname+'/buffer-list')
