@@ -1,6 +1,24 @@
 var helper = require(__dirname + '/test-helper');
 var util = require('util');
 
+
+  test('non-query error with callback', function () {
+    var client = new Client({
+      user:'asldkfjsadlfkj'
+    });
+    client.connect(assert.calls(function (err) {
+      assert(err);
+    }));
+  });
+
+  test('non-query error', function() {
+    var client = new Client({
+      user:'asldkfjsadlfkj'
+    });
+    assert.emits(client, 'error');
+    client.connect();
+  });
+
 var createErorrClient = function() {
   var client = helper.client();
   client.once('error', function(err) {
@@ -11,9 +29,8 @@ var createErorrClient = function() {
   return client;
 };
 
-test('error handling', function(){
+test('error handling', function() {
   test('within a simple query', function() {
-
     var client = createErorrClient();
 
     var query = client.query("select omfg from yodas_dsflsd where pixistix = 'zoiks!!!'");
@@ -77,7 +94,6 @@ test('error handling', function(){
   });
 
   test('non-query error', function() {
-
     var client = new Client({
       user:'asldkfjsadlfkj'
     });

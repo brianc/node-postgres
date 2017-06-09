@@ -7,12 +7,14 @@ test('emits end when not in query', function() {
   stream.write = function() {
     //NOOP
   }
+
   var client = new Client({connection: new Connection({stream: stream})});
   client.connect(assert.calls(function() {
     client.query('SELECT NOW()', assert.calls(function(err, result) {
       assert(err);
     }));
   }));
+  assert.emits(client, 'error');
   assert.emits(client, 'end');
   client.connection.emit('connect');
   process.nextTick(function() {
