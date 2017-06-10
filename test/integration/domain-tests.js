@@ -1,5 +1,7 @@
-var helper = require('./test-helper')
 var async = require('async')
+
+var helper = require('./test-helper')
+var Query = helper.pg.Query
 
 var testWithoutDomain = function(cb) {
   test('no domain', function() {
@@ -42,7 +44,7 @@ var testErrorWithDomain = function(cb) {
     })
     domain.run(function() {
       helper.pg.connect(helper.config, assert.success(function(client, done) {
-        client.query('SELECT SLDKJFLSKDJF')
+        client.query(new Query('SELECT SLDKJFLSKDJF'))
         client.on('drain', done)
       }))
     })
