@@ -5,7 +5,7 @@ test('parsing array results', function() {
   pg.connect(helper.config, assert.calls(function(err, client, done) {
     assert.isNull(err);
     client.query("CREATE TEMP TABLE why(names text[], numbors integer[], decimals double precision[])");
-    client.query('INSERT INTO why(names, numbors, decimals) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\', \'{.1, 0.05, 3.654}\')').on('error', console.log);
+    client.query(new pg.Query('INSERT INTO why(names, numbors, decimals) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\', \'{.1, 0.05, 3.654}\')')).on('error', console.log);
       test('decimals', function() {
       client.query('SELECT decimals FROM why', assert.success(function(result) {
         assert.lengthIs(result.rows[0].decimals, 3);
