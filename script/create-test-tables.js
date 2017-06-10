@@ -39,15 +39,12 @@ var con = new pg.Client({
 });
 con.connect();
 var query = con.query("drop table if exists person");
-query.on('end', function() {
-  console.log("Dropped table 'person'")
-});
-con.query("create table person(id serial, name varchar(10), age integer)").on('end', function(){
+con.query("create table person(id serial, name varchar(10), age integer)", (err, res) => {
   console.log("Created table person");
   console.log("Filling it with people");
-});
+})
 people.map(function(person) {
-  return con.query("insert into person(name, age) values('"+person.name + "', '" + person.age + "')");
+  return con.query(new pg.Query("insert into person(name, age) values('"+person.name + "', '" + person.age + "')"));
 }).pop().on('end', function(){
   console.log("Inserted 26 people");
   con.end();

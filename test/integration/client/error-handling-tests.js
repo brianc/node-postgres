@@ -1,23 +1,8 @@
-var helper = require(__dirname + '/test-helper');
+var helper = require('./test-helper');
 var util = require('util');
 
+const { pg } = helper
 
-  test('non-query error with callback', function () {
-    var client = new Client({
-      user:'asldkfjsadlfkj'
-    });
-    client.connect(assert.calls(function (err) {
-      assert(err);
-    }));
-  });
-
-  test('non-query error', function() {
-    var client = new Client({
-      user:'asldkfjsadlfkj'
-    });
-    assert.emits(client, 'error');
-    client.connect();
-  });
 
 var createErorrClient = function() {
   var client = helper.client();
@@ -33,7 +18,7 @@ test('error handling', function() {
   test('within a simple query', function() {
     var client = createErorrClient();
 
-    var query = client.query("select omfg from yodas_dsflsd where pixistix = 'zoiks!!!'");
+    var query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"));
 
     assert.emits(query, 'error', function(error) {
       assert.equal(error.severity, "ERROR");
@@ -52,17 +37,17 @@ test('error handling', function() {
 
       var ensureFuture = function(testClient) {
         test("client can issue more queries successfully", function() {
-          var goodQuery = testClient.query("select age from boom");
+          var goodQuery = testClient.query(new pg.Query("select age from boom"));
           assert.emits(goodQuery, 'row', function(row) {
             assert.equal(row.age, 28);
           });
         });
       };
 
-      var query = client.query({
+      var query = client.query(new pg.Query({
         text: "select * from bang where name = $1",
         values: ['0']
-      });
+      }));
 
       test("query emits the error", function() {
         assert.emits(query, 'error', function(err) {
@@ -72,10 +57,10 @@ test('error handling', function() {
 
       test("when a query is binding", function() {
 
-        var query = client.query({
+        var query = client.query(new pg.Query({
           text: 'select * from boom where age = $1',
           values: ['asldkfjasdf']
-        });
+        }));
 
         test("query emits the error", function() {
 
