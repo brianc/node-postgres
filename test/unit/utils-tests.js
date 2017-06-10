@@ -126,6 +126,13 @@ test('prepareValue: date array prepared properly', function() {
   helper.resetTimezoneOffset();
 });
 
+test('prepareValue: buffer array prepared properly', function() {
+  var buffer1 = Buffer.from('dead', 'hex');
+  var buffer2 = Buffer.from('beef', 'hex');
+  var out = utils.prepareValue([buffer1, buffer2]);
+  assert.strictEqual(out, '{\\\\xdead,\\\\xbeef}');
+});
+
 test('prepareValue: arbitrary objects prepared properly', function() {
   var out = utils.prepareValue({ x: 42 });
   assert.strictEqual(out, '{"x":42}');
