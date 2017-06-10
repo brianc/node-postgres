@@ -6,13 +6,11 @@ var testForTag = function(tagText, callback) {
     var client = helper.client();
     client.connection.emit('readyForQuery')
 
-    var query = client.query("whatever");
-    assert.lengthIs(client.connection.queries, 1)
-
-    assert.emits(query, 'end', function(result) {
+    var query = client.query("whatever", assert.calls((err, result) => {
       assert.ok(result != null, "should pass something to this event")
       callback(result)
-    })
+    }));
+    assert.lengthIs(client.connection.queries, 1)
 
     client.connection.emit('commandComplete', {
       text: tagText

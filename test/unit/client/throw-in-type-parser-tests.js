@@ -1,4 +1,5 @@
-var helper = require(__dirname + "/test-helper");
+var helper = require("./test-helper");
+var Query = require('../../../lib/query')
 var types = require('pg-types')
 
 test('handles throws in type parsers', function() {
@@ -12,7 +13,7 @@ test('handles throws in type parsers', function() {
     var handled;
     var client = helper.client();
     var con = client.connection;
-    var query = client.query('whatever');
+    var query = client.query(new Query('whatever'));
 
     handled = con.emit('readyForQuery');
     assert.ok(handled, "should have handled ready for query");
@@ -81,8 +82,7 @@ test('handles throws in type parsers', function() {
     var handled;
     var client = helper.client();
     var con = client.connection;
-    var query = client.query('whatever');
-    var queryPromise = query.promise();
+    var queryPromise = client.query('whatever');
 
     handled = con.emit('readyForQuery');
     assert.ok(handled, "should have handled ready for query");
