@@ -17,8 +17,8 @@ helper.testPoolSize = function(max) {
           client.query("select count(*) as c from person", function(err, result) {
             assert.equal(result.rows[0].c, 26)
           })
-          var query = client.query("SELECT * FROM NOW()")
-          query.on('end',function() {
+          var query = client.query("SELECT * FROM NOW()", (err) => {
+            assert(!err)
             sink.add();
             done();
           })

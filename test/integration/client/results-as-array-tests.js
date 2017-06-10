@@ -26,8 +26,5 @@ test('returns results as array', function() {
       checkRow(result.rows[0]);
       client.end();
     }));
-    assert.emits(query, 'row', function(row) {
-      checkRow(row);
-    });
   }));
 });

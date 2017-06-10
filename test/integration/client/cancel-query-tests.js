@@ -1,4 +1,5 @@
-var helper = require(__dirname+"/test-helper");
+var helper = require("./test-helper");
+var Query = helper.pg.Query;
 
 //before running this test make sure you run the script create-test-tables
 test("cancellation of a query", function() {
@@ -11,19 +12,19 @@ test("cancellation of a query", function() {
 
   var rows3 = 0;
 
-  var query1 = client.query(qry);
+  var query1 = client.query(new Query(qry));
   query1.on('row', function(row) {
     throw new Error('Should not emit a row')
   });
-  var query2 = client.query(qry);
+  var query2 = client.query(new Query(qry));
   query2.on('row', function(row) {
     throw new Error('Should not emit a row')
   });
-  var query3 = client.query(qry);
+  var query3 = client.query(new Query(qry));
   query3.on('row', function(row) {
     rows3++;
   });
-  var query4 = client.query(qry);
+  var query4 = client.query(new Query(qry));
   query4.on('row', function(row) {
     throw new Error('Should not emit a row')
   });

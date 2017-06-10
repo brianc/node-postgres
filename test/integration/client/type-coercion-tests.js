@@ -1,4 +1,5 @@
 var helper = require(__dirname + '/test-helper');
+var pg = helper.pg;
 var sink;
 
 var testForTypeCoercion = function(type){
@@ -13,10 +14,10 @@ var testForTypeCoercion = function(type){
             assert.isNull(err);
           }));
 
-          var query = client.query({
+          var query = client.query(new pg.Query({
             name: 'get type ' + type.name ,
             text: 'select col from test_type'
-          });
+          }));
           query.on('error', function(err) {
             console.log(err);
             throw err;
@@ -128,11 +129,11 @@ test("timestampz round trip", function() {
     name: 'add date',
     values: ['now', now]
   });
-  var result = client.query({
+  var result = client.query(new pg.Query({
     name: 'get date',
     text: 'select * from date_tests where name = $1',
     values: ['now']
-  });
+  }));
 
   assert.emits(result, 'row', function(row) {
     var date = row.tstz;

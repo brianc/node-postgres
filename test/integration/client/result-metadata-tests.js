@@ -20,16 +20,10 @@ test('should return insert metadata', function() {
             assert.isNull(err);
             if(hasRowCount) assert.equal(result.rowCount, 1);
             assert.equal(result.command, 'SELECT');
+            done();
             process.nextTick(pg.end.bind(pg));
           }));
         }));
-
-        assert.emits(q, 'end', function(result) {
-          assert.equal(result.command, "INSERT");
-          if(hasRowCount) assert.equal(result.rowCount, 1);
-          done();
-        });
-
       }));
     }));
   }));
