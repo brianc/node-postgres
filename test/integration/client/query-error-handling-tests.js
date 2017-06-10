@@ -1,11 +1,12 @@
 var helper = require('./test-helper');
 var util = require('util');
-const { Query } = helper.pg;
+var Query = helper.pg.Query;
 
 test('error during query execution', function() {
   var client = new Client(helper.args);
   client.connect(assert.success(function() {
-    var sleepQuery = new Query('select pg_sleep(5)');
+    var queryText = 'select pg_sleep(5)'
+    var sleepQuery = new Query(queryText);
     var pidColName = 'procpid'
     var queryColName = 'current_query';
     helper.versionGTE(client, '9.2.0', assert.success(function(isGreater) {
@@ -26,9 +27,8 @@ test('error during query execution', function() {
       setTimeout(function() {
         var client2 = new Client(helper.args);
         client2.connect(assert.success(function() {
-          var killIdleQuery = "SELECT " + pidColName + ", (SELECT pg_terminate_backend(" + pidColName + ")) AS killed FROM pg_stat_activity WHERE " + queryColName + " = $1";
-          client2.query(killIdleQuery, [sleepQuery], assert.calls(function(err, res) {
-            console.log('\nresult', res)
+          var killIdleQuery = `SELECT ${pidColName}, (SELECT pg_cancel_backend(${pidColName})) AS killed FROM pg_stat_activity WHERE ${queryColName} LIKE $1`;
+          client2.query(killIdleQuery, [queryText], assert.calls(function(err, res) {
             assert.ifError(err);
             assert.equal(res.rows.length, 1);
             client2.end();

@@ -1,4 +1,5 @@
-var helper = require(__dirname + '/test-helper');
+var helper = require('./test-helper');
+var Query = helper.pg.Query;
 var util = require('util');
 
 function killIdleQuery(targetQuery) {
@@ -39,7 +40,7 @@ test('query killed during query execution of prepared statement', function() {
     // client should emit an error because it is unexpectedly disconnected
     assert.emits(client, 'error')
 
-    var query1 = client.query(queryConfig, assert.calls(function(err, result) {
+    var query1 = client.query(new Query(queryConfig), assert.calls(function(err, result) {
       assert.equal(err.message, 'terminating connection due to administrator command');
     }));
 
@@ -63,13 +64,14 @@ test('client end during query execution of prepared statement', function() {
   var client = new Client(helper.args);
   client.connect(assert.success(function() {
     var sleepQuery = 'select pg_sleep($1)';
-    var query1 = client.query({
+    var query1 = client.query(new Query({
       name: 'sleep query',
       text: sleepQuery,
       values: [5] },
       assert.calls(function(err, result) {
         assert.equal(err.message, 'Connection terminated');
-    }));
+    })));
+
 
     query1.on('error', function(err) {
       assert.fail('Prepared statement should not emit error');

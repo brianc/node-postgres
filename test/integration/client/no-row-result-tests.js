@@ -3,6 +3,7 @@ var pg = helper.pg;
 var config = helper.config;
 
 test('can access results when no rows are returned', function() {
+  console.log('maybe fix this?', __filename)
   if(config.native) return false;
   var checkResult = function(result) {
     assert(result.fields, 'should have fields definition');
@@ -13,7 +14,8 @@ test('can access results when no rows are returned', function() {
   };
 
   pg.connect(config, assert.success(function(client, done) {
-    var query = client.query('select $1::text as val limit 0', ['hi'], assert.success(function(result) {
+    const q = new pg.Query('select $1::text as val limit 0', ['hi'])
+    var query = client.query(q, assert.success(function(result) {
       checkResult(result);
       done();
     }));

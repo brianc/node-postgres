@@ -1,7 +1,7 @@
 var helper = require('./test-helper');
 var util = require('util');
 
-const { pg } = helper
+var pg = helper.pg
 
 
 var createErorrClient = function() {
