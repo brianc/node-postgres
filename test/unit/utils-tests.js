@@ -127,8 +127,8 @@ test('prepareValue: date array prepared properly', function() {
 });
 
 test('prepareValue: buffer array prepared properly', function() {
-  var buffer1 = Buffer.from('dead', 'hex');
-  var buffer2 = Buffer.from('beef', 'hex');
+  var buffer1 = Buffer.from ? Buffer.from('dead', 'hex') : new Buffer('dead', 'hex');
+  var buffer2 = Buffer.from ? Buffer.from('beef', 'hex') : new Buffer('beef', 'hex');
   var out = utils.prepareValue([buffer1, buffer2]);
   assert.strictEqual(out, '{\\\\xdead,\\\\xbeef}');
 });
