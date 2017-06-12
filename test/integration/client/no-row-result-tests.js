@@ -3,8 +3,10 @@ var pg = helper.pg;
 var config = helper.config;
 
 test('can access results when no rows are returned', function() {
-  console.log('maybe fix this?', __filename)
-  if(config.native) return false;
+  if(config.native) {
+    console.log('maybe fix this?', __filename)
+    return false
+  }
   var checkResult = function(result) {
     assert(result.fields, 'should have fields definition');
     assert.equal(result.fields.length, 1);
