@@ -1,10 +1,11 @@
 var helper = require(__dirname + "/../test-helper");
 var Client = require(__dirname + "/../../lib/native");
+var Query = Client.Query;
 
 test('many rows', function() {
   var client = new Client(helper.config);
   client.connect();
-  var q = client.query("SELECT * FROM person");
+  var q = client.query(new Query("SELECT * FROM person"));
   var rows = [];
   q.on('row', function(row) {
     rows.push(row)
@@ -21,7 +22,7 @@ test('many queries', function() {
   var count = 0;
   var expected = 100;
   for(var i = 0; i < expected; i++) {
-    var q = client.query("SELECT * FROM person");
+    var q = client.query(new Query("SELECT * FROM person"));
     assert.emits(q, 'end', function() {
       count++;
     });
