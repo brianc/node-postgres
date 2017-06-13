@@ -40,10 +40,11 @@ suite.test('connected client does not reject promise after connection', (done) =
       setTimeout(() => {
         client.on('error', (e) => {
           assert(e instanceof Error)
+          client.end()
           done()
         })
         // manually kill the connection
-        client.connection.stream.end()
+        client.emit('error', new Error('something bad happened...but not really'))
       }, 50)
     })
 })

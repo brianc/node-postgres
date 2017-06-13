@@ -5,7 +5,7 @@ var util = require('util');
 var suite = new helper.Suite();
 
 suite.test('client end during query execution of prepared statement', function(done) {
-  var client = new Client(helper.args);
+  var client = new Client();
   client.connect(assert.success(function() {
 
     var sleepQuery = 'select pg_sleep($1)';
@@ -18,10 +18,10 @@ suite.test('client end during query execution of prepared statement', function(d
 
     var queryInstance = new Query(queryConfig, assert.calls(function (err, result) {
       assert.equal(err.message, 'Connection terminated');
+      done();
     }))
 
     var query1 = client.query(queryInstance);
-
 
     query1.on('error', function (err) {
       assert.fail('Prepared statement should not emit error');
@@ -35,7 +35,7 @@ suite.test('client end during query execution of prepared statement', function(d
       assert.fail('Prepared statement when executed should not return before being killed');
     });
 
-    client.end(done);
+    client.end();
   }));
 });
 
