@@ -40,7 +40,9 @@ test('error during query execution', function() {
   }));
 });
 
-if(helper.config.native) return;
+if (helper.config.native) {
+  return console.log("\nTODO: this should work on native as well")
+}
 
 test('9.3 column error fields', function() {
   var client = new Client(helper.args);
@@ -50,12 +52,10 @@ test('9.3 column error fields', function() {
         return client.end();
       }
 
-      client.query('DROP TABLE IF EXISTS column_err_test');
-      client.query('CREATE TABLE column_err_test(a int NOT NULL)');
+      client.query('CREATE TEMP TABLE column_err_test(a int NOT NULL)');
       client.query('INSERT INTO column_err_test(a) VALUES (NULL)', function (err) {
         assert.equal(err.severity, 'ERROR');
         assert.equal(err.code, '23502');
-        assert.equal(err.schema, 'public');
         assert.equal(err.table, 'column_err_test');
         assert.equal(err.column, 'a');
         return client.end();
@@ -73,13 +73,11 @@ test('9.3 constraint error fields', function() {
         return client.end();
       }
 
-      client.query('DROP TABLE IF EXISTS constraint_err_test');
-      client.query('CREATE TABLE constraint_err_test(a int PRIMARY KEY)');
+      client.query('CREATE TEMP TABLE constraint_err_test(a int PRIMARY KEY)');
       client.query('INSERT INTO constraint_err_test(a) VALUES (1)');
       client.query('INSERT INTO constraint_err_test(a) VALUES (1)', function (err) {
         assert.equal(err.severity, 'ERROR');
         assert.equal(err.code, '23505');
-        assert.equal(err.schema, 'public');
         assert.equal(err.table, 'constraint_err_test');
         assert.equal(err.constraint, 'constraint_err_test_pkey');
         return client.end();
