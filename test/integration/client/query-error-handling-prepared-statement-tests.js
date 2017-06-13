@@ -2,7 +2,9 @@ var helper = require('./test-helper');
 var Query = helper.pg.Query;
 var util = require('util');
 
-function killIdleQuery(targetQuery) {
+var suite = new helper.Suite();
+
+function killIdleQuery(targetQuery, cb) {
   var client2 = new Client(helper.args);
   var pidColName = 'procpid'
   var queryColName = 'current_query';
@@ -16,16 +18,16 @@ function killIdleQuery(targetQuery) {
       client2.query(killIdleQuery, [targetQuery], assert.calls(function(err, res) {
         assert.ifError(err);
         assert.equal(res.rows.length, 1);
-        client2.end();
+        client2.end(cb);
         assert.emits(client2, 'end');
       }));
     }));
   }));
 }
 
-test('query killed during query execution of prepared statement', function() {
+suite.test('query killed during query execution of prepared statement', function(done) {
   if(helper.args.native) {
-    return false;
+    return done();
   }
   var client = new Client(helper.args);
   client.connect(assert.success(function() {
@@ -56,11 +58,11 @@ test('query killed during query execution of prepared statement', function() {
       assert.fail('Prepared statement when executed should not return before being killed');
     });
 
-    killIdleQuery(sleepQuery);
+    killIdleQuery(sleepQuery, done);
   }));
 });
 
-test('client end during query execution of prepared statement', function() {
+suite.test('client end during query execution of prepared statement', function(done) {
   var client = new Client(helper.args);
   client.connect(assert.success(function() {
     var sleepQuery = 'select pg_sleep($1)';
@@ -90,6 +92,6 @@ test('client end during query execution of prepared statement', function() {
       assert.fail('Prepared statement when executed should not return before being killed');
     });
 
-    client.end();
+    client.end(done);
   }));
 });
