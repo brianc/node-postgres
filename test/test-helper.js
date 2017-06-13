@@ -240,6 +240,7 @@ var resetTimezoneOffset = function() {
 
 module.exports = {
   Sink: Sink,
+  Suite: require('./suite'),
   pg: require(__dirname + '/../lib/'),
   args: args,
   config: args,
