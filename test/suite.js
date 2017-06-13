@@ -45,7 +45,7 @@ class Suite {
   run(test, cb) {
     process.stdout.write('  ' + test.name + ' ')
     if (!test.action) {
-      process.stdout.write('? - SKIPPED')
+      process.stdout.write('? - SKIPPED\n')
       return cb()
     }
 

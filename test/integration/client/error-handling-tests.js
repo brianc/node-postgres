@@ -16,6 +16,24 @@ var createErorrClient = function() {
 
 const suite = new helper.Suite('error handling')
 
+suite.test('query receives error on client shutdown', false, function(done) {
+  var client = new Client();
+  client.connect(assert.success(function() {
+    const config = {
+      text: 'select pg_sleep(5)',
+      name: 'foobar'
+    }
+    client.query(new pg.Query(config), assert.calls(function(err, res) {
+      assert(err instanceof Error)
+      done()
+    }));
+    setTimeout(() => {
+      client.end()
+      assert.emits(client, 'end');
+    }, 50)
+  }));
+});
+
 ;(function () {
   var client = createErorrClient();
 
@@ -83,7 +101,7 @@ suite.test('non-error calls supplied callback', function(done) {
 
 suite.test('when connecting to an invalid host with callback', function (done) {
   var client = new Client({
-    host: 'asldkfjasdf!!#1308140.com'
+    host: '!#%!@#%'
   });
   client.connect(function(error, client) {
     assert(error instanceof Error);
@@ -107,24 +125,6 @@ suite.test('non-query error', function(done) {
       assert(e instanceof Error)
       done()
     })
-});
-
-
-suite.test('query receives error on client shutdown', false, function(done) {
-  var client = new Client();
-  client.connect(function(err) {
-    if (err) {
-      return done(err)
-    }
-    client.query('SELECT pg_sleep(5)', assert.calls(function(err, res) {
-      assert(err instanceof Error)
-      done()
-    }));
-    setTimeout(() => {
-      client.end()
-      assert.emits(client, 'end');
-    }, 50)
-  });
 });
 
 suite.test('within a simple query', (done) => {
