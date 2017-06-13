@@ -4,6 +4,41 @@ var util = require('util');
 
 var suite = new helper.Suite();
 
+suite.test('client end during query execution of prepared statement', function(done) {
+  var client = new Client(helper.args);
+  client.connect(assert.success(function() {
+
+    var sleepQuery = 'select pg_sleep($1)';
+
+    var queryConfig = {
+      name: 'sleep query',
+      text: sleepQuery,
+      values: [5],
+    }
+
+    var queryInstance = new Query(queryConfig, assert.calls(function (err, result) {
+      assert.equal(err.message, 'Connection terminated');
+    }))
+
+    var query1 = client.query(queryInstance);
+
+
+    query1.on('error', function (err) {
+      assert.fail('Prepared statement should not emit error');
+    });
+
+    query1.on('row', function (row) {
+      assert.fail('Prepared statement should not emit row');
+    });
+
+    query1.on('end', function (err) {
+      assert.fail('Prepared statement when executed should not return before being killed');
+    });
+
+    client.end(done);
+  }));
+});
+
 function killIdleQuery(targetQuery, cb) {
   var client2 = new Client(helper.args);
   var pidColName = 'procpid'
@@ -59,39 +94,5 @@ suite.test('query killed during query execution of prepared statement', function
     });
 
     killIdleQuery(sleepQuery, done);
-  }));
-});
-
-suite.test('client end during query execution of prepared statement', function(done) {
-  var client = new Client(helper.args);
-  client.connect(assert.success(function() {
-    var sleepQuery = 'select pg_sleep($1)';
-
-    var queryConfig = {
-      name: 'sleep query',
-      text: sleepQuery,
-      values: [5],
-    }
-
-    var queryInstance = new Query(queryConfig, assert.calls(function (err, result) {
-      assert.equal(err.message, 'Connection terminated');
-    }))
-
-    var query1 = client.query(queryInstance);
-
-
-    query1.on('error', function (err) {
-      assert.fail('Prepared statement should not emit error');
-    });
-
-    query1.on('row', function (row) {
-      assert.fail('Prepared statement should not emit row');
-    });
-
-    query1.on('end', function (err) {
-      assert.fail('Prepared statement when executed should not return before being killed');
-    });
-
-    client.end(done);
   }));
 });
