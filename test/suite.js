@@ -43,7 +43,7 @@ class Suite {
   }
 
   run(test, cb) {
-    process.stdout.write(test.name + ' ')
+    process.stdout.write('  ' + test.name + ' ')
     if (!test.action) {
       process.stdout.write('? - SKIPPED')
       return cb()
@@ -70,5 +70,12 @@ class Suite {
     this._queue.push(new Test(name, cb))
   }
 }
+
+process.on('unhandledRejection', (e) => {
+  setImmediate(() => {
+    console.error('Uhandled promise rejection')
+    throw e
+  })
+})
 
 module.exports = Suite

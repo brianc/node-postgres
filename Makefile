@@ -62,4 +62,3 @@ test-pool:
 
 jshint:
 	@echo "***Starting jshint***"
-	@./node_modules/.bin/jshint lib

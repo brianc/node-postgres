@@ -16,35 +16,7 @@ var createErorrClient = function() {
 
 const suite = new helper.Suite('error handling')
 
-suite.test('query receives error on client shutdown', false, function(done) {
-  var client = new Client();
-  client.connect(function(err) {
-    if (err) {
-      return done(err)
-    }
-    client.query('SELECT pg_sleep(5)', assert.calls(function(err, res) {
-      assert(err instanceof Error)
-      done()
-    }));
-    setTimeout(() => {
-      client.end()
-      assert.emits(client, 'end');
-    }, 50)
-  });
-});
-
-suite.test('within a simple query', (done) => {
-  var client = createErorrClient();
-
-  var query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"));
-
-  assert.emits(query, 'error', function(error) {
-    assert.equal(error.severity, "ERROR");
-    done();
-  });
-});
-
-(function () {
+;(function () {
   var client = createErorrClient();
 
   var q = client.query({ text: "CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);", binary: false });
@@ -84,17 +56,6 @@ suite.test('within a simple query', (done) => {
   });
 })();
 
-suite.test('non-query error', function(done) {
-  var client = new Client({
-    user:'asldkfjsadlfkj'
-  });
-  client.on('error', (err) => {
-    assert(err instanceof Error)
-    done()
-  });
-  client.connect();
-});
-
 suite.test('non-query error with callback', function(done) {
   var client = new Client({
     user:'asldkfjsadlfkj'
@@ -120,6 +81,16 @@ suite.test('non-error calls supplied callback', function(done) {
   }))
 });
 
+suite.test('when connecting to an invalid host with callback', function (done) {
+  var client = new Client({
+    host: 'asldkfjasdf!!#1308140.com'
+  });
+  client.connect(function(error, client) {
+    assert(error instanceof Error);
+    done();
+  });
+});
+
 suite.test('when connecting to invalid host with promise', function(done) {
   var client = new Client({
     host: 'asdlfkjasldkfjlaskdfj'
@@ -127,12 +98,42 @@ suite.test('when connecting to invalid host with promise', function(done) {
   client.connect().catch((e) => done());
 });
 
-suite.test('when connecting to an invalid host with callback', function (done) {
+suite.test('non-query error', function(done) {
   var client = new Client({
-    host: 'asldkfjasdf!!#1308140.com'
+    user:'asldkfjsadlfkj'
   });
-  client.connect(function(error, client) {
-    assert(error instanceof Error);
+  client.connect()
+    .catch(e => {
+      assert(e instanceof Error)
+      done()
+    })
+});
+
+
+suite.test('query receives error on client shutdown', false, function(done) {
+  var client = new Client();
+  client.connect(function(err) {
+    if (err) {
+      return done(err)
+    }
+    client.query('SELECT pg_sleep(5)', assert.calls(function(err, res) {
+      assert(err instanceof Error)
+      done()
+    }));
+    setTimeout(() => {
+      client.end()
+      assert.emits(client, 'end');
+    }, 50)
+  });
+});
+
+suite.test('within a simple query', (done) => {
+  var client = createErorrClient();
+
+  var query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"));
+
+  assert.emits(query, 'error', function(error) {
+    assert.equal(error.severity, "ERROR");
     done();
   });
 });
