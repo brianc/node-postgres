@@ -59,6 +59,11 @@ var testServer = function (server, cb) {
     // connect a client to it
     var client = new helper.Client(options)
     client.connect()
+      .catch((err) => {
+        assert(err instanceof Error)
+        clearTimeout(timeoutId)
+        server.close(cb)
+      })
 
     // after 50 milliseconds, drop the client
     setTimeout(function() {
@@ -69,12 +74,6 @@ var testServer = function (server, cb) {
     var timeoutId = setTimeout(function () {
       throw new Error('Client should have emitted an error but it did not.')
     }, 5000)
-
-    // return our wait token
-    client.on('error', function () {
-      clearTimeout(timeoutId)
-      server.close(cb)
-    })
   })
 }
 
