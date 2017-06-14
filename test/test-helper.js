@@ -1,13 +1,17 @@
 //make assert a global...
 assert = require('assert');
-process.noDeprecation = true;
 var EventEmitter = require('events').EventEmitter;
 var sys = require('util');
-var BufferList = require(__dirname+'/buffer-list')
 
-var Connection = require(__dirname + '/../lib/connection');
+process.noDeprecation = true;
 
-Client = require(__dirname + '/../lib').Client;
+var BufferList = require('./buffer-list')
+const Suite = require('./suite')
+const args = require('./cli');
+
+var Connection = require('./../lib/connection');
+
+Client = require('./../lib').Client;
 
 process.on('uncaughtException', function(d) {
   if ('stack' in d && 'message' in d) {
@@ -16,6 +20,7 @@ process.on('uncaughtException', function(d) {
   } else {
     console.log(d);
   }
+  process.exit(-1);
 });
 
 assert.same = function(actual, expected) {
@@ -23,7 +28,6 @@ assert.same = function(actual, expected) {
     assert.equal(actual[key], expected[key]);
   }
 };
-
 
 assert.emits = function(item, eventName, callback, message) {
   var called = false;
@@ -70,13 +74,6 @@ assert.UTCDate = function(actual, year, month, day, hours, min, sec, milisecond)
   var actualMili = actual.getUTCMilliseconds();
   assert.equal(actualMili, milisecond, "expected milisecond " + milisecond + " but got " + actualMili);
 };
-
-var spit = function(actual, expected) {
-  console.log("");
-  console.log("actual " + sys.inspect(actual));
-  console.log("expect " + sys.inspect(expected));
-  console.log("");
-}
 
 assert.equalBuffers = function(actual, expected) {
   if(actual.length != expected.length) {
@@ -171,6 +168,12 @@ assert.isNull = function(item, message) {
   assert.ok(item === null, message);
 };
 
+const getMode = () => {
+  if (args.native) return 'native'
+  if (args.binary) return 'binary'
+  return ''
+}
+
 test = function(name, action) {
   test.testCount ++;
   test[name] = action;
@@ -184,7 +187,6 @@ test = function(name, action) {
 
 //print out the filename
 process.stdout.write(require('path').basename(process.argv[1]));
-var args = require(__dirname + '/cli');
 if(args.binary) process.stdout.write(' (binary)');
 if(args.native) process.stdout.write(' (native)');
 
@@ -240,8 +242,8 @@ var resetTimezoneOffset = function() {
 
 module.exports = {
   Sink: Sink,
-  Suite: require('./suite'),
-  pg: require(__dirname + '/../lib/'),
+  Suite: Suite,
+  pg: require('./../lib/'),
   args: args,
   config: args,
   sys: sys,

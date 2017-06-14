@@ -2,7 +2,7 @@ var helper = require("./test-helper");
 var Query = helper.pg.Query;
 
 //before running this test make sure you run the script create-test-tables
-test("cancellation of a query", function() {
+new helper.Suite().test("cancellation of a query", function() {
 
   var client = helper.client();
 

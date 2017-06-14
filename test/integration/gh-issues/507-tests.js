@@ -1,7 +1,7 @@
 var helper = require(__dirname + "/../test-helper");
 var pg = helper.pg;
 
-test('parsing array results', function() {
+new helper.Suite().test('parsing array results', function(cb) {
   pg.connect(helper.config, assert.success(function(client, done) {
     client.query('CREATE TEMP TABLE test_table(bar integer, "baz\'s" integer)')
     client.query('INSERT INTO test_table(bar, "baz\'s") VALUES(1, 1), (2, 2)')
@@ -10,6 +10,7 @@ test('parsing array results', function() {
       assert.equal(res.rows[1]["baz's"], 2)
       done()
       pg.end()
+      cb()
     })
   }))
 })

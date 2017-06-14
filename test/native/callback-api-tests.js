@@ -1,8 +1,9 @@
 var domain = require('domain');
-var helper = require(__dirname + "/../test-helper");
-var Client = require(__dirname + "/../../lib/native");
+var helper = require("./../test-helper");
+var Client = require("./../../lib/native");
+const suite = new helper.Suite()
 
-test('fires callback with results', function() {
+suite.test('fires callback with results', function(done) {
   var client = new Client(helper.config);
   client.connect();
   client.query('SELECT 1 as num', assert.calls(function(err, result) {
@@ -12,12 +13,12 @@ test('fires callback with results', function() {
     client.query('SELECT * FROM person WHERE name = $1', ['Brian'], assert.calls(function(err, result) {
       assert.isNull(err);
       assert.equal(result.rows[0].name, 'Brian');
-      client.end();
+      client.end(done);
     }))
   }));
 })
 
-test('preserves domain', function() {
+suite.test('preserves domain', function(done) {
   var dom = domain.create();
 
   dom.run(function() {
@@ -26,7 +27,7 @@ test('preserves domain', function() {
     client.connect()
     client.query('select 1', function() {
       assert.ok(dom === require('domain').active, 'domain is still active');
-      client.end();
+      client.end(done);
     });
   });
 })

@@ -24,11 +24,12 @@ class Test {
     }
     if (!this.action.length) {
       const result = this.action.call(this)
-      if ((result || 0).then) {
-        result
-          .then(() => cb())
-          .catch(err => cb(err || new Error('Unhandled promise rejection')))
+      if (!(result || 0).then) {
+        return cb()
       }
+      result
+        .then(() => cb())
+        .catch(err => cb(err || new Error('Unhandled promise rejection')))
     } else {
       this.action.call(this, cb)
     }
@@ -51,7 +52,7 @@ class Suite {
 
     const tid = setTimeout(() => {
       const err = Error(`test: ${test.name} did not complete withint ${test.timeout}ms`)
-      cb(err)
+      process.exit(-1)
     }, test.timeout)
 
     test.run((err) => {
@@ -61,13 +62,14 @@ class Suite {
         process.exit(-1)
       } else {
         process.stdout.write('✔\n')
+        cb()
       }
-      cb(err)
     })
   }
 
   test(name, cb) {
-    this._queue.push(new Test(name, cb))
+    const test = new Test(name, cb)
+    this._queue.push(test)
   }
 }
 

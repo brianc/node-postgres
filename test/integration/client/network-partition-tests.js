@@ -1,7 +1,6 @@
-var co = require('co')
-
 var buffers = require('../../test-buffers')
 var helper = require('./test-helper')
+var suite = new helper.Suite()
 
 var net = require('net')
 
@@ -77,13 +76,12 @@ var testServer = function (server, cb) {
   })
 }
 
-// test being disconnected after readyForQuery
-const respondingServer = new Server(buffers.readyForQuery())
-testServer(respondingServer, function () {
-  process.stdout.write('.')
-  // test being disconnected from a server that never responds
+suite.test('readyForQuery server', (done) => {
+  const respondingServer = new Server(buffers.readyForQuery())
+  testServer(respondingServer, done)
+})
+
+suite.test('silent server', (done) => {
   const silentServer = new Server()
-  testServer(silentServer, function () {
-    process.stdout.write('.')
-  })
+  testServer(silentServer, done)
 })
