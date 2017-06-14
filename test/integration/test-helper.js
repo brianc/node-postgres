@@ -8,7 +8,7 @@ if(helper.args.native) {
 
 //creates a client from cli parameters
 helper.client = function(cb) {
-  var client = new Client(helper.config);
+  var client = new Client();
   client.connect(cb);
   return client;
 };

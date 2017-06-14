@@ -1,6 +1,7 @@
-return;
 var helper = require('./test-helper');
 var Client = helper.Client;
+
+var suite = new helper.Suite();
 
 var conInfo = helper.config;
 
@@ -26,34 +27,37 @@ function getAppName(conf, cb) {
   }));
 }
 
-test('No default appliation_name ', function(){
+suite.test('No default appliation_name ', function(done) {
   var conf = getConInfo();
-  getAppName(conf, function(res){
+  getAppName({ }, function(res){
     assert.strictEqual(res, '');
+    done()
   });
 });
 
-test('fallback_application_name is used', function(){
+suite.test('fallback_application_name is used', function(done) {
   var fbAppName = 'this is my app';
   var conf = getConInfo({
     'fallback_application_name' : fbAppName
   });
   getAppName(conf, function(res){
     assert.strictEqual(res, fbAppName);
+    done()
   });
 });
 
-test('application_name is used', function(){
+suite.test('application_name is used', function(done) {
   var appName = 'some wired !@#$% application_name';
   var conf = getConInfo({
     'application_name' : appName
   });
   getAppName(conf, function(res){
     assert.strictEqual(res, appName);
+    done()
   });
 });
 
-test('application_name has precedence over fallback_application_name', function(){
+suite.test('application_name has precedence over fallback_application_name', function(done) {
   var appName = 'some wired !@#$% application_name';
   var fbAppName = 'some other strange $$test$$ appname';
   var conf = getConInfo({
@@ -62,10 +66,11 @@ test('application_name has precedence over fallback_application_name', function(
   });
   getAppName(conf, function(res){
     assert.strictEqual(res, appName);
+    done()
   });
 });
 
-test('application_name from connection string', function(){
+suite.test('application_name from connection string', function(done) {
   var appName = 'my app';
   var conParams = require(__dirname + '/../../../lib/connection-parameters');
   var conf;
@@ -76,6 +81,7 @@ test('application_name from connection string', function(){
   }
   getAppName(conf, function(res){
     assert.strictEqual(res, appName);
+    done()
   });
 });
 
@@ -83,14 +89,12 @@ test('application_name from connection string', function(){
 
 // TODO: make the test work for native client too
 if (!helper.args.native) {
- test('application_name is read from the env', function(){
+ suite.test('application_name is read from the env', function(done) {
     var appName = process.env.PGAPPNAME = 'testest';
-    var conf = getConInfo({
-      'just some bla' : 'to fool the pool'
-    });
-    getAppName(conf, function(res){
+    getAppName({ }, function(res){
       delete process.env.PGAPPNAME;
       assert.strictEqual(res, appName);
+      done()
     });
   });
 }

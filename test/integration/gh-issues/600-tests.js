@@ -1,5 +1,6 @@
 var async = require('async');
 var helper = require('../test-helper');
+const suite = new helper.Suite()
 
 var db = helper.client();
 
@@ -53,13 +54,14 @@ var steps = [
   insertDataBar
 ]
 
-test('test if query fails', function() {
+suite.test('test if query fails', function(done) {
   async.series(steps, assert.success(function() {
     db.end()
+    done()
   }))
 })
 
-test('test if prepare works but bind fails', function() {
+suite.test('test if prepare works but bind fails', function(done) {
   var client = helper.client();
   var q = {
     text: 'SELECT $1::int as name',
@@ -71,6 +73,7 @@ test('test if prepare works but bind fails', function() {
     client.query(q, assert.calls(function(err, res) {
       assert.ifError(err);
       client.end();
+      done()
     }));
   }));
 });
