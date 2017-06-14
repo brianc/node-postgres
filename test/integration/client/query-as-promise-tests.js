@@ -16,13 +16,12 @@ pg.connect(helper.config, assert.success(function(client, done) {
       client.query('ALKJSDF')
         .catch(function(e) {
           assert(e instanceof Error)
+          client.query('SELECT 1 as num')
+            .then(function (result) {
+              assert.equal(result.rows[0].num, 1)
+              done()
+              pg.end()
+            })
         })
-    })
-
-  client.query('SELECT 1 as num')
-    .then(function(result) {
-      assert.equal(result.rows[0].num, 1)
-      done()
-      pg.end()
     })
 }))
