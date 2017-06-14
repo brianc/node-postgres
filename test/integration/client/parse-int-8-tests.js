@@ -1,7 +1,9 @@
 
-var helper = require(__dirname + '/../test-helper');
+var helper = require('../test-helper');
 var pg = helper.pg;
-test('ability to turn on and off parser', function() {
+const suite = new helper.Suite()
+
+suite.test('ability to turn on and off parser', function() {
   if(helper.args.binary) return false;
   pg.connect(helper.config, assert.success(function(client, done) {
     pg.defaults.parseInt8 = true;

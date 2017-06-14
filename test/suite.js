@@ -52,6 +52,7 @@ class Suite {
 
     const tid = setTimeout(() => {
       const err = Error(`test: ${test.name} did not complete withint ${test.timeout}ms`)
+      console.log('\n' + err.stack)
       process.exit(-1)
     }, test.timeout)
 

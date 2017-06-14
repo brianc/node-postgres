@@ -1,6 +1,8 @@
 var helper = require('./test-helper');
+const suite = new helper.Suite()
 
-test("noData message handling", function() {
+
+suite.test("noData message handling", function() {
 
   var client = helper.client();
 
