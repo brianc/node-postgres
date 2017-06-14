@@ -34,7 +34,8 @@ suite.test('emits notify message', function (done) {
 
 suite.test('emits notice message', function (done) {
   if (helper.args.native) {
-    return console.error('need to get notice message working on native')
+    console.error('need to get notice message working on native')
+    return done()
   }
   //TODO this doesn't work on all versions of postgres
   var client = helper.client();
