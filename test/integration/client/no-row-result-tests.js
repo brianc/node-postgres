@@ -1,12 +1,8 @@
 var helper = require(__dirname + '/test-helper');
 var pg = helper.pg;
-var config = helper.config;
+const suite = new helper.Suite()
 
-test('can access results when no rows are returned', function() {
-  if(config.native) {
-    console.log('maybe fix this?', __filename)
-    return false
-  }
+suite.test('can access results when no rows are returned', function() {
   var checkResult = function(result) {
     assert(result.fields, 'should have fields definition');
     assert.equal(result.fields.length, 1);
@@ -15,7 +11,7 @@ test('can access results when no rows are returned', function() {
     pg.end();
   };
 
-  pg.connect(config, assert.success(function(client, done) {
+  pg.connect(assert.success(function(client, done) {
     const q = new pg.Query('select $1::text as val limit 0', ['hi'])
     var query = client.query(q, assert.success(function(result) {
       checkResult(result);
