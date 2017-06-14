@@ -15,7 +15,9 @@ helper.pg.connect(helper.config, function (err, client, done) {
     var stream = client.query(copyFrom("COPY employee FROM STDIN"));
     stream.on('end', function () {
       done();
-      helper.pg.end();
+      setTimeout(() => {
+        helper.pg.end();
+      }, 50)
     });
 
     for (var i = 1; i <= 5; i++) {
