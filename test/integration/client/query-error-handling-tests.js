@@ -30,7 +30,7 @@ test('error during query execution', function() {
           var killIdleQuery = `SELECT ${pidColName}, (SELECT pg_cancel_backend(${pidColName})) AS killed FROM pg_stat_activity WHERE ${queryColName} LIKE $1`;
           client2.query(killIdleQuery, [queryText], assert.calls(function(err, res) {
             assert.ifError(err);
-            assert.equal(res.rows.length, 1);
+            assert(res.rows.length > 0);
             client2.end();
             assert.emits(client2, 'end');
           }));
@@ -41,7 +41,7 @@ test('error during query execution', function() {
 });
 
 if (helper.config.native) {
-  return console.log("\nTODO: this should work on native as well")
+  return
 }
 
 test('9.3 column error fields', function() {
