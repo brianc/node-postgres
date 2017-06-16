@@ -1,5 +1,6 @@
-var helper = require(__dirname+'/../test-helper');
-var Connection = require(__dirname + '/../../../lib/connection');
+var helper = require('../test-helper');
+var Connection = require('../../../lib/connection');
+
 var makeClient = function() {
   var connection = new Connection({stream: "no"});
   connection.startup = function() {};
@@ -14,6 +15,6 @@ var makeClient = function() {
   return client;
 };
 
-module.exports = {
+module.exports = Object.assign({
   client: makeClient
-};
+}, helper);
