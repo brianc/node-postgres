@@ -17,7 +17,7 @@ help:
 
 test: test-unit
 
-test-all: jshint test-missing-native test-unit test-integration test-native test-binary
+test-all: jshint test-missing-native test-unit test-integration test-native
 
 
 update-npm:

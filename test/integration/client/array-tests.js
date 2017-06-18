@@ -3,7 +3,8 @@ var pg = helper.pg;
 
 var suite = new helper.Suite()
 
-pg.connect(assert.calls(function(err, client, release) {
+const pool = new pg.Pool()
+pool.connect(assert.calls(function(err, client, release) {
   assert.isNull(err);
 
   suite.test('nulls', function(done) {
@@ -33,7 +34,7 @@ pg.connect(assert.calls(function(err, client, release) {
   suite.test('cleanup', () => release())
 }));
 
-pg.connect(assert.calls(function (err, client, release) {
+pool.connect(assert.calls(function (err, client, release) {
   assert.isNull(err);
   client.query("CREATE TEMP TABLE why(names text[], numbors integer[])");
   client.query(new pg.Query('INSERT INTO why(names, numbors) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\')')).on('error', console.log);
@@ -166,8 +167,7 @@ pg.connect(assert.calls(function (err, client, release) {
       assert.equal(names[2][0], 3);
       assert.equal(names[2][1], 100);
       release();
-      pg.end();
-      done();
+      pool.end(done)
     }))
   })
 

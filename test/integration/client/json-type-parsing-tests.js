@@ -1,7 +1,8 @@
 var helper = require('./test-helper');
 var assert = require('assert');
 
-helper.pg.connect(assert.success(function (client, done) {
+const pool = new helper.pg.Pool()
+pool.connect(assert.success(function (client, done) {
   helper.versionGTE(client, '9.2.0', assert.success(function (jsonSupported) {
     if (!jsonSupported) {
       console.log('skip json test on older versions of postgres');
@@ -20,7 +21,7 @@ helper.pg.connect(assert.success(function (client, done) {
       assert.strictEqual(row.alive, value.alive);
       assert.equal(JSON.stringify(row.now), JSON.stringify(value.now));
       done();
-      helper.pg.end();
+      pool.end()
     }));
   }));
 }));

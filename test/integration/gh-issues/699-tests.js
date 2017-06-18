@@ -4,7 +4,8 @@ var copyFrom = require('pg-copy-streams').from;
 
 if(helper.args.native) return;
 
-helper.pg.connect(function (err, client, done) {
+const pool = new helper.pg.Pool()
+pool.connect(function (err, client, done) {
   if (err) throw err;
 
   var c = 'CREATE TEMP TABLE employee (id integer, fname varchar(400), lname varchar(400))';
@@ -16,7 +17,7 @@ helper.pg.connect(function (err, client, done) {
     stream.on('end', function () {
       done();
       setTimeout(() => {
-        helper.pg.end();
+        pool.end()
       }, 50)
     });
 

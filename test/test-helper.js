@@ -3,8 +3,6 @@ assert = require('assert');
 var EventEmitter = require('events').EventEmitter;
 var sys = require('util');
 
-process.noDeprecation = true;
-
 var BufferList = require('./buffer-list')
 const Suite = require('./suite')
 const args = require('./cli');

@@ -3,7 +3,8 @@ var exec = require('child_process').exec;
 
 helper.pg.defaults.poolIdleTimeout = 1000;
 
-helper.pg.connect(helper.config, function(err,client) {
+const pool = new helper.pg.Pool()
+pool.connect(function(err,client) {
   client.query("SELECT pg_backend_pid()", function(err, result) {
     var pid = result.rows[0].pg_backend_pid;
     var psql = 'psql';
@@ -16,6 +17,6 @@ helper.pg.connect(helper.config, function(err,client) {
   });
 });
 
-helper.pg.on('error', function(err, client) {
+pool.on('error', function(err, client) {
   //swallow errors
 });
