@@ -1,3 +1,4 @@
+"use strict";
 var domain = require('domain');
 var helper = require("./../test-helper");
 var Client = require("./../../lib/native");

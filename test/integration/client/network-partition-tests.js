@@ -1,3 +1,4 @@
+"use strict";
 var buffers = require('../../test-buffers')
 var helper = require('./test-helper')
 var suite = new helper.Suite()

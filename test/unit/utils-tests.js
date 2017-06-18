@@ -1,6 +1,7 @@
-var helper = require(__dirname + '/test-helper');
-var utils = require(__dirname + "/../../lib/utils");
-var defaults = require(__dirname + "/../../lib").defaults;
+"use strict";
+var helper = require('./test-helper');
+var utils = require("./../../lib/utils");
+var defaults = require("./../../lib").defaults;
 
 
 test('ensure types is exported on root object', function() {

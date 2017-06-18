@@ -1,3 +1,4 @@
+"use strict";
 var helper = require('./test-helper');
 var util = require('util');
 var Query = helper.pg.Query;

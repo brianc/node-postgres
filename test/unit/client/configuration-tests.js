@@ -1,3 +1,4 @@
+"use strict";
 require(__dirname+'/test-helper');
 
 var pguser = process.env['PGUSER'] || process.env.USER;

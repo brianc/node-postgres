@@ -1,4 +1,5 @@
-BufferList = function() {
+"use strict";
+global.BufferList = function() {
   this.buffers = [];
 };
 var p = BufferList.prototype;

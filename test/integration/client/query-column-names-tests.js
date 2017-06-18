@@ -1,3 +1,4 @@
+"use strict";
 var helper = require(__dirname + '/../test-helper');
 var pg = helper.pg;
 

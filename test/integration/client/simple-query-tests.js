@@ -1,3 +1,4 @@
+"use strict";
 var helper = require("./test-helper");
 var Query = helper.pg.Query;
 
@@ -18,7 +19,7 @@ test("simple query interface", function() {
   query.once('row', function(row) {
     test('Can iterate through columns', function () {
       var columnCount = 0;
-      for (column in row) {
+      for (var column in row) {
         columnCount++;
       }
       if ('length' in row) {

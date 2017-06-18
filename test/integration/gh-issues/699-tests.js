@@ -1,3 +1,4 @@
+"use strict";
 var helper = require('../test-helper');
 var assert = require('assert');
 var copyFrom = require('pg-copy-streams').from;

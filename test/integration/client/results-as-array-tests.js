@@ -1,3 +1,4 @@
+"use strict";
 var util = require('util');
 var helper = require('./test-helper');
 

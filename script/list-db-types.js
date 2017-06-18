@@ -1,3 +1,4 @@
+"use strict";
 var helper = require(__dirname + "/../test/integration/test-helper");
 var pg = helper.pg;
 pg.connect(helper.config, assert.success(function(client) {

@@ -1,5 +1,6 @@
+"use strict";
 //make assert a global...
-assert = require('assert');
+global.assert = require('assert');
 var EventEmitter = require('events').EventEmitter;
 var sys = require('util');
 
@@ -9,7 +10,7 @@ const args = require('./cli');
 
 var Connection = require('./../lib/connection');
 
-Client = require('./../lib').Client;
+global.Client = require('./../lib').Client;
 
 process.on('uncaughtException', function(d) {
   if ('stack' in d && 'message' in d) {
@@ -172,7 +173,7 @@ const getMode = () => {
   return ''
 }
 
-test = function(name, action) {
+global.test = function(name, action) {
   test.testCount ++;
   test[name] = action;
   var result = test[name]();

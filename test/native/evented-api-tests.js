@@ -1,3 +1,4 @@
+"use strict";
 var helper = require("../test-helper");
 var Client = require("../../lib/native");
 var Query = Client.Query;
