@@ -30,7 +30,6 @@ matrix:
     - node_js: "lts/boron"
       addons:
         postgresql: "9.6"
-      dist: precise
     - node_js: "8"
       addons:
         postgresql: "9.6"
