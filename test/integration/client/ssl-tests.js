@@ -1,3 +1,4 @@
+"use strict";
 var pg = require(__dirname + '/../../../lib');
 var config = require(__dirname + '/test-helper').config;
 test('can connect with ssl', function() {

@@ -1,3 +1,4 @@
+"use strict";
 var helper = require(__dirname + '/test-helper');
 var net = require('net');
 var pg = require('../../..//lib/index.js');

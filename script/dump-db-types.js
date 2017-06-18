@@ -1,3 +1,4 @@
+"use strict";
 var pg = require(__dirname + '/../lib');
 var args = require(__dirname + '/../test/cli');
 

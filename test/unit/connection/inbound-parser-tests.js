@@ -1,3 +1,4 @@
+"use strict";
 require(__dirname+'/test-helper');
 var Connection = require(__dirname + '/../../../lib/connection');
 var buffers = require(__dirname + '/../../test-buffers');

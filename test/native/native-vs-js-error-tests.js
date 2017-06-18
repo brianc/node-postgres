@@ -1,3 +1,4 @@
+"use strict";
 var assert = require('assert')
 var Client = require('../../lib/client');
 var NativeClient = require('../../lib/native');

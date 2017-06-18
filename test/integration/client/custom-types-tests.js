@@ -1,3 +1,4 @@
+"use strict";
 const helper = require('./test-helper');
 const Client = helper.pg.Client;
 const suite = new helper.Suite()

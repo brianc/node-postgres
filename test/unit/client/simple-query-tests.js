@@ -1,3 +1,4 @@
+"use strict";
 var helper = require(__dirname + "/test-helper");
 var Query = require('../../../lib/query')
 

@@ -1,3 +1,4 @@
+"use strict";
 //client should not hang on an empty query
 var helper = require('../test-helper');
 var client = helper.client();

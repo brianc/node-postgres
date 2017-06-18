@@ -1,8 +1,9 @@
-require('./test-helper');
+"use strict";
+var helper = require('./test-helper');
 var utils = require('../../../lib/utils')
 
 test('md5 authentication', function() {
-  var client = createClient();
+  var client = helper.createClient();
   client.password = "!";
   var salt = Buffer.from([1, 2, 3, 4]);
   client.connection.emit('authenticationMD5Password', {salt: salt});
