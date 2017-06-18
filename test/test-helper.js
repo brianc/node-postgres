@@ -1,6 +1,8 @@
 //make assert a global...
 assert = require('assert');
 
+process.noDeprecation = true
+
 //support for node@0.10.x
 if (typeof Promise == 'undefined') {
   global.Promise = require('promise-polyfill')
