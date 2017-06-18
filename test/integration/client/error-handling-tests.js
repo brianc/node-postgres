@@ -159,3 +159,16 @@ suite.test('connected, idle client error', (done) => {
     client.end(done)
   })
 })
+
+suite.test('cannot pass non-string values to query as text', (done) => {
+  const client = new Client()
+  client.connect()
+  client.query({ text: { } }, (err) => {
+    assert(err)
+    client.query({ }, (err) => {
+      client.on('drain', () => {
+        client.end(done)
+      })
+    })
+  })
+})
