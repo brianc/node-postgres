@@ -1,8 +1,9 @@
-var helper = require(__dirname + "/test-helper");
+var helper = require("./test-helper");
 var pg = helper.pg;
 
-test('should return insert metadata', function() {
-  pg.connect(helper.config, assert.calls(function(err, client, done) {
+const pool = new pg.Pool()
+new helper.Suite().test('should return insert metadata', function() {
+  pool.connect(assert.calls(function(err, client, done) {
     assert.isNull(err);
 
     helper.versionGTE(client, '9.0.0', assert.success(function(hasRowCount) {
@@ -21,7 +22,7 @@ test('should return insert metadata', function() {
             if(hasRowCount) assert.equal(result.rowCount, 1);
             assert.equal(result.command, 'SELECT');
             done();
-            process.nextTick(pg.end.bind(pg));
+            process.nextTick(pool.end.bind(pool));
           }));
         }));
       }));

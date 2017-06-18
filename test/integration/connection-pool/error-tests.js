@@ -1,40 +1,46 @@
-var helper = require("../test-helper");
-var pg = require("../../../lib");
+var helper = require("./test-helper");
+const pg = helper.pg
 
 //first make pool hold 2 clients
 pg.defaults.poolSize = 2;
 
-//get first client
-pg.connect(helper.config, assert.success(function(client, done) {
-  client.id = 1;
-  client.query('SELECT NOW()', function() {
-    pg.connect(helper.config, assert.success(function(client2, done2) {
-      client2.id = 2;
-      var pidColName = 'procpid';
-      helper.versionGTE(client2, '9.2.0', assert.success(function(isGreater) {
-        var killIdleQuery = 'SELECT pid, (SELECT pg_terminate_backend(pid)) AS killed FROM pg_stat_activity WHERE state = $1';
-        var params = ['idle'];
-        if(!isGreater) {
-          killIdleQuery = 'SELECT procpid, (SELECT pg_terminate_backend(procpid)) AS killed FROM pg_stat_activity WHERE current_query LIKE $1';
-          params = ['%IDLE%']
-        }
+const pool = new pg.Pool()
 
-        //subscribe to the pg error event
-        assert.emits(pg, 'error', function(error, brokenClient) {
-          assert.ok(error);
-          assert.ok(brokenClient);
-          assert.equal(client.id, brokenClient.id);
-        });
+const suite = new helper.Suite()
+suite.test('errors emitted on pool', (cb) => {
+  //get first client
+  pool.connect(assert.success(function (client, done) {
+    client.id = 1;
+    client.query('SELECT NOW()', function () {
+      pool.connect(assert.success(function (client2, done2) {
+        client2.id = 2;
+        var pidColName = 'procpid';
+        helper.versionGTE(client2, '9.2.0', assert.success(function (isGreater) {
+          var killIdleQuery = 'SELECT pid, (SELECT pg_terminate_backend(pid)) AS killed FROM pg_stat_activity WHERE state = $1';
+          var params = ['idle'];
+          if (!isGreater) {
+            killIdleQuery = 'SELECT procpid, (SELECT pg_terminate_backend(procpid)) AS killed FROM pg_stat_activity WHERE current_query LIKE $1';
+            params = ['%IDLE%']
+          }
 
-        //kill the connection from client
-        client2.query(killIdleQuery, params, assert.success(function(res) {
-          //check to make sure client connection actually was killed
-          //return client2 to the pool
-          done2();
-          pg.end();
+          pool.once('error', (err, brokenClient) => {
+            assert.ok(err);
+            assert.ok(brokenClient);
+            assert.equal(client.id, brokenClient.id);
+            cb()
+          })
+
+          //kill the connection from client
+          client2.query(killIdleQuery, params, assert.success(function (res) {
+            //check to make sure client connection actually was killed
+            //return client2 to the pool
+            done2();
+            pool.end();
+          }));
         }));
       }));
-    }));
 
-  })
-}));
+    })
+  }));
+
+})
