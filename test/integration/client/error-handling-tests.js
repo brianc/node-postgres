@@ -84,7 +84,6 @@ suite.test('non-query error with callback', function(done) {
     user:'asldkfjsadlfkj'
   });
   client.connect(assert.calls(function(error, client) {
-    console.log('error!', error.stack)
     assert(error instanceof Error)
     done()
   }));
