@@ -90,7 +90,7 @@ Pool.prototype._create = function (cb) {
     this.log('connected client error:', e)
     this.pool.destroy(client)
     e.client = client
-    this.emit('error', e)
+    this.emit('error', e, client)
   }.bind(this))
 
   client.connect(function (err) {

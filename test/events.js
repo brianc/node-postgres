@@ -60,6 +60,22 @@ describe('events', function () {
       pool.end(done)
     }, 40)
   })
+
+  it('emits error and client if an idle client in the pool hits an error', function (done) {
+    var pool = new Pool()
+    pool.connect(function (err, client) {
+      expect(err).to.equal(null)
+      client.release()
+      setImmediate(function () {
+        client.emit('error', new Error('problem'))
+      })
+      pool.once('error', function (err, errClient) {
+        expect(err.message).to.equal('problem')
+        expect(errClient).to.equal(client)
+        done()
+      })
+    })
+  })
 })
 
 function mockClient (methods) {
