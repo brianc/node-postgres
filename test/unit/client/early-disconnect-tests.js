@@ -1,7 +1,7 @@
 "use strict";
-var helper = require(__dirname + '/test-helper');
+var helper = require('./test-helper');
 var net = require('net');
-var pg = require('../../..//lib/index.js');
+var pg = require('../../../lib/index.js');
 
 /* console.log() messages show up in `make test` output. TODO: fix it. */
 var server = net.createServer(function(c) {

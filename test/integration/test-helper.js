@@ -1,8 +1,8 @@
 "use strict";
-var helper = require(__dirname + '/../test-helper');
+var helper = require('./../test-helper');
 
 if(helper.args.native) {
-  Client = require(__dirname + '/../../lib/native');
+  Client = require('./../../lib/native');
   helper.Client = Client;
   helper.pg = helper.pg.native;
 }

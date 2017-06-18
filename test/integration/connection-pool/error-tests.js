@@ -8,6 +8,11 @@ pg.defaults.poolSize = 2;
 const pool = new pg.Pool()
 
 const suite = new helper.Suite()
+suite.test('connecting to invalid port', (cb) => {
+  const pool = new pg.Pool({ port: 13801 })
+  pool.connect().catch(e => cb())
+})
+
 suite.test('errors emitted on pool', (cb) => {
   //get first client
   pool.connect(assert.success(function (client, done) {

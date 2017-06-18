@@ -1,10 +1,10 @@
 "use strict";
-"use strict";
 
 var helper = require('./test-helper');
 var util = require('util');
 
 var pg = helper.pg
+const Client = pg.Client
 
 var createErorrClient = function() {
   var client = helper.client();
@@ -84,6 +84,7 @@ suite.test('non-query error with callback', function(done) {
     user:'asldkfjsadlfkj'
   });
   client.connect(assert.calls(function(error, client) {
+    console.log('error!', error.stack)
     assert(error instanceof Error)
     done()
   }));
@@ -142,3 +143,19 @@ suite.test('within a simple query', (done) => {
     done();
   });
 });
+
+suite.test('connected, idle client error', (done) => {
+  const client = new Client()
+  client.connect((err) => {
+    if (err) {
+      throw new Error('Should not receive error callback after connection')
+    }
+    setImmediate(() => {
+      (client.connection || client.native).emit('error', new Error('expected'))
+    })
+  })
+  client.on('error', (err) => {
+    assert.equal(err.message, 'expected')
+    client.end(done)
+  })
+})
