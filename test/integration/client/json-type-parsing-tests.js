@@ -7,7 +7,7 @@ pool.connect(assert.success(function (client, done) {
     if (!jsonSupported) {
       console.log('skip json test on older versions of postgres');
       done();
-      return helper.pg.end();
+      return pool.end();
     }
     client.query('CREATE TEMP TABLE stuff(id SERIAL PRIMARY KEY, data JSON)');
     var value = { name: 'Brian', age: 250, alive: true, now: new Date() };
