@@ -4,6 +4,12 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v6.3.0
+
+- Deprecate `pg.connect` `pg.end` and `pg.cancel` - favor using `new pg.Pool()` instead of pg singleton.
+- Deprecate undocumented but possibly used `query.promise()` method. Use the promise returned directly from `client.query` / `pool.query`.
+- Deprecate returning an automatically created query result from `client.query`.  Instead return more idomatic responses for callback/promise methods.
+
 ### v6.2.0
 
 - Add support for [parsing `replicationStart` messages](https://github.com/brianc/node-postgres/pull/1271/files).
