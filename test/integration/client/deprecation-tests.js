@@ -7,13 +7,12 @@ process.on('warning', function () {
 var client = new helper.pg.Client()
 
 client.connect(function (err) {
-  console.log('connected')
+  if (err) throw err
   client.query('SELECT NOW()')
     .then(function (res) {
-      console.log('got result')
-      console.log(res.rows)
-      client.end(function () {
-        console.log('ended')
+      client.query('SELECT NOW()', function () {
+        client.end(function () {
+        })
       })
     }).catch(function (err) {
       setImmediate(function () {
