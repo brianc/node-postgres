@@ -1,6 +1,7 @@
 var helper = require('./test-helper')
-process.noDeprecation = false
-process.on('warning', function () {
+
+process.on('warning', function (warning) {
+  console.log(warning)
   throw new Error('Should not emit deprecation warning')
 })
 
