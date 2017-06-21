@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### v6.4.0
+
+- Add support for passing `client_encoding` as a connection parameter.  Used when decoding strings in the JavaScript driver.  The default is still `utf8`.
+
 ### v6.3.0
 
 - Deprecate `pg.connect` `pg.end` and `pg.cancel` - favor using `new pg.Pool()` instead of pg singleton.
