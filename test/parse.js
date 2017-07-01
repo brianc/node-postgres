@@ -160,6 +160,20 @@ test('configuration parameter ssl=1', function(t){
   t.end();
 });
 
+test('set ssl', function (t) {
+   var subject = parse('pg://myhost/db?ssl=1');
+   t.equal(subject.ssl, true);
+   t.end();
+ });
+ 
+ test('allow other params like max, ...', function (t) {
+   var subject = parse('pg://myhost/db?max=18&min=4');
+   t.equal(subject.max, '18');
+   t.equal(subject.min, '4');
+   t.end();
+ });
+ 
+
 test('configuration parameter keepalives', function(t){
   var connectionString = 'pg:///?keepalives=1';
   var subject = parse(connectionString);
@@ -182,9 +196,11 @@ test('do not override a config field with value from query string', function(t){
   t.end();
 });
 
+
 test('return last value of repeated parameter', function(t){
   var connectionString = 'pg:///?keepalives=1&keepalives=0';
   var subject = parse(connectionString);
   t.equal(subject.keepalives, '0');
   t.end();
 });
+

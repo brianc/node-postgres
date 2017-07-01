@@ -25,6 +25,6 @@
   "homepage": "https://github.com/iceddev/pg-connection-string",
   "dependencies": {},
   "devDependencies": {
-    "tap": "^0.4.11"
+    "tap": "^10.3.3"
   }
 }
