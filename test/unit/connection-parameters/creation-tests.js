@@ -67,6 +67,28 @@ test('ConnectionParameters initializing from config', function () {
   assert.ok(subject.isDomainSocket === false)
 })
 
+test('ConnectionParameters initializing from config and config.connectionString', function() {
+  var subject1 = new ConnectionParameters({
+    connectionString: 'postgres://test@host/db'
+  })
+  var subject2 = new ConnectionParameters({
+    connectionString: 'postgres://test@host/db?ssl=1'
+  })
+  var subject3 = new ConnectionParameters({
+    connectionString: 'postgres://test@host/db',
+    ssl: true
+  })
+  var subject4 = new ConnectionParameters({
+    connectionString: 'postgres://test@host/db?ssl=1',
+    ssl: false
+  })
+
+  assert.equal(subject1.ssl, false)
+  assert.equal(subject2.ssl, true)
+  assert.equal(subject3.ssl, true)
+  assert.equal(subject4.ssl, true)
+});
+
 test('escape spaces if present', function () {
   var subject = new ConnectionParameters('postgres://localhost/post gres')
   assert.equal(subject.database, 'post gres')
