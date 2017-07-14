@@ -15,7 +15,7 @@ client.connect(assert.success(function () {
 
   suite.test('name should not exist in the database', function (done) {
     client.query(getZed, assert.calls(function (err, result) {
-      assert.isNull(err);
+      assert(!err);
       assert.empty(result.rows);
       done()
     }))
@@ -23,14 +23,14 @@ client.connect(assert.success(function () {
 
   suite.test('can insert name', (done) => {
     client.query("INSERT INTO person(name, age) VALUES($1, $2)", ['Zed', 270], assert.calls(function (err, result) {
-      assert.isNull(err)
+      assert(!err)
       done()
     }));
   })
 
   suite.test('name should exist in the database', function (done) {
     client.query(getZed, assert.calls(function (err, result) {
-      assert.isNull(err);
+      assert(!err);
       assert.equal(result.rows[0].name, 'Zed');
       done()
     }))
@@ -42,7 +42,7 @@ client.connect(assert.success(function () {
 
   suite.test('name should not exist in the database', function (done) {
     client.query(getZed, assert.calls(function (err, result) {
-      assert.isNull(err);
+      assert(!err);
       assert.empty(result.rows);
       client.end(done)
     }))

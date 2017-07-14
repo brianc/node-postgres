@@ -122,7 +122,7 @@ test('libpq connection string building', function() {
     }
     var subject = new ConnectionParameters(config);
     subject.getLibpqConnectionString(assert.calls(function(err, constring) {
-      assert.isNull(err);
+      assert(!err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
       checkForPart(parts, "password='xyz'");
@@ -141,7 +141,7 @@ test('libpq connection string building', function() {
     };
     var subject = new ConnectionParameters(config);
     subject.getLibpqConnectionString(assert.calls(function(err, constring) {
-      assert.isNull(err);
+      assert(!err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
       checkForPart(parts, "hostaddr='127.0.0.1'");
@@ -171,7 +171,7 @@ test('libpq connection string building', function() {
     };
     var subject = new ConnectionParameters(config);
     subject.getLibpqConnectionString(assert.calls(function(err, constring) {
-      assert.isNull(err);
+      assert(!err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='brian'");
       checkForPart(parts, "host='/tmp/'");
@@ -187,7 +187,7 @@ test('libpq connection string building', function() {
     };
     var subject = new ConnectionParameters(config);
     subject.getLibpqConnectionString(assert.calls(function(err, constring) {
-      assert.isNull(err);
+      assert(!err);
       var parts = constring.split(" ");
       checkForPart(parts, "user='not\\\\brian'");
       checkForPart(parts, "password='bad\\'chars'");
@@ -200,7 +200,7 @@ test('libpq connection string building', function() {
     }
     var subject = new ConnectionParameters(config);
     subject.getLibpqConnectionString(assert.calls(function(err, constring) {
-      assert.isNull(err);
+      assert(!err);
       var parts = constring.split(" ");
       checkForPart(parts, "client_encoding='utf-8'");
     }));

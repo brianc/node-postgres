@@ -7,7 +7,7 @@ var suite = new helper.Suite()
 suite.test('parsing array decimal results', function (done) {
   const pool = new pg.Pool()
   pool.connect(assert.calls(function (err, client, release) {
-    assert.isNull(err);
+    assert(!err);
     client.query("CREATE TEMP TABLE why(names text[], numbors integer[], decimals double precision[])");
     client.query(new pg.Query('INSERT INTO why(names, numbors, decimals) VALUES(\'{"aaron", "brian","a b c" }\', \'{1, 2, 3}\', \'{.1, 0.05, 3.654}\')')).on('error', console.log);
     client.query('SELECT decimals FROM why', assert.success(function (result) {

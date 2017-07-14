@@ -8,11 +8,11 @@ suite.test('fires callback with results', function(done) {
   var client = new Client(helper.config);
   client.connect();
   client.query('SELECT 1 as num', assert.calls(function(err, result) {
-    assert.isNull(err);
+    assert(!err);
     assert.equal(result.rows[0].num, 1);
     assert.strictEqual(result.rowCount, 1);
     client.query('SELECT * FROM person WHERE name = $1', ['Brian'], assert.calls(function(err, result) {
-      assert.isNull(err);
+      assert(!err);
       assert.equal(result.rows[0].name, 'Brian');
       client.end(done);
     }))
