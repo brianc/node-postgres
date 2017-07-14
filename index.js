@@ -16,7 +16,7 @@ function throwOnRelease () {
 
 function release (client, err) {
   client.release = throwOnRelease
-  if (err) {
+  if (err || this.ending) {
     this._remove(client)
     this._pulseQueue()
     return
@@ -28,14 +28,10 @@ function release (client, err) {
     tid = setTimeout(() => {
       this.log('remove idle client')
       this._remove(client)
-    }, this.idleTimeoutMillis)
+    }, this.options.idleTimeoutMillis)
   }
 
-  if (this.ending) {
-    this._remove(client)
-  } else {
-    this._idle.push(new IdleItem(client, tid))
-  }
+  this._idle.push(new IdleItem(client, tid))
   this._pulseQueue()
 }
 
@@ -63,6 +59,10 @@ class Pool extends EventEmitter {
     this.log = this.options.log || function () { }
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
+
+    if (typeof this.options.idleTimeoutMillis === 'undefined') {
+      this.options.idleTimeoutMillis = 10000
+    }
 
     this._clients = []
     this._idle = []
@@ -114,7 +114,10 @@ class Pool extends EventEmitter {
   }
 
   _remove (client) {
-    this._idle = this._idle.filter(item => item.client !== client)
+    this._idle = this._idle.filter(item => {
+      clearTimeout(item.timeoutId)
+      return item.client !== client
+    })
     this._clients = this._clients.filter(c => c !== client)
     client.end()
     this.emit('remove', client)
