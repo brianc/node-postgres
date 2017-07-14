@@ -17,6 +17,26 @@ var createErorrClient = function() {
 
 const suite = new helper.Suite('error handling')
 
+suite.test('re-using connections results in error callback', (done) => {
+  const client = new Client()
+  client.connect(() => {
+    client.connect(err => {
+      assert(err instanceof Error)
+      client.end(done)
+    })
+  })
+})
+
+suite.test('re-using connections results in promise rejection', (done) => {
+  const client = new Client()
+  client.connect().then(() => {
+    client.connect().catch(err => {
+      assert(err instanceof Error)
+      client.end().then(done)
+    })
+  })
+})
+
 suite.test('query receives error on client shutdown', function(done) {
   var client = new Client();
   client.connect(assert.success(function() {

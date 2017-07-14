@@ -8,14 +8,14 @@ var testForTypeCoercion = function (type) {
   const pool = new pg.Pool()
   suite.test(`test type coercion ${type.name}`, (cb) => {
     pool.connect(function (err, client, done) {
-      assert.isNull(err);
+      assert(!err);
       client.query("create temp table test_type(col " + type.name + ")", assert.calls(function (err, result) {
-        assert.isNull(err);
+        assert(!err);
 
         type.values.forEach(function (val) {
 
           var insertQuery = client.query('insert into test_type(col) VALUES($1)', [val], assert.calls(function (err, result) {
-            assert.isNull(err);
+            assert(!err);
           }));
 
           var query = client.query(new pg.Query({
@@ -152,11 +152,11 @@ suite.test('selecting nulls', cb => {
   pool.connect(assert.calls(function (err, client, done) {
     assert.ifError(err);
     client.query('select null as res;', assert.calls(function (err, res) {
-      assert.isNull(err);
+      assert(!err);
       assert.strictEqual(res.rows[0].res, null)
     }))
     client.query('select 7 <> $1 as res;', [null], function (err, res) {
-      assert.isNull(err);
+      assert(!err);
       assert.strictEqual(res.rows[0].res, null);
       done();
       pool.end(cb)

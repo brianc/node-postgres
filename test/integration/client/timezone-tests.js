@@ -11,11 +11,11 @@ const pool = new helper.pg.Pool()
 const suite = new helper.Suite()
 
 pool.connect(function (err, client, done) {
-  assert.isNull(err);
+  assert(!err);
 
   suite.test('timestamp without time zone', function (cb) {
     client.query("SELECT CAST($1 AS TIMESTAMP WITHOUT TIME ZONE) AS \"val\"", [date], function (err, result) {
-      assert.isNull(err);
+      assert(!err);
       assert.equal(result.rows[0].val.getTime(), date.getTime());
       cb()
     })
@@ -23,7 +23,7 @@ pool.connect(function (err, client, done) {
 
   suite.test('timestamp with time zone', function (cb) {
     client.query("SELECT CAST($1 AS TIMESTAMP WITH TIME ZONE) AS \"val\"", [date], function (err, result) {
-      assert.isNull(err);
+      assert(!err);
       assert.equal(result.rows[0].val.getTime(), date.getTime());
 
       done();

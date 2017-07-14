@@ -13,7 +13,7 @@ helper.testPoolSize = function (max) {
 
     for (var i = 0; i < max; i++) {
       pool.connect(function (err, client, done) {
-        assert.isNull(err);
+        assert(!err);
         client.query("SELECT * FROM NOW()")
         client.query("select generate_series(0, 25)", function (err, result) {
           assert.equal(result.rows.length, 26)

@@ -13,7 +13,7 @@ suite.test("empty query message handling", function(done) {
 suite.test('callback supported', function(done) {
   const client = helper.client();
   client.query("", function(err, result) {
-    assert.isNull(err);
+    assert(!err);
     assert.empty(result.rows);
     client.end(done)
   })
