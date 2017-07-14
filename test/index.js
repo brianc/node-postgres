@@ -1,26 +1,16 @@
-var expect = require('expect.js')
-var _ = require('lodash')
+'use strict'
+const expect = require('expect.js')
+const _ = require('lodash')
 
-var describe = require('mocha').describe
-var it = require('mocha').it
-var Promise = require('bluebird')
+const describe = require('mocha').describe
+const it = require('mocha').it
 
-var Pool = require('../')
-
-if (typeof global.Promise === 'undefined') {
-  global.Promise = Promise
-}
+const Pool = require('../')
 
 describe('pool', function () {
-  it('can be used as a factory function', function () {
-    var pool = Pool()
-    expect(pool instanceof Pool).to.be.ok()
-    expect(typeof pool.connect).to.be('function')
-  })
-
   describe('with callbacks', function () {
     it('works totally unconfigured', function (done) {
-      var pool = new Pool()
+      const pool = new Pool()
       pool.connect(function (err, client, release) {
         if (err) return done(err)
         client.query('SELECT NOW()', function (err, res) {
@@ -33,7 +23,7 @@ describe('pool', function () {
     })
 
     it('passes props to clients', function (done) {
-      var pool = new Pool({ binary: true })
+      const pool = new Pool({ binary: true })
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
@@ -43,7 +33,7 @@ describe('pool', function () {
     })
 
     it('can run a query with a callback without parameters', function (done) {
-      var pool = new Pool()
+      const pool = new Pool()
       pool.query('SELECT 1 as num', function (err, res) {
         expect(res.rows[0]).to.eql({ num: 1 })
         pool.end(function () {
@@ -53,7 +43,7 @@ describe('pool', function () {
     })
 
     it('can run a query with a callback', function (done) {
-      var pool = new Pool()
+      const pool = new Pool()
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
         expect(res.rows[0]).to.eql({ name: 'brianc' })
         pool.end(function () {
@@ -63,18 +53,30 @@ describe('pool', function () {
     })
 
     it('passes connection errors to callback', function (done) {
-      var pool = new Pool({host: 'no-postgres-server-here.com'})
+      const pool = new Pool({ port: 53922 })
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
         expect(res).to.be(undefined)
         expect(err).to.be.an(Error)
+        // a connection error should not polute the pool with a dead client
+        expect(pool.totalCount).to.equal(0)
         pool.end(function (err) {
           done(err)
         })
       })
     })
 
+    it('does not pass client to error callback', function (done) {
+      const pool = new Pool({ port: 58242 })
+      pool.connect(function (err, client, release) {
+        expect(err).to.be.an(Error)
+        expect(client).to.be(undefined)
+        expect(release).to.be.a(Function)
+        pool.end(done)
+      })
+    })
+
     it('removes client if it errors in background', function (done) {
-      var pool = new Pool()
+      const pool = new Pool()
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
@@ -94,8 +96,8 @@ describe('pool', function () {
     })
 
     it('should not change given options', function (done) {
-      var options = { max: 10 }
-      var pool = new Pool(options)
+      const options = { max: 10 }
+      const pool = new Pool(options)
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
@@ -105,8 +107,8 @@ describe('pool', function () {
     })
 
     it('does not create promises when connecting', function (done) {
-      var pool = new Pool()
-      var returnValue = pool.connect(function (err, client, release) {
+      const pool = new Pool()
+      const returnValue = pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
         pool.end(done)
@@ -115,8 +117,8 @@ describe('pool', function () {
     })
 
     it('does not create promises when querying', function (done) {
-      var pool = new Pool()
-      var returnValue = pool.query('SELECT 1 as num', function (err) {
+      const pool = new Pool()
+      const returnValue = pool.query('SELECT 1 as num', function (err) {
         pool.end(function () {
           done(err)
         })
@@ -125,108 +127,103 @@ describe('pool', function () {
     })
 
     it('does not create promises when ending', function (done) {
-      var pool = new Pool()
-      var returnValue = pool.end(done)
+      const pool = new Pool()
+      const returnValue = pool.end(done)
       expect(returnValue).to.be(undefined)
+    })
+
+    it('never calls callback syncronously', function (done) {
+      const pool = new Pool()
+      pool.connect((err, client) => {
+        if (err) throw err
+        client.release()
+        setImmediate(() => {
+          let called = false
+          pool.connect((err, client) => {
+            if (err) throw err
+            called = true
+            client.release()
+            setImmediate(() => {
+              pool.end(done)
+            })
+          })
+          expect(called).to.equal(false)
+        })
+      })
     })
   })
 
   describe('with promises', function () {
-    it('connects and disconnects', function () {
-      var pool = new Pool()
+    it('connects, queries, and disconnects', function () {
+      const pool = new Pool()
       return pool.connect().then(function (client) {
-        expect(pool.pool.availableObjectsCount()).to.be(0)
         return client.query('select $1::text as name', ['hi']).then(function (res) {
           expect(res.rows).to.eql([{ name: 'hi' }])
           client.release()
-          expect(pool.pool.getPoolSize()).to.be(1)
-          expect(pool.pool.availableObjectsCount()).to.be(1)
           return pool.end()
         })
       })
     })
 
+    it('executes a query directly', () => {
+      const pool = new Pool()
+      return pool
+        .query('SELECT $1::text as name', ['hi'])
+        .then(res => {
+          expect(res.rows).to.have.length(1)
+          expect(res.rows[0].name).to.equal('hi')
+          return pool.end()
+        })
+    })
+
     it('properly pools clients', function () {
-      var pool = new Pool({ poolSize: 9 })
-      return Promise.map(_.times(30), function () {
+      const pool = new Pool({ poolSize: 9 })
+      const promises = _.times(30, function () {
         return pool.connect().then(function (client) {
           return client.query('select $1::text as name', ['hi']).then(function (res) {
             client.release()
             return res
           })
         })
-      }).then(function (res) {
+      })
+      return Promise.all(promises).then(function (res) {
         expect(res).to.have.length(30)
-        expect(pool.pool.getPoolSize()).to.be(9)
+        expect(pool.totalCount).to.be(9)
         return pool.end()
       })
     })
 
     it('supports just running queries', function () {
-      var pool = new Pool({ poolSize: 9 })
-      return Promise.map(_.times(30), function () {
-        return pool.query('SELECT $1::text as name', ['hi'])
-      }).then(function (queries) {
+      const pool = new Pool({ poolSize: 9 })
+      const text = 'select $1::text as name'
+      const values = ['hi']
+      const query = { text: text, values: values }
+      const promises = _.times(30, () => pool.query(query))
+      return Promise.all(promises).then(function (queries) {
         expect(queries).to.have.length(30)
-        expect(pool.pool.getPoolSize()).to.be(9)
-        expect(pool.pool.availableObjectsCount()).to.be(9)
         return pool.end()
       })
     })
 
-    it('recovers from all errors', function () {
-      var pool = new Pool()
+    it('recovers from query errors', function () {
+      const pool = new Pool()
 
-      var errors = []
-      return Promise.mapSeries(_.times(30), function () {
+      const errors = []
+      const promises = _.times(30, () => {
         return pool.query('SELECT asldkfjasldkf')
           .catch(function (e) {
             errors.push(e)
           })
-      }).then(function () {
+      })
+      return Promise.all(promises).then(() => {
+        expect(errors).to.have.length(30)
+        expect(pool.totalCount).to.equal(0)
+        expect(pool.idleCount).to.equal(0)
         return pool.query('SELECT $1::text as name', ['hi']).then(function (res) {
-          expect(errors).to.have.length(30)
           expect(res.rows).to.eql([{ name: 'hi' }])
           return pool.end()
         })
       })
     })
-  })
-})
-
-describe('pool error handling', function () {
-  it('Should complete these queries without dying', function (done) {
-    var pgPool = new Pool()
-    var pool = pgPool.pool
-    pool._factory.max = 1
-    pool._factory.min = null
-    var errors = 0
-    var shouldGet = 0
-    function runErrorQuery () {
-      shouldGet++
-      return new Promise(function (resolve, reject) {
-        pgPool.query("SELECT 'asd'+1 ").then(function (res) {
-          reject(res) // this should always error
-        }).catch(function (err) {
-          errors++
-          resolve(err)
-        })
-      })
-    }
-    var ps = []
-    for (var i = 0; i < 5; i++) {
-      ps.push(runErrorQuery())
-    }
-    Promise.all(ps).then(function () {
-      expect(shouldGet).to.eql(errors)
-      done()
-    })
-  })
-})
-
-process.on('unhandledRejection', function (e) {
-  console.error(e.message, e.stack)
-  setImmediate(function () {
-    throw e
   })
 })

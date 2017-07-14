@@ -1,13 +1,13 @@
-var expect = require('expect.js')
-var describe = require('mocha').describe
-var it = require('mocha').it
-var Pool = require('../')
+const expect = require('expect.js')
+const describe = require('mocha').describe
+const it = require('mocha').it
+const Pool = require('../')
 
 describe('Connection strings', function () {
   it('pool delegates connectionString property to client', function (done) {
-    var connectionString = 'postgres://foo:bar@baz:1234/xur'
+    const connectionString = 'postgres://foo:bar@baz:1234/xur'
 
-    var pool = new Pool({
+    const pool = new Pool({
       // use a fake client so we can check we're passed the connectionString
       Client: function (args) {
         expect(args.connectionString).to.equal(connectionString)

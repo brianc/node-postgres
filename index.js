@@ -1,174 +1,248 @@
-var genericPool = require('generic-pool')
-var util = require('util')
-var EventEmitter = require('events').EventEmitter
-var objectAssign = require('object-assign')
+'use strict'
+const EventEmitter = require('events').EventEmitter
 
-// there is a bug in the generic pool where it will not recreate
-// destroyed workers (even if there is waiting work to do) unless
-// there is a min specified. Make sure we keep some connections
-// SEE: https://github.com/coopernurse/node-pool/pull/186
-// SEE: https://github.com/brianc/node-pg-pool/issues/48
-// SEE: https://github.com/strongloop/loopback-connector-postgresql/issues/231
-function _ensureMinimum () {
-  var i, diff, waiting
-  if (this._draining) return
-  waiting = this._waitingClients.size()
-  if (this._factory.min > 0) { // we have positive specified minimum
-    diff = this._factory.min - this._count
-  } else if (waiting > 0) { // we have no minimum, but we do have work to do
-    diff = Math.min(waiting, this._factory.max - this._count)
-  }
-  for (i = 0; i < diff; i++) {
-    this._createResource()
-  }
-};
+const NOOP = function () { }
 
-var Pool = module.exports = function (options, Client) {
-  if (!(this instanceof Pool)) {
-    return new Pool(options, Client)
+class IdleItem {
+  constructor (client, timeoutId) {
+    this.client = client
+    this.timeoutId = timeoutId
   }
-  EventEmitter.call(this)
-  this.options = objectAssign({}, options)
-  this.log = this.options.log || function () { }
-  this.Client = this.options.Client || Client || require('pg').Client
-  this.Promise = this.options.Promise || global.Promise
-
-  this.options.max = this.options.max || this.options.poolSize || 10
-  this.options.create = this.options.create || this._create.bind(this)
-  this.options.destroy = this.options.destroy || this._destroy.bind(this)
-  this.pool = new genericPool.Pool(this.options)
-  // Monkey patch to ensure we always finish our work
-  //  - There is a bug where callbacks go uncalled if min is not set
-  //  - We might still not want a connection to *always* exist
-  //  - but we do want to create up to max connections if we have work
-  //  - still waiting
-  // This should be safe till the version of pg-pool is upgraded
-  // SEE: https://github.com/coopernurse/node-pool/pull/186
-  this.pool._ensureMinimum = _ensureMinimum
-  this.onCreate = this.options.onCreate
 }
 
-util.inherits(Pool, EventEmitter)
-
-Pool.prototype._promise = function (cb, executor) {
-  if (!cb) {
-    return new this.Promise(executor)
-  }
-
-  function resolved (value) {
-    process.nextTick(function () {
-      cb(null, value)
-    })
-  }
-
-  function rejected (error) {
-    process.nextTick(function () {
-      cb(error)
-    })
-  }
-
-  executor(resolved, rejected)
+function throwOnRelease () {
+  throw new Error('Release called on client which has already been released to the pool.')
 }
 
-Pool.prototype._promiseNoCallback = function (callback, executor) {
-  return callback
-    ? executor()
-    : new this.Promise(executor)
+function release (client, err) {
+  client.release = throwOnRelease
+  if (err) {
+    this._remove(client)
+    this._pulseQueue()
+    return
+  }
+
+  // idle timeout
+  let tid
+  if (this.options.idleTimeoutMillis) {
+    tid = setTimeout(() => {
+      this.log('remove idle client')
+      this._remove(client)
+    }, this.idleTimeoutMillis)
+  }
+
+  if (this.ending) {
+    this._remove(client)
+  } else {
+    this._idle.push(new IdleItem(client, tid))
+  }
+  this._pulseQueue()
 }
 
-Pool.prototype._destroy = function (client) {
-  if (client._destroying) return
-  client._destroying = true
-  client.end()
+function promisify (Promise, callback) {
+  if (callback) {
+    return { callback: callback, result: undefined }
+  }
+  let rej
+  let res
+  const cb = function (err, client) {
+    err ? rej(err) : res(client)
+  }
+  const result = new Promise(function (resolve, reject) {
+    res = resolve
+    rej = reject
+  })
+  return { callback: cb, result: result }
 }
 
-Pool.prototype._create = function (cb) {
-  this.log('connecting new client')
-  var client = new this.Client(this.options)
+class Pool extends EventEmitter {
+  constructor (options, Client) {
+    super()
+    this.options = Object.assign({}, options)
+    this.options.max = this.options.max || this.options.poolSize || 10
+    this.log = this.options.log || function () { }
+    this.Client = this.options.Client || Client || require('pg').Client
+    this.Promise = this.options.Promise || global.Promise
 
-  client.on('error', function (e) {
-    this.log('connected client error:', e)
-    this.pool.destroy(client)
-    e.client = client
-    this.emit('error', e, client)
-  }.bind(this))
+    this._clients = []
+    this._idle = []
+    this._pendingQueue = []
+    this._endCallback = undefined
+    this.ending = false
+  }
 
-  client.connect(function (err) {
-    if (err) {
-      this.log('client connection error:', err)
-      cb(err, null)
-    } else {
-      this.log('client connected')
-      this.emit('connect', client)
-      cb(null, client)
+  _isFull () {
+    return this._clients.length >= this.options.max
+  }
+
+  _pulseQueue () {
+    this.log('pulse queue')
+    if (this.ending) {
+      this.log('pulse queue on ending')
+      if (this._idle.length) {
+        this._idle.map(item => {
+          this._remove(item.client)
+        })
+      }
+      if (!this._clients.length) {
+        this._endCallback()
+      }
+      return
     }
-  }.bind(this))
-}
-
-Pool.prototype.connect = function (cb) {
-  return this._promiseNoCallback(cb, function (resolve, reject) {
-    this.log('acquire client begin')
-    this.pool.acquire(function (err, client) {
-      if (err) {
-        this.log('acquire client. error:', err)
-        if (cb) {
-          cb(err, null, function () {})
-        } else {
-          reject(err)
-        }
-        return
-      }
-
-      this.log('acquire client')
+    // if we don't have any waiting, do nothing
+    if (!this._pendingQueue.length) {
+      this.log('no queued requests')
+      return
+    }
+    // if we don't have any idle clients and we have no more room do nothing
+    if (!this._idle.length && this._isFull()) {
+      return
+    }
+    const waiter = this._pendingQueue.shift()
+    if (this._idle.length) {
+      const idleItem = this._idle.pop()
+      clearTimeout(idleItem.timeoutId)
+      const client = idleItem.client
+      client.release = release.bind(this, client)
       this.emit('acquire', client)
-
-      client.release = function (err) {
-        delete client.release
-        if (err) {
-          this.log('destroy client. error:', err)
-          this.pool.destroy(client)
-        } else {
-          this.log('release client')
-          this.pool.release(client)
-        }
-      }.bind(this)
-
-      if (cb) {
-        cb(null, client, client.release)
-      } else {
-        resolve(client)
-      }
-    }.bind(this))
-  }.bind(this))
-}
-
-Pool.prototype.take = Pool.prototype.connect
-
-Pool.prototype.query = function (text, values, cb) {
-  if (typeof values === 'function') {
-    cb = values
-    values = undefined
+      return waiter(undefined, client, client.release)
+    }
+    if (!this._isFull()) {
+      return this.connect(waiter)
+    }
+    throw new Error('unexpected condition')
   }
 
-  return this._promise(cb, function (resolve, reject) {
-    this.connect(function (err, client, done) {
-      if (err) {
-        return reject(err)
+  _remove (client) {
+    this._idle = this._idle.filter(item => item.client !== client)
+    this._clients = this._clients.filter(c => c !== client)
+    client.end()
+    this.emit('remove', client)
+  }
+
+  connect (cb) {
+    if (this.ending) {
+      const err = new Error('Cannot use a pool after calling end on the pool')
+      return cb ? cb(err) : this.Promise.reject(err)
+    }
+    if (this._clients.length >= this.options.max || this._idle.length) {
+      const response = promisify(this.Promise, cb)
+      const result = response.result
+      this._pendingQueue.push(response.callback)
+      // if we have idle clients schedule a pulse immediately
+      if (this._idle.length) {
+        process.nextTick(() => this._pulseQueue())
       }
-      client.query(text, values, function (err, res) {
-        done(err)
-        err ? reject(err) : resolve(res)
+      return result
+    }
+
+    const client = new this.Client(this.options)
+    this._clients.push(client)
+    const idleListener = (err) => {
+      err.client = client
+      client.removeListener('error', idleListener)
+      client.on('error', () => {
+        this.log('additional client error after disconnection due to error', err)
+      })
+      this._remove(client)
+      // TODO - document that once the pool emits an error
+      // the client has already been closed & purged and is unusable
+      this.emit('error', err, client)
+    }
+
+    this.log('connecting new client')
+
+    // connection timeout logic
+    let tid
+    let timeoutHit = false
+    if (this.options.connectionTimeoutMillis) {
+      tid = setTimeout(() => {
+        this.log('ending client due to timeout')
+        timeoutHit = true
+        // force kill the node driver, and let libpq do its teardown
+        client.connection ? client.connection.stream.destroy() : client.end()
+      }, this.options.connectionTimeoutMillis)
+    }
+
+    const response = promisify(this.Promise, cb)
+    cb = response.callback
+
+    this.log('connecting new client')
+    client.connect((err) => {
+      this.log('new client connected')
+      if (tid) {
+        clearTimeout(tid)
+      }
+      client.on('error', idleListener)
+      if (err) {
+        // remove the dead client from our list of clients
+        this._clients = this._clients.filter(c => c !== client)
+        if (timeoutHit) {
+          err.message = 'Connection terminiated due to connection timeout'
+        }
+        cb(err, undefined, NOOP)
+      } else {
+        client.release = release.bind(this, client)
+        this.emit('connect', client)
+        this.emit('acquire', client)
+        if (this.options.verify) {
+          this.options.verify(client, cb)
+        } else {
+          cb(undefined, client, client.release)
+        }
+      }
+    })
+    return response.result
+  }
+
+  query (text, values, cb) {
+    if (typeof values === 'function') {
+      cb = values
+      values = undefined
+    }
+    const response = promisify(this.Promise, cb)
+    cb = response.callback
+    this.connect((err, client) => {
+      if (err) {
+        return cb(err)
+      }
+      this.log('dispatching query')
+      client.query(text, values, (err, res) => {
+        this.log('query dispatched')
+        client.release(err)
+        if (err) {
+          return cb(err)
+        } else {
+          return cb(undefined, res)
+        }
       })
     })
-  }.bind(this))
-}
+    return response.result
+  }
 
-Pool.prototype.end = function (cb) {
-  this.log('draining pool')
-  return this._promise(cb, function (resolve, reject) {
-    this.pool.drain(function () {
-      this.log('pool drained, calling destroy all now')
-      this.pool.destroyAllNow(resolve)
-    }.bind(this))
-  }.bind(this))
+  end (cb) {
+    this.log('ending')
+    if (this.ending) {
+      const err = new Error('Called end on pool more than once')
+      return cb ? cb(err) : this.Promise.reject(err)
+    }
+    this.ending = true
+    const promised = promisify(this.Promise, cb)
+    this._endCallback = promised.callback
+    this._pulseQueue()
+    return promised.result
+  }
+
+  get waitingCount () {
+    return this._pendingQueue.length
+  }
+
+  get idleCount () {
+    return this._idle.length
+  }
+
+  get totalCount () {
+    return this._clients.length
+  }
 }
+module.exports = Pool

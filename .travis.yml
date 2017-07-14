@@ -8,6 +8,3 @@ matrix:
     - node_js: "6"
       addons:
         postgresql: "9.4"
-    - node_js: "8"
-      addons:
-        postgresql: "9.4"

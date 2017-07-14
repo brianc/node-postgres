@@ -27,15 +27,16 @@
   "homepage": "https://github.com/brianc/node-pg-pool#readme",
   "devDependencies": {
     "bluebird": "3.4.1",
+    "co": "4.6.0",
     "expect.js": "0.3.1",
     "lodash": "4.13.1",
     "mocha": "^2.3.3",
-    "pg": "5.1.0",
+    "pg": "*",
     "standard": "7.1.2",
     "standard-format": "2.2.1"
   },
-  "dependencies": {
-    "generic-pool": "2.4.3",
-    "object-assign": "4.1.0"
+  "dependencies": {},
+  "peerDependencies": {
+    "pg": ">5.0"
   }
 }
