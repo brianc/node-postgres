@@ -17,6 +17,19 @@ var createErorrClient = function() {
 
 const suite = new helper.Suite('error handling')
 
+suite.test('sending non-array argument as values causes an error callback', (done) => {
+  const client = new Client()
+  client.connect(() => {
+    client.query('select $1::text as name', 'foo', (err) => {
+      assert(err instanceof Error)
+      client.query('SELECT $1::text as name', ['foo'], (err, res) => {
+        assert.equal(res.rows[0].name, 'foo')
+        client.end(done)
+      })
+    })
+  })
+})
+
 suite.test('re-using connections results in error callback', (done) => {
   const client = new Client()
   client.connect(() => {
