@@ -1,16 +1,16 @@
-"use strict";
-'use strict';
+'use strict'
+'use strict'
 
 const async = require('async')
 
 class Test {
-  constructor(name, cb) {
+  constructor (name, cb) {
     this.name = name
     this.action = cb
     this.timeout = 5000
   }
 
-  run(cb) {
+  run (cb) {
     try {
       this._run(cb)
     } catch (e) {
@@ -18,7 +18,7 @@ class Test {
     }
   }
 
-  _run(cb) {
+  _run (cb) {
     if (!this.action) {
       console.log(`${this.name} skipped`)
       return cb()
@@ -38,13 +38,13 @@ class Test {
 }
 
 class Suite {
-  constructor(name) {
+  constructor (name) {
     console.log('')
     this._queue = async.queue(this.run.bind(this), 1)
     this._queue.drain = () => { }
   }
 
-  run(test, cb) {
+  run (test, cb) {
     process.stdout.write('  ' + test.name + ' ')
     if (!test.action) {
       process.stdout.write('? - SKIPPED\n')
@@ -69,7 +69,7 @@ class Suite {
     })
   }
 
-  test(name, cb) {
+  test (name, cb) {
     const test = new Test(name, cb)
     this._queue.push(test)
   }
