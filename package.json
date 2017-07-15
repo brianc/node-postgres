@@ -29,8 +29,8 @@
   "devDependencies": {
     "async": "0.9.0",
     "co": "4.6.0",
-    "jshint": "2.5.2",
-    "pg-copy-streams": "0.3.0"
+    "pg-copy-streams": "0.3.0",
+    "standard": "10.0.2"
   },
   "minNativeVersion": "1.7.0",
   "scripts": {
