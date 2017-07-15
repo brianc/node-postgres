@@ -1,5 +1,5 @@
-"use strict";
-var helper = require("./../test-helper");
+'use strict'
+var helper = require('./../test-helper')
 
 const suite = new helper.Suite()
 
@@ -9,19 +9,19 @@ helper.testPoolSize = function (max) {
 
     var sink = new helper.Sink(max, function () {
       pool.end(cb)
-    });
+    })
 
     for (var i = 0; i < max; i++) {
       pool.connect(function (err, client, done) {
-        assert(!err);
-        client.query("SELECT * FROM NOW()")
-        client.query("select generate_series(0, 25)", function (err, result) {
+        assert(!err)
+        client.query('SELECT * FROM NOW()')
+        client.query('select generate_series(0, 25)', function (err, result) {
           assert.equal(result.rows.length, 26)
         })
-        var query = client.query("SELECT * FROM NOW()", (err) => {
+        var query = client.query('SELECT * FROM NOW()', (err) => {
           assert(!err)
-          sink.add();
-          done();
+          sink.add()
+          done()
         })
       })
     }
@@ -29,4 +29,3 @@ helper.testPoolSize = function (max) {
 }
 
 module.exports = Object.assign({}, helper, { suite: suite })
-

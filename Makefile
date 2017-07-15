@@ -7,7 +7,7 @@ params := $(connectionString)
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	 jshint publish test-missing-native update-npm
+	 lint publish test-missing-native update-npm
 
 all:
 	npm install
@@ -17,7 +17,7 @@ help:
 
 test: test-unit
 
-test-all: jshint test-missing-native test-unit test-integration test-native
+test-all: lint test-missing-native test-unit test-integration test-native
 
 
 update-npm:
@@ -60,5 +60,6 @@ test-binary: test-connection
 test-pool:
 	@find test/integration/connection-pool -name "*.js" | $(node-command) binary
 
-jshint:
-	@echo "***Starting jshint***"
+lint:
+	@echo "***Starting lint***"
+	eslint lib

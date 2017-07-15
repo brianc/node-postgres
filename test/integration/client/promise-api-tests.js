@@ -1,8 +1,8 @@
-"use strict";
-'use strict';
+'use strict'
+'use strict'
 
 const helper = require('./test-helper')
-const pg = helper.pg;
+const pg = helper.pg
 
 const suite = new helper.Suite()
 
@@ -23,7 +23,6 @@ suite.test('valid connection completes promise', () => {
         .then(() => { })
     })
 })
-
 
 suite.test('invalid connection rejects promise', (done) => {
   const client = new pg.Client({ host: 'alksdjflaskdfj' })

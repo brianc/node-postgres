@@ -1,8 +1,8 @@
-"use strict";
-var helper = require(__dirname + '/../test-helper');
-var pg = helper.pg;
+'use strict'
+var helper = require(__dirname + '/../test-helper')
+var pg = helper.pg
 
-process.on('unhandledRejection', function(e) {
+process.on('unhandledRejection', function (e) {
   console.error(e, e.stack)
   process.exit(1)
 })

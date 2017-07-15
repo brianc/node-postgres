@@ -1,17 +1,17 @@
-"use strict";
-var helper = require('./test-helper');
-var pg = helper.pg;
+'use strict'
+var helper = require('./test-helper')
+var pg = helper.pg
 
-var suite = new helper.Suite();
+var suite = new helper.Suite()
 
-//clear process.env
-var realEnv = {};
-for(var key in process.env) {
-  realEnv[key] = process.env[key];
-  if(!key.indexOf('PG')) delete process.env[key];
+// clear process.env
+var realEnv = {}
+for (var key in process.env) {
+  realEnv[key] = process.env[key]
+  if (!key.indexOf('PG')) delete process.env[key]
 }
 
-suite.test('default values are used in new clients', function() {
+suite.test('default values are used in new clients', function () {
   assert.same(pg.defaults, {
     user: process.env.USER,
     database: process.env.USER,
@@ -21,7 +21,7 @@ suite.test('default values are used in new clients', function() {
     poolSize: 10
   })
 
-  var client = new pg.Client();
+  var client = new pg.Client()
   assert.same(client, {
     user: process.env.USER,
     database: process.env.USER,
@@ -30,16 +30,15 @@ suite.test('default values are used in new clients', function() {
   })
 })
 
-
-suite.test('modified values are passed to created clients', function() {
+suite.test('modified values are passed to created clients', function () {
   pg.defaults.user = 'boom'
   pg.defaults.password = 'zap'
   pg.defaults.database = 'pow'
   pg.defaults.port = 1234
   pg.defaults.host = 'blam'
 
-  var client = new Client();
-  assert.same(client,{
+  var client = new Client()
+  assert.same(client, {
     user: 'boom',
     password: 'zap',
     database: 'pow',
@@ -49,8 +48,8 @@ suite.test('modified values are passed to created clients', function() {
 })
 
 suite.test('cleanup', () => {
-  //restore process.env
+  // restore process.env
   for (var key in realEnv) {
-    process.env[key] = realEnv[key];
+    process.env[key] = realEnv[key]
   }
 })

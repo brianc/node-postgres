@@ -1,2 +1,2 @@
-"use strict";
-require(__dirname+'/../test-helper')
+'use strict'
+require(__dirname + '/../test-helper')

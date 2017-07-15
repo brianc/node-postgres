@@ -1,11 +1,11 @@
-"use strict";
+'use strict'
 var buffers = require('../../test-buffers')
 var helper = require('./test-helper')
 var suite = new helper.Suite()
 
 var net = require('net')
 
-var Server = function(response) {
+var Server = function (response) {
   this.server = undefined
   this.socket = undefined
   this.response = response
@@ -38,7 +38,7 @@ Server.prototype.start = function (cb) {
 
   var options = {
     host: 'localhost',
-    port: port,
+    port: port
   }
   this.server.listen(options.port, options.host, function () {
     cb(options)
@@ -55,7 +55,7 @@ Server.prototype.close = function (cb) {
 
 var testServer = function (server, cb) {
   // wait for our server to start
-  server.start(function(options) {
+  server.start(function (options) {
     // connect a client to it
     var client = new helper.Client(options)
     client.connect()
@@ -66,7 +66,7 @@ var testServer = function (server, cb) {
       })
 
     // after 50 milliseconds, drop the client
-    setTimeout(function() {
+    setTimeout(function () {
       server.drop()
     }, 50)
 
