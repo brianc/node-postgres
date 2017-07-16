@@ -7,6 +7,8 @@ var conInfo = helper.config
 
 var checkResult = function (result) {
   assert(result.fields)
+  console.log('YOU ARE HERE')
+  console.log('result!!', result)
   assert.equal(result.fields.length, 3)
   var fields = result.fields
   assert.equal(fields[0].name, 'now')
