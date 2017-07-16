@@ -139,6 +139,13 @@ test('prepareValue: objects with simple toPostgres prepared properly', function 
   assert.strictEqual(out, 'zomgcustom!')
 })
 
+test('prepareValue: buffer array prepared properly', function() {
+   var buffer1 = Buffer.from('dead', 'hex')
+   var buffer2 = Buffer.from('beef', 'hex')
+   var out = utils.prepareValue([buffer1, buffer2])
+   assert.strictEqual(out, '{\\\\xdead,\\\\xbeef}')
+ })
+
 test('prepareValue: objects with complex toPostgres prepared properly', function () {
   var buf = Buffer.from('zomgcustom!')
   var customType = {
