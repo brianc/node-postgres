@@ -49,16 +49,17 @@ test('prepared statements do not mutate params', function () {
 
   client.on('drain', client.end.bind(client))
 
+  const rows = []
   query.on('row', function (row, result) {
     assert.ok(result)
-    result.addRow(row)
+    rows.push(row)
   })
 
   query.on('end', function (result) {
-    assert.lengthIs(result.rows, 26, 'result returned wrong number of rows')
-    assert.lengthIs(result.rows, result.rowCount)
-    assert.equal(result.rows[0].name, 'Aaron')
-    assert.equal(result.rows[25].name, 'Zanzabar')
+    assert.lengthIs(rows, 26, 'result returned wrong number of rows')
+    assert.lengthIs(rows, result.rowCount)
+    assert.equal(rows[0].name, 'Aaron')
+    assert.equal(rows[25].name, 'Zanzabar')
   })
 })
 
