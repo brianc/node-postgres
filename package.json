@@ -37,7 +37,7 @@
     "eslint-plugin-standard": "3.0.1",
     "pg-copy-streams": "0.3.0"
   },
-  "minNativeVersion": "1.7.0",
+  "minNativeVersion": "2.0",
   "scripts": {
     "test": "make test-all"
   },
