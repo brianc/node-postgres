@@ -1,7 +1,8 @@
-var helper = require(__dirname + '/../test-helper');
+"use strict";
+var helper = require('./../test-helper');
 
 //native bindings are only installed for native tests
-if(!helper.args.native) {
+if (!helper.args.native) {
   return;
 }
 
@@ -15,13 +16,23 @@ var NativeClient = require('../../../lib/native')
 assert(pg.Client === JsClient);
 assert(native.Client === NativeClient);
 
-pg.connect(function(err, client, done) {
-  assert(client instanceof JsClient);
-  client.end();
+const jsPool = new pg.Pool()
+const nativePool = new native.Pool()
 
-  native.connect(function(err, client, done) {
+const suite = new helper.Suite()
+suite.test('js pool returns js client', cb => {
+  jsPool.connect(function (err, client, done) {
+    assert(client instanceof JsClient);
+    done()
+    jsPool.end(cb)
+  })
+
+})
+
+suite.test('native pool returns native client', cb => {
+  nativePool.connect(function (err, client, done) {
     assert(client instanceof NativeClient);
-    client.end();
+    done()
+    nativePool.end(cb)
   });
-});
-
+})

@@ -1,6 +1,6 @@
 {
   "name": "pg",
-  "version": "6.4.1",
+  "version": "6.2.4",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "postgres",
@@ -21,26 +21,28 @@
     "buffer-writer": "1.0.1",
     "packet-reader": "0.3.1",
     "pg-connection-string": "0.1.3",
-    "pg-pool": "1.*",
+    "pg-pool": "2.*",
     "pg-types": "1.*",
-    "pgpass": "1.*",
+    "pgpass": "1.x",
     "semver": "4.3.2"
   },
   "devDependencies": {
     "async": "0.9.0",
     "co": "4.6.0",
-    "jshint": "2.5.2",
-    "lodash": "4.13.1",
-    "pg-copy-streams": "0.3.0",
-    "promise-polyfill": "5.2.1"
+    "eslint": "4.2.0",
+    "eslint-config-standard": "10.2.1",
+    "eslint-plugin-import": "2.7.0",
+    "eslint-plugin-node": "5.1.0",
+    "eslint-plugin-promise": "3.5.0",
+    "eslint-plugin-standard": "3.0.1",
+    "pg-copy-streams": "0.3.0"
   },
-  "minNativeVersion": "1.7.0",
+  "minNativeVersion": "2.0.0",
   "scripts": {
-    "changelog": "npm i github-changes && ./node_modules/.bin/github-changes -o brianc -r node-postgres -d pulls -a -v",
-    "test": "make test-all connectionString=postgres://postgres@localhost:5432/postgres"
+    "test": "make test-all"
   },
   "license": "MIT",
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 4.0.0"
   }
 }

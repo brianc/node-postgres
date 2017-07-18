@@ -1,214 +1,142 @@
-var helper = require(__dirname +'/test-helper');
+'use strict'
+var helper = require('./test-helper')
+var Query = helper.pg.Query
 
-test("simple, unnamed prepared statement", function(){
-  var client = helper.client();
+var suite = new helper.Suite()
 
-  var query = client.query({
-    text: 'select age from person where name = $1',
-    values: ['Brian']
-  });
+;(function () {
+  var client = helper.client()
+  client.on('drain', client.end.bind(client))
 
-  assert.emits(query, 'row', function(row) {
-    assert.equal(row.age, 20);
-  });
+  var queryName = 'user by age and like name'
+  var parseCount = 0
 
-  assert.emits(query, 'end', function() {
-    client.end();
-  });
-});
-
-test("use interval in prepared statement", function(){
-  return;
-  var client = helper.client();
-
-  client.query('SELECT interval \'15 days 2 months 3 years 6:12:05\' as interval', assert.success(function(result) {
-      var interval = result.rows[0].interval;
-
-      var query = client.query({
-        text: 'select cast($1 as interval) as interval',
-        values: [interval]
-      });
-
-      assert.emits(query, 'row', function(row) {
-        assert.equal(row.interval.seconds, 5);
-        assert.equal(row.interval.minutes, 12);
-        assert.equal(row.interval.hours, 6);
-        assert.equal(row.interval.days, 15);
-        assert.equal(row.interval.months, 2);
-        assert.equal(row.interval.years, 3);
-      });
-
-      assert.emits(query, 'end', function() {
-        client.end();
-      });
-  }));
-});
-
-test("named prepared statement", function() {
-
-  var client = helper.client();
-  client.on('drain', client.end.bind(client));
-
-  var queryName = "user by age and like name";
-  var parseCount = 0;
-
-  test("first named prepared statement",function() {
-    var query = client.query({
+  suite.test('first named prepared statement', function (done) {
+    var query = client.query(new Query({
       text: 'select name from person where age <= $1 and name LIKE $2',
       values: [20, 'Bri%'],
       name: queryName
-    });
+    }))
 
-    assert.emits(query, 'row', function(row) {
-      assert.equal(row.name, 'Brian');
-    });
+    assert.emits(query, 'row', function (row) {
+      assert.equal(row.name, 'Brian')
+    })
 
-    assert.emits(query, 'end', function() {
-    });
-  });
+    query.on('end', () => done())
+  })
 
-  test("second named prepared statement with same name & text", function() {
-    var cachedQuery = client.query({
+  suite.test('second named prepared statement with same name & text', function (done) {
+    var cachedQuery = client.query(new Query({
       text: 'select name from person where age <= $1 and name LIKE $2',
       name: queryName,
       values: [10, 'A%']
-    });
+    }))
 
-    assert.emits(cachedQuery, 'row', function(row) {
-      assert.equal(row.name, 'Aaron');
-    });
+    assert.emits(cachedQuery, 'row', function (row) {
+      assert.equal(row.name, 'Aaron')
+    })
 
-    assert.emits(cachedQuery, 'end', function() {
-    });
-  });
+    cachedQuery.on('end', () => done())
+  })
 
-  test("with same name, but the query text not even there batman!", function() {
-    var q = client.query({
+  suite.test('with same name, but without query text', function (done) {
+    var q = client.query(new Query({
       name: queryName,
       values: [30, '%n%']
-    });
+    }))
 
-    test("gets first row", function() {
-      assert.emits(q, 'row', function(row) {
-        assert.equal(row.name, "Aaron");
+    assert.emits(q, 'row', function (row) {
+      assert.equal(row.name, 'Aaron')
 
-        test("gets second row", function() {
-          assert.emits(q, 'row', function(row) {
-            assert.equal(row.name, "Brian");
-          });
-        });
+      // test second row is emitted as well
+      assert.emits(q, 'row', function (row) {
+        assert.equal(row.name, 'Brian')
+      })
+    })
 
-      });
-    });
+    q.on('end', () => done())
+  })
+})()
 
-    assert.emits(q, 'end', function() {
+;(function () {
+  var statementName = 'differ'
+  var statement1 = 'select count(*)::int4 as count from person'
+  var statement2 = 'select count(*)::int4 as count from person where age < $1'
 
-    });
-  });
-});
+  var client1 = helper.client()
+  var client2 = helper.client()
 
-test("prepared statements on different clients", function() {
-  var statementName = "differ";
-  var statement1 = "select count(*)::int4 as count from person";
-  var statement2 = "select count(*)::int4 as count from person where age < $1";
-
-  var client1Finished = false;
-  var client2Finished = false;
-
-  var client1 = helper.client();
-
-  var client2 = helper.client();
-
-  test("client 1 execution", function() {
-
+  suite.test('client 1 execution', function (done) {
     var query = client1.query({
       name: statementName,
       text: statement1
-    });
-    test('gets right data back', function() {
-      assert.emits(query, 'row', function(row) {
-        assert.equal(row.count, 26);
-      });
-    });
+    }, (err, res) => {
+      assert(!err)
+      assert.equal(res.rows[0].count, 26)
+      done()
+    })
+  })
 
-    assert.emits(query, 'end', function() {
-      if(client2Finished) {
-        client1.end();
-        client2.end();
-      } else {
-        client1Finished = true;
-      }
-    });
-
-  });
-
-  test('client 2 execution', function() {
-    var query = client2.query({
+  suite.test('client 2 execution', function (done) {
+    var query = client2.query(new Query({
       name: statementName,
       text: statement2,
       values: [11]
-    });
+    }))
 
-    test('gets right data', function() {
-      assert.emits(query, 'row', function(row) {
-        assert.equal(row.count, 1);
-      });
-    });
-
-    assert.emits(query, 'end', function() {
-      if(client1Finished) {
-        client1.end();
-        client2.end();
-      } else {
-        client2Finished = true;
-      }
-    });
-  });
-
-});
-
-test('prepared statement', function() {
-  var client = helper.client();
-  client.on('drain', client.end.bind(client));
-  client.query('CREATE TEMP TABLE zoom(name varchar(100));');
-  client.query("INSERT INTO zoom (name) VALUES ('zed')");
-  client.query("INSERT INTO zoom (name) VALUES ('postgres')");
-  client.query("INSERT INTO zoom (name) VALUES ('node postgres')");
-
-  var checkForResults = function(q) {
-    test('row callback fires for each result', function() {
-      assert.emits(q, 'row', function(row) {
-        assert.equal(row.name, 'node postgres');
-
-        assert.emits(q, 'row', function(row) {
-          assert.equal(row.name, 'postgres');
-
-          assert.emits(q, 'row', function(row) {
-            assert.equal(row.name, 'zed');
-          })
-        });
-      })
+    assert.emits(query, 'row', function (row) {
+      assert.equal(row.count, 1)
     })
-  };
 
-  test('with small row count', function() {
-    var query = client.query({
-      name: 'get names',
-      text: "SELECT name FROM zoom ORDER BY name",
-      rows: 1
-    });
-
-    checkForResults(query);
-
+    assert.emits(query, 'end', function () {
+      done()
+    })
   })
 
-  test('with large row count', function() {
-    var query = client.query({
+  suite.test('clean up clients', () => {
+    return client1.end().then(() => client2.end())
+  })
+})()
+
+;(function () {
+  var client = helper.client()
+  client.query('CREATE TEMP TABLE zoom(name varchar(100));')
+  client.query("INSERT INTO zoom (name) VALUES ('zed')")
+  client.query("INSERT INTO zoom (name) VALUES ('postgres')")
+  client.query("INSERT INTO zoom (name) VALUES ('node postgres')")
+
+  var checkForResults = function (q) {
+    assert.emits(q, 'row', function (row) {
+      assert.equal(row.name, 'node postgres')
+
+      assert.emits(q, 'row', function (row) {
+        assert.equal(row.name, 'postgres')
+
+        assert.emits(q, 'row', function (row) {
+          assert.equal(row.name, 'zed')
+        })
+      })
+    })
+  }
+
+  suite.test('with small row count', function (done) {
+    var query = client.query(new Query({
+      name: 'get names',
+      text: 'SELECT name FROM zoom ORDER BY name',
+      rows: 1
+    }, done))
+
+    checkForResults(query)
+  })
+
+  suite.test('with large row count', function (done) {
+    var query = client.query(new Query({
       name: 'get names',
       text: 'SELECT name FROM zoom ORDER BY name',
       rows: 1000
-    })
-    checkForResults(query);
+    }, done))
+    checkForResults(query)
   })
 
-})
+  suite.test('cleanup', () => client.end())
+})()

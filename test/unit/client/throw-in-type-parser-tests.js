@@ -1,112 +1,69 @@
-var helper = require(__dirname + "/test-helper");
+'use strict'
+var helper = require('./test-helper')
+var Query = require('../../../lib/query')
 var types = require('pg-types')
 
-test('handles throws in type parsers', function() {
-  var typeParserError = new Error('TEST: Throw in type parsers');
+const suite = new helper.Suite()
 
-  types.setTypeParser('special oid that will throw', function () {
-    throw typeParserError;
-  });
+var typeParserError = new Error('TEST: Throw in type parsers')
 
-  test('emits error', function() {
-    var handled;
-    var client = helper.client();
-    var con = client.connection;
-    var query = client.query('whatever');
+types.setTypeParser('special oid that will throw', function () {
+  throw typeParserError
+})
 
-    handled = con.emit('readyForQuery');
-    assert.ok(handled, "should have handled ready for query");
+const emitFakeEvents = con => {
+  setImmediate(() => {
+    con.emit('readyForQuery')
 
-    con.emit('rowDescription',{
-      fields: [{
-        name: 'boom',
-        dataTypeID: 'special oid that will throw'
-      }]
-    });
-    assert.ok(handled, "should have handled row description");
+    con.emit('rowDescription', {
+      fields: [
+        {
+          name: 'boom',
+          dataTypeID: 'special oid that will throw'
+        }
+      ]
+    })
 
-    assert.emits(query, 'error', function(err) {
-      assert.equal(err, typeParserError);
-    });
+    con.emit('dataRow', { fields: ['hi'] })
+    con.emit('dataRow', { fields: ['hi'] })
+    con.emit('commandComplete', { text: 'INSERT 31 1' })
+    con.emit('readyForQuery')
+  })
+}
 
-    handled = con.emit('dataRow', { fields: ["hi"] });
-    assert.ok(handled, "should have handled first data row message");
+suite.test('emits error', function (done) {
+  var handled
+  var client = helper.client()
+  var con = client.connection
+  var query = client.query(new Query('whatever'))
+  emitFakeEvents(con)
 
-    handled = con.emit('commandComplete', { text: 'INSERT 31 1' });
-    assert.ok(handled, "should have handled command complete");
+  assert.emits(query, 'error', function (err) {
+    assert.equal(err, typeParserError)
+    done()
+  })
+})
 
-    handled = con.emit('readyForQuery');
-    assert.ok(handled, "should have handled ready for query");
-  });
+suite.test('calls callback with error', function (done) {
+  var handled
 
-  test('calls callback with error', function() {
-    var handled;
+  var callbackCalled = 0
 
-    var callbackCalled = 0;
+  var client = helper.client()
+  var con = client.connection
+  emitFakeEvents(con)
+  var query = client.query('whatever', function (err) {
+    assert.equal(err, typeParserError)
+    done()
+  })
+})
 
-    var client = helper.client();
-    var con = client.connection;
-    var query = client.query('whatever', assert.calls(function (err) {
-      callbackCalled += 1;
-
-      assert.equal(callbackCalled, 1);
-      assert.equal(err, typeParserError);
-    }));
-
-    handled = con.emit('readyForQuery');
-    assert.ok(handled, "should have handled ready for query");
-
-    handled = con.emit('rowDescription',{
-      fields: [{
-        name: 'boom',
-        dataTypeID: 'special oid that will throw'
-      }]
-    });
-    assert.ok(handled, "should have handled row description");
-
-    handled = con.emit('dataRow', { fields: ["hi"] });
-    assert.ok(handled, "should have handled first data row message");
-
-    handled = con.emit('dataRow', { fields: ["hi"] });
-    assert.ok(handled, "should have handled second data row message");
-
-    con.emit('commandComplete', { text: 'INSERT 31 1' });
-    assert.ok(handled, "should have handled command complete");
-
-    handled = con.emit('readyForQuery');
-    assert.ok(handled, "should have handled ready for query");
-  });
-
-  test('rejects promise with error', function() {
-    var handled;
-    var client = helper.client();
-    var con = client.connection;
-    var query = client.query('whatever');
-    var queryPromise = query.promise();
-
-    handled = con.emit('readyForQuery');
-    assert.ok(handled, "should have handled ready for query");
-
-    handled = con.emit('rowDescription',{
-      fields: [{
-        name: 'boom',
-        dataTypeID: 'special oid that will throw'
-      }]
-    });
-    assert.ok(handled, "should have handled row description");
-
-    handled = con.emit('dataRow', { fields: ["hi"] });
-    assert.ok(handled, "should have handled first data row message");
-
-    handled = con.emit('commandComplete', { text: 'INSERT 31 1' });
-    assert.ok(handled, "should have handled command complete");
-
-    handled = con.emit('readyForQuery');
-    assert.ok(handled, "should have handled ready for query");
-
-    queryPromise.catch(assert.calls(function (err) {
-      assert.equal(err, typeParserError);
-    }));
-  });
-
-});
+suite.test('rejects promise with error', function (done) {
+  var client = helper.client()
+  var con = client.connection
+  emitFakeEvents(con)
+  client.query('whatever').catch(err => {
+    assert.equal(err, typeParserError)
+    done()
+  })
+})

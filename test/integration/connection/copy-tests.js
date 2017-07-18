@@ -1,44 +1,45 @@
-var helper = require(__dirname+"/test-helper");
-var assert = require('assert');
+'use strict'
+var helper = require(__dirname + '/test-helper')
+var assert = require('assert')
 
 test('COPY FROM events check', function () {
- helper.connect(function (con) {
-    var stdinStream = con.query('COPY person FROM STDIN'); 
+  helper.connect(function (con) {
+    var stdinStream = con.query('COPY person FROM STDIN')
     con.on('copyInResponse', function () {
-      con.endCopyFrom(); 
-    });
+      con.endCopyFrom()
+    })
     assert.emits(con, 'copyInResponse',
       function () {
-        con.endCopyFrom();
+        con.endCopyFrom()
       },
-      "backend should  emit copyInResponse after COPY FROM query"
-    ); 
+      'backend should  emit copyInResponse after COPY FROM query'
+    )
     assert.emits(con, 'commandComplete',
       function () {
-        con.end();
+        con.end()
       },
-      "backend should emit commandComplete after COPY FROM stream ends"
+      'backend should emit commandComplete after COPY FROM stream ends'
     )
-  });
-});
+  })
+})
 test('COPY TO events check', function () {
   helper.connect(function (con) {
-    var stdoutStream = con.query('COPY person TO STDOUT');
+    var stdoutStream = con.query('COPY person TO STDOUT')
     assert.emits(con, 'copyOutResponse',
       function () {
       },
-      "backend should emit copyOutResponse after COPY TO query"
-    );
+      'backend should emit copyOutResponse after COPY TO query'
+    )
     assert.emits(con, 'copyData',
       function () {
       },
-      "backend should emit copyData on every data row"
-    );
+      'backend should emit copyData on every data row'
+    )
     assert.emits(con, 'copyDone',
       function () {
-        con.end();
+        con.end()
       },
-      "backend should emit copyDone after all data rows"
-    );
-  });
-});
+      'backend should emit copyDone after all data rows'
+    )
+  })
+})

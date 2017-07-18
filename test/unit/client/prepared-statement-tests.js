@@ -1,86 +1,88 @@
-var helper = require(__dirname + '/test-helper');
+'use strict'
+var helper = require('./test-helper')
+var Query = require('../../../lib/query')
 
-var client = helper.client();
-var con = client.connection;
-var parseArg = null;
-con.parse = function(arg) {
-  parseArg = arg;
-  process.nextTick(function() {
-    con.emit('parseComplete');
-  });
-};
+var client = helper.client()
+var con = client.connection
+var parseArg = null
+con.parse = function (arg) {
+  parseArg = arg
+  process.nextTick(function () {
+    con.emit('parseComplete')
+  })
+}
 
-var bindArg = null;
-con.bind = function(arg) {
-  bindArg = arg;
-  process.nextTick(function(){
-    con.emit('bindComplete');
-  });
-};
+var bindArg = null
+con.bind = function (arg) {
+  bindArg = arg
+  process.nextTick(function () {
+    con.emit('bindComplete')
+  })
+}
 
-var executeArg = null;
-con.execute = function(arg) {
-  executeArg = arg;
-  process.nextTick(function() {
-    con.emit('rowData',{ fields: [] });
-    con.emit('commandComplete', { text: "" });
-  });
-};
+var executeArg = null
+con.execute = function (arg) {
+  executeArg = arg
+  process.nextTick(function () {
+    con.emit('rowData', { fields: [] })
+    con.emit('commandComplete', { text: '' })
+  })
+}
 
-var describeArg = null;
-con.describe = function(arg) {
-  describeArg = arg;
-  process.nextTick(function() {
-    con.emit('rowDescription', { fields: [] });
-  });
-};
+var describeArg = null
+con.describe = function (arg) {
+  describeArg = arg
+  process.nextTick(function () {
+    con.emit('rowDescription', { fields: [] })
+  })
+}
 
-var syncCalled = false;
-con.flush = function() {
-};
-con.sync = function() {
-  syncCalled = true;
-  process.nextTick(function() {
-    con.emit('readyForQuery');
-  });
-};
+var syncCalled = false
+con.flush = function () {
+}
+con.sync = function () {
+  syncCalled = true
+  process.nextTick(function () {
+    con.emit('readyForQuery')
+  })
+}
 
-test('bound command', function() {
-  test('simple, unnamed bound command', function() {
-    assert.ok(client.connection.emit('readyForQuery'));
+test('bound command', function () {
+  test('simple, unnamed bound command', function () {
+    assert.ok(client.connection.emit('readyForQuery'))
 
-    var query = client.query({
+    var query = client.query(new Query({
       text: 'select * from X where name = $1',
       values: ['hi']
-    });
+    }))
 
-    assert.emits(query,'end', function() {
-      test('parse argument', function() {
-        assert.equal(parseArg.name, null);
-        assert.equal(parseArg.text, 'select * from X where name = $1');
-        assert.equal(parseArg.types, null);
-      });
+    assert.emits(query, 'end', function () {
+      test('parse argument', function () {
+        assert.equal(parseArg.name, null)
+        assert.equal(parseArg.text, 'select * from X where name = $1')
+        assert.equal(parseArg.types, null)
+      })
 
-      test('bind argument', function() {
-        assert.equal(bindArg.statement, null);
-        assert.equal(bindArg.portal, null);
-        assert.lengthIs(bindArg.values, 1);
+      test('bind argument', function () {
+        assert.equal(bindArg.statement, null)
+        assert.equal(bindArg.portal, null)
+        assert.lengthIs(bindArg.values, 1)
         assert.equal(bindArg.values[0], 'hi')
-      });
+      })
 
-      test('describe argument', function() {
-        assert.equal(describeArg.type, 'P');
-        assert.equal(describeArg.name, "");
-      });
+      test('describe argument', function () {
+        assert.equal(describeArg.type, 'P')
+        assert.equal(describeArg.name, '')
+      })
 
-      test('execute argument', function() {
-        assert.equal(executeArg.portal, null);
-        assert.equal(executeArg.rows, null);
-      });
+      test('execute argument', function () {
+        assert.equal(executeArg.portal, null)
+        assert.equal(executeArg.rows, null)
+      })
 
-      test('sync called', function() {
-        assert.ok(syncCalled);
-      });
-    });
-  });
-});
+      test('sync called', function () {
+        assert.ok(syncCalled)
+      })
+    })
+  })
+})

@@ -1,29 +1,34 @@
-var helper = require(__dirname + '/../test-helper');
-var exec = require('child_process').exec;
+'use strict'
+var helper = require('./../test-helper')
+var exec = require('child_process').exec
 
-var oldTz = process.env.TZ;
-process.env.TZ = 'Europe/Berlin';
+var oldTz = process.env.TZ
+process.env.TZ = 'Europe/Berlin'
 
-var date = new Date();
+var date = new Date()
 
-helper.pg.connect(helper.config, function(err, client, done) {
-  assert.isNull(err);
+const pool = new helper.pg.Pool()
+const suite = new helper.Suite()
 
-  test('timestamp without time zone', function() {
-    client.query("SELECT CAST($1 AS TIMESTAMP WITHOUT TIME ZONE) AS \"val\"", [ date ], function(err, result) {
-      assert.isNull(err);
-      assert.equal(result.rows[0].val.getTime(), date.getTime());
+pool.connect(function (err, client, done) {
+  assert(!err)
 
-      test('timestamp with time zone', function() {
-        client.query("SELECT CAST($1 AS TIMESTAMP WITH TIME ZONE) AS \"val\"", [ date ], function(err, result) {
-          assert.isNull(err);
-          assert.equal(result.rows[0].val.getTime(), date.getTime());
+  suite.test('timestamp without time zone', function (cb) {
+    client.query('SELECT CAST($1 AS TIMESTAMP WITHOUT TIME ZONE) AS "val"', [date], function (err, result) {
+      assert(!err)
+      assert.equal(result.rows[0].val.getTime(), date.getTime())
+      cb()
+    })
+  })
 
-          done();
-          helper.pg.end();
-          process.env.TZ = oldTz;
-        });
-      });
-    });
-  });
-});
+  suite.test('timestamp with time zone', function (cb) {
+    client.query('SELECT CAST($1 AS TIMESTAMP WITH TIME ZONE) AS "val"', [date], function (err, result) {
+      assert(!err)
+      assert.equal(result.rows[0].val.getTime(), date.getTime())
+
+      done()
+      pool.end(cb)
+      process.env.TZ = oldTz
+    })
+  })
+})

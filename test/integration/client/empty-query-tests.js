@@ -1,17 +1,20 @@
-var helper = require(__dirname+'/test-helper');
-var client = helper.client();
+'use strict'
+var helper = require('./test-helper')
+const suite = new helper.Suite()
 
-test("empty query message handling", function() {
-  assert.emits(client, 'drain', function() {
-    client.end();
-  });
-  client.query({text: ""});
-});
-
-test('callback supported', assert.calls(function() {
-  client.query("", function(err, result) {
-    assert.isNull(err);
-    assert.empty(result.rows);
+suite.test('empty query message handling', function (done) {
+  const client = helper.client()
+  assert.emits(client, 'drain', function () {
+    client.end(done)
   })
-}))
+  client.query({text: ''})
+})
 
+suite.test('callback supported', function (done) {
+  const client = helper.client()
+  client.query('', function (err, result) {
+    assert(!err)
+    assert.empty(result.rows)
+    client.end(done)
+  })
+})

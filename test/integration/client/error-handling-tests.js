@@ -1,197 +1,204 @@
-var helper = require(__dirname + '/test-helper');
-var util = require('util');
+'use strict'
 
+var helper = require('./test-helper')
+var util = require('util')
 
-  test('non-query error with callback', function () {
-    var client = new Client({
-      user:'asldkfjsadlfkj'
-    });
-    client.connect(assert.calls(function (err) {
-      assert(err);
-    }));
-  });
+var pg = helper.pg
+const Client = pg.Client
 
-  test('non-query error', function() {
-    var client = new Client({
-      user:'asldkfjsadlfkj'
-    });
-    assert.emits(client, 'error');
-    client.connect();
-  });
+var createErorrClient = function () {
+  var client = helper.client()
+  client.once('error', function (err) {
+    assert.fail('Client shoud not throw error during query execution')
+  })
+  client.on('drain', client.end.bind(client))
+  return client
+}
 
-var createErorrClient = function() {
-  var client = helper.client();
-  client.once('error', function(err) {
-    //console.log('error', util.inspect(err));
-    assert.fail('Client shoud not throw error during query execution');
-  });
-  client.on('drain', client.end.bind(client));
-  return client;
-};
+const suite = new helper.Suite('error handling')
 
-test('error handling', function() {
-  test('within a simple query', function() {
-    var client = createErorrClient();
+suite.test('sending non-array argument as values causes an error callback', (done) => {
+  const client = new Client()
+  client.connect(() => {
+    client.query('select $1::text as name', 'foo', (err) => {
+      assert(err instanceof Error)
+      client.query('SELECT $1::text as name', ['foo'], (err, res) => {
+        assert.equal(res.rows[0].name, 'foo')
+        client.end(done)
+      })
+    })
+  })
+})
 
-    var query = client.query("select omfg from yodas_dsflsd where pixistix = 'zoiks!!!'");
+suite.test('re-using connections results in error callback', (done) => {
+  const client = new Client()
+  client.connect(() => {
+    client.connect(err => {
+      assert(err instanceof Error)
+      client.end(done)
+    })
+  })
+})
 
-    assert.emits(query, 'error', function(error) {
-      assert.equal(error.severity, "ERROR");
-    });
-  });
+suite.test('re-using connections results in promise rejection', (done) => {
+  const client = new Client()
+  client.connect().then(() => {
+    client.connect().catch(err => {
+      assert(err instanceof Error)
+      client.end().then(done)
+    })
+  })
+})
 
-  test('within a prepared statement', function() {
+suite.test('query receives error on client shutdown', function (done) {
+  var client = new Client()
+  client.connect(assert.success(function () {
+    const config = {
+      text: 'select pg_sleep(5)',
+      name: 'foobar'
+    }
+    let queryError
+    client.query(new pg.Query(config), assert.calls(function (err, res) {
+      assert(err instanceof Error)
+      queryError = err
+    }))
+    setTimeout(() => client.end(), 50)
+    client.once('end', () => {
+      assert(queryError instanceof Error)
+      done()
+    })
+  }))
+})
 
-    var client = createErorrClient();
+var ensureFuture = function (testClient, done) {
+  var goodQuery = testClient.query(new pg.Query('select age from boom'))
+  assert.emits(goodQuery, 'row', function (row) {
+    assert.equal(row.age, 28)
+    done()
+  })
+}
 
-    var q = client.query({text: "CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);", binary: false});
+suite.test('when query is parsing', (done) => {
+  var client = createErorrClient()
 
-    test("when query is parsing", function() {
+  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
-      //this query wont parse since there ain't no table named bang
+    // this query wont parse since there isn't a table named bang
+  var query = client.query(new pg.Query({
+    text: 'select * from bang where name = $1',
+    values: ['0']
+  }))
 
-      var ensureFuture = function(testClient) {
-        test("client can issue more queries successfully", function() {
-          var goodQuery = testClient.query("select age from boom");
-          assert.emits(goodQuery, 'row', function(row) {
-            assert.equal(row.age, 28);
-          });
-        });
-      };
+  assert.emits(query, 'error', function (err) {
+    ensureFuture(client, done)
+  })
+})
 
-      var query = client.query({
-        text: "select * from bang where name = $1",
-        values: ['0']
-      });
+suite.test('when a query is binding', function (done) {
+  var client = createErorrClient()
 
-      test("query emits the error", function() {
-        assert.emits(query, 'error', function(err) {
-          ensureFuture(client);
-        });
-      });
+  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
-      test("when a query is binding", function() {
+  var query = client.query(new pg.Query({
+    text: 'select * from boom where age = $1',
+    values: ['asldkfjasdf']
+  }))
 
-        var query = client.query({
-          text: 'select * from boom where age = $1',
-          values: ['asldkfjasdf']
-        });
+  assert.emits(query, 'error', function (err) {
+    assert.equal(err.severity, 'ERROR')
+    ensureFuture(client, done)
+  })
+})
 
-        test("query emits the error", function() {
+suite.test('non-query error with callback', function (done) {
+  var client = new Client({
+    user: 'asldkfjsadlfkj'
+  })
+  client.connect(assert.calls(function (error, client) {
+    assert(error instanceof Error)
+    done()
+  }))
+})
 
-          assert.emits(query, 'error', function(err) {
-            test('error has right severity', function() {
-              assert.equal(err.severity, "ERROR");
-            })
-
-            ensureFuture(client);
-          });
-        });
-
-        //TODO how to test for errors during execution?
-      });
-    });
-  });
-
-  test('non-query error', function() {
-    var client = new Client({
-      user:'asldkfjsadlfkj'
-    });
-    assert.emits(client, 'error');
-    client.connect();
-  });
-
-  test('non-query error with callback', function() {
-    var client = new Client({
-      user:'asldkfjsadlfkj'
-    });
-    client.connect(assert.calls(function(error, client) {
-      assert.ok(error);
-    }));
-  });
-
-});
-
-test('non-error calls supplied callback', function() {
+suite.test('non-error calls supplied callback', function (done) {
   var client = new Client({
     user: helper.args.user,
     password: helper.args.password,
     host: helper.args.host,
     port: helper.args.port,
     database: helper.args.database
-  });
-
-  client.connect(assert.calls(function(err) {
-    assert.ifError(err);
-    client.end();
-  }))
-});
-
-test('when connecting to invalid host', function() {
-  //this test fails about 30% on travis and only on travis...
-  //I'm not sure what the cause could be
-  if(process.env.TRAVIS) return false;
-
-  var client = new Client({
-    user: 'aslkdjfsdf',
-    password: '1234',
-    host: 'asldkfjasdf!!#1308140.com'
-  });
-
-  var delay = 5000;
-  var tid = setTimeout(function() {
-    var msg = "When connecting to an invalid host the error event should be emitted but it has been " + delay + " and still no error event."
-    assert(false, msg);
-  }, delay);
-  client.on('error', function() {
-    clearTimeout(tid);
   })
-  client.connect();
-});
 
-test('when connecting to invalid host with callback', function() {
+  client.connect(assert.calls(function (err) {
+    assert.ifError(err)
+    client.end(done)
+  }))
+})
+
+suite.test('when connecting to an invalid host with callback', function (done) {
   var client = new Client({
-    user: 'brian',
-    password: '1234',
-    host: 'asldkfjasdf!!#1308140.com'
-  });
-  client.connect(function(error, client) {
-    assert(error);
-  });
-});
+    user: 'very invalid username'
+  })
+  client.connect(function (error, client) {
+    assert(error instanceof Error)
+    done()
+  })
+})
 
-test('multiple connection errors (gh#31)', function() {
-  return false;
-  test('with single client', function() {
-    //don't run yet...this test fails...need to think of fix
-    var client = new Client({
-      user: 'blaksdjf',
-      password: 'omfsadfas',
-      host: helper.args.host,
-      port: helper.args.port,
-      database: helper.args.database
-    });
-    client.connect();
-    assert.emits(client, 'error', function(e) {
-      client.connect();
-      assert.emits(client, 'error');
-    });
-  });
+suite.test('when connecting to invalid host with promise', function (done) {
+  var client = new Client({
+    user: 'very invalid username'
+  })
+  client.connect().catch((e) => done())
+})
 
-  test('with callback method', function() {
-    var badConString = "postgres://aslkdfj:oi14081@"+helper.args.host+":"+helper.args.port+"/"+helper.args.database;
-    return false;
-  });
-});
+suite.test('non-query error', function (done) {
+  var client = new Client({
+    user: 'asldkfjsadlfkj'
+  })
+  client.connect()
+    .catch(e => {
+      assert(e instanceof Error)
+      done()
+    })
+})
 
-test('query receives error on client shutdown', function() {
-  var client = new Client(helper.config);
-  client.connect(assert.calls(function() {
-    client.query('SELECT pg_sleep(5)', assert.calls(function(err, res) {
-      assert(err);
-    }));
-    client.end();
-    assert.emits(client, 'end');
-  }));
-});
+suite.test('within a simple query', (done) => {
+  var client = createErorrClient()
 
+  var query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"))
+
+  assert.emits(query, 'error', function (error) {
+    assert.equal(error.severity, 'ERROR')
+    done()
+  })
+})
+
+suite.test('connected, idle client error', (done) => {
+  const client = new Client()
+  client.connect((err) => {
+    if (err) {
+      throw new Error('Should not receive error callback after connection')
+    }
+    setImmediate(() => {
+      (client.connection || client.native).emit('error', new Error('expected'))
+    })
+  })
+  client.on('error', (err) => {
+    assert.equal(err.message, 'expected')
+    client.end(done)
+  })
+})
+
+suite.test('cannot pass non-string values to query as text', (done) => {
+  const client = new Client()
+  client.connect()
+  client.query({ text: { } }, (err) => {
+    assert(err)
+    client.query({ }, (err) => {
+      client.on('drain', () => {
+        client.end(done)
+      })
+    })
+  })
+})

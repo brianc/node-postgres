@@ -1,11 +1,11 @@
-var co = require('co')
-
+'use strict'
 var buffers = require('../../test-buffers')
 var helper = require('./test-helper')
+var suite = new helper.Suite()
 
 var net = require('net')
 
-var Server = function(response) {
+var Server = function (response) {
   this.server = undefined
   this.socket = undefined
   this.response = response
@@ -38,7 +38,7 @@ Server.prototype.start = function (cb) {
 
   var options = {
     host: 'localhost',
-    port: port,
+    port: port
   }
   this.server.listen(options.port, options.host, function () {
     cb(options)
@@ -55,13 +55,18 @@ Server.prototype.close = function (cb) {
 
 var testServer = function (server, cb) {
   // wait for our server to start
-  server.start(function(options) {
+  server.start(function (options) {
     // connect a client to it
     var client = new helper.Client(options)
     client.connect()
+      .catch((err) => {
+        assert(err instanceof Error)
+        clearTimeout(timeoutId)
+        server.close(cb)
+      })
 
     // after 50 milliseconds, drop the client
-    setTimeout(function() {
+    setTimeout(function () {
       server.drop()
     }, 50)
 
@@ -69,22 +74,15 @@ var testServer = function (server, cb) {
     var timeoutId = setTimeout(function () {
       throw new Error('Client should have emitted an error but it did not.')
     }, 5000)
-
-    // return our wait token
-    client.on('error', function () {
-      clearTimeout(timeoutId)
-      server.close(cb)
-    })
   })
 }
 
-// test being disconnected after readyForQuery
-const respondingServer = new Server(buffers.readyForQuery())
-testServer(respondingServer, function () {
-  process.stdout.write('.')
-  // test being disconnected from a server that never responds
+suite.test('readyForQuery server', (done) => {
+  const respondingServer = new Server(buffers.readyForQuery())
+  testServer(respondingServer, done)
+})
+
+suite.test('silent server', (done) => {
   const silentServer = new Server()
-  testServer(silentServer, function () {
-    process.stdout.write('.')
-  })
+  testServer(silentServer, done)
 })

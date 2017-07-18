@@ -1,3 +1,4 @@
-var helper = require(__dirname+'/../test-helper');
+'use strict'
+var helper = require('./../test-helper')
 
-module.exports = helper;
+module.exports = helper
