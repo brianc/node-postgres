@@ -4,6 +4,26 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.0.0
+
+#### Breaking Changes
+
+- Drop support for node < `4.x`.
+- Remove `pg.connect` `pg.end` and `pg.cancel` singleton methods.
+- `Client#connect(callback)` now returns `undefined`. It used to return an event emitter.
+- Upgrade [pg-pool](https://github.com/brianc/node-pg-pool) to `2.x`.
+- Upgrade [pg-native](https://github.com/brianc/node-pg-native) to `2.x`.
+- Standardize error message fields between JS and native driver. The only breaking changes were in the native driver as its field names were brought into alignment with the existing JS driver field names.
+- Result from multi-statement text queries such as `SELECT 1; SELECT 2;` are now returned as an array of results instead of a single result with 1 array containing rows from both queries.
+
+[Please see here for a migration guide](https://node-postgres.com/guides/upgrading)
+
+#### Enhancements
+
+- Overhauled documentation: [https://node-postgres.com](https://node-postgres.com).
+- Add `Client#connect() => Promise<void>` and `Client#end() => Promise<void>` calls. Promises are now returned from all async methods on clients _if and only if_ no callback was supplied to the method.
+- Add `connectionTimeoutMillis` to pg-pool.
+
 ### v6.2.0
 
 - Add support for [parsing `replicationStart` messages](https://github.com/brianc/node-postgres/pull/1271/files).
@@ -204,7 +224,7 @@ decimal    | string             | number (float)
 ```
 
 For more information see https://github.com/brianc/node-postgres/pull/353
-If you are unhappy with these changes you can always [override the built in type parsing fairly easily](https://github.com/brianc/node-pg-parse-float). 
+If you are unhappy with these changes you can always [override the built in type parsing fairly easily](https://github.com/brianc/node-pg-parse-float).
 
 ### v1.3.0
 
