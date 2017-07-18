@@ -13,7 +13,9 @@ Non-blocking PostgreSQL client for node.js.  Pure JavaScript and optional native
 $ npm install pg
 ```
 
-## [Documentation](https://node-postgres.com)
+---
+## :star: [Documentation](https://node-postgres.com) :star:
+
 
 ### Features
 
