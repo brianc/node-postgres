@@ -116,4 +116,44 @@ describe('cursor', function() {
       })
     })
   })
+
+  it('returns result along with rows', function(done) {
+    var cursor = this.pgCursor(text)
+    cursor.read(1, function(err, rows, result) {
+      assert.ifError(err)
+      assert.equal(rows.length, 1)
+      assert.strictEqual(rows, result.rows)
+      assert.deepEqual(result.fields.map(f => f.name), ['num'])
+      done()
+    })
+  })
+
+  it('emits row events', function(done) {
+    var cursor = this.pgCursor(text)
+    cursor.read(10)
+    cursor.on('row', (row, result) => result.addRow(row))
+    cursor.on('end', (result) => {
+      assert.equal(result.rows.length, 6)
+      done()
+    })
+  })
+
+  it('emits row events when cursor is closed manually', function(done) {
+    var cursor = this.pgCursor(text)
+    cursor.on('row', (row, result) => result.addRow(row))
+    cursor.on('end', (result) => {
+      assert.equal(result.rows.length, 3)
+      done()
+    })
+
+    cursor.read(3, () => cursor.close())
+  })
+
+  it('emits error events', function(done) {
+    var cursor = this.pgCursor('select asdfasdf')
+    cursor.on('error', function(err) {
+      assert(err)
+      done()
+    })
+  })
 })

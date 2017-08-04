@@ -59,12 +59,13 @@ pg.connect(function(err, client, done) {
 
 Creates an instance of a query cursor.  Pass this instance to node-postgres [`client#query`](https://github.com/brianc/node-postgres/wiki/Client#wiki-method-query-parameterized)
 
-#### cursor#read(int rowCount, function callback(Error err, Array rows)
+#### cursor#read(int rowCount, function callback(Error err, Array rows, Result result)
 
 Read `rowCount` rows from the cursor instance.  The `callback` will be called when the rows are available, loaded into memory, parsed, and converted to JavaScript types.
 
 If the cursor has read to the end of the result sets all subsequent calls to `cursor#read` will return a 0 length array of rows.  I'm open to other ways to signal the end of a cursor, but this has worked out well for me so far.
 
+`result` is a special [https://github.com/brianc/node-postgres/wiki/Query#result-object](Result) object that can be used to accumulate rows.
 
 #### cursor#close(function callback(Error err))
 

@@ -1,7 +1,11 @@
 var Result = require('./pg').Result
 var prepare = require('./pg').prepareValue
+var EventEmitter = require('events').EventEmitter;
+var util = require('util');
 
-var Cursor = function(text, values) {
+function Cursor (text, values) {
+  EventEmitter.call(this);
+
   this.text = text
   this.values = values ? values.map(prepare) : null
   this.connection = null
@@ -11,6 +15,8 @@ var Cursor = function(text, values) {
   this._cb = null
   this._rows = null
 }
+
+util.inherits(Cursor, EventEmitter)
 
 Cursor.prototype.submit = function(connection) {
   this.connection = connection
@@ -58,6 +64,7 @@ Cursor.prototype.handleRowDescription = function(msg) {
 
 Cursor.prototype.handleDataRow = function(msg) {
   var row = this._result.parseRow(msg.fields)
+  this.emit('row', row, this._result)
   this._rows.push(row)
 }
 
@@ -70,7 +77,8 @@ Cursor.prototype._sendRows = function() {
     //within the call to this callback
     this._cb = null
     if(cb) {
-      cb(null, this._rows)
+      this._result.rows = this._rows
+      cb(null, this._rows, this._result)
     }
     this._rows = []
   }.bind(this))
@@ -86,6 +94,7 @@ Cursor.prototype.handlePortalSuspended = function() {
 
 Cursor.prototype.handleReadyForQuery = function() {
   this._sendRows()
+  this.emit('end', this._result)
   this.state = 'done'
 }
 
@@ -105,6 +114,11 @@ Cursor.prototype.handleError = function(msg) {
   //dispatch error to all waiting callbacks
   for(var i = 0; i < this._queue.length; i++) {
     this._queue.pop()[1](msg)
+  }
+
+  if (this.eventNames().indexOf('error') >= 0) {
+    //only dispatch error events if we have a listener
+    this.emit('error', msg)
   }
   //call sync to keep this connection from hanging
   this.connection.sync()
