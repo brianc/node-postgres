@@ -48,9 +48,9 @@ You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that
 
 I offer professional support for node-postgres.  I provide implementation, training, and many years of expertise on how to build applications with node, express, PostgreSQL, and react/redux.  Please contact me at [brian.m.carlson@gmail.com](mailto:brian.m.carlson@gmail.com) to discuss how I can help your company be more successful!
 
-### Sponsorship :heart:
+### Sponsorship :star:
 
-If you are benifiting from node-postgres and would like to help keep the project financially sustainable please visit Brian Carlson's [Patreon page](https://www.patreon.com/node_postgres).
+If you are benefiting from node-postgres and would like to help keep the project financially sustainable please visit Brian Carlson's [Patreon page](https://www.patreon.com/node_postgres).
 
 ## Contributing
 
