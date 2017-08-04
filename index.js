@@ -145,6 +145,9 @@ Cursor.prototype.end = function(cb) {
 }
 
 Cursor.prototype.close = function(cb) {
+  if (this.state == 'done') {
+    return setImmediate(cb)
+  }
   this.connection.close({type: 'P'})
   this.connection.sync()
   this.state = 'done'
