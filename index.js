@@ -1,10 +1,11 @@
-var Result = require('./pg').Result
-var prepare = require('./pg').prepareValue
-var EventEmitter = require('events').EventEmitter;
-var util = require('util');
+'use strict'
+const Result = require('./pg').Result
+const prepare = require('./pg').prepareValue
+const EventEmitter = require('events').EventEmitter
+const util = require('util')
 
 function Cursor (text, values) {
-  EventEmitter.call(this);
+  EventEmitter.call(this)
 
   this.text = text
   this.values = values ? values.map(prepare) : null
@@ -18,11 +19,10 @@ function Cursor (text, values) {
 
 util.inherits(Cursor, EventEmitter)
 
-Cursor.prototype.submit = function(connection) {
+Cursor.prototype.submit = function (connection) {
   this.connection = connection
 
-  var con = connection
-  var self = this
+  const con = connection
 
   con.parse({
     text: this.text
@@ -34,99 +34,99 @@ Cursor.prototype.submit = function(connection) {
 
   con.describe({
     type: 'P',
-    name: '' //use unamed portal
+    name: '' // use unamed portal
   }, true)
 
   con.flush()
 
+  const ifNoData = () => {
+    this.state = 'idle'
+    this._shiftQueue()
+  }
+
   con.once('noData', ifNoData)
   con.once('rowDescription', function () {
-    con.removeListener('noData', ifNoData);
-  });
-
-  function ifNoData () {
-    self.state = 'idle'
-    self._shiftQueue();
-  }
+    con.removeListener('noData', ifNoData)
+  })
 }
 
 Cursor.prototype._shiftQueue = function () {
-  if(this._queue.length) {
+  if (this._queue.length) {
     this._getRows.apply(this, this._queue.shift())
   }
 }
 
-Cursor.prototype.handleRowDescription = function(msg) {
+Cursor.prototype.handleRowDescription = function (msg) {
   this._result.addFields(msg.fields)
   this.state = 'idle'
-  this._shiftQueue();
+  this._shiftQueue()
 }
 
-Cursor.prototype.handleDataRow = function(msg) {
-  var row = this._result.parseRow(msg.fields)
+Cursor.prototype.handleDataRow = function (msg) {
+  const row = this._result.parseRow(msg.fields)
   this.emit('row', row, this._result)
   this._rows.push(row)
 }
 
-Cursor.prototype._sendRows = function() {
+Cursor.prototype._sendRows = function () {
   this.state = 'idle'
-  setImmediate(function() {
-    var cb = this._cb
-    //remove callback before calling it
-    //because likely a new one will be added
-    //within the call to this callback
+  setImmediate(() => {
+    const cb = this._cb
+    // remove callback before calling it
+    // because likely a new one will be added
+    // within the call to this callback
     this._cb = null
-    if(cb) {
+    if (cb) {
       this._result.rows = this._rows
       cb(null, this._rows, this._result)
     }
     this._rows = []
-  }.bind(this))
+  })
 }
 
-Cursor.prototype.handleCommandComplete = function() {
+Cursor.prototype.handleCommandComplete = function () {
   this.connection.sync()
 }
 
-Cursor.prototype.handlePortalSuspended = function() {
+Cursor.prototype.handlePortalSuspended = function () {
   this._sendRows()
 }
 
-Cursor.prototype.handleReadyForQuery = function() {
+Cursor.prototype.handleReadyForQuery = function () {
   this._sendRows()
   this.emit('end', this._result)
   this.state = 'done'
 }
 
-Cursor.prototype.handleEmptyQuery = function() {
+Cursor.prototype.handleEmptyQuery = function () {
   this.connection.sync()
-};
+}
 
-Cursor.prototype.handleError = function(msg) {
+Cursor.prototype.handleError = function (msg) {
   this.state = 'error'
   this._error = msg
-  //satisfy any waiting callback
-  if(this._cb) {
+  // satisfy any waiting callback
+  if (this._cb) {
     this._cb(msg)
   }
-  //dispatch error to all waiting callbacks
-  for(var i = 0; i < this._queue.length; i++) {
+  // dispatch error to all waiting callbacks
+  for (var i = 0; i < this._queue.length; i++) {
     this._queue.pop()[1](msg)
   }
 
   if (this.listenerCount('error') > 0) {
-    //only dispatch error events if we have a listener
+    // only dispatch error events if we have a listener
     this.emit('error', msg)
   }
-  //call sync to keep this connection from hanging
+  // call sync to keep this connection from hanging
   this.connection.sync()
 }
 
-Cursor.prototype._getRows = function(rows, cb) {
+Cursor.prototype._getRows = function (rows, cb) {
   this.state = 'busy'
   this._cb = cb
   this._rows = []
-  var msg = {
+  const msg = {
     portal: '',
     rows: rows
   }
@@ -134,8 +134,8 @@ Cursor.prototype._getRows = function(rows, cb) {
   this.connection.flush()
 }
 
-Cursor.prototype.end = function(cb) {
-  if(this.state != 'initialized') {
+Cursor.prototype.end = function (cb) {
+  if (this.state !== 'initialized') {
     this.connection.sync()
   }
   this.connection.stream.once('end', cb)
@@ -143,36 +143,34 @@ Cursor.prototype.end = function(cb) {
   this.connection.end()
 }
 
-Cursor.prototype.close = function(cb) {
-  if (this.state == 'done') {
+Cursor.prototype.close = function (cb) {
+  if (this.state === 'done') {
     return setImmediate(cb)
   }
   this.connection.close({type: 'P'})
   this.connection.sync()
   this.state = 'done'
-  if(cb) {
-    this.connection.once('closeComplete', function() {
+  if (cb) {
+    this.connection.once('closeComplete', function () {
       cb()
     })
   }
 }
 
-Cursor.prototype.read = function(rows, cb) {
-  var self = this
-  if(this.state == 'idle') {
+Cursor.prototype.read = function (rows, cb) {
+  if (this.state === 'idle') {
     return this._getRows(rows, cb)
   }
-  if(this.state == 'busy' || this.state == 'initialized') {
+  if (this.state === 'busy' || this.state === 'initialized') {
     return this._queue.push([rows, cb])
   }
-  if(this.state == 'error') {
+  if (this.state === 'error') {
     return setImmediate(() => cb(this._error))
   }
-  if(this.state == 'done') {
+  if (this.state === 'done') {
     return setImmediate(() => cb(null, []))
-  }
-  else {
-    throw new Error("Unknown state: " + this.state)
+  } else {
+    throw new Error('Unknown state: ' + this.state)
   }
 }
 

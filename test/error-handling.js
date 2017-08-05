@@ -5,14 +5,14 @@ var pg = require('pg')
 
 var text = 'SELECT generate_series as num FROM generate_series(0, 4)'
 
-describe('error handling', function() {
-  it('can continue after error', function(done) {
+describe('error handling', function () {
+  it('can continue after error', function (done) {
     var client = new pg.Client()
     client.connect()
     var cursor = client.query(new Cursor('asdfdffsdf'))
-    cursor.read(1, function(err) {
+    cursor.read(1, function (err) {
       assert(err)
-      client.query('SELECT NOW()', function(err, res) {
+      client.query('SELECT NOW()', function (err, res) {
         assert.ifError(err)
         client.end()
         done()
@@ -27,7 +27,7 @@ describe('read callback does not fire sync', () => {
     client.connect()
     var cursor = client.query(new Cursor('asdfdffsdf'))
     let after = false
-    cursor.read(1, function(err) {
+    cursor.read(1, function (err) {
       assert(err, 'error should be returned')
       assert.equal(after, true, 'should not call read sync')
       after = false
@@ -47,11 +47,14 @@ describe('read callback does not fire sync', () => {
     client.connect()
     var cursor = client.query(new Cursor('SELECT NOW()'))
     let after = false
-    cursor.read(1, function(err) {
+    cursor.read(1, function (err) {
+      assert(!err)
       assert.equal(after, true, 'should not call read sync')
       cursor.read(1, function (err) {
+        assert(!err)
         after = false
         cursor.read(1, function (err) {
+          assert(!err)
           assert.equal(after, true, 'should not call read sync')
           client.end()
           done()
