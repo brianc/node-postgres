@@ -31,6 +31,5 @@ describe('query config passed to result', () => {
       client.end()
       done()
     })
-
   })
 })
