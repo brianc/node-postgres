@@ -1,4 +1,4 @@
-var pg = require('pg.js')
+var pg = require('pg')
 var QueryStream = require('../')
 describe('end semantics race condition', function() {
   before(function(done) {

@@ -1,4 +1,4 @@
-var pg = require('pg.js')
+var pg = require('pg')
 module.exports = function(name, cb) {
   describe(name, function() {
     var client = new pg.Client()

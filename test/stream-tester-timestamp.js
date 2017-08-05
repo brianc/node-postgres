@@ -1,4 +1,4 @@
-var pg = require('pg.js')
+var pg = require('pg')
 var QueryStream = require('../')
 var spec = require('stream-spec')
 var assert = require('assert')
@@ -10,19 +10,19 @@ require('./helper')('stream tester timestamp', function(client) {
     var stream = new QueryStream(sql, [])
     var ended = false
     var query = client.query(stream)
-    query.
-      on('end', function() { ended = true })
+    query.on('end', function() { ended = true })
     spec(query)
       .readable()
-      .pausable({strict: true})
-      .validateOnExit()
-    ;
+      .pausable({ strict: true })
+      .validateOnExit();
     var checkListeners = function() {
       assert(stream.listeners('end').length < 10)
-      if (!ended)
+      if (!ended) {
         setImmediate(checkListeners)
-      else
+      }
+      else {
         done()
+      }
     }
     checkListeners()
   })
