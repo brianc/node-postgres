@@ -1,15 +1,14 @@
 var assert = require('assert')
-var pg = require('pg');
-var Cursor = require('../');
+var pg = require('pg')
+var Cursor = require('../')
 
 describe('queries with no data', function () {
-  beforeEach(function(done) {
+  beforeEach(function (done) {
     var client = this.client = new pg.Client()
     client.connect(done)
   })
 
-
-  afterEach(function() {
+  afterEach(function () {
     this.client.end()
   })
 
@@ -21,7 +20,7 @@ describe('queries with no data', function () {
       assert.equal(rows.length, 0)
       done()
     })
-  });
+  })
 
   it('handles empty query', function (done) {
     var cursor = new Cursor('-- this is a comment')
@@ -32,5 +31,4 @@ describe('queries with no data', function () {
       done()
     })
   })
-
-});
+})
