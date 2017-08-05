@@ -1,3 +1,4 @@
+'use strict'
 var assert = require('assert')
 var Cursor = require('../')
 var pg = require('pg')
@@ -70,7 +71,7 @@ describe('proper cleanup', function () {
     cursor1.read(8, function (err, rows) {
       assert.ifError(err)
       assert.equal(rows.length, 5)
-      cursor2 = client.query(new Cursor(text))
+      var cursor2 = client.query(new Cursor(text))
       cursor2.read(8, function (err, rows) {
         assert.ifError(err)
         assert.equal(rows.length, 5)

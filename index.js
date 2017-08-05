@@ -114,7 +114,7 @@ Cursor.prototype.handleError = function(msg) {
     this._queue.pop()[1](msg)
   }
 
-  if (this.eventNames().indexOf('error') >= 0) {
+  if (this.listenerCount('error') > 0) {
     //only dispatch error events if we have a listener
     this.emit('error', msg)
   }
