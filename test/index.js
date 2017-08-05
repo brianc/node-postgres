@@ -30,6 +30,7 @@ describe('cursor', function() {
     })
   })
 
+  for (var i = 0; i < 100; i++)
   it('end before reading to end', function(done) {
     var cursor = this.pgCursor(text)
     cursor.read(3, function(err, res) {

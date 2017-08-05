@@ -98,10 +98,8 @@ Cursor.prototype.handleReadyForQuery = function() {
   this.state = 'done'
 }
 
-Cursor.prototype.handleEmptyQuery = function(con) {
-  if (con.sync) {
-    con.sync()
-  }
+Cursor.prototype.handleEmptyQuery = function() {
+  this.connection.sync()
 };
 
 Cursor.prototype.handleError = function(msg) {
@@ -140,8 +138,9 @@ Cursor.prototype.end = function(cb) {
   if(this.state != 'initialized') {
     this.connection.sync()
   }
-  this.connection.end()
   this.connection.stream.once('end', cb)
+  console.log('calling end on connection')
+  this.connection.end()
 }
 
 Cursor.prototype.close = function(cb) {
@@ -167,10 +166,10 @@ Cursor.prototype.read = function(rows, cb) {
     return this._queue.push([rows, cb])
   }
   if(this.state == 'error') {
-    return cb(this._error)
+    return setImmediate(() => cb(this._error))
   }
   if(this.state == 'done') {
-    return cb(null, [])
+    return setImmediate(() => cb(null, []))
   }
   else {
     throw new Error("Unknown state: " + this.state)
