@@ -1,0 +1,9 @@
+{
+  "extends": "standard",
+  "env": {
+    "mocha": true
+  },
+  "rules": {
+    "no-new-func": "off"
+  }
+}

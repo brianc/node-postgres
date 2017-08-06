@@ -1,10 +1,9 @@
-'use strict';
-var util = require('util')
+'use strict'
 var Cursor = require('pg-cursor')
 var Readable = require('stream').Readable
 
 class PgQueryStream extends Readable {
-  constructor(text, values, options) {
+  constructor (text, values, options) {
     super(Object.assign({ objectMode: true }, options))
     this.cursor = new Cursor(text, values)
     this._reading = false
@@ -20,18 +19,18 @@ class PgQueryStream extends Readable {
     this.handleError = this.cursor.handleError.bind(this.cursor)
   }
 
-  submit(connection) {
+  submit (connection) {
     this.cursor.submit(connection)
     return this
   }
 
-  close(callback) {
+  close (callback) {
     this._closed = true
     const cb = callback || (() => this.emit('close'))
     this.cursor.close(cb)
   }
 
-  _read(size) {
+  _read (size) {
     if (this._reading || this._closed) {
       return false
     }
@@ -53,7 +52,7 @@ class PgQueryStream extends Readable {
 
       // push each row into the stream
       this._reading = false
-      for(var i = 0; i < rows.length; i++) {
+      for (var i = 0; i < rows.length; i++) {
         this.push(rows[i])
       }
     })
