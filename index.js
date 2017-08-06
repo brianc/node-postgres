@@ -4,15 +4,16 @@ const prepare = require('./pg').prepareValue
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 
-function Cursor (text, values) {
+function Cursor (text, values, config) {
   EventEmitter.call(this)
 
+  this._conf = config || { }
   this.text = text
   this.values = values ? values.map(prepare) : null
   this.connection = null
   this._queue = []
   this.state = 'initialized'
-  this._result = new Result()
+  this._result = new Result(this._conf.rowMode)
   this._cb = null
   this._rows = null
 }
@@ -44,8 +45,12 @@ Cursor.prototype.submit = function (connection) {
     this._shiftQueue()
   }
 
+  if (this._conf.types) {
+    this._result._getTypeParser = this._conf.types.getTypeParser
+  }
+
   con.once('noData', ifNoData)
-  con.once('rowDescription', function () {
+  con.once('rowDescription', () => {
     con.removeListener('noData', ifNoData)
   })
 }
@@ -139,7 +144,6 @@ Cursor.prototype.end = function (cb) {
     this.connection.sync()
   }
   this.connection.stream.once('end', cb)
-  console.log('calling end on connection')
   this.connection.end()
 }
 
