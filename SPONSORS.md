@@ -4,3 +4,5 @@ node-postgres is made possible by the helpful contributors from the community we
 
 # Supporters
 - John Fawcett
+- Lalit Kapoor [@lalitkapoor](https://twitter.com/lalitkapoor)
+- Paul Frazee [@pfrazee](https://twitter.com/pfrazee)
