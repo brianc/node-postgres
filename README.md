@@ -3,80 +3,14 @@ node-pg-cursor
 
 Use a PostgreSQL result cursor from node with an easy to use API.
 
-### why?
-
-Sometimes you need to iterate through a table in chunks.  It's extremely inefficient to use hand-crafted `LIMIT` and `OFFSET` queries to do this.
-PostgreSQL provides built-in functionality to fetch a "cursor" to your results and page through the cursor efficiently fetching chunks of the results with full MVCC compliance.  
-
-This actually ends up pairing very nicely with node's _asyncness_ and handling a lot of data.  PostgreSQL is rad.
-
-### example
-
-```js
-var Cursor = require('pg-cursor')
-var pg = require('pg')
-
-pg.connect(function(err, client, done) {
-
-  //imagine some_table has 30,000,000 results where prop > 100
-  //lets create a query cursor to efficiently deal with the huge result set
-  var cursor = client.query(new Cursor('SELECT * FROM some_table WHERE prop > $1', [100]))
-  
-  //read the first 100 rows from this cursor
-  cursor.read(100, function(err, rows) {
-    if(err) {
-      //cursor error - release the client
-      //normally you'd do app-specific error handling here
-      return done(err)
-    }
-    
-    //when the cursor is exhausted and all rows have been returned
-    //all future calls to `cursor#read` will return an empty row array
-    //so if we received no rows, release the client and be done
-    if(!rows.length) return done()
-    
-    //do something with your rows
-    //when you're ready, read another chunk from
-    //your result
-    
-    
-    cursor.read(2000, function(err, rows) {
-      //I think you get the picture, yeah?
-      //if you dont...open an issue - I'd love to help you out!
-      
-      //Also - you probably want to use some sort of async or promise library to deal with paging
-      //through your cursor results.  node-pg-cursor makes no asumptions for you on that front.
-    })
-  })
-});
-```
-
-### api
-
-#### var Cursor = require('pg-cursor')
-
-#### constructor Cursor(string queryText, array queryParameters)
-
-Creates an instance of a query cursor.  Pass this instance to node-postgres [`client#query`](https://github.com/brianc/node-postgres/wiki/Client#wiki-method-query-parameterized)
-
-#### cursor#read(int rowCount, function callback(Error err, Array rows, Result result)
-
-Read `rowCount` rows from the cursor instance.  The `callback` will be called when the rows are available, loaded into memory, parsed, and converted to JavaScript types.
-
-If the cursor has read to the end of the result sets all subsequent calls to `cursor#read` will return a 0 length array of rows.  I'm open to other ways to signal the end of a cursor, but this has worked out well for me so far.
-
-`result` is a special [https://github.com/brianc/node-postgres/wiki/Query#result-object](Result) object that can be used to accumulate rows.
-
-#### cursor#close(function callback(Error err))
-
-Closes the backend portal before itterating through the entire result set.  Useful when you want to 'abort' out of a read early but continue to use the same client for other queries after the cursor is finished.
-
 ### install
 
 ```sh
 $ npm install pg-cursor
 ```
 ___note___: this depends on _either_ `npm install pg` or `npm install pg.js`, but you __must__ be using the pure JavaScript client.  This will __not work__ with the native bindings.
+
+### :star: [Documentation](https://node-postgres.com/api/cursor) :star:
 
 ### license
 
