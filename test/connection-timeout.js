@@ -58,5 +58,50 @@ describe('connection timeout', () => {
     }
     expect(errors).to.have.length(15)
   }.bind(this)))
-})
 
+  it('should timeout on checkout of used connection', (done) => {
+    const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
+    pool.connect((err, client, release) => {
+      expect(err).to.be(undefined)
+      expect(client).to.not.be(undefined)
+      pool.connect((err, client) => {
+        expect(err).to.be.an(Error)
+        expect(client).to.be(undefined)
+        release()
+        pool.end(done)
+      })
+    })
+  })
+
+  it('should timeout on query if all clients are busy', (done) => {
+    const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
+    pool.connect((err, client, release) => {
+      expect(err).to.be(undefined)
+      expect(client).to.not.be(undefined)
+      pool.query('select now()', (err, result) => {
+        expect(err).to.be.an(Error)
+        expect(result).to.be(undefined)
+        release()
+        pool.end(done)
+      })
+    })
+  })
+
+  it('should recover from timeout errors', (done) => {
+    const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
+    pool.connect((err, client, release) => {
+      expect(err).to.be(undefined)
+      expect(client).to.not.be(undefined)
+      pool.query('select now()', (err, result) => {
+        expect(err).to.be.an(Error)
+        expect(result).to.be(undefined)
+        release()
+        pool.query('select $1::text as name', ['brianc'], (err, res) => {
+          expect(err).to.be(undefined)
+          expect(res.rows).to.have.length(1)
+          pool.end(done)
+        })
+      })
+    })
+  })
+})

@@ -128,14 +128,34 @@ class Pool extends EventEmitter {
       const err = new Error('Cannot use a pool after calling end on the pool')
       return cb ? cb(err) : this.Promise.reject(err)
     }
+
+    // if we don't have to connect a new client, don't do so
     if (this._clients.length >= this.options.max || this._idle.length) {
       const response = promisify(this.Promise, cb)
       const result = response.result
-      this._pendingQueue.push(response.callback)
+
       // if we have idle clients schedule a pulse immediately
       if (this._idle.length) {
         process.nextTick(() => this._pulseQueue())
       }
+
+      if (!this.options.connectionTimeoutMillis) {
+        this._pendingQueue.push(response.callback)
+        return result
+      }
+
+      // set connection timeout on checking out an existing client
+      const tid = setTimeout(() => {
+        // remove the callback from pending waiters because
+        // we're going to call it with a timeout error
+        this._pendingQueue = this._pendingQueue.filter(cb => cb === response.callback)
+        response.callback(new Error('timeout exceeded when trying to connect'))
+      }, this.options.connectionTimeoutMillis)
+
+      this._pendingQueue.push(function (err, res, done) {
+        clearTimeout(tid)
+        response.callback(err, res, done)
+      })
       return result
     }
 
@@ -199,6 +219,16 @@ class Pool extends EventEmitter {
   }
 
   query (text, values, cb) {
+    // guard clause against passing a function as the first parameter
+    if (typeof text === 'function') {
+      const response = promisify(this.Promise, text)
+      setImmediate(function () {
+        return response.callback(new Error('Passing a function as the first parameter to pool.query is not supported'))
+      })
+      return response.result
+    }
+
+    // allow plain text query without values
     if (typeof values === 'function') {
       cb = values
       values = undefined

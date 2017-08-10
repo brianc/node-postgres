@@ -112,6 +112,17 @@ describe('pool error handling', function () {
     }))
   })
 
+  describe('passing a function to pool.query', () => {
+    it('calls back with error', (done) => {
+      const pool = new Pool()
+      console.log('passing fn to query')
+      pool.query((err) => {
+        expect(err).to.be.an(Error)
+        pool.end(done)
+      })
+    })
+  })
+
   describe('pool with lots of errors', () => {
     it('continues to work and provide new clients', co.wrap(function * () {
       const pool = new Pool({ max: 1 })
