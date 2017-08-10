@@ -3,6 +3,14 @@ const EventEmitter = require('events').EventEmitter
 
 const NOOP = function () { }
 
+const removeWhere = (list, predicate) => {
+  const i = list.findIndex(predicate)
+
+  return i === -1
+    ? undefined
+    : list.splice(i, 1)[0]
+}
+
 class IdleItem {
   constructor (client, timeoutId) {
     this.client = client
@@ -80,7 +88,7 @@ class Pool extends EventEmitter {
     if (this.ending) {
       this.log('pulse queue on ending')
       if (this._idle.length) {
-        this._idle.map(item => {
+        this._idle.slice().map(item => {
           this._remove(item.client)
         })
       }
@@ -114,10 +122,15 @@ class Pool extends EventEmitter {
   }
 
   _remove (client) {
-    this._idle = this._idle.filter(item => {
-      clearTimeout(item.timeoutId)
-      return item.client !== client
-    })
+    const removed = removeWhere(
+      this._idle,
+      item => item.client === client
+    )
+
+    if (removed !== undefined) {
+      clearTimeout(removed.timeoutId)
+    }
+
     this._clients = this._clients.filter(c => c !== client)
     client.end()
     this.emit('remove', client)
