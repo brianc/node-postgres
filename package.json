@@ -20,6 +20,7 @@
   "dependencies": {
     "generic-pool": "2.0.3",
     "buffer-writer": "1.0.0",
+    "js-string-escape": "1.0.1",
     "pgpass": "0.0.1",
     "nan": "~0.6.0"
   },
