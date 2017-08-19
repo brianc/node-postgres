@@ -269,4 +269,32 @@ test('libpq connection string building', function () {
     var c = new Client('postgres://user@password:host/database')
     assert(c.ssl, 'Client should have ssl enabled via defaults')
   })
+
+  test('ssl is set on client', function () {
+    var sourceConfig = {
+      user: 'brian',
+      password: 'hello<ther>e',
+      port: 5432,
+      host: 'localhost',
+      database: 'postgres',
+      ssl: {
+        sslmode: 'verify-ca',
+        sslca: '/path/ca.pem',
+        sslkey: '/path/cert.key',
+        sslcert: '/path/cert.crt',
+        sslrootcert: '/path/root.crt'
+      }
+    }
+    var Client = require('../../../lib/client')
+    var defaults = require('../../../lib/defaults')
+    defaults.ssl = true
+    var c = new ConnectionParameters(sourceConfig)
+    c.getLibpqConnectionString(assert.calls(function (err, pgCString) {
+      assert(!err)
+      assert.equal(
+        pgCString.indexOf('sslrootcert=\'/path/root.crt\'') !== -1, true,
+        'libpqConnectionString should contain sslrootcert'
+      )
+    }))
+  })
 })
