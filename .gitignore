@@ -1,6 +1,6 @@
+*~
+build/
+.lock-wscript
+*.log
 node_modules/
 *.swp
-*.log
-.lock-wscript
-build/
-*~
