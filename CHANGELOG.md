@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.2.0
+
+- Pinned pg-pool and pg-types to a tighter semver range. This is likely not a noticable change for you unless you were specifically installing older versions of those libraries for some reason, but making it a minor bump here just in case it could cause any confusion.
+
 ### 7.1.0
 
 #### Enhancements
