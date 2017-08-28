@@ -8,4 +8,4 @@ node-postgres is made possible by the helpful contributors from the community we
 - Lalit Kapoor [@lalitkapoor](https://twitter.com/lalitkapoor)
 - Paul Frazee [@pfrazee](https://twitter.com/pfrazee)
 - Rein Petersen
-- Arnaud Benhamdine
+- Arnaud Benhamdine [@abenhamdine](https://twitter.com/abenhamdine)
