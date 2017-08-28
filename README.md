@@ -31,7 +31,7 @@ $ npm install pg
 ### Extras
 
 node-postgres is by design pretty light on abstractions.  These are some handy modules we've been using over the years to complete the picture.
-Entire list can be found on [wiki](https://github.com/brianc/node-postgres/wiki/Extras)
+The entire list can be found on our [wiki](https://github.com/brianc/node-postgres/wiki/Extras).
 
 ## Support
 
@@ -42,7 +42,7 @@ When you open an issue please provide:
 - version of postgres
 - smallest possible snippet of code to reproduce the problem
 
-You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that's your thing. I try to always announce noteworthy changes & developments with node-postgres on twitter.
+You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that's your thing. I try to always announce noteworthy changes & developments with node-postgres on Twitter.
 
 ### Professional Support
 
