@@ -21,9 +21,7 @@ var connect = function (callback) {
       con.password(helper.args.password)
     })
     con.once('authenticationMD5Password', function (msg) {
-      var inner = utils.md5(helper.args.password + helper.args.user)
-      var outer = utils.md5(Buffer.concat([Buffer.from(inner), msg.salt]))
-      con.password('md5' + outer)
+      con.password(utils.postgresMd5PasswordHash(helper.args.user, helper.args.password, msg.salt));
     })
     con.once('readyForQuery', function () {
       con.query('create temp table ids(id integer)')
