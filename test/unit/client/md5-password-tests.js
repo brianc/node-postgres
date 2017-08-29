@@ -11,9 +11,7 @@ test('md5 authentication', function () {
   test('responds', function () {
     assert.lengthIs(client.connection.stream.packets, 1)
     test('should have correct encrypted data', function () {
-      var encrypted = utils.md5(client.password + client.user)
-      encrypted = utils.md5(encrypted + salt.toString('binary'))
-      var password = 'md5' + encrypted
+      var password = utils.postgresMd5PasswordHash(client.user, client.password, salt)
       // how do we want to test this?
       assert.equalBuffers(client.connection.stream.packets[0], new BufferList()
                         .addCString(password).join(true, 'p'))
