@@ -62,4 +62,4 @@ test-pool:
 
 lint:
 	@echo "***Starting lint***"
-	eslint lib
+	node_modules/.bin/eslint lib
