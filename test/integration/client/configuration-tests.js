@@ -18,7 +18,7 @@ suite.test('default values are used in new clients', function () {
     password: null,
     port: 5432,
     rows: 0,
-    poolSize: 10
+    max: 10,
   })
 
   var client = new pg.Client()
