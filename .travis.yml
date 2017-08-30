@@ -3,3 +3,4 @@ node_js:
   - '0.10'
   - '6.9'
   - '8'
+after_success: 'npm run coveralls'
