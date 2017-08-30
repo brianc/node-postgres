@@ -7,14 +7,7 @@ var suite = new helper.Suite()
 var conInfo = helper.config
 
 function getConInfo (override) {
-  var newConInfo = {}
-  Object.keys(conInfo).forEach(function (k) {
-    newConInfo[k] = conInfo[k]
-  })
-  Object.keys(override || {}).forEach(function (k) {
-    newConInfo[k] = override[k]
-  })
-  return newConInfo
+  return Object.assign({}, conInfo, override )
 }
 
 function getStatementTimeout (conf, cb) {
