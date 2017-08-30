@@ -22,6 +22,7 @@ var compare = function (actual, expected, type) {
   assert.equal(actual.host, expected.host, type + ' host')
   assert.equal(actual.password, expected.password, type + ' password')
   assert.equal(actual.binary, expected.binary, type + ' binary')
+  assert.equal(actual.statement_timout, expected.statement_timout, type + ' binary')
 }
 
 test('ConnectionParameters initializing from defaults', function () {
@@ -60,7 +61,8 @@ test('ConnectionParameters initializing from config', function () {
     host: 'yo',
     ssl: {
       asdf: 'blah'
-    }
+    },
+    statement_timeout: 15000
   }
   var subject = new ConnectionParameters(config)
   compare(subject, config, 'config')
