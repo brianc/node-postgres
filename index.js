@@ -8,18 +8,20 @@ var url = require('url');
 
 //parses a connection string
 function parse(str) {
-  var config;
   //unix socket
   if(str.charAt(0) === '/') {
-    config = str.split(' ');
+    var config = str.split(' ');
     return { host: config[0], database: config[1] };
   }
+
   // url parse expects spaces encoded as %20
-  if(/ |%[^a-f0-9]|%[a-f0-9][^a-f0-9]/i.test(str)) {
-    str = encodeURI(str).replace(/\%25(\d\d)/g, "%$1");
+  var result = url.parse(/ |%[^a-f0-9]|%[a-f0-9][^a-f0-9]/i.test(str) ? encodeURI(str).replace(/\%25(\d\d)/g, "%$1") : str, true);
+  var config = result.query;
+  for (var k in config) {
+    if (Array.isArray(config[k])) {
+      config[k] = config[k][config[k].length-1];
+    }
   }
-  var result = url.parse(str, true);
-  config = {};
 
   config.port = result.port;
   if(result.protocol == 'socket:') {
@@ -42,26 +44,14 @@ function parse(str) {
   config.user = auth[0];
   config.password = auth.splice(1).join(':');
 
-  var ssl = result.query.ssl;
-  if (ssl === 'true' || ssl === '1') {
+  if (config.ssl === 'true' || config.ssl === '1') {
     config.ssl = true;
   }
-
-  ['db', 'database', 'encoding', 'client_encoding', 'host', 'port', 'user', 'password', 'ssl']
-  .forEach(function(key) {
-    delete result.query[key];
-  });
-
-  Object.getOwnPropertyNames(result.query).forEach(function(key) {
-    var value = result.query[key];
-    if (Array.isArray(value))
-      value = value[value.length-1];
-    config[key] = value;
-  });
 
   return config;
 }
 
-module.exports = {
-  parse: parse
-};
+
+module.exports = parse;
+
+parse.parse = parse;
