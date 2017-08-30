@@ -19,6 +19,13 @@ suite.test('default values are used in new clients', function () {
     port: 5432,
     rows: 0,
     max: 10,
+    binary: false,
+    idleTimeoutMillis: 30000,
+    client_encoding: '',
+    ssl: false,
+    application_name: undefined,
+    fallback_application_name: undefined,
+    parseInputDatesAsUTC: false
   })
 
   var client = new pg.Client()
