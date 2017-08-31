@@ -59,4 +59,19 @@ if (!helper.args.native) { // statement_timeout is not supported with the native
       done()
     })
   })
+
+  suite.test('statement_timeout actually cancels long running queries', function (done) {
+    var conf = getConInfo({
+      'statement_timeout': '10' // 10ms to keep tests running fast
+    })
+    var client = new Client(conf)
+    client.connect(assert.success(function () {
+      client.query('SELECT pg_sleep( 1 )', function ( error ) {
+        client.end()
+        assert.strictEqual( error.code, '57014' ) // query_cancelled
+        done()
+      })
+    }))
+  })
+  
 }
