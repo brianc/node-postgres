@@ -35,18 +35,18 @@ The entire list can be found on our [wiki](https://github.com/brianc/node-postgr
 
 ## Support
 
-node-postgres is free software.  If you encounter a bug with the library please open an issue on the [github repo](https://github.com/brianc/node-postgres). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear & I will do my best to make it better!
+node-postgres is free software.  If you encounter a bug with the library please open an issue on the [github repo](https://github.com/brianc/node-postgres). If you have questions unanswered by the documentation please open an issue pointing out how the documentation was unclear & We will do our best to make it better!
 
 When you open an issue please provide:
 - version of node
 - version of postgres
 - smallest possible snippet of code to reproduce the problem
 
-You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that's your thing. I try to always announce noteworthy changes & developments with node-postgres on Twitter.
+You can also follow [@briancarlson](https://twitter.com/briancarlson) if that's your thing. He aways tries to announce noteworthy changes & developments with node-postgres on Twitter.
 
 ### Professional Support
 
-I offer professional support for node-postgres.  I provide implementation, training, and many years of expertise on how to build applications with node, express, PostgreSQL, and react/redux.  Please contact me at [brian.m.carlson@gmail.com](mailto:brian.m.carlson@gmail.com) to discuss how I can help your company be more successful!
+If you need professional support for node-postgres, you can contact Brian, he provides training, and has many years of expertise on how to build applications with node, express, PostgreSQL, and react/redux.  Please contact Brian at [brian.m.carlson@gmail.com](mailto:brian.m.carlson@gmail.com) to discuss how your company can be more successful!
 
 ### Sponsorship :star:
 
@@ -54,9 +54,9 @@ If you are benefiting from node-postgres and would like to help keep the project
 
 ## Contributing
 
-__:heart: contributions!__
+We __:heart: contributions!__
 
-I will __happily__ accept your pull request if it:
+We will __happily__ accept your pull request if it:
 - __has tests__
 - looks reasonable
 - does not break backwards compatibility
