@@ -8,6 +8,7 @@
     "pg",
     "postgre",
     "postgres",
+    "postgresql",
     "rdbms"
   ],
   "homepage": "http://github.com/brianc/node-postgres",
