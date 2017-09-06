@@ -9,3 +9,4 @@ node-postgres is made possible by the helpful contributors from the community we
 - Paul Frazee [@pfrazee](https://twitter.com/pfrazee)
 - Rein Petersen
 - Arnaud Benhamdine [@abenhamdine](https://twitter.com/abenhamdine)
+- Matthew Welke
