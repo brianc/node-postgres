@@ -3,11 +3,11 @@
   "version": "7.3.0",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
-    "postgres",
-    "pg",
-    "libpq",
-    "postgre",
     "database",
+    "libpq",
+    "pg",
+    "postgre",
+    "postgres",
     "rdbms"
   ],
   "homepage": "http://github.com/brianc/node-postgres",
