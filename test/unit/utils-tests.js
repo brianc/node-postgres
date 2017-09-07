@@ -53,6 +53,13 @@ test('prepareValues: buffer prepared properly', function () {
   assert.strictEqual(buf, out)
 })
 
+test('prepareValues: Uint8Array prepared properly', function () {
+  var buf = new Uint8Array([1, 2, 3]).subarray(1, 2)
+  var out = utils.prepareValue(buf)
+  assert.ok(Buffer.isBuffer(out))
+  assert.deepEqual(out, [2])
+})
+
 test('prepareValues: date prepared properly', function () {
   helper.setTimezoneOffset(-330)
 
