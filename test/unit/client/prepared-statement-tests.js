@@ -65,7 +65,7 @@ test('bound command', function () {
 
       test('bind argument', function () {
         assert.equal(bindArg.statement, null)
-        assert.equal(bindArg.portal, null)
+        assert.equal(bindArg.portal, '')
         assert.lengthIs(bindArg.values, 1)
         assert.equal(bindArg.values[0], 'hi')
       })
@@ -76,13 +76,80 @@ test('bound command', function () {
       })
 
       test('execute argument', function () {
-        assert.equal(executeArg.portal, null)
+        assert.equal(executeArg.portal, '')
         assert.equal(executeArg.rows, null)
       })
 
       test('sync called', function () {
         assert.ok(syncCalled)
       })
+    })
+  })
+})
+
+var portalClient = helper.client()
+var portalCon = portalClient.connection
+var portalParseArg = null
+portalCon.parse = function (arg) {
+  portalParseArg = arg
+  process.nextTick(function () {
+    portalCon.emit('parseComplete')
+  })
+}
+
+var portalBindArg = null
+portalCon.bind = function (arg) {
+  portalBindArg = arg
+  process.nextTick(function () {
+    portalCon.emit('bindComplete')
+  })
+}
+
+var portalExecuteArg = null
+portalCon.execute = function (arg) {
+  portalExecuteArg = arg
+  process.nextTick(function () {
+    portalCon.emit('rowData', { fields: [] })
+    portalCon.emit('commandComplete', { text: '' })
+  })
+}
+
+var portalDescribeArg = null
+portalCon.describe = function (arg) {
+  portalDescribeArg = arg
+  process.nextTick(function () {
+    portalCon.emit('rowDescription', { fields: [] })
+  })
+}
+
+portalCon.flush = function () {
+}
+portalCon.sync = function () {
+  process.nextTick(function () {
+    portalCon.emit('readyForQuery')
+  })
+}
+
+test('prepared statement with explicit portal', function () {
+  assert.ok(portalClient.connection.emit('readyForQuery'))
+
+  var query = portalClient.query(new Query({
+    text: 'select * from X where name = $1',
+    portal: 'myportal',
+    values: ['hi']
+  }))
+
+  assert.emits(query, 'end', function () {
+    test('bind argument', function () {
+      assert.equal(portalBindArg.portal, 'myportal')
+    })
+
+    test('describe argument', function () {
+      assert.equal(portalDescribeArg.name, 'myportal')
+    })
+
+    test('execute argument', function () {
+      assert.equal(portalExecuteArg.portal, 'myportal')
     })
   })
 })
