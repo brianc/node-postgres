@@ -6,6 +6,8 @@ const pg = helper.pg
 const suite = new helper.Suite()
 const Query = helper.pg.Query
 
+const queryCanceledErrorCode = 57014;
+
 suite.test('cancel query interface', () => {
   const client = new pg.Client()
   return client.connect()
@@ -21,7 +23,7 @@ suite.test('cancel query interface', () => {
           reject();
         })
         query1.on('error', (err) => {
-          assert.equal(err.code, 57014);
+          assert.equal(err.code, queryCanceledErrorCode);
           resolve();
         })
         query1.cancel();
@@ -38,7 +40,7 @@ suite.test('cancel query interface', () => {
           reject();
         })
         // when canceling, this one is queued
-        // we wont receive the 57014 message from postgres
+        // we wont receive the query_canceled message from postgres
         // we check that the query is not processed, and resolve the promise after 3s
         query2a.cancel();
         setTimeout(resolve, 3000);
@@ -55,7 +57,7 @@ suite.test('cancel query interface', () => {
           reject();
         })
         query2b.on('error', (err) => {
-          assert.equal(err.code, 57014);
+          assert.equal(err.code, queryCanceledErrorCode);
           resolve();
         })
         // this one will be queued first, then processed when query1 is cancelled
