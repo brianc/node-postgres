@@ -42,7 +42,7 @@ test-missing-native:
 	@rm -rf node_modules/libpq
 
 node_modules/pg-native/index.js:
-	@npm i pg-native
+	@npm i --no-save pg-native
 
 test-native: node_modules/pg-native/index.js test-connection
 	@echo "***Testing native bindings***"
