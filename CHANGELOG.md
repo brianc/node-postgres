@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.4.0
+
+- Add support for [Uint8Array](https://github.com/brianc/node-postgres/pull/1448) values.
+
 ### 7.3.0
 
 - Add support for [statement timeout](https://github.com/brianc/node-postgres/pull/1436).
