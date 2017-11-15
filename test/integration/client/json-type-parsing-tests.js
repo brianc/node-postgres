@@ -4,7 +4,7 @@ var assert = require('assert')
 
 const pool = new helper.pg.Pool()
 pool.connect(assert.success(function (client, done) {
-  helper.versionGTE(client, '9.2.0', assert.success(function (jsonSupported) {
+  helper.versionGTE(client, 90200, assert.success(function (jsonSupported) {
     if (!jsonSupported) {
       console.log('skip json test on older versions of postgres')
       done()
