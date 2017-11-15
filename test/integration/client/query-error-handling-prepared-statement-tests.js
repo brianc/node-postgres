@@ -44,7 +44,7 @@ function killIdleQuery (targetQuery, cb) {
   var pidColName = 'procpid'
   var queryColName = 'current_query'
   client2.connect(assert.success(function () {
-    helper.versionGTE(client2, '9.2.0', assert.success(function (isGreater) {
+    helper.versionGTE(client2, 90200, assert.success(function (isGreater) {
       if (isGreater) {
         pidColName = 'pid'
         queryColName = 'query'

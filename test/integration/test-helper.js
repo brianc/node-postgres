@@ -14,12 +14,11 @@ helper.client = function (cb) {
   return client
 }
 
-var semver = require('semver')
-helper.versionGTE = function (client, versionString, callback) {
-  client.query('SELECT version()', assert.calls(function (err, result) {
+helper.versionGTE = function (client, testVersion, callback) {
+  client.query('SHOW server_version_num', assert.calls(function (err, result) {
     if (err) return callback(err)
-    var version = result.rows[0].version.split(' ')[1]
-    return callback(null, semver.gte(version, versionString))
+    var version = parseInt(result.rows[0].server_version_num, 10)
+    return callback(null, version >= testVersion)
   }))
 }
 

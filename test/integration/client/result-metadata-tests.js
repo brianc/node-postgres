@@ -7,7 +7,7 @@ new helper.Suite().test('should return insert metadata', function () {
   pool.connect(assert.calls(function (err, client, done) {
     assert(!err)
 
-    helper.versionGTE(client, '9.0.0', assert.success(function (hasRowCount) {
+    helper.versionGTE(client, 90000, assert.success(function (hasRowCount) {
       client.query('CREATE TEMP TABLE zugzug(name varchar(10))', assert.calls(function (err, result) {
         assert(!err)
         assert.equal(result.oid, null)
