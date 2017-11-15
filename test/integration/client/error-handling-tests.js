@@ -50,6 +50,18 @@ suite.test('re-using connections results in promise rejection', (done) => {
   })
 })
 
+suite.test('using a client after closing it results in error', (done) => {
+  const client = new Client()
+  client.connect(() => {
+    client.end(assert.calls(() => {
+      client.query('SELECT 1', assert.calls((err) => {
+        assert.equal(err.message, 'Client was closed and is not queryable')
+        done()
+      }))
+    }))
+  })
+})
+
 suite.test('query receives error on client shutdown', function (done) {
   var client = new Client()
   client.connect(assert.success(function () {
