@@ -60,7 +60,7 @@ suite.test('connection-level errors cause queued queries to fail', (cb) => {
     }))
 
     client.query('SELECT 1', assert.calls((err) => {
-      assert.equal(err.code, 'EPIPE')
+      assert.equal(err.message, 'Connection terminated unexpectedly')
 
       done()
       pool.end()
