@@ -5,8 +5,6 @@ const pg = helper.pg
 // first make pool hold 2 clients
 pg.defaults.poolSize = 2
 
-const pool = new pg.Pool()
-
 const suite = new helper.Suite()
 suite.test('connecting to invalid port', (cb) => {
   const pool = new pg.Pool({ port: 13801 })
@@ -14,6 +12,7 @@ suite.test('connecting to invalid port', (cb) => {
 })
 
 suite.test('errors emitted on pool', (cb) => {
+  const pool = new pg.Pool()
   // get first client
   pool.connect(assert.success(function (client, done) {
     client.id = 1
@@ -46,5 +45,47 @@ suite.test('errors emitted on pool', (cb) => {
         }))
       }))
     })
+  }))
+})
+
+suite.test('connection-level errors cause queued queries to fail', (cb) => {
+  const pool = new pg.Pool()
+  pool.connect(assert.success((client, done) => {
+    client.query('SELECT pg_terminate_backend(pg_backend_pid())', assert.calls((err) => {
+      assert.equal(err.code, '57P01')
+    }))
+
+    pool.once('error', assert.calls((err, brokenClient) => {
+      assert.equal(client, brokenClient)
+    }))
+
+    client.query('SELECT 1', assert.calls((err) => {
+      assert.equal(err.code, 'EPIPE')
+
+      done()
+      pool.end()
+      cb()
+    }))
+  }))
+})
+
+suite.test('connection-level errors cause future queries to fail', (cb) => {
+  const pool = new pg.Pool()
+  pool.connect(assert.success((client, done) => {
+    client.query('SELECT pg_terminate_backend(pg_backend_pid())', assert.calls((err) => {
+      assert.equal(err.code, '57P01')
+    }))
+
+    pool.once('error', assert.calls((err, brokenClient) => {
+      assert.equal(client, brokenClient)
+
+      client.query('SELECT 1', assert.calls((err) => {
+        assert.equal(err.message, 'Client has encountered a connection error and is not queryable')
+
+        done()
+        pool.end()
+        cb()
+      }))
+    }))
   }))
 })
