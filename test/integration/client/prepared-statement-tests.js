@@ -122,7 +122,7 @@ var suite = new helper.Suite()
   suite.test('with small row count', function (done) {
     var query = client.query(new Query({
       name: 'get names',
-      text: 'SELECT name FROM zoom ORDER BY name',
+      text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
       rows: 1
     }, done))
 
@@ -132,7 +132,7 @@ var suite = new helper.Suite()
   suite.test('with large row count', function (done) {
     var query = client.query(new Query({
       name: 'get names',
-      text: 'SELECT name FROM zoom ORDER BY name',
+      text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
       rows: 1000
     }, done))
     checkForResults(query)

@@ -26,7 +26,7 @@ suite.test('callback API', done => {
   client.query(config)
   client.query('INSERT INTO peep(name) VALUES ($1)', ['aaron'])
 
-  client.query('SELECT * FROM peep ORDER BY name', (err, res) => {
+  client.query('SELECT * FROM peep ORDER BY name COLLATE "C"', (err, res) => {
     assert(!err)
     assert.equal(res.rowCount, 3)
     assert.deepEqual(res.rows, [

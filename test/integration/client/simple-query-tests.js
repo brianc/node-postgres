@@ -6,7 +6,7 @@ var Query = helper.pg.Query
 test('simple query interface', function () {
   var client = helper.client()
 
-  var query = client.query(new Query('select name from person order by name'))
+  var query = client.query(new Query('select name from person order by name collate "C"'))
 
   client.on('drain', client.end.bind(client))
 
@@ -43,7 +43,7 @@ test('prepared statements do not mutate params', function () {
 
   var params = [1]
 
-  var query = client.query(new Query('select name from person where $1 = 1 order by name', params))
+  var query = client.query(new Query('select name from person where $1 = 1 order by name collate "C"', params))
 
   assert.deepEqual(params, [1])
 

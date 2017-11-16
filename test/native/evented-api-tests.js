@@ -64,7 +64,7 @@ test('parameterized queries', function () {
 
   test('multiple parameters', function () {
     var client = setupClient()
-    var q = client.query(new Query('SELECT name FROM boom WHERE name = $1 or name = $2 ORDER BY name', ['Aaron', 'Brian']))
+    var q = client.query(new Query('SELECT name FROM boom WHERE name = $1 or name = $2 ORDER BY name COLLATE "C"', ['Aaron', 'Brian']))
     assert.emits(q, 'row', function (row) {
       assert.equal(row.name, 'Aaron')
       assert.emits(q, 'row', function (row) {
