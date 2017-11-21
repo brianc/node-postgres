@@ -1,4 +1,5 @@
 'use strict'
+var bluebird = require('bluebird')
 var helper = require(__dirname + '/../test-helper')
 var pg = helper.pg
 
@@ -7,10 +8,10 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
-const pool = new pg.Pool()
 const suite = new helper.Suite()
 
 suite.test('promise API', (cb) => {
+  const pool = new pg.Pool()
   pool.connect().then((client) => {
     client.query('SELECT $1::text as name', ['foo'])
       .then(function (result) {
@@ -31,3 +32,24 @@ suite.test('promise API', (cb) => {
       })
   })
 })
+
+suite.test('promise API with configurable promise type', (cb) => {
+  const client = new pg.Client({ Promise: bluebird })
+  const connectPromise = client.connect()
+  assert(connectPromise instanceof bluebird, 'Client connect() returns configured promise')
+
+  connectPromise
+    .then(() => {
+      const queryPromise = client.query('SELECT 1')
+      assert(queryPromise instanceof bluebird, 'Client query() returns configured promise')
+
+      return queryPromise.then(() => {
+        client.end(cb)
+      })
+    })
+    .catch((error) => {
+      process.nextTick(() => {
+        throw error
+      })
+    })
+});
