@@ -151,6 +151,9 @@ suite.test('when connecting to an invalid host with callback', function (done) {
   var client = new Client({
     user: 'very invalid username'
   })
+  client.on('error', () => {
+    assert.fail('unexpected error event when connecting')
+  })
   client.connect(function (error, client) {
     assert(error instanceof Error)
     done()
@@ -160,6 +163,9 @@ suite.test('when connecting to an invalid host with callback', function (done) {
 suite.test('when connecting to invalid host with promise', function (done) {
   var client = new Client({
     user: 'very invalid username'
+  })
+  client.on('error', () => {
+    assert.fail('unexpected error event when connecting')
   })
   client.connect().catch((e) => done())
 })
