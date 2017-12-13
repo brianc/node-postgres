@@ -44,7 +44,7 @@ suite.test('connection does not emit ECONNRESET errors during disconnect also wh
   var server = net.createServer(function (c) {
     socket = c
     c.once('data', function (data) {
-      c.write(new Buffer('S', 'utf8'))
+      c.write(Buffer.from('S'))
     })
   })
 
