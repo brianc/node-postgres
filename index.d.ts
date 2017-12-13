@@ -1,14 +1,14 @@
 export function parse(connectionString: string): ConnectionOptions;
 
 export interface ConnectionOptions {
-  host: string | null;
-  password: string | null;
-  user: string | null;
-  port: number | null;
-  database: string | null;
-  client_encoding: string | null;
-  ssl: boolean | null;
+  host: string;
+  password?: string;
+  user?: string;
+  port: string | null;
+  database: string | null | undefined;
+  client_encoding?: string | undefined;
+  ssl?: boolean;
 
-  application_name: string | null;
-  fallback_application_name: string | null;
+  application_name?: string;
+  fallback_application_name?: string;
 }
