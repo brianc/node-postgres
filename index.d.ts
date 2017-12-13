@@ -1,7 +1,7 @@
 export function parse(connectionString: string): ConnectionOptions;
 
 export interface ConnectionOptions {
-  host: string;
+  host: string | null;
   password?: string;
   user?: string;
   port: string | null;
