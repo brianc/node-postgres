@@ -1,2 +1,2 @@
 'use strict'
-require(__dirname + '/../test-helper')
+module.exports = require(__dirname + '/../test-helper')
