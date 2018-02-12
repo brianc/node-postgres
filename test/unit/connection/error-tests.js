@@ -37,26 +37,52 @@ suite.test('connection does not emit ECONNRESET errors during disconnect', funct
   done()
 })
 
+var SSLNegotiationPacketTests = [
+  {
+    testName: 'connection does not emit ECONNRESET errors during disconnect also when using SSL',
+    errorMessage: null,
+    response: 'S',
+    responseType: 'sslconnect'
+  },
+  {
+    testName: 'connection emits an error when SSL is not supported',
+    errorMessage: 'The server does not support SSL connections',
+    response: 'N',
+    responseType: 'error'
+  },
+  {
+    testName: 'connection emits an error when postmaster responds to SSL negotiation packet',
+    errorMessage: 'There was an error establishing an SSL connection',
+    response: 'E',
+    responseType: 'error'
+  }
+]
 
-suite.test('connection does not emit ECONNRESET errors during disconnect also when using SSL', function (done) {
-  // our fake postgres server, which just responds with 'S' to start SSL
-  var socket
-  var server = net.createServer(function (c) {
-    socket = c
-    c.once('data', function (data) {
-      c.write(Buffer.from('S'))
+for (var i = 0; i < SSLNegotiationPacketTests.length; i++) {
+  var tc = SSLNegotiationPacketTests[i]
+  suite.test(tc.testName, function (done) {
+    // our fake postgres server
+    var socket
+    var server = net.createServer(function (c) {
+      socket = c
+      c.once('data', function (data) {
+        c.write(Buffer.from(tc.response))
+      })
+    })
+
+    server.listen(7778, function () {
+      var con = new Connection({ssl: true})
+      con.connect(7778, 'localhost')
+      assert.emits(con, tc.responseType, function (err) {
+        if (err) {
+          assert.equal(err.message, tc.errorMessage)
+        }
+        con.end()
+        socket.destroy()
+        server.close()
+        done()
+      })
+      con.requestSsl()
     })
   })
-
-  server.listen(7778, function () {
-    var con = new Connection({ssl: true})
-    con.connect(7778, 'localhost')
-    assert.emits(con, 'sslconnect', function () {
-      con.end()
-      socket.destroy()
-      server.close()
-      done()
-    })
-    con.requestSsl()
-  })
-})
+}
