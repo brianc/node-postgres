@@ -74,7 +74,7 @@ for (var i = 0; i < SSLNegotiationPacketTests.length; i++) {
       var con = new Connection({ssl: true})
       con.connect(7778, 'localhost')
       assert.emits(con, tc.responseType, function (err) {
-        if (err && tc.errorMessage) {
+        if (tc.errorMessage !== null || err) {
           assert.equal(err.message, tc.errorMessage)
         }
         con.end()
