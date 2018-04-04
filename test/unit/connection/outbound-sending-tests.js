@@ -183,6 +183,7 @@ test('sends end command', function () {
   con.end()
   var expected = Buffer.from([0x58, 0, 0, 0, 4])
   assert.received(stream, expected)
+  assert.equal(stream.closed, true)
 })
 
 test('sends describe command', function () {

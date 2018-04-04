@@ -13,12 +13,19 @@ helper.sys.inherits(MemoryStream, EventEmitter)
 
 var p = MemoryStream.prototype
 
-p.write = function (packet) {
+p.write = function (packet, cb) {
   this.packets.push(packet)
+  if(cb){
+    cb();
+  }
+}
+
+p.end = function() {
+  p.closed = true;
 }
 
 p.setKeepAlive = function () {}
-
+p.closed = false;
 p.writable = true
 
 const createClient = function () {
