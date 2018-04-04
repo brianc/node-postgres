@@ -17,8 +17,6 @@ p.write = function (packet) {
   this.packets.push(packet)
 }
 
-p.end = function () {}
-
 p.setKeepAlive = function () {}
 
 p.writable = true
