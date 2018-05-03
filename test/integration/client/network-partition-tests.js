@@ -46,7 +46,7 @@ Server.prototype.start = function (cb) {
 }
 
 Server.prototype.drop = function () {
-  this.socket.end()
+  this.socket.destroy()
 }
 
 Server.prototype.close = function (cb) {
