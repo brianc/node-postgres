@@ -73,6 +73,28 @@ describe('connection timeout', () => {
     })
   })
 
+  it('should not break further pending checkouts on a timeout', (done) => {
+    const pool = new Pool({ connectionTimeoutMillis: 200, max: 1 })
+    pool.connect((err, client, releaseOuter) => {
+      expect(err).to.be(undefined)
+
+      pool.connect((err, client) => {
+        expect(err).to.be.an(Error)
+        expect(client).to.be(undefined)
+        releaseOuter()
+      })
+
+      setTimeout(() => {
+        pool.connect((err, client, releaseInner) => {
+          expect(err).to.be(undefined)
+          expect(client).to.not.be(undefined)
+          releaseInner()
+          pool.end(done)
+        })
+      }, 100)
+    })
+  })
+
   it('should timeout on query if all clients are busy', (done) => {
     const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
     pool.connect((err, client, release) => {

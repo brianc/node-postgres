@@ -3,6 +3,14 @@ const EventEmitter = require('events').EventEmitter
 
 const NOOP = function () { }
 
+const remove = (list, value) => {
+  const i = list.indexOf(value)
+
+  if (i !== -1) {
+    list.splice(i, 1)
+  }
+}
+
 const removeWhere = (list, predicate) => {
   const i = list.findIndex(predicate)
 
@@ -157,18 +165,20 @@ class Pool extends EventEmitter {
         return result
       }
 
+      const queueCallback = (err, res, done) => {
+        clearTimeout(tid)
+        response.callback(err, res, done)
+      }
+
       // set connection timeout on checking out an existing client
       const tid = setTimeout(() => {
         // remove the callback from pending waiters because
         // we're going to call it with a timeout error
-        this._pendingQueue = this._pendingQueue.filter(cb => cb === response.callback)
+        remove(this._pendingQueue, queueCallback)
         response.callback(new Error('timeout exceeded when trying to connect'))
       }, this.options.connectionTimeoutMillis)
 
-      this._pendingQueue.push(function (err, res, done) {
-        clearTimeout(tid)
-        response.callback(err, res, done)
-      })
+      this._pendingQueue.push(queueCallback)
       return result
     }
 
