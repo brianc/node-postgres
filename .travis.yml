@@ -8,28 +8,34 @@ env:
 
 matrix:
   include:
+    - node_js: "lts/boron"
+      addons:
+        postgresql: "9.6"
     - node_js: "lts/argon"
       addons:
         postgresql: "9.6"
-    - node_js: "lts/boron"
+    - node_js: "9"
+      addons:
+        postgresql: "9.6"
+    - node_js: "10"
+      addons:
+        postgresql: "9.6"
+    - node_js: "lts/carbon"
       addons:
         postgresql: "9.1"
       dist: precise
-    - node_js: "lts/boron"
+    - node_js: "lts/carbon"
       addons:
         postgresql: "9.2"
-    - node_js: "lts/boron"
+    - node_js: "lts/carbon"
       addons:
         postgresql: "9.3"
-    - node_js: "lts/boron"
+    - node_js: "lts/carbon"
       addons:
         postgresql: "9.4"
-    - node_js: "lts/boron"
+    - node_js: "lts/carbon"
       addons:
         postgresql: "9.5"
-    - node_js: "lts/boron"
-      addons:
-        postgresql: "9.6"
-    - node_js: "8"
+    - node_js: "lts/carbon"
       addons:
         postgresql: "9.6"

@@ -66,7 +66,7 @@ var pg = require('pg')
 
 var pool = new pg.Pool()
 
-// your friendly neighboorhood pool interface, without the singleton
+// your friendly neighborhood pool interface, without the singleton
 pool.connect(function(err, client, done) {
   // ...
 })
@@ -113,7 +113,7 @@ client.query('SELECT $1::text as name', ['brianc'])
 - Add option to parse JS date objects in query parameters as [UTC](https://github.com/brianc/node-postgres/pull/943)
 
 ### v4.4.0
-- Warn to `stderr` if a named query exceeds 63 characters which is the max lenght supported by postgres.
+- Warn to `stderr` if a named query exceeds 63 characters which is the max length supported by postgres.
 
 ### v4.3.0
 - Unpin `pg-types` semver. Allow it to float against `pg-types@1.x`.

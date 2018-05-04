@@ -22,7 +22,7 @@ Server.prototype.start = function (cb) {
       this.socket.on('data', function (data) {
         // deny request for SSL
         if (data.length == 8) {
-          this.socket.write(new Buffer('N', 'utf8'))
+          this.socket.write(Buffer.from('N', 'utf8'))
         // consider all authentication requests as good
         } else if (!data[0]) {
           this.socket.write(buffers.authenticationOk())
@@ -46,7 +46,7 @@ Server.prototype.start = function (cb) {
 }
 
 Server.prototype.drop = function () {
-  this.socket.end()
+  this.socket.destroy()
 }
 
 Server.prototype.close = function (cb) {

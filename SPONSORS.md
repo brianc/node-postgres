@@ -10,3 +10,5 @@ node-postgres is made possible by the helpful contributors from the community we
 - Rein Petersen
 - Arnaud Benhamdine [@abenhamdine](https://twitter.com/abenhamdine)
 - Matthew Welke
+- Matthew Weber
+- Benjie Gillam
