@@ -196,7 +196,7 @@ class Pool extends EventEmitter {
       this.emit('error', err, client)
     }
 
-    this.log('connecting new client')
+    this.log('checking client timeout')
 
     // connection timeout logic
     let tid
@@ -215,12 +215,12 @@ class Pool extends EventEmitter {
 
     this.log('connecting new client')
     client.connect((err) => {
-      this.log('new client connected')
       if (tid) {
         clearTimeout(tid)
       }
       client.on('error', idleListener)
       if (err) {
+        this.log('client failed to connect', err)
         // remove the dead client from our list of clients
         this._clients = this._clients.filter(c => c !== client)
         if (timeoutHit) {
@@ -228,6 +228,7 @@ class Pool extends EventEmitter {
         }
         cb(err, undefined, NOOP)
       } else {
+        this.log('new client connected')
         client.release = release.bind(this, client)
         this.emit('connect', client)
         this.emit('acquire', client)
