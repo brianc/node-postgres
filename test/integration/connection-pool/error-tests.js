@@ -52,7 +52,11 @@ suite.test('connection-level errors cause queued queries to fail', (cb) => {
   const pool = new pg.Pool()
   pool.connect(assert.success((client, done) => {
     client.query('SELECT pg_terminate_backend(pg_backend_pid())', assert.calls((err) => {
-      assert.equal(err.code, '57P01')
+      if (helper.args.native) {
+        assert.ok(err)
+      } else {
+        assert.equal(err.code, '57P01')
+      }
     }))
 
     pool.once('error', assert.calls((err, brokenClient) => {
@@ -60,7 +64,11 @@ suite.test('connection-level errors cause queued queries to fail', (cb) => {
     }))
 
     client.query('SELECT 1', assert.calls((err) => {
-      assert.equal(err.message, 'Connection terminated unexpectedly')
+      if (helper.args.native) {
+        assert.ok(err)
+      } else {
+        assert.equal(err.message, 'Connection terminated unexpectedly')
+      }
 
       done()
       pool.end()
@@ -73,7 +81,11 @@ suite.test('connection-level errors cause future queries to fail', (cb) => {
   const pool = new pg.Pool()
   pool.connect(assert.success((client, done) => {
     client.query('SELECT pg_terminate_backend(pg_backend_pid())', assert.calls((err) => {
-      assert.equal(err.code, '57P01')
+      if (helper.args.native) {
+        assert.ok(err)
+      } else {
+        assert.equal(err.code, '57P01')
+      }
     }))
 
     pool.once('error', assert.calls((err, brokenClient) => {
