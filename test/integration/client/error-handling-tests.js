@@ -73,9 +73,12 @@ suite.test('query receives error on client shutdown', function (done) {
     client.query(new pg.Query(config), assert.calls(function (err, res) {
       assert(err instanceof Error)
       queryError = err
-      done()
     }))
     setTimeout(() => client.end(), 50)
+    client.once('end', () => {
+      assert(queryError instanceof Error)
+      done()
+    })
   }))
 })
 
