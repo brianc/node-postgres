@@ -65,10 +65,12 @@ var testServer = function (server, cb) {
         server.close(cb)
       })
 
-    // after 50 milliseconds, drop the client
-    setTimeout(function () {
-      server.drop()
-    }, 50)
+    server.server.on('connection', () => {
+      // after 50 milliseconds, drop the client
+      setTimeout(function () {
+        server.drop()
+      }, 50)
+    })
 
     // blow up if we don't receive an error
     var timeoutId = setTimeout(function () {
