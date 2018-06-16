@@ -38,6 +38,9 @@
     "eslint-plugin-standard": "3.0.1",
     "pg-copy-streams": "0.3.0"
   },
+  "peerDependencies": {
+    "bl": "^2"
+  },
   "minNativeVersion": "2.0.0",
   "scripts": {
     "test": "make test-all"
