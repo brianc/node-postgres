@@ -16,8 +16,13 @@ test('ConnectionParameters construction', function () {
 })
 
 var compare = function (actual, expected, type) {
+  const expectedDatabase =
+    expected.database === undefined
+      ? expected.user
+      : expected.database
+
   assert.equal(actual.user, expected.user, type + ' user')
-  assert.equal(actual.database, expected.database, type + ' database')
+  assert.equal(actual.database, expectedDatabase, type + ' database')
   assert.equal(actual.port, expected.port, type + ' port')
   assert.equal(actual.host, expected.host, type + ' host')
   assert.equal(actual.password, expected.password, type + ' password')
