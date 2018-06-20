@@ -120,4 +120,24 @@ test('executing query', function () {
       })
     })
   })
+
+  test('handles errors', function () {
+    var client = helper.client()
+
+    test('throws an error when config is null', function () {
+      try {
+        client.query(null, undefined)
+      } catch (error) {
+        assert.equal(error.message, 'Client was passed a null or undefined query', 'Should have thrown an Error for null queries')
+      }
+    })
+
+    test('throws an error when config is undefined', function () {
+      try {
+        client.query()
+      } catch (error) {
+        assert.equal(error.message, 'Client was passed a null or undefined query', 'Should have thrown an Error for null queries')
+      }
+    })
+  })
 })
