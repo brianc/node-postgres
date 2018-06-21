@@ -9,6 +9,10 @@
   "scripts": {
     "test": " mocha && eslint ."
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-pg-cursor.git"
+  },
   "author": "Brian M. Carlson",
   "license": "MIT",
   "devDependencies": {
