@@ -2,10 +2,8 @@
 var helper = require('./test-helper')
 const pg = helper.pg
 
-// first make pool hold 2 clients
-pg.defaults.max = 2
-
-const pool = new pg.Pool()
+// make pool hold 2 clients
+const pool = new pg.Pool({ max: 2 })
 
 const suite = new helper.Suite()
 suite.test('connecting to invalid port', (cb) => {
