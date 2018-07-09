@@ -3,7 +3,7 @@ var helper = require('./test-helper')
 const pg = helper.pg
 
 // first make pool hold 2 clients
-pg.defaults.poolSize = 2
+pg.defaults.max = 2
 
 const pool = new pg.Pool()
 
