@@ -7,7 +7,7 @@ var suite = new helper.Suite()
 var conInfo = helper.config
 
 function getConInfo (override) {
-  return Object.assign({}, conInfo, override )
+  return Object.assign({}, conInfo, override)
 }
 
 function getAppName (conf, cb) {
@@ -58,21 +58,6 @@ suite.test('application_name has precedence over fallback_application_name', fun
     'application_name': appName,
     'fallback_application_name': fbAppName
   })
-  getAppName(conf, function (res) {
-    assert.strictEqual(res, appName)
-    done()
-  })
-})
-
-suite.test('application_name from connection string', function (done) {
-  var appName = 'my app'
-  var conParams = require(__dirname + '/../../../lib/connection-parameters')
-  var conf
-  if (process.argv[2]) {
-    conf = new conParams(process.argv[2] + '?application_name=' + appName)
-  } else {
-    conf = 'postgres://?application_name=' + appName
-  }
   getAppName(conf, function (res) {
     assert.strictEqual(res, appName)
     done()
