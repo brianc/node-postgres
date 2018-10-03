@@ -2,9 +2,6 @@
 var helper = require('./test-helper')
 const pg = helper.pg
 
-// make pool hold 2 clients
-const pool = new pg.Pool({ max: 2 })
-
 const suite = new helper.Suite()
 suite.test('connecting to invalid port', (cb) => {
   const pool = new pg.Pool({ port: 13801 })
@@ -12,6 +9,8 @@ suite.test('connecting to invalid port', (cb) => {
 })
 
 suite.test('errors emitted on pool', (cb) => {
+  // make pool hold 2 clients
+  const pool = new pg.Pool({ max: 2 })
   // get first client
   pool.connect(assert.success(function (client, done) {
     client.id = 1
@@ -44,5 +43,59 @@ suite.test('errors emitted on pool', (cb) => {
         }))
       }))
     })
+  }))
+})
+
+suite.test('connection-level errors cause queued queries to fail', (cb) => {
+  const pool = new pg.Pool()
+  pool.connect(assert.success((client, done) => {
+    client.query('SELECT pg_terminate_backend(pg_backend_pid())', assert.calls((err) => {
+      if (helper.args.native) {
+        assert.ok(err)
+      } else {
+        assert.equal(err.code, '57P01')
+      }
+    }))
+
+    pool.once('error', assert.calls((err, brokenClient) => {
+      assert.equal(client, brokenClient)
+    }))
+
+    client.query('SELECT 1', assert.calls((err) => {
+      if (helper.args.native) {
+        assert.ok(err)
+      } else {
+        assert.equal(err.message, 'Connection terminated unexpectedly')
+      }
+
+      done()
+      pool.end()
+      cb()
+    }))
+  }))
+})
+
+suite.test('connection-level errors cause future queries to fail', (cb) => {
+  const pool = new pg.Pool()
+  pool.connect(assert.success((client, done) => {
+    client.query('SELECT pg_terminate_backend(pg_backend_pid())', assert.calls((err) => {
+      if (helper.args.native) {
+        assert.ok(err)
+      } else {
+        assert.equal(err.code, '57P01')
+      }
+    }))
+
+    pool.once('error', assert.calls((err, brokenClient) => {
+      assert.equal(client, brokenClient)
+
+      client.query('SELECT 1', assert.calls((err) => {
+        assert.equal(err.message, 'Client has encountered a connection error and is not queryable')
+
+        done()
+        pool.end()
+        cb()
+      }))
+    }))
   }))
 })
