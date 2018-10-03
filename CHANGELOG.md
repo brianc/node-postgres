@@ -4,6 +4,11 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.5.0
+
+- Better [error message](https://github.com/brianc/node-postgres/commit/11a4793452d618c53e019416cc886ad38deb1aa7) when passing `null` or `undefined` to `client.query`.
+- Better [error handling](https://github.com/brianc/node-postgres/pull/1503) on queued queries.
+
 ### 7.4.0
 
 - Add support for [Uint8Array](https://github.com/brianc/node-postgres/pull/1448) values.
