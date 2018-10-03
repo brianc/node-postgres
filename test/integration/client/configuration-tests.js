@@ -40,7 +40,6 @@ suite.test('default values are used in new clients', function () {
 suite.test('modified values are passed to created clients', function () {
   pg.defaults.user = 'boom'
   pg.defaults.password = 'zap'
-  pg.defaults.database = 'pow'
   pg.defaults.port = 1234
   pg.defaults.host = 'blam'
 
@@ -48,7 +47,8 @@ suite.test('modified values are passed to created clients', function () {
   assert.same(client, {
     user: 'boom',
     password: 'zap',
-    database: 'pow',
+    // default database name is user name
+    database: 'boom',
     port: 1234,
     host: 'blam'
   })
