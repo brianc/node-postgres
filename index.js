@@ -8,7 +8,7 @@ class PgQueryStream extends Readable {
     this.cursor = new Cursor(text, values)
     this._reading = false
     this._closed = false
-    this.batchSize = (options || { }).batchSize || 100
+    this.batchSize = (options || {}).batchSize || 100
 
     // delegate Submittable callbacks to cursor
     this.handleRowDescription = this.cursor.handleRowDescription.bind(this.cursor)
@@ -21,7 +21,6 @@ class PgQueryStream extends Readable {
 
   submit (connection) {
     this.cursor.submit(connection)
-    return this
   }
 
   close (callback) {
