@@ -14,10 +14,10 @@ matrix:
     - node_js: "lts/argon"
       addons:
         postgresql: "9.6"
-    - node_js: "9"
+    - node_js: "10"
       addons:
         postgresql: "9.6"
-    - node_js: "10"
+    - node_js: "11"
       addons:
         postgresql: "9.6"
     - node_js: "lts/carbon"
