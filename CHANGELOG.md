@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.6.0
+- Add support for ["bring your own promise"](https://github.com/brianc/node-postgres/pull/1518)
+
 ### 7.5.0
 
 - Better [error message](https://github.com/brianc/node-postgres/commit/11a4793452d618c53e019416cc886ad38deb1aa7) when passing `null` or `undefined` to `client.query`.
