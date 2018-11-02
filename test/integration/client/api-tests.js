@@ -20,13 +20,14 @@ suite.test('query timeout', (cb) => {
   pool.connect().then((client) => {
     client.query('SELECT pg_sleep(2)', assert.calls(function (err, result) {
       assert(err)
+      assert(err.message === 'Query read timeout')
       client.release()
       pool.end(cb)
     }))
   })
 })
 
-suite.test('query timeout', (cb) => {
+suite.test('query no timeout', (cb) => {
   const pool = new pg.Pool({query_timeout: 10000})
   pool.connect().then((client) => {
     client.query('SELECT pg_sleep(1)', assert.calls(function (err, result) {
