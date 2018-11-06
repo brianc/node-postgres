@@ -27,6 +27,24 @@ suite.test('query timeout', (cb) => {
   })
 })
 
+suite.test('query recover from timeout', (cb) => {
+  const pool = new pg.Pool({query_timeout: 1000})
+  pool.connect().then((client) => {
+    client.query('SELECT pg_sleep(20)', assert.calls(function (err, result) {
+      assert(err)
+      assert(err.message === 'Query read timeout')
+      client.release()
+      pool.connect().then((client) => {
+        client.query('SELECT pg_sleep(20)', assert.calls(function (err, result) {
+          assert(!err)
+          client.release()
+          pool.end(cb)
+        }))
+      })
+    }))
+  })
+})
+
 suite.test('query no timeout', (cb) => {
   const pool = new pg.Pool({query_timeout: 10000})
   pool.connect().then((client) => {
