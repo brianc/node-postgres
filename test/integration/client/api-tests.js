@@ -33,11 +33,11 @@ suite.test('query recover from timeout', (cb) => {
     client.query('SELECT pg_sleep(20)', assert.calls(function (err, result) {
       assert(err)
       assert(err.message === 'Query read timeout')
-      client.release()
+      client.release(err)
       pool.connect().then((client) => {
-        client.query('SELECT pg_sleep(20)', assert.calls(function (err, result) {
+        client.query('SELECT 1', assert.calls(function (err, result) {
           assert(!err)
-          client.release()
+          client.release(err)
           pool.end(cb)
         }))
       })
