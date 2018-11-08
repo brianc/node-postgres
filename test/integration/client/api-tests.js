@@ -87,7 +87,7 @@ suite.test('raises error if cannot connect', function () {
   )
 })
 
-suite.test('query errors are handled and do not bubble if callback is provded', function (done) {
+suite.test('query errors are handled and do not bubble if callback is provided', function (done) {
   const pool = new pg.Pool()
   pool.connect(
       assert.calls(function (err, client, release) {
