@@ -15,6 +15,47 @@ suite.test('pool callback behavior', done => {
   })
 })
 
+suite.test('query timeout', (cb) => {
+  const pool = new pg.Pool({query_timeout: 1000})
+  pool.connect().then((client) => {
+    client.query('SELECT pg_sleep(2)', assert.calls(function (err, result) {
+      assert(err)
+      assert(err.message === 'Query read timeout')
+      client.release()
+      pool.end(cb)
+    }))
+  })
+})
+
+suite.test('query recover from timeout', (cb) => {
+  const pool = new pg.Pool({query_timeout: 1000})
+  pool.connect().then((client) => {
+    client.query('SELECT pg_sleep(20)', assert.calls(function (err, result) {
+      assert(err)
+      assert(err.message === 'Query read timeout')
+      client.release(err)
+      pool.connect().then((client) => {
+        client.query('SELECT 1', assert.calls(function (err, result) {
+          assert(!err)
+          client.release(err)
+          pool.end(cb)
+        }))
+      })
+    }))
+  })
+})
+
+suite.test('query no timeout', (cb) => {
+  const pool = new pg.Pool({query_timeout: 10000})
+  pool.connect().then((client) => {
+    client.query('SELECT pg_sleep(1)', assert.calls(function (err, result) {
+      assert(!err)
+      client.release()
+      pool.end(cb)
+    }))
+  })
+})
+
 suite.test('callback API', done => {
   const client = new helper.Client()
   client.query('CREATE TEMP TABLE peep(name text)')
