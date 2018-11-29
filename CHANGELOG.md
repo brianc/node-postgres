@@ -4,7 +4,12 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.7.0
+
+- Add support for configurable [query timeout](https://github.com/brianc/node-postgres/pull/1760) on a client level.
+
 ### 7.6.0
+
 - Add support for ["bring your own promise"](https://github.com/brianc/node-postgres/pull/1518)
 
 ### 7.5.0
@@ -56,16 +61,17 @@ We do not include break-fix version release in this file.
 
 ### v6.1.0
 
-- Add optional callback parameter to the pure JavaScript `client.end` method.  The native client already supported this.
+- Add optional callback parameter to the pure JavaScript `client.end` method. The native client already supported this.
 
 ### v6.0.0
 
 #### Breaking Changes
-- Remove `pg.pools`.  There is still a reference kept to the pools created & tracked by `pg.connect` but it has been renamed, is considered private, and should not be used.  Accessing this API directly was uncommon and was _supposed_ to be private but was incorrectly documented on the wiki.  Therefore, it is a breaking change of an (unintentionally) public interface to remove it by renaming it & making it private.  Eventually `pg.connect` itself will be deprecated in favor of instantiating pools directly via `new pg.Pool()` so this property should become completely moot at some point.  In the mean time...check out the new features...
+
+- Remove `pg.pools`. There is still a reference kept to the pools created & tracked by `pg.connect` but it has been renamed, is considered private, and should not be used. Accessing this API directly was uncommon and was _supposed_ to be private but was incorrectly documented on the wiki. Therefore, it is a breaking change of an (unintentionally) public interface to remove it by renaming it & making it private. Eventually `pg.connect` itself will be deprecated in favor of instantiating pools directly via `new pg.Pool()` so this property should become completely moot at some point. In the mean time...check out the new features...
 
 #### New features
 
-- Replace internal pooling code with [pg-pool](https://github.com/brianc/node-pg-pool). This is the first step in eventually deprecating and removing the singleton `pg.connect`.  The pg-pool constructor is exported from node-postgres at `require('pg').Pool`.  It provides a backwards compatible interface with `pg.connect` as well as a promise based interface & additional niceties.
+- Replace internal pooling code with [pg-pool](https://github.com/brianc/node-pg-pool). This is the first step in eventually deprecating and removing the singleton `pg.connect`. The pg-pool constructor is exported from node-postgres at `require('pg').Pool`. It provides a backwards compatible interface with `pg.connect` as well as a promise based interface & additional niceties.
 
 You can now create an instance of a pool and don't have to rely on the `pg` singleton for anything:
 
@@ -82,68 +88,79 @@ pool.connect(function(err, client, done) {
 
 Promise support & other goodness lives now in [pg-pool](https://github.com/brianc/node-pg-pool).
 
-__Please__ read the readme at [pg-pool](https://github.com/brianc/node-pg-pool) for the full api.
+**Please** read the readme at [pg-pool](https://github.com/brianc/node-pg-pool) for the full api.
 
-- Included support for tcp keep alive.  Enable it as follows:
+- Included support for tcp keep alive. Enable it as follows:
 
 ```js
-var client = new Client({ keepAlive: true })
+var client = new Client({ keepAlive: true });
 ```
 
 This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
 
-
 ### v5.1.0
+
 - Make the query object returned from `client.query` implement the promise interface. This is the first step towards promisifying more of the node-postgres api.
 
 Example:
+
 ```js
-var client = new Client()
-client.connect()
-client.query('SELECT $1::text as name', ['brianc'])
-  .then(function(res) {
-    console.log('hello from', res.rows[0])
-    client.end()
-  })
+var client = new Client();
+client.connect();
+client.query("SELECT $1::text as name", ["brianc"]).then(function(res) {
+  console.log("hello from", res.rows[0]);
+  client.end();
+});
 ```
 
 ### v5.0.0
 
 #### Breaking Changes
+
 - `require('pg').native` now returns null if the native bindings cannot be found; previously, this threw an exception.
 
 #### New Features
+
 - better error message when passing `undefined` as a query parameter
 - support for `defaults.connectionString`
 - support for `returnToHead` being passed to [generic pool](https://github.com/coopernurse/node-pool)
 
 ### v4.5.0
+
 - Add option to parse JS date objects in query parameters as [UTC](https://github.com/brianc/node-postgres/pull/943)
 
 ### v4.4.0
+
 - Warn to `stderr` if a named query exceeds 63 characters which is the max length supported by postgres.
 
 ### v4.3.0
+
 - Unpin `pg-types` semver. Allow it to float against `pg-types@1.x`.
 
 ### v4.2.0
+
 - Support for additional error fields in postgres >= 9.3 if available.
 
 ### v4.1.0
+
 - Allow type parser overrides on a [per-client basis](https://github.com/brianc/node-postgres/pull/679)
 
 ### v4.0.0
+
 - Make [native bindings](https://github.com/brianc/node-pg-native.git) an optional install with `npm install pg-native`
 - No longer surround query result callback with `try/catch` block.
 - Remove built in COPY IN / COPY OUT support - better implementations provided by [pg-copy-streams](https://github.com/brianc/node-pg-copy-streams.git) and [pg-native](https://github.com/brianc/node-pg-native.git)
 
 ### v3.6.0
+
 - Include support for (parsing JSONB)[https://github.com/brianc/node-pg-types/pull/13] (supported in postgres 9.4)
 
 ### v3.5.0
+
 - Include support for parsing boolean arrays
 
 ### v3.4.0
+
 - Include port as connection parameter to [unix sockets](https://github.com/brianc/node-postgres/pull/604)
 - Better support for odd [date parsing](https://github.com/brianc/node-pg-types/pull/8)
 
@@ -153,7 +170,6 @@ client.query('SELECT $1::text as name', ['brianc'])
 - Expose array parsers on [pg.types](https://github.com/brianc/node-pg-types/pull/2)
 - Allow [pool](https://github.com/brianc/node-postgres/pull/591) to be configured
 
-
 ### v3.1.0
 
 - Add [count of the number of times a client has been checked out from the pool](https://github.com/brianc/node-postgres/pull/556)
@@ -162,27 +178,29 @@ client.query('SELECT $1::text as name', ['brianc'])
 ### v3.0.0
 
 #### Breaking changes
+
 - [Parse the DATE PostgreSQL type as local time](https://github.com/brianc/node-postgres/pull/514)
 
-After [some discussion](https://github.com/brianc/node-postgres/issues/510) it was decided node-postgres was non-compliant in how it was handling DATE results.  They were being converted to UTC, but the PostgreSQL documentation specifies they should be returned in the client timezone.  This is a breaking change, and if you use the `date` type you might want to examine your code and make sure nothing is impacted.
+After [some discussion](https://github.com/brianc/node-postgres/issues/510) it was decided node-postgres was non-compliant in how it was handling DATE results. They were being converted to UTC, but the PostgreSQL documentation specifies they should be returned in the client timezone. This is a breaking change, and if you use the `date` type you might want to examine your code and make sure nothing is impacted.
 
 - [Fix possible numeric precision loss on numeric & int8 arrays](https://github.com/brianc/node-postgres/pull/501)
 
-pg@v2.0 included changes to not convert large integers into their JavaScript number representation because of possibility for numeric precision loss. The same types in arrays were not taken into account.  This fix applies the same type of type-coercion rules to arrays of those types, so there will be no more possible numeric loss on an array of very large int8s for example. This is a breaking change because now a return type from a query of `int8[]` will contain _string_ representations
-of the integers.  Use your favorite JavaScript bignum module to represent them without precision loss, or punch over the type converter to return the old style arrays again.
+pg@v2.0 included changes to not convert large integers into their JavaScript number representation because of possibility for numeric precision loss. The same types in arrays were not taken into account. This fix applies the same type of type-coercion rules to arrays of those types, so there will be no more possible numeric loss on an array of very large int8s for example. This is a breaking change because now a return type from a query of `int8[]` will contain _string_ representations
+of the integers. Use your favorite JavaScript bignum module to represent them without precision loss, or punch over the type converter to return the old style arrays again.
 
 - [Fix to input array of dates being improperly converted to utc](https://github.com/benesch/node-postgres/commit/c41eedc3e01e5527a3d5c242fa1896f02ef0b261#diff-7172adb1fec2457a2700ed29008a8e0aR108)
 
-Single `date` parameters were properly sent to the PostgreSQL server properly in local time, but an input array of dates was being changed into utc dates.  This is a violation of what PostgreSQL expects.  Small breaking change, but none-the-less something you should check out if you are inserting an array of dates.
+Single `date` parameters were properly sent to the PostgreSQL server properly in local time, but an input array of dates was being changed into utc dates. This is a violation of what PostgreSQL expects. Small breaking change, but none-the-less something you should check out if you are inserting an array of dates.
 
 - [Query no longer emits `end` event if it ends due to an error](https://github.com/brianc/node-postgres/commit/357b64d70431ec5ca721eb45a63b082c18e6ffa3)
 
-This is a small change to bring the semantics of query more in line with other EventEmitters. The tests all passed after this change, but I suppose it could still be a breaking change in certain use cases.  If you are doing clever things with the `end` and `error` events of a query object you might want to check to make sure its still behaving normally, though it is most likely not an issue.
+This is a small change to bring the semantics of query more in line with other EventEmitters. The tests all passed after this change, but I suppose it could still be a breaking change in certain use cases. If you are doing clever things with the `end` and `error` events of a query object you might want to check to make sure its still behaving normally, though it is most likely not an issue.
 
 #### New features
+
 - [Supercharge `prepareValue`](https://github.com/brianc/node-postgres/pull/555)
 
-The long & short of it is now any object you supply in the list of query values will be inspected for a `.toPostgres` method.  If the method is present it will be called and its result used as the raw text value sent to PostgreSQL for that value.  This allows the same type of custom type coercion on query parameters as was previously afforded to query result values.
+The long & short of it is now any object you supply in the list of query values will be inspected for a `.toPostgres` method. If the method is present it will be called and its result used as the raw text value sent to PostgreSQL for that value. This allows the same type of custom type coercion on query parameters as was previously afforded to query result values.
 
 - [Domain aware connection pool](https://github.com/brianc/node-postgres/pull/531)
 
@@ -197,41 +215,52 @@ Avoids a scenario where your pool could fill up with disconnected & unusable cli
 To provide better documentation and a clearer explanation of how to override the query result parsing system we broke the type converters [into their own module](https://github.com/brianc/node-pg-types). There is still work around removing the 'global-ness' of the type converters so each query or connection can return types differently, but this is a good first step and allow a lot more obvious way to return int8 results as JavaScript numbers, for example
 
 ### v2.11.0
+
 - Add support for [application_name](https://github.com/brianc/node-postgres/pull/497)
 
 ### v2.10.0
+
 - Add support for [the password file](http://www.postgresql.org/docs/9.3/static/libpq-pgpass.html)
 
 ### v2.9.0
+
 - Add better support for [unix domain socket](https://github.com/brianc/node-postgres/pull/487) connections
 
 ### v2.8.0
+
 - Add support for parsing JSON[] and UUID[] result types
 
 ### v2.7.0
+
 - Use single row mode in native bindings when available [@rpedela]
   - reduces memory consumption when handling row values in 'row' event
 - Automatically bind buffer type parameters as binary [@eugeneware]
 
 ### v2.6.0
+
 - Respect PGSSLMODE environment variable
 
 ### v2.5.0
+
 - Ability to opt-in to int8 parsing via `pg.defaults.parseInt8 = true`
 
 ### v2.4.0
+
 - Use eval in the result set parser to increase performance
 
 ### v2.3.0
+
 - Remove built-in support for binary Int64 parsing.
-_Due to the low usage & required compiled dependency this will be pushed into a 3rd party add-on_
+  _Due to the low usage & required compiled dependency this will be pushed into a 3rd party add-on_
 
 ### v2.2.0
+
 - [Add support for excapeLiteral and escapeIdentifier in both JavaScript and the native bindings](https://github.com/brianc/node-postgres/pull/396)
 
 ### v2.1.0
+
 - Add support for SSL connections in JavaScript driver
- - this means you can connect to heroku postgres from your local machine without the native bindings!
+- this means you can connect to heroku postgres from your local machine without the native bindings!
 - [Add field metadata to result object](https://github.com/brianc/node-postgres/blob/master/test/integration/client/row-description-on-results-tests.js)
 - [Add ability for rows to be returned as arrays instead of objects](https://github.com/brianc/node-postgres/blob/master/test/integration/client/results-as-array-tests.js)
 
@@ -267,7 +296,7 @@ If you are unhappy with these changes you can always [override the built in type
 ### v1.0.0
 
 - remove deprecated functionality
-  - Callback function passed to `pg.connect` now __requires__ 3 arguments
+  - Callback function passed to `pg.connect` now **requires** 3 arguments
   - Client#pauseDrain() / Client#resumeDrain removed
   - numeric, decimal, and float data types no longer parsed into float before being returned. Will be returned from query results as `String`
 
