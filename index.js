@@ -226,6 +226,10 @@ class Pool extends EventEmitter {
         if (timeoutHit) {
           err.message = 'Connection terminated due to connection timeout'
         }
+
+        // this client won’t be released, so move on immediately
+        this._pulseQueue()
+
         cb(err, undefined, NOOP)
       } else {
         this.log('new client connected')

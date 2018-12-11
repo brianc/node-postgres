@@ -1,4 +1,5 @@
 'use strict'
+const net = require('net')
 const co = require('co')
 const expect = require('expect.js')
 
@@ -142,5 +143,26 @@ describe('pool error handling', function () {
       expect(res.rows[0].name).to.equal('brianc')
       return pool.end()
     }))
+  })
+
+  it('should continue with queued items after a connection failure', (done) => {
+    const closeServer = net.createServer((socket) => {
+      socket.destroy()
+    }).unref()
+
+    closeServer.listen(() => {
+      const pool = new Pool({ max: 1, port: closeServer.address().port })
+      pool.connect((err) => {
+        expect(err).to.be.an(Error)
+        expect(err.message).to.be('Connection terminated unexpectedly')
+      })
+      pool.connect((err) => {
+        expect(err).to.be.an(Error)
+        expect(err.message).to.be('Connection terminated unexpectedly')
+        closeServer.close(() => {
+          pool.end(done)
+        })
+      })
+    })
   })
 })
