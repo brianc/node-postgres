@@ -8,12 +8,17 @@ var nativeClient = new NativeClient()
 
 client.connect()
 nativeClient.connect((err) => {
-  client.query('SELECT alsdkfj', (err) => {
+  var params = {
+    text: 'SELECT lkdasjfasd',
+    values: []
+  };
+
+  client.query(params, (err) => {
     client.end()
 
-    nativeClient.query('SELECT lkdasjfasd', (nativeErr) => {
+    nativeClient.query(params, (nativeErr) => {
       for (var key in nativeErr) {
-        assert.equal(err[key], nativeErr[key], `Expected err.${key} to equal nativeErr.${key}`)
+        assert.deepStrictEqual(err[key], nativeErr[key], `Expected err.${key} to equal nativeErr.${key}`)
       }
       nativeClient.end()
     })
