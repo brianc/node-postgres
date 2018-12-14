@@ -3,14 +3,6 @@ const EventEmitter = require('events').EventEmitter
 
 const NOOP = function () { }
 
-const remove = (list, value) => {
-  const i = list.indexOf(value)
-
-  if (i !== -1) {
-    list.splice(i, 1)
-  }
-}
-
 const removeWhere = (list, predicate) => {
   const i = list.findIndex(predicate)
 
@@ -23,6 +15,12 @@ class IdleItem {
   constructor (client, timeoutId) {
     this.client = client
     this.timeoutId = timeoutId
+  }
+}
+
+class PendingItem {
+  constructor (callback) {
+    this.callback = callback
   }
 }
 
@@ -85,6 +83,7 @@ class Pool extends EventEmitter {
     this._pendingQueue = []
     this._endCallback = undefined
     this.ending = false
+    this.ended = false
   }
 
   _isFull () {
@@ -93,6 +92,10 @@ class Pool extends EventEmitter {
 
   _pulseQueue () {
     this.log('pulse queue')
+    if (this.ended) {
+      this.log('pulse queue ended')
+      return
+    }
     if (this.ending) {
       this.log('pulse queue on ending')
       if (this._idle.length) {
@@ -101,6 +104,7 @@ class Pool extends EventEmitter {
         })
       }
       if (!this._clients.length) {
+        this.ended = true
         this._endCallback()
       }
       return
@@ -121,10 +125,10 @@ class Pool extends EventEmitter {
       const client = idleItem.client
       client.release = release.bind(this, client)
       this.emit('acquire', client)
-      return waiter(undefined, client, client.release)
+      return waiter.callback(undefined, client, client.release)
     }
     if (!this._isFull()) {
-      return this.connect(waiter)
+      return this.newClient(waiter)
     }
     throw new Error('unexpected condition')
   }
@@ -150,18 +154,18 @@ class Pool extends EventEmitter {
       return cb ? cb(err) : this.Promise.reject(err)
     }
 
+    const response = promisify(this.Promise, cb)
+    const result = response.result
+
     // if we don't have to connect a new client, don't do so
     if (this._clients.length >= this.options.max || this._idle.length) {
-      const response = promisify(this.Promise, cb)
-      const result = response.result
-
       // if we have idle clients schedule a pulse immediately
       if (this._idle.length) {
         process.nextTick(() => this._pulseQueue())
       }
 
       if (!this.options.connectionTimeoutMillis) {
-        this._pendingQueue.push(response.callback)
+        this._pendingQueue.push(new PendingItem(response.callback))
         return result
       }
 
@@ -170,18 +174,27 @@ class Pool extends EventEmitter {
         response.callback(err, res, done)
       }
 
+      const pendingItem = new PendingItem(queueCallback)
+
       // set connection timeout on checking out an existing client
       const tid = setTimeout(() => {
         // remove the callback from pending waiters because
         // we're going to call it with a timeout error
-        remove(this._pendingQueue, queueCallback)
+        removeWhere(this._pendingQueue, (i) => i.callback === queueCallback)
+        pendingItem.timedOut = true
         response.callback(new Error('timeout exceeded when trying to connect'))
       }, this.options.connectionTimeoutMillis)
 
-      this._pendingQueue.push(queueCallback)
+      this._pendingQueue.push(pendingItem)
       return result
     }
 
+    this.newClient(new PendingItem(response.callback))
+
+    return result
+  }
+
+  newClient (pendingItem) {
     const client = new this.Client(this.options)
     this._clients.push(client)
     const idleListener = (err) => {
@@ -210,9 +223,6 @@ class Pool extends EventEmitter {
       }, this.options.connectionTimeoutMillis)
     }
 
-    const response = promisify(this.Promise, cb)
-    cb = response.callback
-
     this.log('connecting new client')
     client.connect((err) => {
       if (tid) {
@@ -230,20 +240,29 @@ class Pool extends EventEmitter {
         // this client won’t be released, so move on immediately
         this._pulseQueue()
 
-        cb(err, undefined, NOOP)
+        if (!pendingItem.timedOut) {
+          pendingItem.callback(err, undefined, NOOP)
+        }
       } else {
         this.log('new client connected')
         client.release = release.bind(this, client)
         this.emit('connect', client)
         this.emit('acquire', client)
-        if (this.options.verify) {
-          this.options.verify(client, cb)
+        if (!pendingItem.timedOut) {
+          if (this.options.verify) {
+            this.options.verify(client, pendingItem.callback)
+          } else {
+            pendingItem.callback(undefined, client, client.release)
+          }
         } else {
-          cb(undefined, client, client.release)
+          if (this.options.verify) {
+            this.options.verify(client, client.release)
+          } else {
+            client.release()
+          }
         }
       }
     })
-    return response.result
   }
 
   query (text, values, cb) {
