@@ -146,12 +146,13 @@ suite.test('query errors are handled and do not bubble if callback is provided',
 })
 
 suite.test('query errors contain original sql', (done) => {
-  const pool = new pg.Pool()
+  const pool = new pg.Pool({ sql_in_error: 'text' })
   pool.connect(
     assert.calls(function (err, client, release) {
       var text = 'ALKJSDF';
-      client.query(text).catch(function (err) {
+      client.query({ text, values: [] }).catch(function (err) {
         assert.equal(err.sql.text, text)
+        assert.equal(err.sql.values, undefined)
         release()
         pool.end(done)
       })

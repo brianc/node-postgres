@@ -3,8 +3,8 @@ var assert = require('assert')
 var Client = require('../../lib/client')
 var NativeClient = require('../../lib/native')
 
-var client = new Client()
-var nativeClient = new NativeClient()
+var client = new Client({ sql_in_error: true })
+var nativeClient = new NativeClient({ sql_in_error: true })
 
 client.connect()
 nativeClient.connect((err) => {
