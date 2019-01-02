@@ -65,6 +65,20 @@ function promisify (Promise, callback) {
   return { callback: cb, result: result }
 }
 
+function makeIdleListener (pool, client) {
+  return function idleListener (err) {
+    err.client = client
+    client.removeListener('error', idleListener)
+    client.on('error', () => {
+      pool.log('additional client error after disconnection due to error', err)
+    })
+    pool._remove(client)
+    // TODO - document that once the pool emits an error
+    // the client has already been closed & purged and is unusable
+    pool.emit('error', err, client)
+  }
+}
+
 class Pool extends EventEmitter {
   constructor (options, Client) {
     super()
@@ -197,17 +211,7 @@ class Pool extends EventEmitter {
   newClient (pendingItem) {
     const client = new this.Client(this.options)
     this._clients.push(client)
-    const idleListener = (err) => {
-      err.client = client
-      client.removeListener('error', idleListener)
-      client.on('error', () => {
-        this.log('additional client error after disconnection due to error', err)
-      })
-      this._remove(client)
-      // TODO - document that once the pool emits an error
-      // the client has already been closed & purged and is unusable
-      this.emit('error', err, client)
-    }
+    const idleListener = makeIdleListener(this, client)
 
     this.log('checking client timeout')
 
