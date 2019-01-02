@@ -154,11 +154,15 @@ describe('pool error handling', function () {
       const pool = new Pool({ max: 1, port: closeServer.address().port })
       pool.connect((err) => {
         expect(err).to.be.an(Error)
-        expect(err.message).to.be('Connection terminated unexpectedly')
+        if (err.errno) {
+          expect(err.errno).to.be('ECONNRESET')
+        }
       })
       pool.connect((err) => {
         expect(err).to.be.an(Error)
-        expect(err.message).to.be('Connection terminated unexpectedly')
+        if (err.errno) {
+          expect(err.errno).to.be('ECONNRESET')
+        }
         closeServer.close(() => {
           pool.end(done)
         })

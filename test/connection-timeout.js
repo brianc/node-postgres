@@ -15,6 +15,9 @@ describe('connection timeout', () => {
 
   before((done) => {
     this.server = net.createServer((socket) => {
+      socket.on('data', () => {
+        // discard any buffered data or the server wont terminate
+      })
     })
 
     this.server.listen(() => {

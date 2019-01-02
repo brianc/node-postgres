@@ -23,14 +23,13 @@ describe('events', function () {
     })
   })
 
-  it('emits "connect" only with a successful connection', function (done) {
+  it('emits "connect" only with a successful connection', function () {
     const pool = new Pool({
       // This client will always fail to connect
       Client: mockClient({
         connect: function (cb) {
           process.nextTick(() => {
             cb(new Error('bad news'))
-            setImmediate(done)
           })
         }
       })

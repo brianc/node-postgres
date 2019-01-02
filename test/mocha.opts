@@ -1,4 +1,3 @@
 --require test/setup.js
---no-exit
 --bail
 --timeout 10000
