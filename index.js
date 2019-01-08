@@ -4,6 +4,8 @@ const prepare = require('pg/lib/utils.js').prepareValue
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 
+var nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
+
 function Cursor (text, values, config) {
   EventEmitter.call(this)
 
@@ -16,12 +18,14 @@ function Cursor (text, values, config) {
   this._result = new Result(this._conf.rowMode)
   this._cb = null
   this._rows = null
+  this._portal = null
 }
 
 util.inherits(Cursor, EventEmitter)
 
 Cursor.prototype.submit = function (connection) {
   this.connection = connection
+  this._portal = 'C_' + (nextUniqueID++)
 
   const con = connection
 
@@ -30,12 +34,13 @@ Cursor.prototype.submit = function (connection) {
   }, true)
 
   con.bind({
+    portal: this._portal,
     values: this.values
   }, true)
 
   con.describe({
     type: 'P',
-    name: '' // use unamed portal
+    name: this._portal // AWS Redshift requires a portal name
   }, true)
 
   con.flush()
@@ -132,7 +137,7 @@ Cursor.prototype._getRows = function (rows, cb) {
   this._cb = cb
   this._rows = []
   const msg = {
-    portal: '',
+    portal: this._portal,
     rows: rows
   }
   this.connection.execute(msg, true)
