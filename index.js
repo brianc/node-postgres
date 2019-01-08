@@ -9,7 +9,7 @@ var nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecut
 function Cursor (text, values, config) {
   EventEmitter.call(this)
 
-  this._conf = config || { }
+  this._conf = config || {}
   this.text = text
   this.values = values ? values.map(prepare) : null
   this.connection = null
@@ -148,7 +148,7 @@ Cursor.prototype.end = function (cb) {
   if (this.state !== 'initialized') {
     this.connection.sync()
   }
-  this.connection.stream.once('end', cb)
+  this.connection.once('end', cb)
   this.connection.end()
 }
 
@@ -156,7 +156,7 @@ Cursor.prototype.close = function (cb) {
   if (this.state === 'done') {
     return setImmediate(cb)
   }
-  this.connection.close({type: 'P'})
+  this.connection.close({ type: 'P' })
   this.connection.sync()
   this.state = 'done'
   if (cb) {
