@@ -94,7 +94,8 @@ Cursor.prototype._sendRows = function () {
   })
 }
 
-Cursor.prototype.handleCommandComplete = function () {
+Cursor.prototype.handleCommandComplete = function (msg) {
+  this._result.addCommandComplete(msg)
   this.connection.sync()
 }
 
