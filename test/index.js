@@ -160,4 +160,18 @@ describe('cursor', function () {
       done()
     })
   })
+
+  it('returns rowCount on insert', function (done) {
+    var pgCursor = this.pgCursor
+    this.client.query('CREATE TEMPORARY TABLE pg_cursor_test (foo VARCHAR(1), bar VARCHAR(1))')
+      .then(function () {
+        var cursor = pgCursor('insert into pg_cursor_test values($1, $2)', ['a', 'b'])
+        cursor.read(1, function (err, rows, result) {
+          assert.ifError(err)
+          assert.equal(rows.length, 0)
+          assert.equal(result.rowCount, 1)
+          done()
+        })
+      }).catch(done)
+  })
 })
