@@ -8,8 +8,8 @@ Receive result rows from [pg](https://github.com/brianc/node-postgres) as a read
 ## installation
 
 ```bash
-$ npm install pg
-$ npm install pg-query-stream
+$ npm install pg --save
+$ npm install pg-query-stream --save
 ```
 
 _requires pg>=2.8.1_
