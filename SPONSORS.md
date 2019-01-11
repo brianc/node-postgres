@@ -17,3 +17,5 @@ node-postgres is made possible by the helpful contributors from the community we
 - Benjie Gillam
 - David Hanson
 - Franklin Davenport
+- [Eventbot](https://geteventbot.com/)
+- Chuck T
