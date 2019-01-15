@@ -63,7 +63,7 @@ var suite = new helper.Suite()
       name: queryName,
       values: [30, '%n%']
     }), assert.calls(err => {
-      assert.equal(err.message, `Prepared statements must be unique — '${queryName}' was used for different queries`)
+      assert.equal(err.message, `Prepared statements must be unique - '${queryName}' was used for a different statement`)
       done()
     }))
   })
