@@ -12,7 +12,7 @@ const removeWhere = (list, predicate) => {
 }
 
 class IdleItem {
-  constructor (client, idleListener, timeoutId) {
+  constructor(client, idleListener, timeoutId) {
     this.client = client
     this.idleListener = idleListener
     this.timeoutId = timeoutId
@@ -20,12 +20,37 @@ class IdleItem {
 }
 
 class PendingItem {
-  constructor (callback) {
+  constructor(callback) {
     this.callback = callback
   }
 }
 
-function promisify (Promise, callback) {
+function throwOnRelease() {
+  throw new Error('Release called on client which has already been released to the pool.')
+}
+
+function release(client, err) {
+  client.release = throwOnRelease
+  if (err || this.ending || !client._queryable || client._ending) {
+    this._remove(client)
+    this._pulseQueue()
+    return
+  }
+
+  // idle timeout
+  let tid
+  if (this.options.idleTimeoutMillis) {
+    tid = setTimeout(() => {
+      this.log('remove idle client')
+      this._remove(client)
+    }, this.options.idleTimeoutMillis)
+  }
+
+  this._idle.push(new IdleItem(client, tid))
+  this._pulseQueue()
+}
+
+function promisify(Promise, callback) {
   if (callback) {
     return { callback: callback, result: undefined }
   }
@@ -41,8 +66,8 @@ function promisify (Promise, callback) {
   return { callback: cb, result: result }
 }
 
-function makeIdleListener (pool, client) {
-  return function idleListener (err) {
+function makeIdleListener(pool, client) {
+  return function idleListener(err) {
     err.client = client
 
     client.removeListener('error', idleListener)
@@ -57,7 +82,7 @@ function makeIdleListener (pool, client) {
 }
 
 class Pool extends EventEmitter {
-  constructor (options, Client) {
+  constructor(options, Client) {
     super()
     this.options = Object.assign({}, options)
 
@@ -89,11 +114,11 @@ class Pool extends EventEmitter {
     this.ended = false
   }
 
-  _isFull () {
+  _isFull() {
     return this._clients.length >= this.options.max
   }
 
-  _pulseQueue () {
+  _pulseQueue() {
     this.log('pulse queue')
     if (this.ended) {
       this.log('pulse queue ended')
@@ -136,7 +161,7 @@ class Pool extends EventEmitter {
     throw new Error('unexpected condition')
   }
 
-  _remove (client) {
+  _remove(client) {
     const removed = removeWhere(
       this._idle,
       item => item.client === client
@@ -151,7 +176,7 @@ class Pool extends EventEmitter {
     this.emit('remove', client)
   }
 
-  connect (cb) {
+  connect(cb) {
     if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
       return cb ? cb(err) : this.Promise.reject(err)
@@ -197,7 +222,7 @@ class Pool extends EventEmitter {
     return result
   }
 
-  newClient (pendingItem) {
+  newClient(pendingItem) {
     const client = new this.Client(this.options)
     this._clients.push(client)
     const idleListener = makeIdleListener(this, client)
@@ -245,7 +270,7 @@ class Pool extends EventEmitter {
   }
 
   // acquire a client for a pending work item
-  _acquireClient (client, pendingItem, idleListener, isNew) {
+  _acquireClient(client, pendingItem, idleListener, isNew) {
     if (isNew) {
       this.emit('connect', client)
     }
@@ -289,7 +314,7 @@ class Pool extends EventEmitter {
 
   // release a client back to the poll, include an error
   // to remove it from the pool
-  _release (client, idleListener, err) {
+  _release(client, idleListener, err) {
     client.on('error', idleListener)
 
     if (err || this.ending) {
@@ -311,7 +336,7 @@ class Pool extends EventEmitter {
     this._pulseQueue()
   }
 
-  query (text, values, cb) {
+  query(text, values, cb) {
     // guard clause against passing a function as the first parameter
     if (typeof text === 'function') {
       const response = promisify(this.Promise, text)
@@ -364,7 +389,7 @@ class Pool extends EventEmitter {
     return response.result
   }
 
-  end (cb) {
+  end(cb) {
     this.log('ending')
     if (this.ending) {
       const err = new Error('Called end on pool more than once')
@@ -377,15 +402,15 @@ class Pool extends EventEmitter {
     return promised.result
   }
 
-  get waitingCount () {
+  get waitingCount() {
     return this._pendingQueue.length
   }
 
-  get idleCount () {
+  get idleCount() {
     return this._idle.length
   }
 
-  get totalCount () {
+  get totalCount() {
     return this._clients.length
   }
 }
