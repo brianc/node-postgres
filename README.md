@@ -67,7 +67,7 @@ The causes and solutions to common errors can be found among the [Frequently Ask
 
 ## License
 
-Copyright (c) 2010-2018 Brian Carlson (brian.m.carlson@gmail.com)
+Copyright (c) 2010-2019 Brian Carlson (brian.m.carlson@gmail.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
