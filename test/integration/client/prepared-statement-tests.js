@@ -56,6 +56,17 @@ var suite = new helper.Suite()
 
     q.on('end', () => done())
   })
+
+  suite.test('with same name, but with different text', function (done) {
+    client.query(new Query({
+      text: 'select name from person where age >= $1 and name LIKE $2',
+      name: queryName,
+      values: [30, '%n%']
+    }), assert.calls(err => {
+      assert.equal(err.message, `Prepared statements must be unique - '${queryName}' was used for a different statement`)
+      done()
+    }))
+  })
 })()
 
 ;(function () {
