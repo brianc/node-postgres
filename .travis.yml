@@ -2,7 +2,8 @@ language: node_js
 sudo: false
 dist: trusty
 before_script:
-  - node script/create-test-tables.js "pg://postgres@127.0.0.1:$PGHOST/postgres"
+  - echo $PGPORT
+  - node script/create-test-tables.js "pg://postgres@127.0.0.1:$PGPORT/postgres"
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
 
