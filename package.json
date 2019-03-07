@@ -41,7 +41,7 @@
   },
   "minNativeVersion": "2.0.0",
   "scripts": {
-    "test": "make test-all"
+    "test": "make test-connection"
   },
   "license": "MIT",
   "engines": {

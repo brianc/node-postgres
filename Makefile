@@ -7,7 +7,7 @@ params := $(connectionString)
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	 lint publish test-missing-native update-npm
+	 lint publish test-missing-native update-npm test-pg-10
 
 all:
 	npm install
