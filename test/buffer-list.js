@@ -36,6 +36,13 @@ p.addCString = function (val, front) {
   return this.add(buffer, front)
 }
 
+p.addString = function (val, front) {
+  var len = Buffer.byteLength(val)
+  var buffer = Buffer.alloc(len)
+  buffer.write(val)
+  return this.add(buffer, front)
+}
+
 p.addChar = function (char, first) {
   return this.add(Buffer.from(char, 'utf8'), first)
 }

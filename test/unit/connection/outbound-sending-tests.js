@@ -34,6 +34,16 @@ test('sends password message', function () {
   assert.received(stream, new BufferList().addCString('!').join(true, 'p'))
 })
 
+test('sends SASLInitialResponseMessage message', function () {
+  con.sendSASLInitialResponseMessage('mech', 'data')
+  assert.received(stream, new BufferList().addCString('mech').addInt32(4).addString('data').join(true, 'p'))
+})
+
+test('sends SCRAMClientFinalMessage message', function () {
+  con.sendSCRAMClientFinalMessage('data')
+  assert.received(stream, new BufferList().addString('data').join(true, 'p'))
+})
+
 test('sends query message', function () {
   var txt = 'select * from boom'
   con.query(txt)

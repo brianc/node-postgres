@@ -135,6 +135,9 @@ var testForMessage = function (buffer, expectedMessage) {
 
 var plainPasswordBuffer = buffers.authenticationCleartextPassword()
 var md5PasswordBuffer = buffers.authenticationMD5Password()
+var SASLBuffer = buffers.authenticationSASL()
+var SASLContinueBuffer = buffers.authenticationSASLContinue()
+var SASLFinalBuffer = buffers.authenticationSASLFinal()
 
 var expectedPlainPasswordMessage = {
   name: 'authenticationCleartextPassword'
@@ -142,6 +145,20 @@ var expectedPlainPasswordMessage = {
 
 var expectedMD5PasswordMessage = {
   name: 'authenticationMD5Password'
+}
+
+var expectedSASLMessage = {
+  name: 'authenticationSASL',
+}
+
+var expectedSASLContinueMessage = {
+  name: 'authenticationSASLContinue',
+  data: 'data',
+}
+
+var expectedSASLFinalMessage = {
+  name: 'authenticationSASLFinal',
+  data: 'data',
 }
 
 var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
@@ -155,10 +172,18 @@ var expectedNotificationResponseMessage = {
 test('Connection', function () {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage)
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage)
-  var msg = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
+  var msgMD5 = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
   test('md5 has right salt', function () {
-    assert.equalBuffers(msg.salt, Buffer.from([1, 2, 3, 4]))
+    assert.equalBuffers(msgMD5.salt, Buffer.from([1, 2, 3, 4]))
   })
+
+  var msgSASL = testForMessage(SASLBuffer, expectedSASLMessage)
+  test('SASL has the right mechanisms', function () {
+    assert.deepStrictEqual(msgSASL.mechanisms, ['SCRAM-SHA-256'])
+  })
+  testForMessage(SASLContinueBuffer, expectedSASLContinueMessage)
+  testForMessage(SASLFinalBuffer, expectedSASLFinalMessage)
+
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage)
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage)
