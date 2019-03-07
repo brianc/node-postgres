@@ -2,8 +2,7 @@ language: node_js
 sudo: false
 dist: trusty
 before_script:
-  - echo $PGPORT
-  - node script/create-test-tables.js "pg://postgres@127.0.0.1:$PGPORT/postgres"
+  - node script/create-test-tables.js "pg://postgres@127.0.0.1:5432/postgres"
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
 
@@ -16,9 +15,6 @@ matrix:
         packages:
         - postgresql-10
         - posgresql-client-10
-      env:
-        global:
-          - PGPORT=5433
   # include:
   #   - node_js: "lts/boron"
   #     addons:
