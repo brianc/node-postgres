@@ -2,15 +2,25 @@ language: node_js
 sudo: false
 dist: trusty
 before_script:
-  - node script/create-test-tables.js "pg://postgres@127.0.0.1:5432/postgres"
+  - node script/create-test-tables.js "pg://postgres@127.0.0.1:5433/postgres"
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
 
 matrix:
   include:
     - node_js: "lts/boron"
-      addons:
-        postgresql: "10"
+    addons:
+      postgresql: "10"
+      apt:
+        packages:
+        - postgresql-10
+        - postgresql-client-10
+    before_install:
+      - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
+      - sudo /etc/init.d/postgresql restart
+    env:
+      global:
+        - PGPORT=5433
   # include:
   #   - node_js: "lts/boron"
   #     addons:
