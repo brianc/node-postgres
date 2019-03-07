@@ -11,10 +11,6 @@ matrix:
     - node_js: "lts/boron"
       addons:
         postgresql: "10"
-      apt:
-        packages:
-        - postgresql-10
-        - posgresql-client-10
   # include:
   #   - node_js: "lts/boron"
   #     addons:
