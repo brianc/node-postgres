@@ -2,6 +2,7 @@ node-postgres is made possible by the helpful contributors from the community we
 
 # Leaders
 - [MadKudu](https://www.madkudu.com) - [@madkudu](https://twitter.com/madkudu)
+- [Third Iron](https://thirdiron.com/)
 
 # Supporters
 - John Fawcett
