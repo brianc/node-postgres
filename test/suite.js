@@ -76,7 +76,7 @@ class Suite {
 
 process.on('unhandledRejection', (e) => {
   setImmediate(() => {
-    console.error('Uhandled promise rejection')
+    console.error('Unhandled promise rejection')
     throw e
   })
 })
