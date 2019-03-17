@@ -1,6 +1,10 @@
 {
+  "plugins": [
+    "node"
+  ],
   "extends": [
-    "eslint:recommended"
+    "eslint:recommended",
+    "plugin:node/recommended"
   ],
   "parserOptions": {
     "ecmaVersion": 2017
