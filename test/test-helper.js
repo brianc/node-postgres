@@ -134,7 +134,7 @@ var expect = function (callback, timeout) {
     assert.ok(executed,
       'Expected execution of function to be fired within ' + timeout +
       ' milliseconds ' +
-      +' (hint: export TEST_TIMEOUT=<timeout in milliseconds>' +
+      ' (hint: export TEST_TIMEOUT=<timeout in milliseconds>' +
       ' to change timeout globally)' +
       callback.toString())
   }, timeout)
