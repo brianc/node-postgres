@@ -179,7 +179,7 @@ suite.test('date range extremes', function (done) {
     }))
 
     client.query('SELECT $1::TIMESTAMPTZ as when', ['4713-12-31 12:31:59 BC GMT'], assert.success(function (res) {
-      assert.equal(res.rows[0].when.getFullYear(), -4713)
+      assert.equal(res.rows[0].when.getFullYear(), -4712)
     }))
 
     client.query('SELECT $1::TIMESTAMPTZ as when', ['275760-09-13 00:00:00 -15:00'], assert.success(function (res) {
