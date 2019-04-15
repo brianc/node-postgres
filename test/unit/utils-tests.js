@@ -81,6 +81,27 @@ test('prepareValues: date prepared properly as UTC', function () {
   defaults.parseInputDatesAsUTC = false
 })
 
+test('prepareValues: BC date prepared properly', function () {
+  helper.setTimezoneOffset(-330)
+
+  var date = new Date(-3245, 1, 1, 11, 11, 1, 7)
+  var out = utils.prepareValue(date)
+  assert.strictEqual(out, '3246-02-01T11:11:01.007+05:30 BC')
+
+  helper.resetTimezoneOffset()
+})
+
+test('prepareValues: 1 BC date prepared properly', function () {
+  helper.setTimezoneOffset(-330)
+
+  // can't use the multi-argument constructor as year 0 would be interpreted as 1900
+  var date = new Date('0000-02-01T11:11:01.007')
+  var out = utils.prepareValue(date)
+  assert.strictEqual(out, '0001-02-01T11:11:01.007+05:30 BC')
+
+  helper.resetTimezoneOffset()
+})
+
 test('prepareValues: undefined prepared properly', function () {
   var out = utils.prepareValue(void 0)
   assert.strictEqual(out, null)
