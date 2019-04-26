@@ -143,8 +143,42 @@ suite.test('query errors are handled and do not bubble if callback is provided',
         )
       })
     )
-}
-)
+})
+
+suite.test('query errors contain original sql - text only', (done) => {
+  const pool = new pg.Pool({ sql_in_error: 'text' })
+  pool.connect(
+    assert.calls(function (err, client, release) {
+      var params = {
+        text: 'SELECT $1 FROM ALKJSDF',
+        values: [ 'foo' ]
+      }
+      client.query(params).catch(function (err) {
+        assert.equal(err.sql.text, params.text)
+        assert.equal(err.sql.values, undefined)
+        release()
+        pool.end(done)
+      })
+    })
+  )
+})
+
+suite.test('query errors contain original sql - text and values', (done) => {
+  const pool = new pg.Pool({ sql_in_error: true })
+  pool.connect(
+    assert.calls(function (err, client, release) {
+      var params = {
+        text: 'SELECT $1 FROM ALKJSDF',
+        values: [ 'foo' ]
+      }
+      client.query(params).catch(function (err) {
+        assert.deepEqual(err.sql, params)
+        release()
+        pool.end(done)
+      })
+    })
+  )
+})
 
 suite.test('callback is fired once and only once', function (done) {
   const pool = new pg.Pool()
