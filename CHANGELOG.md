@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.11.0
+- Add support for [connection_timeout](https://github.com/brianc/node-postgres/pull/1847/files#diff-5391bde944956870128be1136e7bc176R63) and [keepalives_idle](https://github.com/brianc/node-postgres/pull/1847).
+
 ### 7.10.0
 - Add support for [per-query types](https://github.com/brianc/node-postgres/pull/1825).
 
