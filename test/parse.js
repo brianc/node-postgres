@@ -147,6 +147,30 @@ describe('parse', function(){
      subject.ssl.should.equal(true);
    });
 
+  it('configuration parameter sslcert=/path/to/cert', function(){
+    var connectionString = 'pg:///?sslcert=' + __dirname + '/example.cert';
+    var subject = parse(connectionString);
+    subject.ssl.should.eql({
+      cert: 'example cert\n'
+    });
+  });
+
+  it('configuration parameter sslkey=/path/to/key', function(){
+    var connectionString = 'pg:///?sslkey=' + __dirname + '/example.key';
+    var subject = parse(connectionString);
+    subject.ssl.should.eql({
+      key: 'example key\n'
+    });
+  });
+
+  it('configuration parameter sslrootcert=/path/to/ca', function(){
+    var connectionString = 'pg:///?sslrootcert=' + __dirname + '/example.ca';
+    var subject = parse(connectionString);
+    subject.ssl.should.eql({
+      ca: 'example ca\n'
+    });
+  });
+
    it('allow other params like max, ...', function () {
      var subject = parse('pg://myhost/db?max=18&min=4');
      subject.max.should.equal('18');
