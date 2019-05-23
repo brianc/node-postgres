@@ -1,6 +1,7 @@
 'use strict';
 
 var url = require('url');
+var fs = require('fs');
 
 //Parse method copied from https://github.com/brianc/node-postgres
 //Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
@@ -46,6 +47,22 @@ function parse(str) {
 
   if (config.ssl === 'true' || config.ssl === '1') {
     config.ssl = true;
+  }
+
+  if (config.sslcert || config.sslkey || config.sslrootcert) {
+    config.ssl = {};
+  }
+
+  if (config.sslcert) {
+    config.ssl.cert = fs.readFileSync(config.sslcert).toString();
+  }
+
+  if (config.sslkey) {
+    config.ssl.key = fs.readFileSync(config.sslkey).toString();
+  }
+
+  if (config.sslrootcert) {
+    config.ssl.ca = fs.readFileSync(config.sslrootcert).toString();
   }
 
   return config;
