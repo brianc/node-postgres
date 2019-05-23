@@ -49,6 +49,10 @@ function parse(str) {
     config.ssl = true;
   }
 
+  if (config.ssl === '0') {
+    config.ssl = false;
+  }
+
   if (config.sslcert || config.sslkey || config.sslrootcert) {
     config.ssl = {};
   }
