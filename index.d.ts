@@ -4,10 +4,10 @@ export interface ConnectionOptions {
   host: string | null;
   password?: string;
   user?: string;
-  port: string | null;
+  port?: string | null;
   database: string | null | undefined;
-  client_encoding?: string | undefined;
-  ssl?: boolean;
+  client_encoding?: string;
+  ssl?: boolean | string;
 
   application_name?: string;
   fallback_application_name?: string;
