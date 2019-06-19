@@ -5,6 +5,7 @@ pg-connection-string
 
 [![Build Status](https://travis-ci.org/iceddev/pg-connection-string.svg?branch=master)](https://travis-ci.org/iceddev/pg-connection-string)
 [![Coverage Status](https://coveralls.io/repos/github/iceddev/pg-connection-string/badge.svg?branch=master)](https://coveralls.io/github/iceddev/pg-connection-string?branch=master)
+
 Functions for dealing with a PostgresSQL connection string
 
 `parse` method taken from [node-postgres](https://github.com/brianc/node-postgres.git)
