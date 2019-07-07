@@ -147,7 +147,7 @@ test('prepareValue: date array prepared properly', function () {
 
   var date = new Date(2014, 1, 1, 11, 11, 1, 7)
   var out = utils.prepareValue([date])
-  assert.strictEqual(out, '{"2014-02-01T11:11:01.007+05:30"}')
+  assert.strictEqual(out, '["2014-02-01T11:11:01.007+05:30"]')
 
   helper.resetTimezoneOffset()
 })
@@ -171,7 +171,7 @@ test('prepareValue: buffer array prepared properly', function() {
    var buffer1 = Buffer.from('dead', 'hex')
    var buffer2 = Buffer.from('beef', 'hex')
    var out = utils.prepareValue([buffer1, buffer2])
-   assert.strictEqual(out, '{\\\\xdead,\\\\xbeef}')
+   assert.strictEqual(out, '[\\\\xdead,\\\\xbeef]')
  })
 
 test('prepareValue: objects with complex toPostgres prepared properly', function () {
@@ -182,7 +182,7 @@ test('prepareValue: objects with complex toPostgres prepared properly', function
     }
   }
   var out = utils.prepareValue(customType)
-  assert.strictEqual(out, '{"1","2"}')
+  assert.strictEqual(out, '["1","2"]')
 })
 
 test('prepareValue: objects with toPostgres receive prepareValue', function () {
