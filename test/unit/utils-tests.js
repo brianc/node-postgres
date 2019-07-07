@@ -134,12 +134,12 @@ test('prepareValue: string prepared properly', function () {
 
 test('prepareValue: simple array prepared properly', function () {
   var out = utils.prepareValue([1, null, 3, undefined, [5, 6, 'squ,awk']])
-  assert.strictEqual(out, '{"1",NULL,"3",NULL,{"5","6","squ,awk"}}')
+  assert.strictEqual(out, '["1",NULL,"3",NULL,["5","6","squ,awk"]]')
 })
 
 test('prepareValue: complex array prepared properly', function () {
   var out = utils.prepareValue([{ x: 42 }, { y: 84 }])
-  assert.strictEqual(out, '{"{\\"x\\":42}","{\\"y\\":84}"}')
+  assert.strictEqual(out, '["{\\"x\\":42}","{\\"y\\":84}"]')
 })
 
 test('prepareValue: date array prepared properly', function () {
