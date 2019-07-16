@@ -29,22 +29,22 @@ test('EventEmitter.once', function (t) {
 
 test('normalizing query configs', function () {
   var config
-  var callback = function () {}
+  var callback = function () { }
 
-  config = utils.normalizeQueryConfig({text: 'TEXT'})
-  assert.same(config, {text: 'TEXT'})
+  config = utils.normalizeQueryConfig({ text: 'TEXT' })
+  assert.same(config, { text: 'TEXT' })
 
-  config = utils.normalizeQueryConfig({text: 'TEXT'}, [10])
-  assert.deepEqual(config, {text: 'TEXT', values: [10]})
+  config = utils.normalizeQueryConfig({ text: 'TEXT' }, [10])
+  assert.deepEqual(config, { text: 'TEXT', values: [10] })
 
-  config = utils.normalizeQueryConfig({text: 'TEXT', values: [10]})
-  assert.deepEqual(config, {text: 'TEXT', values: [10]})
+  config = utils.normalizeQueryConfig({ text: 'TEXT', values: [10] })
+  assert.deepEqual(config, { text: 'TEXT', values: [10] })
 
   config = utils.normalizeQueryConfig('TEXT', [10], callback)
-  assert.deepEqual(config, {text: 'TEXT', values: [10], callback: callback})
+  assert.deepEqual(config, { text: 'TEXT', values: [10], callback: callback })
 
-  config = utils.normalizeQueryConfig({text: 'TEXT', values: [10]}, callback)
-  assert.deepEqual(config, {text: 'TEXT', values: [10], callback: callback})
+  config = utils.normalizeQueryConfig({ text: 'TEXT', values: [10] }, callback)
+  assert.deepEqual(config, { text: 'TEXT', values: [10], callback: callback })
 })
 
 test('prepareValues: buffer prepared properly', function () {
@@ -57,7 +57,8 @@ test('prepareValues: Uint8Array prepared properly', function () {
   var buf = new Uint8Array([1, 2, 3]).subarray(1, 2)
   var out = utils.prepareValue(buf)
   assert.ok(Buffer.isBuffer(out))
-  assert.deepEqual(out, [2])
+  assert.equal(out.length, 1)
+  assert.deepEqual(out[0], 2)
 })
 
 test('prepareValues: date prepared properly', function () {
@@ -167,12 +168,12 @@ test('prepareValue: objects with simple toPostgres prepared properly', function 
   assert.strictEqual(out, 'zomgcustom!')
 })
 
-test('prepareValue: buffer array prepared properly', function() {
-   var buffer1 = Buffer.from('dead', 'hex')
-   var buffer2 = Buffer.from('beef', 'hex')
-   var out = utils.prepareValue([buffer1, buffer2])
-   assert.strictEqual(out, '{\\\\xdead,\\\\xbeef}')
- })
+test('prepareValue: buffer array prepared properly', function () {
+  var buffer1 = Buffer.from('dead', 'hex')
+  var buffer2 = Buffer.from('beef', 'hex')
+  var out = utils.prepareValue([buffer1, buffer2])
+  assert.strictEqual(out, '{\\\\xdead,\\\\xbeef}')
+})
 
 test('prepareValue: objects with complex toPostgres prepared properly', function () {
   var buf = Buffer.from('zomgcustom!')
