@@ -192,6 +192,18 @@ suite.test('within a simple query', (done) => {
   })
 })
 
+suite.test('within a simple query, returning extended error properties', (done) => {
+  var client = createErorrClient()
+  var text = "select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"
+  var query = client.query(new pg.Query({ text: text, extendedError: true }))
+
+  assert.emits(query, 'error', function (error) {
+    assert.equal(error.severity, 'ERROR')
+    assert.equal(error._text, text)
+    done()
+  })
+})
+
 suite.test('connected, idle client error', (done) => {
   const client = new Client()
   client.connect((err) => {
