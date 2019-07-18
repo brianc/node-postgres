@@ -72,6 +72,19 @@ class Suite {
     const test = new Test(name, cb)
     this._queue.push(test)
   }
+
+  testAsync (name, action) {
+    const test = new Test(name, cb => {
+      try {
+        Promise.resolve(action())
+          .then(() => cb(null))
+          .catch((err) => cb(err))
+      } catch (err) {
+        cb(err)
+      }
+    })
+    this._queue.push(test)
+  }
 }
 
 process.on('unhandledRejection', (e) => {
