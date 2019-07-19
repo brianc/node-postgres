@@ -62,4 +62,6 @@ test-pool:
 
 lint:
 	@echo "***Starting lint***"
-	node_modules/.bin/eslint lib
+	node -e "process.exit(Number(process.versions.node.split('.')[0]) < 8 ? 0 : 1)" \
+	  && echo "***Skipping lint (node version too old)***" \
+	  || node_modules/.bin/eslint lib
