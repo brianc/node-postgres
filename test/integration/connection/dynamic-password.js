@@ -2,17 +2,17 @@
 const assert = require('assert')
 const helper = require('./../test-helper')
 const suite = new helper.Suite()
-const pg = require('../../../lib/index');
+const pg = require('../../../lib/index')
 const Client = pg.Client;
 
-const password = process.env.PGPASSWORD || null;
+const password = process.env.PGPASSWORD || null
 const sleep = millis => new Promise(resolve => setTimeout(resolve, millis))
 
 suite.testAsync('Get password from a sync function', function () {
     let wasCalled = false
     function getPassword() {
         wasCalled = true
-        return password;
+        return password
     }
     const client = new Client({
         password: getPassword,
