@@ -8,7 +8,7 @@ const Client = pg.Client;
 const password = process.env.PGPASSWORD || null
 const sleep = millis => new Promise(resolve => setTimeout(resolve, millis))
 
-suite.testAsync('Get password from a sync function', function () {
+suite.testAsync('Get password from a sync function', () => {
     let wasCalled = false
     function getPassword() {
         wasCalled = true
@@ -24,7 +24,7 @@ suite.testAsync('Get password from a sync function', function () {
         })
 })
 
-suite.testAsync('Throw error from a sync function', function () {
+suite.testAsync('Throw error from a sync function', () => {
     let wasCalled = false
     const myError = new Error('Oops!')
     function getPassword() {
@@ -47,7 +47,7 @@ suite.testAsync('Throw error from a sync function', function () {
         })
 })
 
-suite.testAsync('Get password from a function asynchronously', function () {
+suite.testAsync('Get password from a function asynchronously', () => {
     let wasCalled = false
     function getPassword() {
         wasCalled = true
@@ -63,7 +63,7 @@ suite.testAsync('Get password from a function asynchronously', function () {
         })
 })
 
-suite.testAsync('Throw error from an async function', function () {
+suite.testAsync('Throw error from an async function', () => {
     let wasCalled = false
     const myError = new Error('Oops!')
     function getPassword() {
@@ -88,7 +88,7 @@ suite.testAsync('Throw error from an async function', function () {
         })
 })
 
-suite.testAsync('Password function must return a string', function () {
+suite.testAsync('Password function must return a string', () => {
     let wasCalled = false
     function getPassword() {
         wasCalled = true
