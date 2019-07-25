@@ -43,6 +43,20 @@ describe('pool error handling', function () {
       expect(() => client.release()).to.throwError()
       return yield pool.end()
     }))
+
+    it('should throw each time with callbacks', function (done) {
+      const pool = new Pool()
+
+      pool.connect(function (err, client, clientDone) {
+        expect(err).not.to.be.an(Error)
+        clientDone()
+
+        expect(() => clientDone()).to.throwError()
+        expect(() => clientDone()).to.throwError()
+
+        pool.end(done)
+      })
+    })
   })
 
   describe('calling connect after end', () => {
@@ -101,13 +115,56 @@ describe('pool error handling', function () {
       client.release()
       yield new Promise((resolve, reject) => {
         process.nextTick(() => {
+          let poolError
           pool.once('error', (err) => {
-            expect(err.message).to.equal('expected')
-            expect(pool.idleCount).to.equal(0)
-            expect(pool.totalCount).to.equal(0)
-            pool.end().then(resolve, reject)
+            poolError = err
           })
+
+          let clientError
+          client.once('error', (err) => {
+            clientError = err
+          })
+
           client.emit('error', new Error('expected'))
+
+          expect(clientError.message).to.equal('expected')
+          expect(poolError.message).to.equal('expected')
+          expect(pool.idleCount).to.equal(0)
+          expect(pool.totalCount).to.equal(0)
+          pool.end().then(resolve, reject)
+        })
+      })
+    }))
+  })
+
+  describe('error from in-use client', () => {
+    it('keeps the client in the pool', co.wrap(function * () {
+      const pool = new Pool()
+      const client = yield pool.connect()
+      expect(pool.totalCount).to.equal(1)
+      expect(pool.waitingCount).to.equal(0)
+      expect(pool.idleCount).to.equal(0)
+
+      yield new Promise((resolve, reject) => {
+        process.nextTick(() => {
+          let poolError
+          pool.once('error', (err) => {
+            poolError = err
+          })
+
+          let clientError
+          client.once('error', (err) => {
+            clientError = err
+          })
+
+          client.emit('error', new Error('expected'))
+
+          expect(clientError.message).to.equal('expected')
+          expect(poolError).not.to.be.ok()
+          expect(pool.idleCount).to.equal(0)
+          expect(pool.totalCount).to.equal(1)
+          client.release()
+          pool.end().then(resolve, reject)
         })
       })
     }))
