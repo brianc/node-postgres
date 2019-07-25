@@ -3,6 +3,7 @@
     "node"
   ],
   "extends": [
+    "standard",
     "eslint:recommended",
     "plugin:node/recommended"
   ],
