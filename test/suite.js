@@ -72,6 +72,20 @@ class Suite {
     const test = new Test(name, cb)
     this._queue.push(test)
   }
+
+  /**
+   * Run an async test that can return a Promise. If the Promise resolves
+   * successfully then the test will pass. If the Promise rejects with an
+   * error then the test will be considered failed.
+   */
+  testAsync (name, action) {
+    const test = new Test(name, cb => {
+      Promise.resolve()
+        .then(action)
+        .then(() => cb(null), cb)
+    })
+    this._queue.push(test)
+  }
 }
 
 process.on('unhandledRejection', (e) => {
