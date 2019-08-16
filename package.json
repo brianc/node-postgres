@@ -22,7 +22,7 @@
     "buffer-writer": "2.0.0",
     "packet-reader": "1.0.0",
     "pg-connection-string": "0.1.3",
-    "pg-pool": "^2.0.4",
+    "pg-pool": "^2.0.7",
     "pg-types": "^2.1.0",
     "pgpass": "1.x",
     "semver": "4.3.2"
