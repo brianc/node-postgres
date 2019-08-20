@@ -43,6 +43,10 @@
   "scripts": {
     "test": "make test-all"
   },
+  "files": [
+    "lib",
+    "SPONSORS.md"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">= 4.5.0"
