@@ -1,6 +1,19 @@
 {
-  "extends": "standard",
+  "plugins": [
+    "node"
+  ],
+  "extends": [
+    "standard",
+    "eslint:recommended",
+    "plugin:node/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2017
+  },
+  "env": {
+    "node": true,
+    "es6": true
+  },
   "rules": {
-    "no-new-func": "off"
   }
 }
