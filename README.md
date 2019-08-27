@@ -21,7 +21,7 @@ $ npm install pg
 
 * Pure JavaScript client and native libpq bindings share _the same API_
 * Connection pooling
-* Extensible JS<->PostgreSQL data-type coercion
+* Extensible JS ↔ PostgreSQL data-type coercion
 * Supported PostgreSQL features
   * Parameterized queries
   * Named statements with query plan caching
