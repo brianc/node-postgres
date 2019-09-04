@@ -25,10 +25,6 @@ class PendingItem {
   }
 }
 
-function throwOnRelease () {
-  throw new Error('Release called on client which has already been released to the pool.')
-}
-
 function promisify (Promise, callback) {
   if (callback) {
     return { callback: callback, result: undefined }
@@ -248,7 +244,7 @@ class Pool extends EventEmitter {
 
     client.release = (err) => {
       if (released) {
-        throwOnRelease()
+        throw new Error('Release called on client which has already been released to the pool.')
       }
 
       released = true
