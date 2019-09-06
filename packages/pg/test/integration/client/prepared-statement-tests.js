@@ -176,3 +176,32 @@ var suite = new helper.Suite()
 
   suite.test('cleanup', () => client.end())
 })()
+;(function () {
+  var client = helper.client()
+  client.on('drain', client.end.bind(client))
+
+  suite.test('describe', function (done) {
+    client.query(
+      new Query(
+        {
+          text: 'SELECT id, name, age FROM person WHERE age > $1',
+          describe: true,
+        },
+        (res) => {
+          assert.deepEqual(res.params, [23])
+          assert.deepEqual(
+            res.fields.map((field) => ({ name: field.name, type: field.dataTypeID })),
+            [
+              { name: 'id', type: 23 },
+              { name: 'name', type: 1043 },
+              { name: 'age', type: 23 },
+            ]
+          )
+          done()
+        }
+      )
+    )
+  })
+
+  suite.test('cleanup', () => client.end())
+})()
