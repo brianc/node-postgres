@@ -545,7 +545,7 @@ Client.prototype.query = function (config, values, callback) {
 Client.prototype.end = function (cb) {
   this._ending = true
 
-  if (this.activeQuery) {
+  if (this.activeQuery || !this._queryable) {
     // if we have an active query we need to force a disconnect
     // on the socket - otherwise a hung query could block end forever
     this.connection.stream.destroy()
