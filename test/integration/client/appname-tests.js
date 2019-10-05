@@ -64,21 +64,6 @@ suite.test('application_name has precedence over fallback_application_name', fun
   })
 })
 
-suite.test('application_name from connection string', function (done) {
-  var appName = 'my app'
-  var conParams = require(__dirname + '/../../../lib/connection-parameters')
-  var conf
-  if (process.argv[2]) {
-    conf = new conParams(process.argv[2] + '?application_name=' + appName)
-  } else {
-    conf = 'postgres://?application_name=' + appName
-  }
-  getAppName(conf, function (res) {
-    assert.strictEqual(res, appName)
-    done()
-  })
-})
-
 // TODO: make the test work for native client too
 if (!helper.args.native) {
   suite.test('application_name is read from the env', function (done) {

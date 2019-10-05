@@ -89,11 +89,6 @@ test('ConnectionParameters initializing from config and config.connectionString'
   assert.equal(subject2.ssl, true)
   assert.equal(subject3.ssl, true)
   assert.equal(subject4.ssl, true)
-});
-
-test('escape spaces if present', function () {
-  var subject = new ConnectionParameters('postgres://localhost/post gres')
-  assert.equal(subject.database, 'post gres')
 })
 
 test('do not double escape spaces', function () {
@@ -232,27 +227,6 @@ test('libpq connection string building', function () {
 
   test('password contains  < and/or >  characters', function () {
     return false
-    var sourceConfig = {
-      user: 'brian',
-      password: 'hello<ther>e',
-      port: 5432,
-      host: 'localhost',
-      database: 'postgres'
-    }
-    var connectionString = 'postgres://' + sourceConfig.user + ':' + sourceConfig.password + '@' + sourceConfig.host + ':' + sourceConfig.port + '/' + sourceConfig.database
-    var subject = new ConnectionParameters(connectionString)
-    assert.equal(subject.password, sourceConfig.password)
-  })
-
-  test('username or password contains weird characters', function () {
-    var defaults = require('../../../lib/defaults')
-    defaults.ssl = true
-    var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
-    var subject = new ConnectionParameters(strang)
-    assert.equal(subject.user, 'my f%irst name')
-    assert.equal(subject.password, 'is&%awesome!')
-    assert.equal(subject.host, 'localhost')
-    assert.equal(subject.ssl, true)
   })
 
   test('url is properly encoded', function () {
