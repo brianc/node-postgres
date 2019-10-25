@@ -1,16 +1,15 @@
-var assert = require('assert')
-var Cursor = require('../')
-var pg = require('pg')
+const assert = require('assert')
+const Cursor = require('../')
+const pg = require('pg')
 
-var text = 'SELECT generate_series as num FROM generate_series(0, 5)'
+const text = 'SELECT generate_series as num FROM generate_series(0, 5)'
 
 describe('cursor', function() {
   beforeEach(function(done) {
-    var client = (this.client = new pg.Client())
+    const client = (this.client = new pg.Client())
     client.connect(done)
 
     this.pgCursor = function(text, values) {
-      client.on('drain', client.end.bind(client))
       return client.query(new Cursor(text, values || []))
     }
   })
@@ -20,7 +19,7 @@ describe('cursor', function() {
   })
 
   it('fetch 6 when asking for 10', function(done) {
-    var cursor = this.pgCursor(text)
+    const cursor = this.pgCursor(text)
     cursor.read(10, function(err, res) {
       assert.ifError(err)
       assert.equal(res.length, 6)
@@ -28,8 +27,8 @@ describe('cursor', function() {
     })
   })
 
-  it('end before reading to end', function(done) {
-    var cursor = this.pgCursor(text)
+  it.only('end before reading to end', function(done) {
+    const cursor = this.pgCursor(text)
     cursor.read(3, function(err, res) {
       assert.ifError(err)
       assert.equal(res.length, 3)
@@ -38,7 +37,7 @@ describe('cursor', function() {
   })
 
   it('callback with error', function(done) {
-    var cursor = this.pgCursor('select asdfasdf')
+    const cursor = this.pgCursor('select asdfasdf')
     cursor.read(1, function(err) {
       assert(err)
       done()
@@ -46,7 +45,7 @@ describe('cursor', function() {
   })
 
   it('read a partial chunk of data', function(done) {
-    var cursor = this.pgCursor(text)
+    const cursor = this.pgCursor(text)
     cursor.read(2, function(err, res) {
       assert.ifError(err)
       assert.equal(res.length, 2)
@@ -68,7 +67,7 @@ describe('cursor', function() {
   })
 
   it('read return length 0 past the end', function(done) {
-    var cursor = this.pgCursor(text)
+    const cursor = this.pgCursor(text)
     cursor.read(2, function(err) {
       assert(!err)
       cursor.read(100, function(err, res) {
@@ -85,11 +84,11 @@ describe('cursor', function() {
 
   it('read huge result', function(done) {
     this.timeout(10000)
-    var text = 'SELECT generate_series as num FROM generate_series(0, 100000)'
-    var values = []
-    var cursor = this.pgCursor(text, values)
-    var count = 0
-    var read = function() {
+    const text = 'SELECT generate_series as num FROM generate_series(0, 100000)'
+    const values = []
+    const cursor = this.pgCursor(text, values)
+    let count = 0
+    const read = function() {
       cursor.read(100, function(err, rows) {
         if (err) return done(err)
         if (!rows.length) {
@@ -107,9 +106,9 @@ describe('cursor', function() {
   })
 
   it('normalizes parameter values', function(done) {
-    var text = 'SELECT $1::json me'
-    var values = [{ name: 'brian' }]
-    var cursor = this.pgCursor(text, values)
+    const text = 'SELECT $1::json me'
+    const values = [{ name: 'brian' }]
+    const cursor = this.pgCursor(text, values)
     cursor.read(1, function(err, rows) {
       if (err) return done(err)
       assert.equal(rows[0].me.name, 'brian')
@@ -122,7 +121,7 @@ describe('cursor', function() {
   })
 
   it('returns result along with rows', function(done) {
-    var cursor = this.pgCursor(text)
+    const cursor = this.pgCursor(text)
     cursor.read(1, function(err, rows, result) {
       assert.ifError(err)
       assert.equal(rows.length, 1)
@@ -133,7 +132,7 @@ describe('cursor', function() {
   })
 
   it('emits row events', function(done) {
-    var cursor = this.pgCursor(text)
+    const cursor = this.pgCursor(text)
     cursor.read(10)
     cursor.on('row', (row, result) => result.addRow(row))
     cursor.on('end', result => {
@@ -143,7 +142,7 @@ describe('cursor', function() {
   })
 
   it('emits row events when cursor is closed manually', function(done) {
-    var cursor = this.pgCursor(text)
+    const cursor = this.pgCursor(text)
     cursor.on('row', (row, result) => result.addRow(row))
     cursor.on('end', result => {
       assert.equal(result.rows.length, 3)
@@ -154,7 +153,7 @@ describe('cursor', function() {
   })
 
   it('emits error events', function(done) {
-    var cursor = this.pgCursor('select asdfasdf')
+    const cursor = this.pgCursor('select asdfasdf')
     cursor.on('error', function(err) {
       assert(err)
       done()
@@ -162,11 +161,11 @@ describe('cursor', function() {
   })
 
   it('returns rowCount on insert', function(done) {
-    var pgCursor = this.pgCursor
+    const pgCursor = this.pgCursor
     this.client
       .query('CREATE TEMPORARY TABLE pg_cursor_test (foo VARCHAR(1), bar VARCHAR(1))')
       .then(function() {
-        var cursor = pgCursor('insert into pg_cursor_test values($1, $2)', ['a', 'b'])
+        const cursor = pgCursor('insert into pg_cursor_test values($1, $2)', ['a', 'b'])
         cursor.read(1, function(err, rows, result) {
           assert.ifError(err)
           assert.equal(rows.length, 0)

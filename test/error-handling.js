@@ -1,15 +1,15 @@
 'use strict'
-var assert = require('assert')
-var Cursor = require('../')
-var pg = require('pg')
+const assert = require('assert')
+const Cursor = require('../')
+const pg = require('pg')
 
-var text = 'SELECT generate_series as num FROM generate_series(0, 4)'
+const text = 'SELECT generate_series as num FROM generate_series(0, 4)'
 
 describe('error handling', function() {
   it('can continue after error', function(done) {
-    var client = new pg.Client()
+    const client = new pg.Client()
     client.connect()
-    var cursor = client.query(new Cursor('asdfdffsdf'))
+    const cursor = client.query(new Cursor('asdfdffsdf'))
     cursor.read(1, function(err) {
       assert(err)
       client.query('SELECT NOW()', function(err) {
@@ -23,9 +23,9 @@ describe('error handling', function() {
 
 describe('read callback does not fire sync', () => {
   it('does not fire error callback sync', done => {
-    var client = new pg.Client()
+    const client = new pg.Client()
     client.connect()
-    var cursor = client.query(new Cursor('asdfdffsdf'))
+    const cursor = client.query(new Cursor('asdfdffsdf'))
     let after = false
     cursor.read(1, function(err) {
       assert(err, 'error should be returned')
@@ -43,9 +43,9 @@ describe('read callback does not fire sync', () => {
   })
 
   it('does not fire result sync after finished', done => {
-    var client = new pg.Client()
+    const client = new pg.Client()
     client.connect()
-    var cursor = client.query(new Cursor('SELECT NOW()'))
+    const cursor = client.query(new Cursor('SELECT NOW()'))
     let after = false
     cursor.read(1, function(err) {
       assert(!err)
@@ -68,13 +68,13 @@ describe('read callback does not fire sync', () => {
 
 describe('proper cleanup', function() {
   it('can issue multiple cursors on one client', function(done) {
-    var client = new pg.Client()
+    const client = new pg.Client()
     client.connect()
-    var cursor1 = client.query(new Cursor(text))
+    const cursor1 = client.query(new Cursor(text))
     cursor1.read(8, function(err, rows) {
       assert.ifError(err)
       assert.equal(rows.length, 5)
-      var cursor2 = client.query(new Cursor(text))
+      const cursor2 = client.query(new Cursor(text))
       cursor2.read(8, function(err, rows) {
         assert.ifError(err)
         assert.equal(rows.length, 5)

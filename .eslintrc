@@ -1,9 +1,10 @@
 {
-  "extends": "eslint:recommended",
+  "extends": ["eslint:recommended"],
   "plugins": ["prettier"],
   "rules": {
     "prettier/prettier": "error",
-    "no-new-func": "off"
+    "prefer-const": "error",
+    "no-var": "error"
   },
   "env": {
     "es6": true,

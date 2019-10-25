@@ -4,7 +4,7 @@ const prepare = require('pg/lib/utils.js').prepareValue
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 
-var nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
+let nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
 
 function Cursor(text, values, config) {
   EventEmitter.call(this)
@@ -130,7 +130,7 @@ Cursor.prototype.handleError = function(msg) {
     this._cb(msg)
   }
   // dispatch error to all waiting callbacks
-  for (var i = 0; i < this._queue.length; i++) {
+  for (let i = 0; i < this._queue.length; i++) {
     this._queue.pop()[1](msg)
   }
 
@@ -155,6 +155,7 @@ Cursor.prototype._getRows = function(rows, cb) {
 }
 
 Cursor.prototype.end = function(cb) {
+  console.log(this.state)
   if (this.state !== 'initialized') {
     this.connection.sync()
   }
@@ -177,6 +178,7 @@ Cursor.prototype.close = function(cb) {
 }
 
 Cursor.prototype.read = function(rows, cb) {
+  console.log('state', this.state)
   if (this.state === 'idle') {
     return this._getRows(rows, cb)
   }

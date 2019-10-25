@@ -1,10 +1,10 @@
-var assert = require('assert')
-var pg = require('pg')
-var Cursor = require('../')
+const assert = require('assert')
+const pg = require('pg')
+const Cursor = require('../')
 
 describe('queries with no data', function() {
   beforeEach(function(done) {
-    var client = (this.client = new pg.Client())
+    const client = (this.client = new pg.Client())
     client.connect(done)
   })
 
@@ -13,7 +13,7 @@ describe('queries with no data', function() {
   })
 
   it('handles queries that return no data', function(done) {
-    var cursor = new Cursor('CREATE TEMPORARY TABLE whatwhat (thing int)')
+    const cursor = new Cursor('CREATE TEMPORARY TABLE whatwhat (thing int)')
     this.client.query(cursor)
     cursor.read(100, function(err, rows) {
       assert.ifError(err)
@@ -23,7 +23,7 @@ describe('queries with no data', function() {
   })
 
   it('handles empty query', function(done) {
-    var cursor = new Cursor('-- this is a comment')
+    let cursor = new Cursor('-- this is a comment')
     cursor = this.client.query(cursor)
     cursor.read(100, function(err, rows) {
       assert.ifError(err)
