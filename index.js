@@ -1,42 +1,56 @@
 'use strict'
-const Result = require('./pg').Result
-const prepare = require('./pg').prepareValue
+const Result = require('pg/lib/result.js')
+const prepare = require('pg/lib/utils.js').prepareValue
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 
-function Cursor (text, values, config) {
+let nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
+
+function Cursor(text, values, config) {
   EventEmitter.call(this)
 
-  this._conf = config || { }
+  this._conf = config || {}
   this.text = text
   this.values = values ? values.map(prepare) : null
   this.connection = null
   this._queue = []
   this.state = 'initialized'
-  this._result = new Result(this._conf.rowMode)
+  this._result = new Result(this._conf.rowMode, this._conf.types)
   this._cb = null
   this._rows = null
+  this._portal = null
 }
 
 util.inherits(Cursor, EventEmitter)
 
-Cursor.prototype.submit = function (connection) {
+Cursor.prototype.submit = function(connection) {
   this.connection = connection
+  this._portal = 'C_' + nextUniqueID++
 
   const con = connection
 
-  con.parse({
-    text: this.text
-  }, true)
+  con.parse(
+    {
+      text: this.text,
+    },
+    true
+  )
 
-  con.bind({
-    values: this.values
-  }, true)
+  con.bind(
+    {
+      portal: this._portal,
+      values: this.values,
+    },
+    true
+  )
 
-  con.describe({
-    type: 'P',
-    name: '' // use unamed portal
-  }, true)
+  con.describe(
+    {
+      type: 'P',
+      name: this._portal, // AWS Redshift requires a portal name
+    },
+    true
+  )
 
   con.flush()
 
@@ -55,25 +69,25 @@ Cursor.prototype.submit = function (connection) {
   })
 }
 
-Cursor.prototype._shiftQueue = function () {
+Cursor.prototype._shiftQueue = function() {
   if (this._queue.length) {
     this._getRows.apply(this, this._queue.shift())
   }
 }
 
-Cursor.prototype.handleRowDescription = function (msg) {
+Cursor.prototype.handleRowDescription = function(msg) {
   this._result.addFields(msg.fields)
   this.state = 'idle'
   this._shiftQueue()
 }
 
-Cursor.prototype.handleDataRow = function (msg) {
+Cursor.prototype.handleDataRow = function(msg) {
   const row = this._result.parseRow(msg.fields)
   this.emit('row', row, this._result)
   this._rows.push(row)
 }
 
-Cursor.prototype._sendRows = function () {
+Cursor.prototype._sendRows = function() {
   this.state = 'idle'
   setImmediate(() => {
     const cb = this._cb
@@ -89,25 +103,26 @@ Cursor.prototype._sendRows = function () {
   })
 }
 
-Cursor.prototype.handleCommandComplete = function () {
+Cursor.prototype.handleCommandComplete = function(msg) {
+  this._result.addCommandComplete(msg)
   this.connection.sync()
 }
 
-Cursor.prototype.handlePortalSuspended = function () {
+Cursor.prototype.handlePortalSuspended = function() {
   this._sendRows()
 }
 
-Cursor.prototype.handleReadyForQuery = function () {
+Cursor.prototype.handleReadyForQuery = function() {
   this._sendRows()
   this.emit('end', this._result)
   this.state = 'done'
 }
 
-Cursor.prototype.handleEmptyQuery = function () {
+Cursor.prototype.handleEmptyQuery = function() {
   this.connection.sync()
 }
 
-Cursor.prototype.handleError = function (msg) {
+Cursor.prototype.handleError = function(msg) {
   this.state = 'error'
   this._error = msg
   // satisfy any waiting callback
@@ -115,7 +130,7 @@ Cursor.prototype.handleError = function (msg) {
     this._cb(msg)
   }
   // dispatch error to all waiting callbacks
-  for (var i = 0; i < this._queue.length; i++) {
+  for (let i = 0; i < this._queue.length; i++) {
     this._queue.pop()[1](msg)
   }
 
@@ -127,27 +142,27 @@ Cursor.prototype.handleError = function (msg) {
   this.connection.sync()
 }
 
-Cursor.prototype._getRows = function (rows, cb) {
+Cursor.prototype._getRows = function(rows, cb) {
   this.state = 'busy'
   this._cb = cb
   this._rows = []
   const msg = {
-    portal: '',
-    rows: rows
+    portal: this._portal,
+    rows: rows,
   }
   this.connection.execute(msg, true)
   this.connection.flush()
 }
 
-Cursor.prototype.end = function (cb) {
+Cursor.prototype.end = function(cb) {
   if (this.state !== 'initialized') {
     this.connection.sync()
   }
-  this.connection.stream.once('end', cb)
+  this.connection.once('end', cb)
   this.connection.end()
 }
 
-Cursor.prototype.close = function (cb) {
+Cursor.prototype.close = function(cb) {
   if (this.state === 'done') {
     if (cb) {
       return setImmediate(cb)
@@ -155,17 +170,17 @@ Cursor.prototype.close = function (cb) {
       return
     }
   }
-  this.connection.close({type: 'P'})
+  this.connection.close({ type: 'P' })
   this.connection.sync()
   this.state = 'done'
   if (cb) {
-    this.connection.once('closeComplete', function () {
+    this.connection.once('closeComplete', function() {
       cb()
     })
   }
 }
 
-Cursor.prototype.read = function (rows, cb) {
+Cursor.prototype.read = function(rows, cb) {
   if (this.state === 'idle') {
     return this._getRows(rows, cb)
   }

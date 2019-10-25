@@ -2,9 +2,9 @@ language: node_js
 dist: trusty
 sudo: false
 node_js:
-  - "4.2"
-  - "6"
   - "8"
+  - "10"
+  - "12"
 env:
   - PGUSER=postgres
 services:

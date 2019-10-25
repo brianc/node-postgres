@@ -1,18 +1,18 @@
 'use strict'
-var assert = require('assert')
-var Cursor = require('../')
-var pg = require('pg')
+const assert = require('assert')
+const Cursor = require('../')
+const pg = require('pg')
 
-var text = 'SELECT generate_series as num FROM generate_series(0, 4)'
+const text = 'SELECT generate_series as num FROM generate_series(0, 4)'
 
-describe('error handling', function () {
-  it('can continue after error', function (done) {
-    var client = new pg.Client()
+describe('error handling', function() {
+  it('can continue after error', function(done) {
+    const client = new pg.Client()
     client.connect()
-    var cursor = client.query(new Cursor('asdfdffsdf'))
-    cursor.read(1, function (err) {
+    const cursor = client.query(new Cursor('asdfdffsdf'))
+    cursor.read(1, function(err) {
       assert(err)
-      client.query('SELECT NOW()', function (err, res) {
+      client.query('SELECT NOW()', function(err) {
         assert.ifError(err)
         client.end()
         done()
@@ -22,16 +22,16 @@ describe('error handling', function () {
 })
 
 describe('read callback does not fire sync', () => {
-  it('does not fire error callback sync', (done) => {
-    var client = new pg.Client()
+  it('does not fire error callback sync', done => {
+    const client = new pg.Client()
     client.connect()
-    var cursor = client.query(new Cursor('asdfdffsdf'))
+    const cursor = client.query(new Cursor('asdfdffsdf'))
     let after = false
-    cursor.read(1, function (err) {
+    cursor.read(1, function(err) {
       assert(err, 'error should be returned')
       assert.equal(after, true, 'should not call read sync')
       after = false
-      cursor.read(1, function (err) {
+      cursor.read(1, function(err) {
         assert(err, 'error should be returned')
         assert.equal(after, true, 'should not call read sync')
         client.end()
@@ -42,18 +42,18 @@ describe('read callback does not fire sync', () => {
     after = true
   })
 
-  it('does not fire result sync after finished', (done) => {
-    var client = new pg.Client()
+  it('does not fire result sync after finished', done => {
+    const client = new pg.Client()
     client.connect()
-    var cursor = client.query(new Cursor('SELECT NOW()'))
+    const cursor = client.query(new Cursor('SELECT NOW()'))
     let after = false
-    cursor.read(1, function (err) {
+    cursor.read(1, function(err) {
       assert(!err)
       assert.equal(after, true, 'should not call read sync')
-      cursor.read(1, function (err) {
+      cursor.read(1, function(err) {
         assert(!err)
         after = false
-        cursor.read(1, function (err) {
+        cursor.read(1, function(err) {
           assert(!err)
           assert.equal(after, true, 'should not call read sync')
           client.end()
@@ -66,16 +66,16 @@ describe('read callback does not fire sync', () => {
   })
 })
 
-describe('proper cleanup', function () {
-  it('can issue multiple cursors on one client', function (done) {
-    var client = new pg.Client()
+describe('proper cleanup', function() {
+  it('can issue multiple cursors on one client', function(done) {
+    const client = new pg.Client()
     client.connect()
-    var cursor1 = client.query(new Cursor(text))
-    cursor1.read(8, function (err, rows) {
+    const cursor1 = client.query(new Cursor(text))
+    cursor1.read(8, function(err, rows) {
       assert.ifError(err)
       assert.equal(rows.length, 5)
-      var cursor2 = client.query(new Cursor(text))
-      cursor2.read(8, function (err, rows) {
+      const cursor2 = client.query(new Cursor(text))
+      cursor2.read(8, function(err, rows) {
         assert.ifError(err)
         assert.equal(rows.length, 5)
         client.end()
