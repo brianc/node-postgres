@@ -27,12 +27,12 @@ describe('cursor', function() {
     })
   })
 
-  it.only('end before reading to end', function(done) {
+  it('end before reading to end', function(done) {
     const cursor = this.pgCursor(text)
     cursor.read(3, function(err, res) {
       assert.ifError(err)
       assert.equal(res.length, 3)
-      cursor.end(done)
+      done()
     })
   })
 

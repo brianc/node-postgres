@@ -15,7 +15,7 @@ function Cursor(text, values, config) {
   this.connection = null
   this._queue = []
   this.state = 'initialized'
-  this._result = new Result(this._conf.rowMode)
+  this._result = new Result(this._conf.rowMode, this._conf.types)
   this._cb = null
   this._rows = null
   this._portal = null
@@ -155,7 +155,6 @@ Cursor.prototype._getRows = function(rows, cb) {
 }
 
 Cursor.prototype.end = function(cb) {
-  console.log(this.state)
   if (this.state !== 'initialized') {
     this.connection.sync()
   }
@@ -178,7 +177,6 @@ Cursor.prototype.close = function(cb) {
 }
 
 Cursor.prototype.read = function(rows, cb) {
-  console.log('state', this.state)
   if (this.state === 'idle') {
     return this._getRows(rows, cb)
   }

@@ -1,7 +1,7 @@
 {
   "name": "pg-cursor",
   "version": "2.0.0",
-  "description": "",
+  "description": "Query cursor extension for node-postgres",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -20,7 +20,7 @@
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-prettier": "^3.1.1",
     "mocha": "^6.2.2",
-    "pg": "^7.12.1",
+    "pg": "7.x",
     "prettier": "^1.18.2"
   },
   "prettier": {
