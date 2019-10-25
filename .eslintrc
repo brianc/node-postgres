@@ -1,9 +1,13 @@
 {
-  "extends": "standard",
-  "env": {
-    "mocha": true
-  },
+  "extends": "eslint:recommended",
+  "plugins": ["prettier"],
   "rules": {
+    "prettier/prettier": "error",
     "no-new-func": "off"
+  },
+  "env": {
+    "es6": true,
+    "node": true,
+    "mocha": true
   }
 }
