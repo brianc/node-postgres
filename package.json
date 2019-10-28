@@ -30,7 +30,7 @@
     "eslint-plugin-node": "^5.1.1",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "mocha": "^3.5.0",
+    "mocha": "^6.2.2",
     "pg": "^7.5.0",
     "stream-spec": "~0.3.5",
     "stream-tester": "0.0.5",
