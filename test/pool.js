@@ -83,4 +83,24 @@ describe('pool', function() {
         done()
       })
   })
+
+  it('can close multiple times on a pool', async function() {
+    const pool = new pg.Pool({ max: 1 })
+    const run = () =>
+      new Promise(async resolve => {
+        const cursor = new Cursor(text)
+        const client = await pool.connect()
+        client.query(cursor)
+        cursor.read(25, function(err) {
+          assert.ifError(err)
+          cursor.close(function(err) {
+            assert.ifError(err)
+            client.release()
+            resolve()
+          })
+        })
+      })
+    await Promise.all([run(), run(), run()])
+    await pool.end()
+  })
 })

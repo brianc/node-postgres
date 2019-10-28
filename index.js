@@ -154,13 +154,15 @@ Cursor.prototype._getRows = function(rows, cb) {
   this.connection.flush()
 }
 
-Cursor.prototype.end = function(cb) {
+// users really shouldn't be calling 'end' here and terminating a connection to postgres
+// via the low level connection.end api
+Cursor.prototype.end = util.deprecate(function(cb) {
   if (this.state !== 'initialized') {
     this.connection.sync()
   }
   this.connection.once('end', cb)
   this.connection.end()
-}
+}, 'Cursor.end is deprecated. Call end on the client itself to end a connection to the database.')
 
 Cursor.prototype.close = function(cb) {
   if (this.state === 'done') {
