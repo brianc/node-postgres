@@ -27,4 +27,17 @@ describe('transactions', () => {
     await client.query('ALTER TABLE foobar ADD COLUMN name TEXT')
     await client.end()
   })
+
+  it.only('can execute multiple statements in a transaction if no data', async () => {
+    const client = new pg.Client()
+    await client.connect()
+    await client.query('begin')
+    // create a cursor that has no data response
+    const createText = 'CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)'
+    const cursor = client.query(new Cursor(createText))
+    const err = await new Promise(resolve => cursor.read(100, resolve))
+    assert.ifError(err)
+    await client.query('ALTER TABLE foobar ADD COLUMN name TEXT')
+    await client.end()
+  })
 })
