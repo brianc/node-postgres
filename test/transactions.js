@@ -28,7 +28,7 @@ describe('transactions', () => {
     await client.end()
   })
 
-  it.only('can execute multiple statements in a transaction if no data', async () => {
+  it('can execute multiple statements in a transaction if no data', async () => {
     const client = new pg.Client()
     await client.connect()
     await client.query('begin')
