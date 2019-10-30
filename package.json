@@ -44,6 +44,6 @@
     "singleQuote": true
   },
   "dependencies": {
-    "pg-cursor": "2.0.0"
+    "pg-cursor": "^2.0.1"
   }
 }
