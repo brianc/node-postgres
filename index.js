@@ -75,6 +75,15 @@ Cursor.prototype._shiftQueue = function() {
   }
 }
 
+Cursor.prototype._closePortal = function() {
+  // because we opened a named portal to stream results
+  // we need to close the same named portal.  Leaving a named portal
+  // open can lock tables for modification if inside a transaction.
+  // see https://github.com/brianc/node-pg-cursor/issues/56
+  this.connection.close({ type: 'P', name: this._portal })
+  this.connection.sync()
+}
+
 Cursor.prototype.handleRowDescription = function(msg) {
   this._result.addFields(msg.fields)
   this.state = 'idle'
@@ -105,7 +114,7 @@ Cursor.prototype._sendRows = function() {
 
 Cursor.prototype.handleCommandComplete = function(msg) {
   this._result.addCommandComplete(msg)
-  this.connection.sync()
+  this._closePortal()
 }
 
 Cursor.prototype.handlePortalSuspended = function() {
@@ -114,8 +123,8 @@ Cursor.prototype.handlePortalSuspended = function() {
 
 Cursor.prototype.handleReadyForQuery = function() {
   this._sendRows()
-  this.emit('end', this._result)
   this.state = 'done'
+  this.emit('end', this._result)
 }
 
 Cursor.prototype.handleEmptyQuery = function() {
@@ -168,8 +177,7 @@ Cursor.prototype.close = function(cb) {
   if (this.state === 'done') {
     return setImmediate(cb)
   }
-  this.connection.close({ type: 'P' })
-  this.connection.sync()
+  this._closePortal()
   this.state = 'done'
   if (cb) {
     this.connection.once('closeComplete', function() {
