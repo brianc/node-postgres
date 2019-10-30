@@ -5,7 +5,7 @@ var Readable = require('stream').Readable
 class PgQueryStream extends Readable {
   constructor (text, values, options) {
     super(Object.assign({ objectMode: true }, options))
-    this.cursor = new Cursor(text, values)
+    this.cursor = new Cursor(text, values, options)
     this._reading = false
     this._closed = false
     this.batchSize = (options || {}).batchSize || 100
