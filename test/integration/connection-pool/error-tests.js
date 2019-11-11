@@ -8,15 +8,13 @@ suite.test('connecting to invalid port', (cb) => {
   pool.connect().catch(e => cb())
 })
 
-suite.test('errors emitted on pool', (cb) => {
+suite.test('errors emitted on checked-out clients', (cb) => {
   // make pool hold 2 clients
   const pool = new pg.Pool({ max: 2 })
   // get first client
   pool.connect(assert.success(function (client, done) {
-    client.id = 1
     client.query('SELECT NOW()', function () {
       pool.connect(assert.success(function (client2, done2) {
-        client2.id = 2
         var pidColName = 'procpid'
         helper.versionGTE(client2, 90200, assert.success(function (isGreater) {
           var killIdleQuery = 'SELECT pid, (SELECT pg_terminate_backend(pid)) AS killed FROM pg_stat_activity WHERE state = $1'
@@ -26,10 +24,9 @@ suite.test('errors emitted on pool', (cb) => {
             params = ['%IDLE%']
           }
 
-          pool.once('error', (err, brokenClient) => {
-            assert.ok(err)
-            assert.ok(brokenClient)
-            assert.equal(client.id, brokenClient.id)
+          client.once('error', (err) => {
+            client.on('error', (err) => {})
+            done(err)
             cb()
           })
 
@@ -57,18 +54,18 @@ suite.test('connection-level errors cause queued queries to fail', (cb) => {
       }
     }))
 
-    pool.once('error', assert.calls((err, brokenClient) => {
-      assert.equal(client, brokenClient)
+    client.once('error', assert.calls((err) => {
+      client.on('error', (err) => {})
     }))
 
     client.query('SELECT 1', assert.calls((err) => {
       if (helper.args.native) {
-        assert.ok(err)
+        assert.equal(err.message, 'terminating connection due to administrator command')
       } else {
         assert.equal(err.message, 'Connection terminated unexpectedly')
       }
 
-      done()
+      done(err)
       pool.end()
       cb()
     }))
@@ -86,13 +83,16 @@ suite.test('connection-level errors cause future queries to fail', (cb) => {
       }
     }))
 
-    pool.once('error', assert.calls((err, brokenClient) => {
-      assert.equal(client, brokenClient)
-
+    client.once('error', assert.calls((err) => {
+      client.on('error', (err) => {})
       client.query('SELECT 1', assert.calls((err) => {
-        assert.equal(err.message, 'Client has encountered a connection error and is not queryable')
+        if (helper.args.native) {
+          assert.equal(err.message, 'terminating connection due to administrator command')
+        } else {
+          assert.equal(err.message, 'Client has encountered a connection error and is not queryable')
+        }
 
-        done()
+        done(err)
         pool.end()
         cb()
       }))
