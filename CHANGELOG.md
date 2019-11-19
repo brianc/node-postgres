@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.13.0
+
+- Add support for [all tls.connect()](https://github.com/brianc/node-postgres/pull/1996) options.
+
 ### 7.12.0
 
 - Add support for [async password lookup](https://github.com/brianc/node-postgres/pull/1926).
