@@ -5,6 +5,7 @@ node-postgres is made possible by the helpful contributors from the community we
 - [MadKudu](https://www.madkudu.com) - [@madkudu](https://twitter.com/madkudu)
 - [Third Iron](https://thirdiron.com/)
 - [Timescale](https://timescale.com)
+- [Nafundi](https://nafundi.com)
 
 # Supporters
 
@@ -23,3 +24,8 @@ node-postgres is made possible by the helpful contributors from the community we
 - Franklin Davenport
 - [Eventbot](https://geteventbot.com/)
 - Chuck T
+- Paul Cothenet
+- Pelle Wessman
+- Raul Murray
+- Simple Analytics
+- Trevor Linton
