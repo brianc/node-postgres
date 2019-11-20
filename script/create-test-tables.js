@@ -56,11 +56,10 @@ con.connect((err) => {
       console.log('Filling it with people')
 
       con.query(
-        'INSERT INTO person (name, age) SELECT * FROM UNNEST ($1::text[], $2::integer[])',
-        [
-          people.map((person) => person.name),
-          people.map((person) => person.age),
-        ],
+        'INSERT INTO person (name, age) VALUES'
+        + people
+          .map((person) => ` ('${person.name}', ${person.age})`)
+          .join(','),
         (err, result) => {
           if (err) {
             throw err
