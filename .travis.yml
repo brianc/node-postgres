@@ -9,7 +9,8 @@ env:
 
 node_js:
   - lts/dubnium
-  - 12
+  - lts/erbium
+  - 13
 
 addons:
   postgresql: "10"
@@ -31,16 +32,16 @@ matrix:
       dist: precise
 
     # different PostgreSQL versions on Node LTS
-    - node_js: lts/dubnium
+    - node_js: lts/erbium
       addons:
         postgresql: "9.3"
-    - node_js: lts/dubnium
+    - node_js: lts/erbium
       addons:
         postgresql: "9.4"
-    - node_js: lts/dubnium
+    - node_js: lts/erbium
       addons:
         postgresql: "9.5"
-    - node_js: lts/dubnium
+    - node_js: lts/erbium
       addons:
         postgresql: "9.6"
 
