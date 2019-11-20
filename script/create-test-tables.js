@@ -38,15 +38,36 @@ var con = new pg.Client({
   password: args.password,
   database: args.database
 })
-con.connect()
-var query = con.query('drop table if exists person')
-con.query('create table person(id serial, name varchar(10), age integer)', (err, res) => {
-  console.log('Created table person')
-  console.log('Filling it with people')
-})
-people.map(function (person) {
-  return con.query(new pg.Query("insert into person(name, age) values('" + person.name + "', '" + person.age + "')"))
-}).pop().on('end', function () {
-  console.log('Inserted 26 people')
-  con.end()
+
+con.connect((err) => {
+  if (err) {
+    throw err
+  }
+
+  con.query(
+    'DROP TABLE IF EXISTS person;'
+    + ' CREATE TABLE person (id serial, name varchar(10), age integer)',
+    (err) => {
+      if (err) {
+        throw err
+      }
+
+      console.log('Created table person')
+      console.log('Filling it with people')
+
+      con.query(
+        'INSERT INTO person (name, age) SELECT * FROM UNNEST ($1::text[], $2::integer[])',
+        [
+          people.map((person) => person.name),
+          people.map((person) => person.age),
+        ],
+        (err, result) => {
+          if (err) {
+            throw err
+          }
+
+          console.log(`Inserted ${result.rowCount} people`)
+          con.end()
+        })
+    })
 })
