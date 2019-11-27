@@ -9,6 +9,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "test": "yarn lerna exec --parallel yarn test"
+  },
   "devDependencies": {
     "lerna": "^3.19.0"
   }
