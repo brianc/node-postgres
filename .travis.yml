@@ -17,10 +17,6 @@ addons:
 
 matrix:
   include:
-    - node_js: lts/boron
-      addons:
-        postgresql: "9.5"
-      dist: precise
     - node_js: lts/carbon
       addons:
         postgresql: "9.5"
