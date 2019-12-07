@@ -254,10 +254,10 @@ suite.test('"query" event fired on query called', function (done) {
     assert.calls(function (err, client, release) {
       assert(!err)
       const queryText = 'SELECT 1'
-      client.on('query', query => {
+      client.on('query', assert.calls(query => {
         assert(query instanceof pg.Query)
         assert.equal(query.text, queryText)
-      })
+      }))
       client.query(queryText,
         assert.calls(function (err) {
           assert(!err)
