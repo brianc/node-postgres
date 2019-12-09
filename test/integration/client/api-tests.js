@@ -254,13 +254,32 @@ suite.test('"query" event fired on query called', function (done) {
     assert.calls(function (err, client, release) {
       assert(!err)
       const queryText = 'SELECT 1'
-      assert.emits(client, 'query', function (query) {
-        assert(query instanceof pg.Query)
-        assert.equal(query.text, queryText)
+      client.query(queryText, () => {
         pool.end(done)
         release()
       })
-      client.query(queryText)
+      assert.emits(client, 'query', function (query) {
+        assert(query instanceof pg.Query)
+        assert.equal(query.text, queryText)
+      })
+    })
+  )
+})
+
+suite.test('Check that client query event fired before query events', function (done) {
+  const pool = new pg.Pool()
+  pool.connect(
+    assert.calls(function (err, client, release) {
+      assert(!err)
+      const queryText = 'SELECT 1'
+      client.query(queryText, () => {
+        pool.end(done)
+        release()
+      })
+      client.once('query', query => {
+        assert.emits(query, 'row')
+        assert.emits(query, 'end')
+      })
     })
   )
 })
