@@ -247,3 +247,39 @@ suite.test('null and undefined are both inserted as NULL', function (done) {
     })
   )
 })
+
+suite.test('"query" event fired on query called', function (done) {
+  const pool = new pg.Pool()
+  pool.connect(
+    assert.calls(function (err, client, release) {
+      assert(!err)
+      const queryText = 'SELECT 1'
+      client.query(queryText, () => {
+        pool.end(done)
+        release()
+      })
+      assert.emits(client, 'query', function (query) {
+        assert(query instanceof pg.Query)
+        assert.equal(query.text, queryText)
+      })
+    })
+  )
+})
+
+suite.test('Check that client query event fired before query events', function (done) {
+  const pool = new pg.Pool()
+  pool.connect(
+    assert.calls(function (err, client, release) {
+      assert(!err)
+      const queryText = 'SELECT 1'
+      client.query(queryText, () => {
+        pool.end(done)
+        release()
+      })
+      client.once('query', query => {
+        assert.emits(query, 'row')
+        assert.emits(query, 'end')
+      })
+    })
+  )
+})
