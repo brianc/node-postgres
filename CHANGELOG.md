@@ -4,6 +4,11 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.15.0
+
+- Change repository structure to support lerna & future monorepo [development](https://github.com/brianc/node-postgres/pull/2014).
+- [Warn about deprecation](https://github.com/brianc/node-postgres/pull/2021) for calling constructors without `new`.
+
 ### 7.14.0
 
 - Reverts 7.13.0 as it contained [an accidental breaking change](https://github.com/brianc/node-postgres/pull/2010) for self-signed SSL cert verification. 7.14.0 is identical to 7.12.1.
