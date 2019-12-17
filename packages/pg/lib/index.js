@@ -12,9 +12,13 @@ var Client = require('./client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 var Pool = require('pg-pool')
+const checkConstructor = require('./compat/check-constructor')
 
 const poolFactory = (Client) => {
   var BoundPool = function (options) {
+    // eslint-disable-next-line no-eval
+    checkConstructor('pg.Pool', 'PG-POOL-NEW', () => eval('new.target'))
+
     var config = Object.assign({ Client: Client }, options)
     return new Pool(config)
   }
