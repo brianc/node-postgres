@@ -1,0 +1,54 @@
+{
+  "name": "pg",
+  "version": "7.14.0",
+  "description": "PostgreSQL client - pure javascript & libpq with the same API",
+  "keywords": [
+    "database",
+    "libpq",
+    "pg",
+    "postgre",
+    "postgres",
+    "postgresql",
+    "rdbms"
+  ],
+  "homepage": "http://github.com/brianc/node-postgres",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-postgres.git"
+  },
+  "author": "Brian Carlson <brian.m.carlson@gmail.com>",
+  "main": "./lib",
+  "dependencies": {
+    "buffer-writer": "2.0.0",
+    "packet-reader": "1.0.0",
+    "pg-connection-string": "0.1.3",
+    "pg-pool": "^2.0.7",
+    "pg-types": "^2.1.0",
+    "pgpass": "1.x",
+    "semver": "4.3.2"
+  },
+  "devDependencies": {
+    "async": "0.9.0",
+    "bluebird": "3.5.2",
+    "co": "4.6.0",
+    "eslint": "^6.0.1",
+    "eslint-config-standard": "^13.0.1",
+    "eslint-plugin-import": "^2.18.1",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "pg-copy-streams": "0.3.0"
+  },
+  "minNativeVersion": "2.0.0",
+  "scripts": {
+    "test": "make test-all"
+  },
+  "files": [
+    "lib",
+    "SPONSORS.md"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 4.5.0"
+  }
+}

@@ -2,7 +2,7 @@ language: node_js
 dist: bionic
 
 before_script:
-  - node script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
+  - node packages/pg/script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
 
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
@@ -17,15 +17,6 @@ addons:
 
 matrix:
   include:
-    # different Node versions on PostgreSQL 9.5 that require precise
-    - node_js: lts/argon
-      addons:
-        postgresql: "9.5"
-      dist: precise
-    - node_js: lts/boron
-      addons:
-        postgresql: "9.5"
-      dist: precise
     - node_js: lts/carbon
       addons:
         postgresql: "9.5"
