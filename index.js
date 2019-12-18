@@ -19,9 +19,22 @@ function Cursor(text, values, config) {
   this._cb = null
   this._rows = null
   this._portal = null
+  this._ifNoData = this._ifNoData.bind(this)
+  this._rowDescription = this._rowDescription.bind(this)
 }
 
 util.inherits(Cursor, EventEmitter)
+
+Cursor.prototype._ifNoData = function() {
+  this.state = 'idle'
+  this._shiftQueue()
+}
+
+Cursor.prototype._rowDescription = function() {
+  if (this.connection) {
+    this.connection.removeListener('noData', this._ifNoData)
+  }
+}
 
 Cursor.prototype.submit = function(connection) {
   this.connection = connection
@@ -54,19 +67,12 @@ Cursor.prototype.submit = function(connection) {
 
   con.flush()
 
-  const ifNoData = () => {
-    this.state = 'idle'
-    this._shiftQueue()
-  }
-
   if (this._conf.types) {
     this._result._getTypeParser = this._conf.types.getTypeParser
   }
 
-  con.once('noData', ifNoData)
-  con.once('rowDescription', () => {
-    con.removeListener('noData', ifNoData)
-  })
+  con.once('noData', this._ifNoData)
+  con.once('rowDescription', this._rowDescription)
 }
 
 Cursor.prototype._shiftQueue = function() {
@@ -132,6 +138,8 @@ Cursor.prototype.handleEmptyQuery = function() {
 }
 
 Cursor.prototype.handleError = function(msg) {
+  this.connection.removeListener('noData', this._ifNoData)
+  this.connection.removeListener('rowDescription', this._rowDescription)
   this.state = 'error'
   this._error = msg
   // satisfy any waiting callback
