@@ -36,11 +36,7 @@ matrix:
       addons:
         postgresql: "9.6"
 
-    # PostgreSQL 9.1 and 9.2 only work on precise
-    - node_js: lts/carbon
-      addons:
-        postgresql: "9.1"
-      dist: precise
+    # PostgreSQL 9.2 only works on precise
     - node_js: lts/carbon
       addons:
         postgresql: "9.2"
