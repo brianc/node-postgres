@@ -29,11 +29,11 @@ describe('read callback does not fire sync', () => {
     let after = false
     cursor.read(1, function(err) {
       assert(err, 'error should be returned')
-      assert.equal(after, true, 'should not call read sync')
+      assert.strictEqual(after, true, 'should not call read sync')
       after = false
       cursor.read(1, function(err) {
         assert(err, 'error should be returned')
-        assert.equal(after, true, 'should not call read sync')
+        assert.strictEqual(after, true, 'should not call read sync')
         client.end()
         done()
       })
@@ -49,13 +49,13 @@ describe('read callback does not fire sync', () => {
     let after = false
     cursor.read(1, function(err) {
       assert(!err)
-      assert.equal(after, true, 'should not call read sync')
+      assert.strictEqual(after, true, 'should not call read sync')
       cursor.read(1, function(err) {
         assert(!err)
         after = false
         cursor.read(1, function(err) {
           assert(!err)
-          assert.equal(after, true, 'should not call read sync')
+          assert.strictEqual(after, true, 'should not call read sync')
           client.end()
           done()
         })
@@ -73,11 +73,11 @@ describe('proper cleanup', function() {
     const cursor1 = client.query(new Cursor(text))
     cursor1.read(8, function(err, rows) {
       assert.ifError(err)
-      assert.equal(rows.length, 5)
+      assert.strictEqual(rows.length, 5)
       const cursor2 = client.query(new Cursor(text))
       cursor2.read(8, function(err, rows) {
         assert.ifError(err)
-        assert.equal(rows.length, 5)
+        assert.strictEqual(rows.length, 5)
         client.end()
         done()
       })

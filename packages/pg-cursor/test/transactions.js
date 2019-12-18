@@ -12,7 +12,7 @@ describe('transactions', () => {
     const rows = await new Promise((resolve, reject) => {
       cursor.read(10, (err, rows) => (err ? reject(err) : resolve(rows)))
     })
-    assert.equal(rows.length, 0)
+    assert.strictEqual(rows.length, 0)
     await client.query('ALTER TABLE foobar ADD COLUMN name TEXT')
     await client.end()
   })

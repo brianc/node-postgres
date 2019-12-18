@@ -22,7 +22,7 @@ describe('cursor', function() {
     const cursor = this.pgCursor(text)
     cursor.read(10, function(err, res) {
       assert.ifError(err)
-      assert.equal(res.length, 6)
+      assert.strictEqual(res.length, 6)
       done()
     })
   })
@@ -31,7 +31,7 @@ describe('cursor', function() {
     const cursor = this.pgCursor(text)
     cursor.read(3, function(err, res) {
       assert.ifError(err)
-      assert.equal(res.length, 3)
+      assert.strictEqual(res.length, 3)
       done()
     })
   })
@@ -48,13 +48,13 @@ describe('cursor', function() {
     const cursor = this.pgCursor(text)
     cursor.read(2, function(err, res) {
       assert.ifError(err)
-      assert.equal(res.length, 2)
+      assert.strictEqual(res.length, 2)
       cursor.read(3, function(err, res) {
         assert(!err)
-        assert.equal(res.length, 3)
+        assert.strictEqual(res.length, 3)
         cursor.read(1, function(err, res) {
           assert(!err)
-          assert.equal(res.length, 1)
+          assert.strictEqual(res.length, 1)
           cursor.read(1, function(err, res) {
             assert(!err)
             assert.ifError(err)
@@ -72,10 +72,10 @@ describe('cursor', function() {
       assert(!err)
       cursor.read(100, function(err, res) {
         assert(!err)
-        assert.equal(res.length, 4)
+        assert.strictEqual(res.length, 4)
         cursor.read(100, function(err, res) {
           assert(!err)
-          assert.equal(res.length, 0)
+          assert.strictEqual(res.length, 0)
           done()
         })
       })
@@ -92,7 +92,7 @@ describe('cursor', function() {
       cursor.read(100, function(err, rows) {
         if (err) return done(err)
         if (!rows.length) {
-          assert.equal(count, 100001)
+          assert.strictEqual(count, 100001)
           return done()
         }
         count += rows.length
@@ -111,10 +111,10 @@ describe('cursor', function() {
     const cursor = this.pgCursor(text, values)
     cursor.read(1, function(err, rows) {
       if (err) return done(err)
-      assert.equal(rows[0].me.name, 'brian')
+      assert.strictEqual(rows[0].me.name, 'brian')
       cursor.read(1, function(err, rows) {
         assert(!err)
-        assert.equal(rows.length, 0)
+        assert.strictEqual(rows.length, 0)
         done()
       })
     })
@@ -124,9 +124,12 @@ describe('cursor', function() {
     const cursor = this.pgCursor(text)
     cursor.read(1, function(err, rows, result) {
       assert.ifError(err)
-      assert.equal(rows.length, 1)
+      assert.strictEqual(rows.length, 1)
       assert.strictEqual(rows, result.rows)
-      assert.deepEqual(result.fields.map(f => f.name), ['num'])
+      assert.deepStrictEqual(
+        result.fields.map(f => f.name),
+        ['num']
+      )
       done()
     })
   })
@@ -136,7 +139,7 @@ describe('cursor', function() {
     cursor.read(10)
     cursor.on('row', (row, result) => result.addRow(row))
     cursor.on('end', result => {
-      assert.equal(result.rows.length, 6)
+      assert.strictEqual(result.rows.length, 6)
       done()
     })
   })
@@ -145,7 +148,7 @@ describe('cursor', function() {
     const cursor = this.pgCursor(text)
     cursor.on('row', (row, result) => result.addRow(row))
     cursor.on('end', result => {
-      assert.equal(result.rows.length, 3)
+      assert.strictEqual(result.rows.length, 3)
       done()
     })
 
@@ -168,8 +171,8 @@ describe('cursor', function() {
         const cursor = pgCursor('insert into pg_cursor_test values($1, $2)', ['a', 'b'])
         cursor.read(1, function(err, rows, result) {
           assert.ifError(err)
-          assert.equal(rows.length, 0)
-          assert.equal(result.rowCount, 1)
+          assert.strictEqual(rows.length, 0)
+          assert.strictEqual(result.rowCount, 1)
           done()
         })
       })

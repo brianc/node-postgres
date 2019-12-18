@@ -11,7 +11,7 @@ describe('query config passed to result', () => {
     const cursor = client.query(new Cursor(text, null, { rowMode: 'array' }))
     cursor.read(10, (err, rows) => {
       assert(!err)
-      assert.deepEqual(rows, [[0], [1], [2], [3], [4], [5]])
+      assert.deepStrictEqual(rows, [[0], [1], [2], [3], [4], [5]])
       client.end()
       done()
     })
@@ -22,12 +22,12 @@ describe('query config passed to result', () => {
     client.connect()
     const text = 'SELECT generate_series as num FROM generate_series(0, 2)'
     const types = {
-      getTypeParser: () => () => 'foo',
+      getTypeParser: () => () => 'foo'
     }
     const cursor = client.query(new Cursor(text, null, { types }))
     cursor.read(10, (err, rows) => {
       assert(!err)
-      assert.deepEqual(rows, [{ num: 'foo' }, { num: 'foo' }, { num: 'foo' }])
+      assert.deepStrictEqual(rows, [{ num: 'foo' }, { num: 'foo' }, { num: 'foo' }])
       client.end()
       done()
     })

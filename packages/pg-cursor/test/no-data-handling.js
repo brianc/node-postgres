@@ -17,7 +17,7 @@ describe('queries with no data', function() {
     this.client.query(cursor)
     cursor.read(100, function(err, rows) {
       assert.ifError(err)
-      assert.equal(rows.length, 0)
+      assert.strictEqual(rows.length, 0)
       done()
     })
   })
@@ -27,7 +27,7 @@ describe('queries with no data', function() {
     cursor = this.client.query(cursor)
     cursor.read(100, function(err, rows) {
       assert.ifError(err)
-      assert.equal(rows.length, 0)
+      assert.strictEqual(rows.length, 0)
       done()
     })
   })

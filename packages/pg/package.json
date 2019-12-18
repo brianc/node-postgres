@@ -41,7 +41,8 @@
   },
   "minNativeVersion": "2.0.0",
   "scripts": {
-    "test": "make test-all"
+    "test": "make test-all",
+    "lint": "make lint"
   },
   "files": [
     "lib",

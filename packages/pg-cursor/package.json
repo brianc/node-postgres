@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": " mocha && eslint ."
+    "test": "mocha && eslint .",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,7 @@
   "prettier": {
     "semi": false,
     "printWidth": 120,
-    "trailingComma": "es5",
+    "trailingComma": "none",
     "singleQuote": true
   }
 }
