@@ -226,4 +226,19 @@ describe('pool error handling', function () {
       })
     })
   })
+
+  it('handles post-checkout client failures in pool.query', (done) => {
+    const pool = new Pool({ max: 1 })
+    pool.on('error', () => {
+      // We double close the connection in this test, prevent exception caused by that
+    })
+    pool.query('SELECT pg_sleep(5)', [], (err) => {
+      expect(err).to.be.an(Error)
+      done()
+    })
+
+    setTimeout(() => {
+      pool._clients[0].end()
+    }, 1000)
+  })
 })

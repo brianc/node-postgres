@@ -316,13 +316,31 @@ class Pool extends EventEmitter {
     }
     const response = promisify(this.Promise, cb)
     cb = response.callback
+
     this.connect((err, client) => {
       if (err) {
         return cb(err)
       }
+
+      let clientReleased = false
+      const onError = (err) => {
+        if (clientReleased) {
+          return
+        }
+        clientReleased = true
+        client.release(err)
+        cb(err)
+      }
+
+      client.once('error', onError)
       this.log('dispatching query')
       client.query(text, values, (err, res) => {
         this.log('query dispatched')
+        client.removeListener('error', onError)
+        if (clientReleased) {
+          return
+        }
+        clientReleased = true
         client.release(err)
         if (err) {
           return cb(err)
