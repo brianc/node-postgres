@@ -175,7 +175,11 @@ Cursor.prototype.end = util.deprecate(function(cb) {
 
 Cursor.prototype.close = function(cb) {
   if (this.state === 'done') {
-    return setImmediate(cb)
+    if (cb) {
+      return setImmediate(cb)
+    } else {
+      return
+    }
   }
   this._closePortal()
   this.state = 'done'

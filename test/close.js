@@ -10,6 +10,16 @@ describe('close', function() {
     client.on('drain', client.end.bind(client))
   })
 
+  it('can close a finished cursor without a callback', function(done) {
+    const cursor = new Cursor(text)
+    this.client.query(cursor)
+    this.client.query('SELECT NOW()', done)
+    cursor.read(100, function(err) {
+      assert.ifError(err)
+      cursor.close()
+    })
+  })
+
   it('closes cursor early', function(done) {
     const cursor = new Cursor(text)
     this.client.query(cursor)
