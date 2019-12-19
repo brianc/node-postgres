@@ -4,6 +4,38 @@ var pg = helper.pg
 
 var suite = new helper.Suite()
 
+suite.test('null and undefined are both inserted as NULL', function (done) {
+  const pool = new pg.Pool()
+  pool.connect(
+    assert.calls(function (err, client, release) {
+      assert(!err)
+      client.query(
+        'CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)'
+      )
+      client.query(
+        'INSERT INTO my_nulls(a,b,c,d,e,f) VALUES ($1,$2,$3,$4,$5,$6)',
+        [null, undefined, null, undefined, null, undefined]
+      )
+      client.query(
+        'SELECT * FROM my_nulls',
+        assert.calls(function (err, result) {
+          console.log(err)
+          assert.ifError(err)
+          assert.equal(result.rows.length, 1)
+          assert.isNull(result.rows[0].a)
+          assert.isNull(result.rows[0].b)
+          assert.isNull(result.rows[0].c)
+          assert.isNull(result.rows[0].d)
+          assert.isNull(result.rows[0].e)
+          assert.isNull(result.rows[0].f)
+          pool.end(done)
+          release()
+        })
+      )
+    })
+  )
+})
+
 suite.test('pool callback behavior', done => {
   // test weird callback behavior with node-pool
   const pool = new pg.Pool()
@@ -16,7 +48,7 @@ suite.test('pool callback behavior', done => {
 })
 
 suite.test('query timeout', (cb) => {
-  const pool = new pg.Pool({query_timeout: 1000})
+  const pool = new pg.Pool({ query_timeout: 1000 })
   pool.connect().then((client) => {
     client.query('SELECT pg_sleep(2)', assert.calls(function (err, result) {
       assert(err)
@@ -28,7 +60,7 @@ suite.test('query timeout', (cb) => {
 })
 
 suite.test('query recover from timeout', (cb) => {
-  const pool = new pg.Pool({query_timeout: 1000})
+  const pool = new pg.Pool({ query_timeout: 1000 })
   pool.connect().then((client) => {
     client.query('SELECT pg_sleep(20)', assert.calls(function (err, result) {
       assert(err)
@@ -46,7 +78,7 @@ suite.test('query recover from timeout', (cb) => {
 })
 
 suite.test('query no timeout', (cb) => {
-  const pool = new pg.Pool({query_timeout: 10000})
+  const pool = new pg.Pool({ query_timeout: 10000 })
   pool.connect().then((client) => {
     client.query('SELECT pg_sleep(1)', assert.calls(function (err, result) {
       assert(!err)
@@ -131,18 +163,18 @@ suite.test('raises error if cannot connect', function () {
 suite.test('query errors are handled and do not bubble if callback is provided', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-      assert.calls(function (err, client, release) {
-        assert(!err)
-        client.query(
-          'SELECT OISDJF FROM LEIWLISEJLSE',
-          assert.calls(function (err, result) {
-            assert.ok(err)
-            release()
-            pool.end(done)
-          })
-        )
-      })
-    )
+    assert.calls(function (err, client, release) {
+      assert(!err)
+      client.query(
+        'SELECT OISDJF FROM LEIWLISEJLSE',
+        assert.calls(function (err, result) {
+          assert.ok(err)
+          release()
+          pool.end(done)
+        })
+      )
+    })
+  )
 }
 )
 
@@ -211,37 +243,6 @@ suite.test('can provide callback and config and parameters', function (done) {
           assert.equal(result.rows[0].val, 'hi')
           release()
           pool.end(done)
-        })
-      )
-    })
-  )
-})
-
-suite.test('null and undefined are both inserted as NULL', function (done) {
-  const pool = new pg.Pool()
-  pool.connect(
-    assert.calls(function (err, client, release) {
-      assert(!err)
-      client.query(
-        'CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)'
-      )
-      client.query(
-        'INSERT INTO my_nulls(a,b,c,d,e,f) VALUES ($1,$2,$3,$4,$5,$6)',
-        [null, undefined, null, undefined, null, undefined]
-      )
-      client.query(
-        'SELECT * FROM my_nulls',
-        assert.calls(function (err, result) {
-          assert(!err)
-          assert.equal(result.rows.length, 1)
-          assert.isNull(result.rows[0].a)
-          assert.isNull(result.rows[0].b)
-          assert.isNull(result.rows[0].c)
-          assert.isNull(result.rows[0].d)
-          assert.isNull(result.rows[0].e)
-          assert.isNull(result.rows[0].f)
-          pool.end(done)
-          release()
         })
       )
     })
