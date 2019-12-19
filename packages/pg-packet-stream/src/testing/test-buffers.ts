@@ -145,6 +145,38 @@ const buffers = {
 
   closeComplete: function () {
     return new BufferList().join(true, '3')
+  },
+
+  copyIn: function (cols: number) {
+    const list = new BufferList()
+      // text mode
+      .addByte(0)
+      // column count
+      .addInt16(cols);
+    for (let i = 0; i < cols; i++) {
+      list.addInt16(i);
+    }
+    return list.join(true, 'G')
+  },
+
+  copyOut: function (cols: number) {
+    const list = new BufferList()
+      // text mode
+      .addByte(0)
+      // column count
+      .addInt16(cols);
+    for (let i = 0; i < cols; i++) {
+      list.addInt16(i);
+    }
+    return list.join(true, 'H')
+  },
+
+  copyData: function (bytes: Buffer) {
+    return new BufferList().add(bytes).join(true, 'd');
+  },
+
+  copyDone: function () {
+    return new BufferList().join(true, 'c')
   }
 }
 

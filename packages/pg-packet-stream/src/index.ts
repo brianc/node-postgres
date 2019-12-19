@@ -34,6 +34,12 @@ class BufferReader {
     return result;
   }
 
+  public byte() {
+    const result = this.buffer[this.offset];
+    this.offset++;
+    return result;
+  }
+
   public int32() {
     const result = this.buffer.readInt32BE(this.offset);
     this.offset += 4;
@@ -102,6 +108,11 @@ const emptyQuery = {
   length: 4,
 }
 
+const copyDone = {
+  name: 'copyDone',
+  length: 4,
+}
+
 enum MessageCodes {
   DataRow = 0x44, // D
   ParseComplete = 0x31, // 1
@@ -120,6 +131,10 @@ enum MessageCodes {
   PortalSuspended = 0x73, // s
   ReplicationStart = 0x57, // W
   EmptyQuery = 0x49, // I
+  CopyIn = 0x47, // G
+  CopyOut = 0x48, // H
+  CopyDone = 0x63, // c
+  CopyData = 0x64, // d
 }
 
 export class PgPacketStream extends Transform {
@@ -187,6 +202,9 @@ export class PgPacketStream extends Transform {
       case MessageCodes.PortalSuspended:
         this.emit('message', portalSuspended);
         break;
+      case MessageCodes.CopyDone:
+        this.emit('message', copyDone);
+        break;
       case MessageCodes.CommandComplete:
         this.parseCommandCompleteMessage(offset, length, bytes);
         break;
@@ -220,6 +238,15 @@ export class PgPacketStream extends Transform {
       case MessageCodes.RowDescriptionMessage:
         this.parseRowDescriptionMessage(offset, length, bytes);
         break;
+      case MessageCodes.CopyIn:
+        this.parseCopyInMessage(offset, length, bytes);
+        break;
+      case MessageCodes.CopyOut:
+        this.parseCopyOutMessage(offset, length, bytes);
+        break;
+      case MessageCodes.CopyData:
+        this.parseCopyData(offset, length, bytes);
+        break;
       default:
         throw new Error('unhanled code: ' + code.toString(16))
         const packet = bytes.slice(offset, CODE_LENGTH + length + offset)
@@ -242,6 +269,31 @@ export class PgPacketStream extends Transform {
     const text = this.reader.cstring();
     const message = new CommandCompleteMessage(length, text);
     this.emit('message', message)
+  }
+
+  private parseCopyData(offset: number, length: number, bytes: Buffer) {
+    const chunk = bytes.slice(offset, offset + (length - 4));
+    const message = new CopyDataMessage(length, chunk);
+    this.emit('message', message)
+  }
+
+  private parseCopyInMessage(offset: number, length: number, bytes: Buffer) {
+    this.parseCopyMessage(offset, length, bytes, 'copyInResponse')
+  }
+
+  private parseCopyOutMessage(offset: number, length: number, bytes: Buffer) {
+    this.parseCopyMessage(offset, length, bytes, 'copyOutResponse')
+  }
+
+  private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: string) {
+    this.reader.setBuffer(offset, bytes);
+    const isBinary = this.reader.byte() !== 0;
+    const columnCount = this.reader.int16()
+    const message = new CopyResponse(length, messageName, isBinary, columnCount);
+    for (let i = 0; i < columnCount; i++) {
+      message.columnTypes[i] = this.reader.int16();
+    }
+    this.emit('message', message);
   }
 
   private parseNotificationMessage(offset: number, length: number, bytes: Buffer) {
@@ -408,6 +460,20 @@ class DatabaseError extends Error {
   public routine: string | undefined;
   constructor(message: string, public readonly length: number, public readonly name: string) {
     super(message)
+  }
+}
+
+class CopyDataMessage {
+  public readonly name = 'copyData';
+  constructor(public readonly length: number, public readonly chunk: Buffer) {
+
+  }
+}
+
+class CopyResponse {
+  public readonly columnTypes: number[];
+  constructor(public readonly length: number, public readonly name: string, public readonly binary: boolean, columnCount: number) {
+    this.columnTypes = new Array(columnCount);
   }
 }
 

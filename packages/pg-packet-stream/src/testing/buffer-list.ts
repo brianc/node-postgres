@@ -46,6 +46,10 @@ export default class BufferList {
     return this.add(Buffer.from(char, 'utf8'), first)
   }
 
+  public addByte(byte: number) {
+    return this.add(Buffer.from([byte]))
+  }
+
   public join(appendLength?: boolean, char?: string): Buffer {
     var length = this.getByteLength()
     if (appendLength) {

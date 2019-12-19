@@ -340,6 +340,47 @@ describe('PgPacketStream', function () {
     })
   })
 
+  describe('copy', () => {
+    testForMessage(buffers.copyIn(0), {
+      name: 'copyInResponse',
+      length: 7,
+      binary: false,
+      columnTypes: []
+    })
+
+    testForMessage(buffers.copyIn(2), {
+      name: 'copyInResponse',
+      length: 11,
+      binary: false,
+      columnTypes: [0, 1]
+    })
+
+    testForMessage(buffers.copyOut(0), {
+      name: 'copyOutResponse',
+      length: 7,
+      binary: false,
+      columnTypes: []
+    })
+
+    testForMessage(buffers.copyOut(3), {
+      name: 'copyOutResponse',
+      length: 13,
+      binary: false,
+      columnTypes: [0, 1, 2]
+    })
+
+    testForMessage(buffers.copyDone(), {
+      name: 'copyDone',
+      length: 4,
+    })
+
+    testForMessage(buffers.copyData(Buffer.from([5, 6, 7])), {
+      name: 'copyData',
+      length: 7,
+      chunk: Buffer.from([5, 6, 7])
+    })
+  })
+
 
   // since the data message on a stream can randomly divide the incomming
   // tcp packets anywhere, we need to make sure we can parse every single
