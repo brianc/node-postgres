@@ -1,6 +1,6 @@
 {
   "name": "pg-pool",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Connection pool for node-postgres",
   "main": "index.js",
   "directories": {
