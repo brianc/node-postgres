@@ -381,8 +381,8 @@ var Message = function (name, length) {
 
 Connection.prototype.parseMessage = function (buffer) {
   this.offset = 0
-  const length = buffer.length + 4;
-  const code = this._reader.header;
+  const length = buffer.length + 4
+  const code = this._reader.header
   switch (code) {
     case 0x52: // R
       return this.parseR(buffer, length)
@@ -447,7 +447,6 @@ Connection.prototype.parseMessage = function (buffer) {
     case 0x64: // d
       return this.parsed(buffer, length)
   }
-  console.log('could not parse', packet)
 }
 
 Connection.prototype.parseR = function (buffer, length) {
