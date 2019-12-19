@@ -36,6 +36,7 @@ const run = async () => {
   const queries = await bench(client, seconds * 1000);
   console.log("queries:", queries);
   console.log("qps", queries / seconds);
+  console.log("on my laptop best so far seen 713 qps")
   await client.end();
 };
 

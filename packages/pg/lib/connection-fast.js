@@ -15,8 +15,6 @@ var Writer = require('buffer-writer')
 var Reader = require('packet-reader')
 var PacketStream = require('pg-packet-stream')
 
-console.log(PacketStream.hello())
-
 var TEXT_MODE = 0
 var BINARY_MODE = 1
 console.log('using faster connection')
@@ -122,24 +120,44 @@ Connection.prototype.connect = function (port, host) {
 
 Connection.prototype.attachListeners = function (stream) {
   var self = this
-  const mode = this._mode === TEXT_MODE ? 'text' : 'binary';
-  const packetStream = new PacketStream.PgPacketStream({ mode })
-  packetStream.on('message', (msg) => {
-    self.emit(msg.name, msg)
-  })
-  stream.pipe(packetStream).on('data', (packet) => {
-    // console.log('buff', packet)
-    var msg = self.parseMessage(packet)
-    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
-    if (self._emitMessage) {
-      self.emit('message', msg)
+  stream.on('data', function (buff) {
+    self._reader.addChunk(buff)
+    var packet = self._reader.read()
+    while (packet) {
+      var msg = self.parseMessage({ code: self._reader.header, length: packet.length + 4, buffer: packet })
+      var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+      if (self._emitMessage) {
+        self.emit('message', msg)
+      }
+      self.emit(eventName, msg)
+      packet = self._reader.read()
     }
-    self.emit(eventName, msg)
   })
   stream.on('end', function () {
     self.emit('end')
   })
 }
+
+// Connection.prototype.attachListeners = function (stream) {
+//   var self = this
+//   const mode = this._mode === TEXT_MODE ? 'text' : 'binary';
+//   const packetStream = new PacketStream.PgPacketStream({ mode })
+//   packetStream.on('message', (msg) => {
+//     self.emit(msg.name, msg)
+//   })
+//   stream.pipe(packetStream).on('data', (packet) => {
+//     // console.log('buff', packet)
+//     var msg = self.parseMessage(packet)
+//     var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+//     if (self._emitMessage) {
+//       self.emit('message', msg)
+//     }
+//     self.emit(eventName, msg)
+//   })
+//   stream.on('end', function () {
+//     self.emit('end')
+//   })
+// }
 
 Connection.prototype.requestSsl = function () {
   var bodyBuffer = this.writer
