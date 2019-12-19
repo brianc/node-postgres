@@ -138,26 +138,27 @@ Connection.prototype.attachListeners = function (stream) {
   })
 }
 
-// Connection.prototype.attachListeners = function (stream) {
-//   var self = this
-//   const mode = this._mode === TEXT_MODE ? 'text' : 'binary';
-//   const packetStream = new PacketStream.PgPacketStream({ mode })
-//   packetStream.on('message', (msg) => {
-//     self.emit(msg.name, msg)
-//   })
-//   stream.pipe(packetStream).on('data', (packet) => {
-//     // console.log('buff', packet)
-//     var msg = self.parseMessage(packet)
-//     var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
-//     if (self._emitMessage) {
-//       self.emit('message', msg)
-//     }
-//     self.emit(eventName, msg)
-//   })
-//   stream.on('end', function () {
-//     self.emit('end')
-//   })
-// }
+Connection.prototype.attachListeners = function (stream) {
+  var self = this
+  const mode = this._mode === TEXT_MODE ? 'text' : 'binary';
+  const packetStream = new PacketStream.PgPacketStream({ mode })
+  packetStream.on('message', (msg) => {
+    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+    self.emit(eventName, msg)
+  })
+  stream.pipe(packetStream).on('data', (packet) => {
+    // console.log('buff', packet)
+    var msg = self.parseMessage(packet)
+    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+    if (self._emitMessage) {
+      self.emit('message', msg)
+    }
+    self.emit(eventName, msg)
+  })
+  stream.on('end', function () {
+    self.emit('end')
+  })
+}
 
 Connection.prototype.requestSsl = function () {
   var bodyBuffer = this.writer

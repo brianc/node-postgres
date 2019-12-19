@@ -1,11 +1,9 @@
 import { Transform, TransformCallback, TransformOptions } from 'stream';
-import assert from 'assert'
 
-export const hello = () => 'Hello world!'
-
-// this is a single byte
+// every message is prefixed with a single bye
 const CODE_LENGTH = 1;
-// this is a Uint32
+// every message has an int32 length which includes itself but does
+// NOT include the code in the length
 const LEN_LENGTH = 4;
 
 export type Packet = {
@@ -415,9 +413,7 @@ class DatabaseError extends Error {
 
 class Field {
   constructor(public readonly name: string, public readonly tableID: number, public readonly columnID: number, public readonly dataTypeID: number, public readonly dataTypeSize: number, public readonly dataTypeModifier: number, public readonly format: FieldFormat) {
-
   }
-
 }
 
 class RowDescriptionMessage {
@@ -438,31 +434,26 @@ class ParameterStatusMessage {
 class BackendKeyDataMessage {
   public readonly name: string = 'backendKeyData';
   constructor(public readonly length: number, public readonly processID: number, public readonly secretKey: number) {
-
   }
 }
 
 class NotificationResponseMessage {
   public readonly name: string = 'notification';
   constructor(public readonly length: number, public readonly processId: number, public readonly channel: string, public readonly payload: string) {
-
   }
 }
 
 class ReadyForQueryMessage {
   public readonly name: string = 'readyForQuery';
   constructor(public readonly length: number, public readonly status: string) {
-
   }
 }
 
 class CommandCompleteMessage {
   public readonly name: string = 'commandComplete'
   constructor(public readonly length: number, public readonly text: string) {
-
   }
 }
-
 
 class DataRowMessage {
   public readonly fieldCount: number;
