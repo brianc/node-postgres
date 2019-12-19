@@ -21,7 +21,6 @@ var Connection = function (config) {
   EventEmitter.call(this)
   config = config || {}
   this.stream = config.stream || new net.Socket()
-  this.stream.setNoDelay(true)
   this._keepAlive = config.keepAlive
   this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
   this.lastBuffer = false
