@@ -4,7 +4,8 @@
   "description": "Postgres query result returned as readable stream",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -24,24 +25,12 @@
   "devDependencies": {
     "JSONStream": "~0.7.1",
     "concat-stream": "~1.0.1",
-    "eslint": "^4.4.0",
-    "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-node": "^5.1.1",
     "eslint-plugin-promise": "^3.5.0",
-    "eslint-plugin-standard": "^3.0.1",
     "mocha": "^6.2.2",
     "pg": "^7.5.0",
-    "prettier": "^1.18.2",
     "stream-spec": "~0.3.5",
     "stream-tester": "0.0.5",
     "through": "~2.3.4"
-  },
-  "prettier": {
-    "semi": false,
-    "printWidth": 120,
-    "trailingComma": "es5",
-    "singleQuote": true
   },
   "dependencies": {
     "pg-cursor": "^2.0.1"
