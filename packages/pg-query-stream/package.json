@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-pg-query-stream.git"
+    "url": "git://github.com/brianc/node-postgres.git"
   },
   "keywords": [
     "postgres",
@@ -20,7 +20,7 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brianc/node-pg-query-stream/issues"
+    "url": "https://github.com/brianc/node-postgres/issues"
   },
   "devDependencies": {
     "JSONStream": "~0.7.1",
