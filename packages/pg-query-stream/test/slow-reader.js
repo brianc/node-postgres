@@ -4,7 +4,7 @@ var concat = require('concat-stream')
 
 var Transform = require('stream').Transform
 
-var mapper = new Transform({objectMode: true})
+var mapper = new Transform({ objectMode: true })
 
 mapper._transform = function (obj, enc, cb) {
   this.push(obj)
@@ -14,7 +14,7 @@ mapper._transform = function (obj, enc, cb) {
 helper('slow reader', function (client) {
   it('works', function (done) {
     this.timeout(50000)
-    var stream = new QueryStream('SELECT * FROM generate_series(0, 201) num', [], {highWaterMark: 100, batchSize: 50})
+    var stream = new QueryStream('SELECT * FROM generate_series(0, 201) num', [], { highWaterMark: 100, batchSize: 50 })
     stream.on('end', function () {
       // console.log('stream end')
     })
