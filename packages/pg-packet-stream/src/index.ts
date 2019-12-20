@@ -1,4 +1,7 @@
 import { Transform, TransformCallback, TransformOptions } from 'stream';
+import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage } from './messages';
+import { BufferReader } from './BufferReader';
+import assert from 'assert'
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1;
@@ -6,114 +9,20 @@ const CODE_LENGTH = 1;
 // NOT include the code in the length
 const LEN_LENGTH = 4;
 
+const HEADER_LENGTH = CODE_LENGTH + LEN_LENGTH;
+
 export type Packet = {
   code: number;
   packet: Buffer;
 }
 
-type FieldFormat = "text" | "binary"
-
 const emptyBuffer = Buffer.allocUnsafe(0);
-
-class BufferReader {
-  private buffer: Buffer = emptyBuffer;
-  // TODO(bmc): support non-utf8 encoding
-  private encoding: string = 'utf-8';
-  constructor(private offset: number = 0) {
-
-  }
-
-  public setBuffer(offset: number, buffer: Buffer): void {
-    this.offset = offset;
-    this.buffer = buffer;
-  }
-
-  public int16() {
-    const result = this.buffer.readInt16BE(this.offset);
-    this.offset += 2;
-    return result;
-  }
-
-  public byte() {
-    const result = this.buffer[this.offset];
-    this.offset++;
-    return result;
-  }
-
-  public int32() {
-    const result = this.buffer.readInt32BE(this.offset);
-    this.offset += 4;
-    return result;
-  }
-
-  public string(length: number): string {
-    const result = this.buffer.toString(this.encoding, this.offset, this.offset + length)
-    this.offset += length;
-    return result;
-  }
-
-  public cstring(): string {
-    var start = this.offset
-    var end = this.buffer.indexOf(0, start)
-    this.offset = end + 1
-    return this.buffer.toString(this.encoding, start, end)
-
-  }
-
-  public bytes(length: number): Buffer {
-    const result = this.buffer.slice(this.offset, this.offset + length);
-    this.offset += length;
-    return result
-  }
-}
-
-type Mode = 'text' | 'binary';
 
 type StreamOptions = TransformOptions & {
   mode: Mode
 }
 
-const parseComplete = {
-  name: 'parseComplete',
-  length: 5,
-};
-
-const bindComplete = {
-  name: 'bindComplete',
-  length: 5,
-}
-
-const closeComplete = {
-  name: 'closeComplete',
-  length: 5,
-}
-
-const noData = {
-  name: 'noData',
-  length: 5
-}
-
-const portalSuspended = {
-  name: 'portalSuspended',
-  length: 5,
-}
-
-const replicationStart = {
-  name: 'replicationStart',
-  length: 4,
-}
-
-const emptyQuery = {
-  name: 'emptyQuery',
-  length: 4,
-}
-
-const copyDone = {
-  name: 'copyDone',
-  length: 4,
-}
-
-enum MessageCodes {
+const enum MessageCodes {
   DataRow = 0x44, // D
   ParseComplete = 0x31, // 1
   BindComplete = 0x32, // 2
@@ -154,9 +63,9 @@ export class PgPacketStream extends Transform {
   }
 
   public _transform(buffer: Buffer, encoding: string, callback: TransformCallback) {
-    const combinedBuffer = this.remainingBuffer.byteLength ? Buffer.concat([this.remainingBuffer, buffer], this.remainingBuffer.length + buffer.length) : buffer;
+    const combinedBuffer: Buffer = this.remainingBuffer.byteLength ? Buffer.concat([this.remainingBuffer, buffer], this.remainingBuffer.length + buffer.length) : buffer;
     let offset = 0;
-    while ((offset + CODE_LENGTH + LEN_LENGTH) <= combinedBuffer.byteLength) {
+    while ((offset + HEADER_LENGTH) <= combinedBuffer.byteLength) {
       // code is 1 byte long - it identifies the message type
       const code = combinedBuffer[offset];
 
@@ -166,7 +75,8 @@ export class PgPacketStream extends Transform {
       const fullMessageLength = CODE_LENGTH + length;
 
       if (fullMessageLength + offset <= combinedBuffer.byteLength) {
-        this.handlePacket(offset + CODE_LENGTH + LEN_LENGTH, code, length, combinedBuffer);
+        const message = this.handlePacket(offset + HEADER_LENGTH, code, length, combinedBuffer);
+        this.push(message)
         offset += fullMessageLength;
       } else {
         break;
@@ -182,107 +92,82 @@ export class PgPacketStream extends Transform {
     callback(null);
   }
 
-  private handlePacket(offset: number, code: number, length: number, bytes: Buffer) {
+  private handlePacket(offset: number, code: number, length: number, bytes: Buffer): BackendMessage {
     switch (code) {
-      case MessageCodes.DataRow:
-        this.parseDataRowMessage(offset, length, bytes);
-        break;
       case MessageCodes.BindComplete:
-        this.emit('message', bindComplete);
-        break;
+        return bindComplete;
       case MessageCodes.ParseComplete:
-        this.emit('message', parseComplete);
-        break;
+        return parseComplete;
       case MessageCodes.CloseComplete:
-        this.emit('message', closeComplete);
-        break;
+        return closeComplete;
       case MessageCodes.NoData:
-        this.emit('message', noData);
-        break;
+        return noData;
       case MessageCodes.PortalSuspended:
-        this.emit('message', portalSuspended);
-        break;
+        return portalSuspended;
       case MessageCodes.CopyDone:
-        this.emit('message', copyDone);
-        break;
-      case MessageCodes.CommandComplete:
-        this.parseCommandCompleteMessage(offset, length, bytes);
-        break;
+        return copyDone;
       case MessageCodes.ReplicationStart:
-        this.emit('message', replicationStart);
-        break;
+        return replicationStart;
       case MessageCodes.EmptyQuery:
-        this.emit('message', emptyQuery);
-        break;
+        return emptyQuery;
+      case MessageCodes.DataRow:
+        return this.parseDataRowMessage(offset, length, bytes);
+      case MessageCodes.CommandComplete:
+        return this.parseCommandCompleteMessage(offset, length, bytes);
       case MessageCodes.ReadyForQuery:
-        this.parseReadyForQueryMessage(offset, length, bytes);
-        break;
+        return this.parseReadyForQueryMessage(offset, length, bytes);
       case MessageCodes.NotificationResponse:
-        this.parseNotificationMessage(offset, length, bytes);
-        break;
+        return this.parseNotificationMessage(offset, length, bytes);
       case MessageCodes.AuthenticationResponse:
-        this.parseAuthenticationResponse(offset, length, bytes);
-        break;
+        return this.parseAuthenticationResponse(offset, length, bytes);
       case MessageCodes.ParameterStatus:
-        this.parseParameterStatusMessage(offset, length, bytes);
-        break;
+        return this.parseParameterStatusMessage(offset, length, bytes);
       case MessageCodes.BackendKeyData:
-        this.parseBackendKeyData(offset, length, bytes);
-        break;
+        return this.parseBackendKeyData(offset, length, bytes);
       case MessageCodes.ErrorMessage:
-        this.parseErrorMessage(offset, length, bytes, 'error');
-        break;
+        return this.parseErrorMessage(offset, length, bytes, 'error');
       case MessageCodes.NoticeMessage:
-        this.parseErrorMessage(offset, length, bytes, 'notice');
-        break;
+        return this.parseErrorMessage(offset, length, bytes, 'notice');
       case MessageCodes.RowDescriptionMessage:
-        this.parseRowDescriptionMessage(offset, length, bytes);
-        break;
+        return this.parseRowDescriptionMessage(offset, length, bytes);
       case MessageCodes.CopyIn:
-        this.parseCopyInMessage(offset, length, bytes);
-        break;
+        return this.parseCopyInMessage(offset, length, bytes);
       case MessageCodes.CopyOut:
-        this.parseCopyOutMessage(offset, length, bytes);
-        break;
+        return this.parseCopyOutMessage(offset, length, bytes);
       case MessageCodes.CopyData:
-        this.parseCopyData(offset, length, bytes);
-        break;
+        return this.parseCopyData(offset, length, bytes);
       default:
-        throw new Error('unhanled code: ' + code.toString(16))
-        const packet = bytes.slice(offset, CODE_LENGTH + length + offset)
-        this.push({ code, length, packet, buffer: packet.slice(5) })
+        assert.fail(`unknown message code: ${code.toString(16)}`)
     }
   }
 
   public _flush(callback: TransformCallback) {
+    this._transform(Buffer.alloc(0), 'utf-i', callback)
   }
 
   private parseReadyForQueryMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
     const status = this.reader.string(1);
-    const message = new ReadyForQueryMessage(length, status)
-    this.emit('message', message)
+    return new ReadyForQueryMessage(length, status)
   }
 
   private parseCommandCompleteMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
     const text = this.reader.cstring();
-    const message = new CommandCompleteMessage(length, text);
-    this.emit('message', message)
+    return new CommandCompleteMessage(length, text);
   }
 
   private parseCopyData(offset: number, length: number, bytes: Buffer) {
     const chunk = bytes.slice(offset, offset + (length - 4));
-    const message = new CopyDataMessage(length, chunk);
-    this.emit('message', message)
+    return new CopyDataMessage(length, chunk);
   }
 
   private parseCopyInMessage(offset: number, length: number, bytes: Buffer) {
-    this.parseCopyMessage(offset, length, bytes, 'copyInResponse')
+    return this.parseCopyMessage(offset, length, bytes, 'copyInResponse')
   }
 
   private parseCopyOutMessage(offset: number, length: number, bytes: Buffer) {
-    this.parseCopyMessage(offset, length, bytes, 'copyOutResponse')
+    return this.parseCopyMessage(offset, length, bytes, 'copyOutResponse')
   }
 
   private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: string) {
@@ -293,7 +178,7 @@ export class PgPacketStream extends Transform {
     for (let i = 0; i < columnCount; i++) {
       message.columnTypes[i] = this.reader.int16();
     }
-    this.emit('message', message);
+    return message;
   }
 
   private parseNotificationMessage(offset: number, length: number, bytes: Buffer) {
@@ -301,8 +186,7 @@ export class PgPacketStream extends Transform {
     const processId = this.reader.int32();
     const channel = this.reader.cstring();
     const payload = this.reader.cstring();
-    const message = new NotificationResponseMessage(length, processId, channel, payload);
-    this.emit('message', message)
+    return new NotificationResponseMessage(length, processId, channel, payload);
   }
 
   private parseRowDescriptionMessage(offset: number, length: number, bytes: Buffer) {
@@ -312,7 +196,7 @@ export class PgPacketStream extends Transform {
     for (let i = 0; i < fieldCount; i++) {
       message.fields[i] = this.parseField()
     }
-    this.emit('message', message);
+    return message;
   }
 
   private parseField(): Field {
@@ -338,24 +222,21 @@ export class PgPacketStream extends Transform {
         fields[i] = this.reader.string(len)
       }
     }
-    const message = new DataRowMessage(length, fields);
-    this.emit('message', message);
+    return new DataRowMessage(length, fields);
   }
 
   private parseParameterStatusMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
     const name = this.reader.cstring();
     const value = this.reader.cstring()
-    const msg = new ParameterStatusMessage(length, name, value)
-    this.emit('message', msg)
+    return new ParameterStatusMessage(length, name, value)
   }
 
   private parseBackendKeyData(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
     const processID = this.reader.int32()
     const secretKey = this.reader.int32()
-    const msg = new BackendKeyDataMessage(length, processID, secretKey)
-    this.emit('message', msg)
+    return new BackendKeyDataMessage(length, processID, secretKey)
   }
 
 
@@ -363,7 +244,7 @@ export class PgPacketStream extends Transform {
     this.reader.setBuffer(offset, bytes);
     const code = this.reader.int32()
     // TODO(bmc): maybe better types here
-    const msg: any = {
+    const message: any = {
       name: 'authenticationOk',
       length,
     };
@@ -372,40 +253,40 @@ export class PgPacketStream extends Transform {
       case 0: // AuthenticationOk
         break;
       case 3: // AuthenticationCleartextPassword
-        if (msg.length === 8) {
-          msg.name = 'authenticationCleartextPassword'
+        if (message.length === 8) {
+          message.name = 'authenticationCleartextPassword'
         }
         break
       case 5: // AuthenticationMD5Password
-        if (msg.length === 12) {
-          msg.name = 'authenticationMD5Password'
-          msg.salt = this.reader.bytes(4);
+        if (message.length === 12) {
+          message.name = 'authenticationMD5Password'
+          message.salt = this.reader.bytes(4);
         }
         break
       case 10: // AuthenticationSASL
-        msg.name = 'authenticationSASL'
-        msg.mechanisms = []
+        message.name = 'authenticationSASL'
+        message.mechanisms = []
         let mechanism: string;
         do {
           mechanism = this.reader.cstring()
 
           if (mechanism) {
-            msg.mechanisms.push(mechanism)
+            message.mechanisms.push(mechanism)
           }
         } while (mechanism)
         break;
       case 11: // AuthenticationSASLContinue
-        msg.name = 'authenticationSASLContinue'
-        msg.data = this.reader.string(length - 4)
+        message.name = 'authenticationSASLContinue'
+        message.data = this.reader.string(length - 4)
         break;
       case 12: // AuthenticationSASLFinal
-        msg.name = 'authenticationSASLFinal'
-        msg.data = this.reader.string(length - 4)
+        message.name = 'authenticationSASLFinal'
+        message.data = this.reader.string(length - 4)
         break;
       default:
         throw new Error('Unknown authenticationOk message type ' + code)
     }
-    this.emit('message', msg)
+    return message;
   }
 
   private parseErrorMessage(offset: number, length: number, bytes: Buffer, name: string) {
@@ -418,113 +299,24 @@ export class PgPacketStream extends Transform {
     }
 
     // the msg is an Error instance
-    var msg = new DatabaseError(fields.M, length, name)
+    var message = new DatabaseError(fields.M, length, name)
 
-    msg.severity = fields.S
-    msg.code = fields.C
-    msg.detail = fields.D
-    msg.hint = fields.H
-    msg.position = fields.P
-    msg.internalPosition = fields.p
-    msg.internalQuery = fields.q
-    msg.where = fields.W
-    msg.schema = fields.s
-    msg.table = fields.t
-    msg.column = fields.c
-    msg.dataType = fields.d
-    msg.constraint = fields.n
-    msg.file = fields.F
-    msg.line = fields.L
-    msg.routine = fields.R
-    this.emit('message', msg);
-
-  }
-}
-
-class DatabaseError extends Error {
-  public severity: string | undefined;
-  public code: string | undefined;
-  public detail: string | undefined;
-  public hint: string | undefined;
-  public position: string | undefined;
-  public internalPosition: string | undefined;
-  public internalQuery: string | undefined;
-  public where: string | undefined;
-  public schema: string | undefined;
-  public table: string | undefined;
-  public column: string | undefined;
-  public dataType: string | undefined;
-  public constraint: string | undefined;
-  public file: string | undefined;
-  public line: string | undefined;
-  public routine: string | undefined;
-  constructor(message: string, public readonly length: number, public readonly name: string) {
-    super(message)
-  }
-}
-
-class CopyDataMessage {
-  public readonly name = 'copyData';
-  constructor(public readonly length: number, public readonly chunk: Buffer) {
-
-  }
-}
-
-class CopyResponse {
-  public readonly columnTypes: number[];
-  constructor(public readonly length: number, public readonly name: string, public readonly binary: boolean, columnCount: number) {
-    this.columnTypes = new Array(columnCount);
-  }
-}
-
-class Field {
-  constructor(public readonly name: string, public readonly tableID: number, public readonly columnID: number, public readonly dataTypeID: number, public readonly dataTypeSize: number, public readonly dataTypeModifier: number, public readonly format: FieldFormat) {
-  }
-}
-
-class RowDescriptionMessage {
-  public readonly name: string = 'rowDescription';
-  public readonly fields: Field[];
-  constructor(public readonly length: number, public readonly fieldCount: number) {
-    this.fields = new Array(this.fieldCount)
-  }
-}
-
-class ParameterStatusMessage {
-  public readonly name: string = 'parameterStatus';
-  constructor(public readonly length: number, public readonly parameterName: string, public readonly parameterValue: string) {
-
-  }
-}
-
-class BackendKeyDataMessage {
-  public readonly name: string = 'backendKeyData';
-  constructor(public readonly length: number, public readonly processID: number, public readonly secretKey: number) {
-  }
-}
-
-class NotificationResponseMessage {
-  public readonly name: string = 'notification';
-  constructor(public readonly length: number, public readonly processId: number, public readonly channel: string, public readonly payload: string) {
-  }
-}
-
-class ReadyForQueryMessage {
-  public readonly name: string = 'readyForQuery';
-  constructor(public readonly length: number, public readonly status: string) {
-  }
-}
-
-class CommandCompleteMessage {
-  public readonly name: string = 'commandComplete'
-  constructor(public readonly length: number, public readonly text: string) {
-  }
-}
-
-class DataRowMessage {
-  public readonly fieldCount: number;
-  public readonly name: string = 'dataRow'
-  constructor(public length: number, public fields: any[]) {
-    this.fieldCount = fields.length;
+    message.severity = fields.S
+    message.code = fields.C
+    message.detail = fields.D
+    message.hint = fields.H
+    message.position = fields.P
+    message.internalPosition = fields.p
+    message.internalQuery = fields.q
+    message.where = fields.W
+    message.schema = fields.s
+    message.table = fields.t
+    message.column = fields.c
+    message.dataType = fields.d
+    message.constraint = fields.n
+    message.file = fields.F
+    message.line = fields.L
+    message.routine = fields.R
+    return message;
   }
 }

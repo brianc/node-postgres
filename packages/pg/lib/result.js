@@ -16,9 +16,9 @@ var Result = function (rowMode, types) {
   this.command = null
   this.rowCount = null
   this.oid = null
-  this.rows = [];
-  this.fields = undefined;
-  this._parsers = undefined;
+  this.rows = []
+  this.fields = undefined
+  this._parsers = undefined
   this._types = types
   this.RowCtor = null
   this.rowAsArray = rowMode === 'array'
@@ -88,14 +88,14 @@ Result.prototype.addFields = function (fieldDescriptions) {
   // multiple query statements in 1 action can result in multiple sets
   // of rowDescriptions...eg: 'select NOW(); select 1::int;'
   // you need to reset the fields
-  this.fields = fieldDescriptions;
+  this.fields = fieldDescriptions
   if (this.fields.length) {
-    this._parsers = new Array(fieldDescriptions.length);
+    this._parsers = new Array(fieldDescriptions.length)
   }
   for (var i = 0; i < fieldDescriptions.length; i++) {
     var desc = fieldDescriptions[i]
     if (this._types) {
-      this._parsers[i] = this._types.getTypeParser(desc.dataTypeID, desc.format || 'text');
+      this._parsers[i] = this._types.getTypeParser(desc.dataTypeID, desc.format || 'text')
     } else {
       this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
     }

@@ -2,6 +2,7 @@ import buffers from './testing/test-buffers'
 import BufferList from './testing/buffer-list'
 import { PgPacketStream } from './'
 import assert from 'assert'
+import { Readable } from 'stream'
 
 var authOkBuffer = buffers.authenticationOk()
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
@@ -136,23 +137,25 @@ var expectedTwoRowMessage = {
   }]
 }
 
+const concat = (stream: Readable): Promise<any[]> => {
+  return new Promise((resolve) => {
+    const results: any[] = []
+    stream.on('data', item => results.push(item))
+    stream.on('end', () => resolve(results))
+  })
+}
+
 var testForMessage = function (buffer: Buffer, expectedMessage: any) {
   it('recieves and parses ' + expectedMessage.name, async () => {
     const parser = new PgPacketStream();
+    parser.write(buffer);
+    parser.end();
+    const [lastMessage] = await concat(parser);
 
-    await new Promise((resolve) => {
-      let lastMessage: any = {}
-      parser.on('message', function (msg) {
-        lastMessage = msg
-      })
+    for (const key in expectedMessage) {
+      assert.deepEqual(lastMessage[key], expectedMessage[key])
+    }
 
-      parser.write(buffer);
-
-      for (const key in expectedMessage) {
-        assert.deepEqual(lastMessage[key], expectedMessage[key])
-      }
-      resolve();
-    })
   })
 }
 
@@ -388,17 +391,14 @@ describe('PgPacketStream', function () {
   describe('split buffer, single message parsing', function () {
     var fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
 
-    const parse = (buffers: Buffer[]): Promise<any> => {
-      return new Promise((resolve) => {
-        const parser = new PgPacketStream();
-        parser.once('message', (msg) => {
-          resolve(msg)
-        })
-        for (const buffer of buffers) {
-          parser.write(buffer);
-        }
-        parser.end()
-      })
+    const parse = async (buffers: Buffer[]): Promise<any> => {
+      const parser = new PgPacketStream();
+      for (const buffer of buffers) {
+        parser.write(buffer);
+      }
+      parser.end()
+      const [msg] = await concat(parser)
+      return msg;
     }
 
     it('parses when full buffer comes in', async function () {
@@ -448,20 +448,12 @@ describe('PgPacketStream', function () {
     readyForQueryBuffer.copy(fullBuffer, dataRowBuffer.length, 0)
 
     const parse = (buffers: Buffer[]): Promise<any[]> => {
-      return new Promise((resolve) => {
-        const parser = new PgPacketStream();
-        const results: any[] = []
-        parser.on('message', (msg) => {
-          results.push(msg)
-          if (results.length === 2) {
-            resolve(results)
-          }
-        })
-        for (const buffer of buffers) {
-          parser.write(buffer);
-        }
-        parser.end()
-      })
+      const parser = new PgPacketStream();
+      for (const buffer of buffers) {
+        parser.write(buffer);
+      }
+      parser.end()
+      return concat(parser)
     }
 
     var verifyMessages = function (messages: any[]) {
