@@ -6,7 +6,7 @@ const util = require('util')
 
 let nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
 
-function Cursor (text, values, config) {
+function Cursor(text, values, config) {
   EventEmitter.call(this)
 
   this._conf = config || {}
@@ -192,7 +192,7 @@ Cursor.prototype.close = function (cb) {
   this._closePortal()
   this.state = 'done'
   if (cb) {
-    this.connection.once('closeComplete', function () {
+    this.connection.once('readyForQuery', function () {
       cb()
     })
   }
