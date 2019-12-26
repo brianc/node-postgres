@@ -58,6 +58,11 @@ RUN curl https://raw.githubusercontent.com/brianc/dotfiles/master/.tmux.conf > ~
 # install nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
 
+# set up a nicer prompt
+RUN git clone https://github.com/magicmonty/bash-git-prompt.git ~/.bash-git-prompt --depth=1
+
+RUN echo "source $HOME/.bash-git-prompt/gitprompt.sh" >> ~/.bashrc
+
 # Set the locale
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
 ENV LANG en_US.UTF-8  
