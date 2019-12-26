@@ -9,9 +9,11 @@ Non-blocking PostgreSQL client for Node.js.  Pure JavaScript and optional native
 
 ## Monorepo
 
-This repo is a monorepo which contains the core [pg](https://github.com/brianc/node-postgres) module as well as a handful of related modules.
+This repo is a monorepo which contains the core [pg](https://github.com/brianc/node-postgres/tree/master/packages/pg) module as well as a handful of related modules.
 
+- [pg](https://github.com/brianc/node-postgres/tree/master/packages/pg)
 - [pg-cursor](https://github.com/brianc/node-postgres/tree/master/packages/pg-cursor)
+- [pg-query-stream](https://github.com/brianc/node-postgres/tree/master/packages/pg-query-stream)
 
 _(more to come, I'm in the process of migrating repos over here)_
 
