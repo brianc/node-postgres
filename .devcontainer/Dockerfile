@@ -62,6 +62,7 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | b
 RUN git clone https://github.com/magicmonty/bash-git-prompt.git ~/.bash-git-prompt --depth=1
 
 RUN echo "source $HOME/.bash-git-prompt/gitprompt.sh" >> ~/.bashrc
+RUN echo "export PATH=$PATH:./node_modules/.bin" >> ~/.bashrc
 
 # Set the locale
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
