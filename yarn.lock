@@ -882,6 +882,14 @@ JSONStream@^1.0.4, JSONStream@^1.3.4:
     jsonparse "^1.2.0"
     through ">=2.2.7 <3"
 
+JSONStream@~0.7.1:
+  version "0.7.4"
+  resolved "https://registry.yarnpkg.com/JSONStream/-/JSONStream-0.7.4.tgz#734290e41511eea7c2cfe151fbf9a563a97b9786"
+  integrity sha1-c0KQ5BUR7qfCz+FR+/mlY6l7l4Y=
+  dependencies:
+    jsonparse "0.0.5"
+    through ">=2.2.7 <3"
+
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
@@ -1097,6 +1105,15 @@ assertion-error@^1.1.0:
   resolved "https://registry.yarnpkg.com/assertion-error/-/assertion-error-1.1.0.tgz#e60b6b0e8f301bd97e5375215bda406c85118c0b"
   integrity sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==
 
+assertions@~2.3.0:
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/assertions/-/assertions-2.3.4.tgz#a9433ced1fce57cc999af0965d1008e96c2796e6"
+  integrity sha1-qUM87R/OV8yZmvCWXRAI6WwnluY=
+  dependencies:
+    fomatto "git://github.com/BonsaiDen/Fomatto.git#468666f600b46f9067e3da7200fd9df428923ea6"
+    render "0.1"
+    traverser "1"
+
 assign-symbols@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/assign-symbols/-/assign-symbols-1.0.0.tgz#59667f41fadd4f20ccbc2bb96b8d4f7f78ec0367"
@@ -1142,6 +1159,11 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
+base64-js@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-0.0.2.tgz#024f0f72afa25b75f9c0ee73cd4f55ec1bed9784"
+  integrity sha1-Ak8Pcq+iW3X5wO5zzU9V7Bvtl4Q=
+
 base@^0.11.1:
   version "0.11.2"
   resolved "https://registry.yarnpkg.com/base/-/base-0.11.2.tgz#7bde5ced145b6d551a90db87f83c558b4eb48a8f"
@@ -1176,6 +1198,14 @@ bluebird@^3.5.1, bluebird@^3.5.3, bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
+
+bops@0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/bops/-/bops-0.0.6.tgz#082d1d55fa01e60dbdc2ebc2dba37f659554cf3a"
+  integrity sha1-CC0dVfoB5g29wuvC26N/ZZVUzzo=
+  dependencies:
+    base64-js "0.0.2"
+    to-utf8 "0.0.1"
 
 brace-expansion@^1.1.7:
   version "1.1.11"
@@ -1524,6 +1554,13 @@ concat-stream@^2.0.0:
     readable-stream "^3.0.2"
     typedarray "^0.0.6"
 
+concat-stream@~1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/concat-stream/-/concat-stream-1.0.1.tgz#018b18bc1c7d073a2dc82aa48442341a2c4dd79f"
+  integrity sha1-AYsYvBx9BzotyCqkhEI0GixN158=
+  dependencies:
+    bops "0.0.6"
+
 config-chain@^1.1.11:
   version "1.1.12"
   resolved "https://registry.yarnpkg.com/config-chain/-/config-chain-1.1.12.tgz#0fde8d091200eb5e808caf25fe618c02f48e4efa"
@@ -1674,6 +1711,11 @@ currently-unhandled@^0.4.1:
   integrity sha1-mI3zP+qxke95mmE2nddsF635V+o=
   dependencies:
     array-find-index "^1.0.1"
+
+curry@0.0.x:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/curry/-/curry-0.0.4.tgz#1750d518d919c44f3d37ff44edc693de1f0d5fcb"
+  integrity sha1-F1DVGNkZxE89N/9E7caT3h8NX8s=
 
 cyclist@^1.0.1:
   version "1.0.1"
@@ -2057,6 +2099,11 @@ eslint-plugin-prettier@^3.1.1:
   dependencies:
     prettier-linter-helpers "^1.0.0"
 
+eslint-plugin-promise@^3.5.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-3.8.0.tgz#65ebf27a845e3c1e9d6f6a5622ddd3801694b621"
+  integrity sha512-JiFL9UFR15NKpHyGii1ZcvmtIqa3UTwiDAGb8atSffe43qJ3+1czVGN6UtkklpcJ2DVnqvTMzEKRaJdBkAL2aQ==
+
 eslint-plugin-promise@^4.2.1:
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-4.2.1.tgz#845fd8b2260ad8f82564c1222fce44ad71d9418a"
@@ -2371,6 +2418,10 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.3"
     readable-stream "^2.3.6"
 
+"fomatto@git://github.com/BonsaiDen/Fomatto.git#468666f600b46f9067e3da7200fd9df428923ea6":
+  version "0.6.0"
+  resolved "git://github.com/BonsaiDen/Fomatto.git#468666f600b46f9067e3da7200fd9df428923ea6"
+
 for-in@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -2404,6 +2455,11 @@ from2@^2.1.0:
   dependencies:
     inherits "^2.0.1"
     readable-stream "^2.0.0"
+
+from@~0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/from/-/from-0.0.2.tgz#7fffac647a2f99b20d57b8e28379455cbb4189d0"
+  integrity sha1-f/+sZHovmbINV7jig3lFXLtBidA=
 
 fs-extra@^8.1.0:
   version "8.1.0"
@@ -3222,6 +3278,11 @@ jsonfile@^4.0.0:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
+jsonparse@0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-0.0.5.tgz#330542ad3f0a654665b778f3eb2d9a9fa507ac64"
+  integrity sha1-MwVCrT8KZUZlt3jz6y2an6UHrGQ=
+
 jsonparse@^1.2.0:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/jsonparse/-/jsonparse-1.3.1.tgz#3f4dae4a91fac315f71062f8521cc239f1366280"
@@ -3426,6 +3487,11 @@ lru-cache@^5.1.1:
   integrity sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==
   dependencies:
     yallist "^3.0.2"
+
+macgyver@~1.10:
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/macgyver/-/macgyver-1.10.1.tgz#b09d1599d8b36ed5b16f59589515d9d14bc2fd88"
+  integrity sha1-sJ0VmdizbtWxb1lYlRXZ0UvC/Yg=
 
 macos-release@^2.2.0:
   version "2.3.0"
@@ -4648,6 +4714,13 @@ regexpp@^2.0.1:
   resolved "https://registry.yarnpkg.com/regexpp/-/regexpp-2.0.1.tgz#8d19d31cf632482b589049f8281f93dbcba4d07f"
   integrity sha512-lv0M6+TkDVniA3aD1Eg0DVpfU/booSu7Eev3TDO/mZKHBfVjgCGTV4t4buppESEYDtkArYFOxTJWv6S5C+iaNw==
 
+render@0.1:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/render/-/render-0.1.4.tgz#cfb33a34e26068591d418469e23d8cc5ce1ceff5"
+  integrity sha1-z7M6NOJgaFkdQYRp4j2Mxc4c7/U=
+  dependencies:
+    traverser "0.0.x"
+
 repeat-element@^1.1.2:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/repeat-element/-/repeat-element-1.1.3.tgz#782e0d825c0c5a3bb39731f84efee6b742e6b1ce"
@@ -5073,6 +5146,22 @@ stream-shift@^1.0.0:
   resolved "https://registry.yarnpkg.com/stream-shift/-/stream-shift-1.0.1.tgz#d7088281559ab2778424279b0877da3c392d5a3d"
   integrity sha512-AiisoFqQ0vbGcZgQPY1cdP2I76glaVA/RauYR4G4thNFgkTqr90yXTo4LYX60Jl+sIlPNHHdGSwo01AvbKUSVQ==
 
+stream-spec@~0.3.5:
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/stream-spec/-/stream-spec-0.3.6.tgz#2fddac4a07bf3e9f8963c677a6b5a6cc2115255e"
+  integrity sha1-L92sSge/Pp+JY8Z3prWmzCEVJV4=
+  dependencies:
+    macgyver "~1.10"
+
+stream-tester@0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/stream-tester/-/stream-tester-0.0.5.tgz#4f86f2531149adaf6dd4b3ff262edf64ae9a171a"
+  integrity sha1-T4byUxFJra9t1LP/Ji7fZK6aFxo=
+  dependencies:
+    assertions "~2.3.0"
+    from "~0.0.2"
+    through "~0.0.3"
+
 string-width@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
@@ -5307,10 +5396,15 @@ through2@^3.0.0:
   dependencies:
     readable-stream "2 || 3"
 
-through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6:
+through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6, through@~2.3.4:
   version "2.3.8"
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
+
+through@~0.0.3:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/through/-/through-0.0.4.tgz#0bf2f0fffafaac4bacbc533667e98aad00b588c8"
+  integrity sha1-C/Lw//r6rEusvFM2Z+mKrQC1iMg=
 
 tmp@^0.0.33:
   version "0.0.33"
@@ -5344,6 +5438,11 @@ to-regex@^3.0.1, to-regex@^3.0.2:
     regex-not "^1.0.2"
     safe-regex "^1.1.0"
 
+to-utf8@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/to-utf8/-/to-utf8-0.0.1.tgz#d17aea72ff2fba39b9e43601be7b3ff72e089852"
+  integrity sha1-0Xrqcv8vujm55DYBvns/9y4ImFI=
+
 tough-cookie@~2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.4.3.tgz#53f36da3f47783b0925afa06ff9f3b165280f781"
@@ -5358,6 +5457,20 @@ tr46@^1.0.1:
   integrity sha1-qLE/1r/SSJUZZ0zN5VujaTtwbQk=
   dependencies:
     punycode "^2.1.0"
+
+traverser@0.0.x:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/traverser/-/traverser-0.0.5.tgz#c66f38c456a0c21a88014b1223580c7ebe0631eb"
+  integrity sha1-xm84xFagwhqIAUsSI1gMfr4GMes=
+  dependencies:
+    curry "0.0.x"
+
+traverser@1:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/traverser/-/traverser-1.0.0.tgz#6f59e5813759aeeab3646b8f4513fd4a62e4fe20"
+  integrity sha1-b1nlgTdZruqzZGuPRRP9SmLk/iA=
+  dependencies:
+    curry "0.0.x"
 
 trim-newlines@^1.0.0:
   version "1.0.0"

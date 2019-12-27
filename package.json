@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "yarn lerna exec --parallel yarn test",
+    "test": "yarn lerna exec yarn test",
     "lint": "yarn lerna exec --parallel yarn lint"
   },
   "devDependencies": {

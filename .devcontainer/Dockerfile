@@ -32,7 +32,11 @@ RUN apt-get update \
     && curl -sS https://dl.yarnpkg.com/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/pubkey.gpg | apt-key add - 2>/dev/null \
     && echo "deb https://dl.yarnpkg.com/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
     && apt-get update \
+<<<<<<< HEAD
     && apt-get -y install --no-install-recommends yarn tmux locales postgresql \
+=======
+    && apt-get -y install --no-install-recommends yarn tmux locales \
+>>>>>>> origin/master
     #
     # Install eslint globally
     && npm install -g eslint \
@@ -58,6 +62,14 @@ RUN curl https://raw.githubusercontent.com/brianc/dotfiles/master/.tmux.conf > ~
 # install nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
 
+<<<<<<< HEAD
+=======
+# set up a nicer prompt
+RUN git clone https://github.com/magicmonty/bash-git-prompt.git ~/.bash-git-prompt --depth=1
+
+RUN echo "source $HOME/.bash-git-prompt/gitprompt.sh" >> ~/.bashrc
+
+>>>>>>> origin/master
 # Set the locale
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
 ENV LANG en_US.UTF-8  

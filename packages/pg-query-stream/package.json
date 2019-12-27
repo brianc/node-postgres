@@ -1,0 +1,38 @@
+{
+  "name": "pg-query-stream",
+  "version": "2.0.2",
+  "description": "Postgres query result returned as readable stream",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-postgres.git"
+  },
+  "keywords": [
+    "postgres",
+    "pg",
+    "query",
+    "stream"
+  ],
+  "author": "Brian M. Carlson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brianc/node-postgres/issues"
+  },
+  "devDependencies": {
+    "JSONStream": "~0.7.1",
+    "concat-stream": "~1.0.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "mocha": "^6.2.2",
+    "pg": "^7.15.2",
+    "stream-spec": "~0.3.5",
+    "stream-tester": "0.0.5",
+    "through": "~2.3.4"
+  },
+  "dependencies": {
+    "pg-cursor": "^2.0.3"
+  }
+}
