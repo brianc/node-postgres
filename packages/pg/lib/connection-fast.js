@@ -12,6 +12,7 @@ var EventEmitter = require('events').EventEmitter
 var util = require('util')
 
 var Writer = require('buffer-writer')
+// eslint-disable-next-line
 var PacketStream = require('pg-packet-stream')
 
 var TEXT_MODE = 0
