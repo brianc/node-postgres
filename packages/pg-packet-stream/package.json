@@ -15,7 +15,9 @@
     "ts-node": "^8.5.4"
   },
   "scripts": {
-    "test": "mocha -r ts-node/register src/**/*.test.ts"
+    "test": "mocha dist/**/*.test.js",
+    "prepublish": "tsc",
+    "pretest": "tsc"
   },
   "dependencies": {}
 }
