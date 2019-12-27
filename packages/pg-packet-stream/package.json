@@ -1,23 +1,22 @@
 {
   "name": "pg-packet-stream",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^12.12.21",
-    "chunky": "^0.0.0",
-    "typescript": "^3.7.3",
     "@types/chai": "^4.2.7",
     "@types/mocha": "^5.2.7",
+    "@types/node": "^12.12.21",
     "chai": "^4.2.0",
+    "chunky": "^0.0.0",
     "mocha": "^6.2.2",
-    "ts-node": "^8.5.4"
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3"
   },
   "scripts": {
     "test": "mocha dist/**/*.test.js",
     "prepublish": "tsc",
     "pretest": "tsc"
-  },
-  "dependencies": {}
+  }
 }
