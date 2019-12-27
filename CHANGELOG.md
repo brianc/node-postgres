@@ -4,6 +4,9 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### 7.16.0
+- Add optional, opt-in behavior to test new, [faster query pipeline](https://github.com/brianc/node-postgres/pull/2044).  This is experimental, and not documented yet.  The pipeline changes will grow significantly after the 8.0 release.
+
 ### 7.15.0
 
 - Change repository structure to support lerna & future monorepo [development](https://github.com/brianc/node-postgres/pull/2014).
