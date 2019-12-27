@@ -32,7 +32,7 @@ RUN apt-get update \
     && curl -sS https://dl.yarnpkg.com/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/pubkey.gpg | apt-key add - 2>/dev/null \
     && echo "deb https://dl.yarnpkg.com/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
     && apt-get update \
-    && apt-get -y install --no-install-recommends yarn tmux locales \
+    && apt-get -y install --no-install-recommends yarn tmux locales postgresql \
     #
     # Install eslint globally
     && npm install -g eslint \

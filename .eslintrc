@@ -1,8 +1,18 @@
 {
-  "plugins": ["node"],
-  "extends": ["standard", "eslint:recommended", "plugin:node/recommended"],
+  "plugins": [
+    "node"
+  ],
+  "extends": [
+    "standard",
+    "eslint:recommended",
+    "plugin:node/recommended"
+  ],
+  "ignorePatterns": [
+    "**/*.ts"
+  ],
   "parserOptions": {
-    "ecmaVersion": 2017
+    "ecmaVersion": 2017,
+    "sourceType": "module"
   },
   "env": {
     "node": true,
@@ -11,10 +21,13 @@
   },
   "rules": {
     "space-before-function-paren": "off",
+    "node/no-unsupported-features/es-syntax": "off",
     "node/no-unpublished-require": [
       "error",
       {
-        "allowModules": ["pg"]
+        "allowModules": [
+          "pg"
+        ]
       }
     ]
   }

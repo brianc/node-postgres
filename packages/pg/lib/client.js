@@ -18,6 +18,9 @@ var ConnectionParameters = require('./connection-parameters')
 var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
+if (process.env.PG_FAST_CONNECTION) {
+  Connection = require('./connection-fast')
+}
 
 var Client = function (config) {
   EventEmitter.call(this)
@@ -112,7 +115,7 @@ Client.prototype._connect = function (callback) {
     con.startup(self.getStartupConf())
   })
 
-  function checkPgPass (cb) {
+  function checkPgPass(cb) {
     return function (msg) {
       if (typeof self.password === 'function') {
         self._Promise.resolve()
@@ -492,7 +495,7 @@ Client.prototype.query = function (config, values, callback) {
 
       // we already returned an error,
       // just do nothing if query completes
-      query.callback = () => {}
+      query.callback = () => { }
 
       // Remove from queue
       var index = this.queryQueue.indexOf(query)
