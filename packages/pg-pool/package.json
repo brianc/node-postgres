@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": " node_modules/.bin/mocha && node_modules/.bin/standard"
+    "test": " node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -31,10 +31,7 @@
     "expect.js": "0.3.1",
     "lodash": "^4.17.11",
     "mocha": "^5.2.0",
-    "pg": "*",
-    "pg-cursor": "^1.3.0",
-    "standard": "7.1.2",
-    "standard-format": "^2.2.4"
+    "pg-cursor": "^1.3.0"
   },
   "dependencies": {},
   "peerDependencies": {

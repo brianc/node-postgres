@@ -31,7 +31,7 @@ describe('connection timeout', () => {
   })
 
   it('should callback with an error if timeout is passed', (done) => {
-    const pool = new Pool({ connectionTimeoutMillis: 10, port: this.port })
+    const pool = new Pool({ connectionTimeoutMillis: 10, port: this.port, host: 'localhost' })
     pool.connect((err, client, release) => {
       expect(err).to.be.an(Error)
       expect(err.message).to.contain('timeout')
@@ -42,7 +42,7 @@ describe('connection timeout', () => {
   })
 
   it('should reject promise with an error if timeout is passed', (done) => {
-    const pool = new Pool({ connectionTimeoutMillis: 10, port: this.port })
+    const pool = new Pool({ connectionTimeoutMillis: 10, port: this.port, host: 'localhost' })
     pool.connect().catch(err => {
       expect(err).to.be.an(Error)
       expect(err.message).to.contain('timeout')
@@ -51,9 +51,9 @@ describe('connection timeout', () => {
     })
   })
 
-  it('should handle multiple timeouts', co.wrap(function * () {
+  it('should handle multiple timeouts', co.wrap(function* () {
     const errors = []
-    const pool = new Pool({ connectionTimeoutMillis: 1, port: this.port })
+    const pool = new Pool({ connectionTimeoutMillis: 1, port: this.port, host: 'localhost' })
     for (var i = 0; i < 15; i++) {
       try {
         yield pool.connect()
