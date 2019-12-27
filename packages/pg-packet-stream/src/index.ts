@@ -1,5 +1,5 @@
 import { Transform, TransformCallback, TransformOptions } from 'stream';
-import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage } from './messages';
+import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password } from './messages';
 import { BufferReader } from './BufferReader';
 import assert from 'assert'
 
@@ -63,7 +63,12 @@ export class PgPacketStream extends Transform {
   }
 
   public _transform(buffer: Buffer, encoding: string, callback: TransformCallback) {
-    const combinedBuffer: Buffer = this.remainingBuffer.byteLength ? Buffer.concat([this.remainingBuffer, buffer], this.remainingBuffer.length + buffer.length) : buffer;
+    let combinedBuffer = buffer;
+    if (this.remainingBuffer.byteLength) {
+      combinedBuffer = Buffer.allocUnsafe(this.remainingBuffer.byteLength + buffer.byteLength);
+      this.remainingBuffer.copy(combinedBuffer)
+      buffer.copy(combinedBuffer, this.remainingBuffer.byteLength)
+    }
     let offset = 0;
     while ((offset + HEADER_LENGTH) <= combinedBuffer.byteLength) {
       // code is 1 byte long - it identifies the message type
@@ -125,9 +130,9 @@ export class PgPacketStream extends Transform {
       case MessageCodes.BackendKeyData:
         return this.parseBackendKeyData(offset, length, bytes);
       case MessageCodes.ErrorMessage:
-        return this.parseErrorMessage(offset, length, bytes, 'error');
+        return this.parseErrorMessage(offset, length, bytes, MessageName.error);
       case MessageCodes.NoticeMessage:
-        return this.parseErrorMessage(offset, length, bytes, 'notice');
+        return this.parseErrorMessage(offset, length, bytes, MessageName.notice);
       case MessageCodes.RowDescriptionMessage:
         return this.parseRowDescriptionMessage(offset, length, bytes);
       case MessageCodes.CopyIn:
@@ -142,7 +147,7 @@ export class PgPacketStream extends Transform {
   }
 
   public _flush(callback: TransformCallback) {
-    this._transform(Buffer.alloc(0), 'utf-i', callback)
+    this._transform(Buffer.alloc(0), 'utf-8', callback)
   }
 
   private parseReadyForQueryMessage(offset: number, length: number, bytes: Buffer) {
@@ -163,14 +168,14 @@ export class PgPacketStream extends Transform {
   }
 
   private parseCopyInMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, 'copyInResponse')
+    return this.parseCopyMessage(offset, length, bytes, MessageName.copyInResponse)
   }
 
   private parseCopyOutMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, 'copyOutResponse')
+    return this.parseCopyMessage(offset, length, bytes, MessageName.copyOutResponse)
   }
 
-  private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: string) {
+  private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: MessageName) {
     this.reader.setBuffer(offset, bytes);
     const isBinary = this.reader.byte() !== 0;
     const columnCount = this.reader.int16()
@@ -244,8 +249,8 @@ export class PgPacketStream extends Transform {
     this.reader.setBuffer(offset, bytes);
     const code = this.reader.int32()
     // TODO(bmc): maybe better types here
-    const message: any = {
-      name: 'authenticationOk',
+    const message: BackendMessage & any = {
+      name: MessageName.authenticationOk,
       length,
     };
 
@@ -254,17 +259,18 @@ export class PgPacketStream extends Transform {
         break;
       case 3: // AuthenticationCleartextPassword
         if (message.length === 8) {
-          message.name = 'authenticationCleartextPassword'
+          message.name = MessageName.authenticationCleartextPassword
         }
         break
       case 5: // AuthenticationMD5Password
         if (message.length === 12) {
-          message.name = 'authenticationMD5Password'
-          message.salt = this.reader.bytes(4);
+          message.name = MessageName.authenticationMD5Password
+          const salt = this.reader.bytes(4);
+          return new AuthenticationMD5Password(length, salt);
         }
         break
       case 10: // AuthenticationSASL
-        message.name = 'authenticationSASL'
+        message.name = MessageName.authenticationSASL
         message.mechanisms = []
         let mechanism: string;
         do {
@@ -276,11 +282,11 @@ export class PgPacketStream extends Transform {
         } while (mechanism)
         break;
       case 11: // AuthenticationSASLContinue
-        message.name = 'authenticationSASLContinue'
+        message.name = MessageName.authenticationSASLContinue
         message.data = this.reader.string(length - 4)
         break;
       case 12: // AuthenticationSASLFinal
-        message.name = 'authenticationSASLFinal'
+        message.name = MessageName.authenticationSASLFinal
         message.data = this.reader.string(length - 4)
         break;
       default:
@@ -289,7 +295,7 @@ export class PgPacketStream extends Transform {
     return message;
   }
 
-  private parseErrorMessage(offset: number, length: number, bytes: Buffer, name: string) {
+  private parseErrorMessage(offset: number, length: number, bytes: Buffer, name: MessageName) {
     this.reader.setBuffer(offset, bytes);
     var fields: Record<string, string> = {}
     var fieldType = this.reader.string(1)
