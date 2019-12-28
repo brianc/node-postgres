@@ -14,11 +14,13 @@ function testClientVersion(cb) {
   var client = new Client({})
   client.connect(assert.success(function () {
     helper.versionGTE(client, 100000, assert.success(function(isGreater) {
-      if (!isGreater) {
-        console.log('skip idle_in_transaction_session_timeout at client-level is only available in v10 and above');
-        return client.end();
-      }
-      cb();
+      return client.end(assert.success(function () {
+        if (!isGreater) {
+          console.log('skip idle_in_transaction_session_timeout at client-level is only available in v10 and above');
+          return;
+        }
+        cb();
+      }))
     }))
   }))
 }
