@@ -1,14 +1,16 @@
-'use strict'
-var Cursor = require('pg-cursor')
-var Readable = require('stream').Readable
+const { Readable } = require('stream')
+const Cursor = require('pg-cursor')
 
 class PgQueryStream extends Readable {
-  constructor (text, values, options) {
-    super(Object.assign({ objectMode: true }, options))
-    this.cursor = new Cursor(text, values, options)
+  constructor(text, values, config = {}) {
+    const { batchSize = 100 } = config;
+    // https://nodejs.org/api/stream.html#stream_new_stream_readable_options
+    super({ objectMode: true, emitClose: true, autoDestroy: true, highWaterMark: batchSize })
+    this.cursor = new Cursor(text, values, config)
+
     this._reading = false
-    this._closed = false
-    this.batchSize = (options || {}).batchSize || 100
+    this._callbacks = []
+    this._err = undefined;
 
     // delegate Submittable callbacks to cursor
     this.handleRowDescription = this.cursor.handleRowDescription.bind(this.cursor)
@@ -19,40 +21,51 @@ class PgQueryStream extends Readable {
     this.handleError = this.cursor.handleError.bind(this.cursor)
   }
 
-  submit (connection) {
+  submit(connection) {
     this.cursor.submit(connection)
   }
 
-  close (callback) {
-    this._closed = true
-    const cb = callback || (() => this.emit('close'))
-    this.cursor.close(cb)
+  close(callback) {
+    if (this.destroyed) {
+      if (callback) setImmediate(callback)
+    } else {
+      if (callback) this.once('close', callback)
+      this.destroy()
+    }
   }
 
-  _read (size) {
-    if (this._reading || this._closed) {
-      return false
-    }
-    this._reading = true
-    const readAmount = Math.max(size, this.batchSize)
-    this.cursor.read(readAmount, (err, rows) => {
-      if (this._closed) {
-        return
-      }
-      if (err) {
-        return this.emit('error', err)
-      }
-      // if we get a 0 length array we've read to the end of the cursor
-      if (!rows.length) {
-        this._closed = true
-        setImmediate(() => this.emit('close'))
-        return this.push(null)
-      }
+  _close() {
+    this.cursor.close((err) => {
+      let cb
+      while ((cb = this._callbacks.pop())) cb(err || this._err)
+    })
+  }
 
-      // push each row into the stream
+  _destroy(_err, callback) {
+    this._err = _err;
+    this._callbacks.push(callback)
+    if (!this._reading) {
+      this._close()
+    }
+  }
+
+  // https://nodejs.org/api/stream.html#stream_readable_read_size_1
+  _read(size) {
+    // Prevent _destroy() from closing while reading
+    this._reading = true
+
+    this.cursor.read(size, (err, rows, result) => {
       this._reading = false
-      for (var i = 0; i < rows.length; i++) {
-        this.push(rows[i])
+
+      if (this.destroyed) {
+        // Destroyed while reading?
+        this._close()
+      } else if (err) {
+        // https://nodejs.org/api/stream.html#stream_errors_while_reading
+        this.destroy(err)
+      } else {
+        for (const row of rows) this.push(row)
+        if (rows.length < size) this.push(null)
       }
     })
   }
