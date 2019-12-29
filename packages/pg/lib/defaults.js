@@ -59,6 +59,10 @@ module.exports = {
   // false=unlimited
   statement_timeout: false,
 
+  // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds
+  // false=unlimited
+  idle_in_transaction_session_timeout: false,
+
   // max milliseconds to wait for query to complete (client side)
   query_timeout: false,
 

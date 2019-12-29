@@ -22,7 +22,8 @@ var compare = function (actual, expected, type) {
   assert.equal(actual.host, expected.host, type + ' host')
   assert.equal(actual.password, expected.password, type + ' password')
   assert.equal(actual.binary, expected.binary, type + ' binary')
-  assert.equal(actual.statement_timout, expected.statement_timout, type + ' statement_timeout')
+  assert.equal(actual.statement_timeout, expected.statement_timeout, type + ' statement_timeout')
+  assert.equal(actual.idle_in_transaction_session_timeout, expected.idle_in_transaction_session_timeout, type + ' idle_in_transaction_session_timeout')
 }
 
 test('ConnectionParameters initializing from defaults', function () {
@@ -38,7 +39,9 @@ test('ConnectionParameters initializing from defaults with connectionString set'
     port: 7777,
     password: 'mypassword',
     host: 'foo.bar.net',
-    binary: defaults.binary
+    binary: defaults.binary,
+    statement_timeout: false,
+    idle_in_transaction_session_timeout: false,
   }
 
   var original_value = defaults.connectionString
@@ -62,7 +65,8 @@ test('ConnectionParameters initializing from config', function () {
     ssl: {
       asdf: 'blah'
     },
-    statement_timeout: 15000
+    statement_timeout: 15000,
+    idle_in_transaction_session_timeout: 15000
   }
   var subject = new ConnectionParameters(config)
   compare(subject, config, 'config')
