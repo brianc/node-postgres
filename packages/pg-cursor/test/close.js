@@ -46,4 +46,9 @@ describe('close', function () {
       })
     })
   })
+
+  it('is a no-op to "close" the cursor before submitting it', function (done) {
+    const cursor = new Cursor(text)
+    cursor.close(done)
+  })
 })
