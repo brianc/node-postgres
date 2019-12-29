@@ -45,6 +45,21 @@ helper('early close', function (client) {
     }, 100)
   })
 
+  it('emits an error when calling destroy with an error', function (done) {
+    var stream = new QueryStream('SELECT * FROM generate_series(0, 100), pg_sleep(1)')
+    client.query(stream)
+    stream.on('data', () => done(new Error('stream should not have returned rows')))
+    setTimeout(() => {
+      stream.destroy(new Error('intentional error'))
+      stream.on('error', (err) => {
+        // make sure there's an error
+        assert(err);
+        assert.strictEqual(err.message, 'intentional error');
+        done();
+      })
+    }, 100)
+  })
+
   it('can destroy stream while reading an error', function (done) {
     var stream = new QueryStream('SELECT * from pg_sleep(1), basdfasdf;')
     client.query(stream)

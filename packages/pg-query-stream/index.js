@@ -23,7 +23,7 @@ class PgQueryStream extends Readable {
 
   _destroy(_err, cb) {
     this.cursor.close((err) => {
-      cb && cb(err || _err)
+      cb(err || _err)
     })
   }
 
