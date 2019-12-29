@@ -61,7 +61,7 @@ helper('early close', function (client) {
   })
 
   it('can destroy stream while reading an error', function (done) {
-    var stream = new QueryStream('SELECT * from pg_sleep(1), basdfasdf;')
+    var stream = new QueryStream('SELECT * from  pg_sleep(1), basdfasdf;')
     client.query(stream)
     stream.on('data', () => done(new Error('stream should not have returned rows')))
     stream.once('error', () => {
@@ -69,5 +69,20 @@ helper('early close', function (client) {
       // wait a bit to let any other errors shake through
       setTimeout(done, 100)
     })
+  })
+
+  it('does not crash when destroying the stream immediately after calling read', function (done) {
+    var stream = new QueryStream('SELECT * from generate_series(0, 100), pg_sleep(1);')
+    client.query(stream)
+    stream.on('data', () => done(new Error('stream should not have returned rows')))
+    stream.destroy()
+    stream.on('close', done)
+  })
+
+  it('does not crash when destroying the stream before its submitted', function (done) {
+    var stream = new QueryStream('SELECT * from generate_series(0, 100), pg_sleep(1);')
+    stream.on('data', () => done(new Error('stream should not have returned rows')))
+    stream.destroy()
+    stream.on('close', done)
   })
 })
