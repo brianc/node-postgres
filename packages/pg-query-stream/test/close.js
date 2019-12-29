@@ -4,6 +4,10 @@ var concat = require('concat-stream')
 var QueryStream = require('../')
 var helper = require('./helper')
 
+if (process.version.startsWith('v8.')) {
+  return console.error('warning! node versions less than 10lts no longer supported & stream closing semantics may not behave properly');
+}
+
 helper('close', function (client) {
   it('emits close', function (done) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [3], { batchSize: 2, highWaterMark: 2 })
@@ -23,27 +27,32 @@ helper('early close', function (client) {
       query.read()
     })
     query.once('readable', function () {
-      query.close()
+      query.destroy()
     })
     query.on('close', function () {
       assert(readCount < 10, 'should not have read more than 10 rows')
       done()
     })
   })
-})
 
-helper('close callback', function (client) {
-  it('notifies an optional callback when the conneciton is closed', function (done) {
-    var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [10], { batchSize: 2, highWaterMark: 2 })
-    var query = client.query(stream)
-    query.once('readable', function () { // only reading once
-      query.read()
-    })
-    query.once('readable', function () {
-      query.close(function () {
-        // nothing to assert.  This test will time out if the callback does not work.
-        done()
-      })
+  it('can destroy stream while reading', function (done) {
+    var stream = new QueryStream('SELECT * FROM generate_series(0, 100), pg_sleep(1)')
+    client.query(stream)
+    stream.on('data', () => done(new Error('stream should not have returned rows')))
+    setTimeout(() => {
+      stream.destroy()
+      stream.on('close', done)
+    }, 100)
+  })
+
+  it('can destroy stream while reading an error', function (done) {
+    var stream = new QueryStream('SELECT * from pg_sleep(1), basdfasdf;')
+    client.query(stream)
+    stream.on('data', () => done(new Error('stream should not have returned rows')))
+    stream.once('error', () => {
+      stream.destroy()
+      // wait a bit to let any other errors shake through
+      setTimeout(done, 100)
     })
   })
 })

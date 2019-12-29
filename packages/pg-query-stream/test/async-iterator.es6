@@ -59,7 +59,7 @@ describe('Async iterator', () => {
     const pool = new pg.Pool({ max: 1 })
     const client = await pool.connect()
     const rows = []
-    for await (const row of client.query(new QueryStream(queryText, []))) {
+    for await (const row of client.query(new QueryStream(queryText, [], { batchSize: 1 }))) {
       rows.push(row)
       break;
     }
