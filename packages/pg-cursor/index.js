@@ -182,7 +182,7 @@ Cursor.prototype.end = util.deprecate(function (cb) {
 }, 'Cursor.end is deprecated. Call end on the client itself to end a connection to the database.')
 
 Cursor.prototype.close = function (cb) {
-  if (this.state === 'done') {
+  if (!this.connection || this.state === 'done') {
     if (cb) {
       return setImmediate(cb)
     } else {

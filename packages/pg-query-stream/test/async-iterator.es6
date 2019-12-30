@@ -54,4 +54,59 @@ describe('Async iterator', () => {
     assert.equal(allRows.length, 603)
     await pool.end()
   })
+
+  it('can break out of iteration early', async () => {
+    const pool = new pg.Pool({ max: 1 })
+    const client = await pool.connect()
+    const rows = []
+    for await (const row of client.query(new QueryStream(queryText, [], { batchSize: 1 }))) {
+      rows.push(row)
+      break;
+    }
+    for await (const row of client.query(new QueryStream(queryText, []))) {
+      rows.push(row)
+      break;
+    }
+    for await (const row of client.query(new QueryStream(queryText, []))) {
+      rows.push(row)
+      break;
+    }
+    assert.strictEqual(rows.length, 3)
+    client.release()
+    await pool.end()
+  })
+
+  it('only returns rows on first iteration', async () => {
+    const pool = new pg.Pool({ max: 1 })
+    const client = await pool.connect()
+    const rows = []
+    const stream = client.query(new QueryStream(queryText, []))
+    for await (const row of stream) {
+      rows.push(row)
+      break;
+    }
+    for await (const row of stream) {
+      rows.push(row)
+    }
+    for await (const row of stream) {
+      rows.push(row)
+    }
+    assert.strictEqual(rows.length, 1)
+    client.release()
+    await pool.end()
+  })
+
+  it('can read with delays', async () => {
+    const pool = new pg.Pool({ max: 1 })
+    const client = await pool.connect()
+    const rows = []
+    const stream = client.query(new QueryStream(queryText, [], { batchSize: 1 }))
+    for await (const row of stream) {
+      rows.push(row)
+      await new Promise((resolve) => setTimeout(resolve, 1))
+    }
+    assert.strictEqual(rows.length, 201)
+    client.release()
+    await pool.end()
+  })
 })
