@@ -54,7 +54,18 @@ var ConnectionParameters = function (config) {
   this.database = val('database', config)
   this.port = parseInt(val('port', config), 10)
   this.host = val('host', config)
-  this.password = val('password', config)
+
+  // "hiding" the password so it doesn't show up in stack traces
+  // or if the client is console.logged
+  const password = val('password', config)
+  Object.defineProperty(this, 'password', {
+    enumerable: false,
+    configurable: false,
+    get() {
+      return password
+    }
+  })
+
   this.binary = val('binary', config)
   this.ssl = typeof config.ssl === 'undefined' ? useSsl() : config.ssl
   this.client_encoding = val('client_encoding', config)

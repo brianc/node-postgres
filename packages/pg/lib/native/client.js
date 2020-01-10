@@ -43,7 +43,19 @@ var Client = module.exports = function (config) {
   // for the time being. TODO: deprecate all this jazz
   var cp = this.connectionParameters = new ConnectionParameters(config)
   this.user = cp.user
-  this.password = cp.password
+
+  // "hiding" the password so it doesn't show up in stack traces
+  // or if the client is console.logged
+  let hiddenPassword = cp.password
+  Object.defineProperty(this, 'password', {
+    enumerable: false,
+    get() {
+      return hiddenPassword
+    },
+    set(value) {
+      hiddenPassword = value
+    }
+  })
   this.database = cp.database
   this.host = cp.host
   this.port = cp.port
@@ -187,7 +199,7 @@ Client.prototype.query = function (config, values, callback) {
 
       // we already returned an error,
       // just do nothing if query completes
-      query.callback = () => {}
+      query.callback = () => { }
 
       // Remove from queue
       var index = this._queryQueue.indexOf(query)
@@ -280,7 +292,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
 // attempt to cancel an in-progress query
 Client.prototype.cancel = function (query) {
   if (this._activeQuery === query) {
-    this.native.cancel(function () {})
+    this.native.cancel(function () { })
   } else if (this._queryQueue.indexOf(query) !== -1) {
     this._queryQueue.splice(this._queryQueue.indexOf(query), 1)
   }

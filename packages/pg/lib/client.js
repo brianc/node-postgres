@@ -30,7 +30,21 @@ var Client = function (config) {
   this.database = this.connectionParameters.database
   this.port = this.connectionParameters.port
   this.host = this.connectionParameters.host
-  this.password = this.connectionParameters.password
+
+  // "hiding" the password so it doesn't show up in stack traces
+  // or if the client is console.logged
+  let password = this.connectionParameters.password
+  Object.defineProperty(this, 'password', {
+    enumerable: false,
+    configurable: false,
+    get() {
+      return password
+    },
+    set(value) {
+      password = value
+    }
+  })
+
   this.replication = this.connectionParameters.replication
 
   var c = config || {}
