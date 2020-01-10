@@ -4,6 +4,12 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg-query-stream@3.0.0
+
+- [Rewrote stream internals](https://github.com/brianc/node-postgres/pull/2051) to better conform to node stream semantics.  This should make pg-query-stream much better at respecting [highWaterMark](https://nodejs.org/api/stream.html#stream_new_stream_readable_options) and getting rid of some edge case bugs when using pg-query-stream as an async iterator.  Due to the size and nature of this change (effectively a full re-write) it's safest to bump the semver major here, though almost all tests remain untouched and still passing, which brings us to a breaking change to the API....
+- Changed `stream.close` to `stream.destroy` which is the [official](https://nodejs.org/api/stream.html#stream_readable_destroy_error) way to terminate a readable stream.  This is a __breaking change__ if you rely on the `stream.close` method on pg-query-stream...though should be just a find/replace type operation to upgrade as the semantics remain very similar (not exactly the same, since internals are rewritten, but more in line with how streams are "supposed" to behave).
+- Unified the `config.batchSize` and `config.highWaterMark` to both do the same thing: control how many rows are buffered in memory.  The `ReadableStream` will manage exactly how many rows are requested from the cursor at a time.  This should give better out of the box performance and help with efficient async interation.
+
 ### pg@7.17.0
 
 - Add support for `idle_in_transaction_session_timeout` [option](https://github.com/brianc/node-postgres/pull/2049).
