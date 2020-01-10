@@ -46,7 +46,8 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
   // lazy require native module...the native module may not have installed
   Object.defineProperty(module.exports, 'native', {
     configurable: true,
-    get () {
+    enumerable: false,
+    get() {
       var native = null
       try {
         native = new PG(require('./native'))
