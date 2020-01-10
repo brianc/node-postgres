@@ -7,35 +7,30 @@
  * README.md file in the root directory of this source tree.
  */
 
-var util = require('util')
-var Client = require('./client')
-var defaults = require('./defaults')
-var Connection = require('./connection')
-var Pool = require('pg-pool')
-const checkConstructor = require('./compat/check-constructor')
+const Client = require('./client')
+const defaults = require('./defaults')
+const Connection = require('./connection')
+const Pool = require('pg-pool')
 
 const poolFactory = (Client) => {
-  var BoundPool = function (options) {
-    // eslint-disable-next-line no-eval
-    checkConstructor('pg.Pool', 'PG-POOL-NEW', () => eval('new.target'))
-
-    var config = Object.assign({ Client: Client }, options)
-    return new Pool(config)
+  return class BoundPool extends Pool {
+    constructor(options) {
+      const config = Object.assign({ Client: Client }, options)
+      super(config)
+    }
   }
-
-  util.inherits(BoundPool, Pool)
-
-  return BoundPool
 }
 
-var PG = function (clientConstructor) {
-  this.defaults = defaults
-  this.Client = clientConstructor
-  this.Query = this.Client.Query
-  this.Pool = poolFactory(this.Client)
-  this._pools = []
-  this.Connection = Connection
-  this.types = require('pg-types')
+class PG {
+  constructor(clientConstructor) {
+    this.defaults = defaults
+    this.Client = clientConstructor
+    this.Query = this.Client.Query
+    this.Pool = poolFactory(this.Client)
+    this._pools = []
+    this.Connection = Connection
+    this.types = require('pg-types')
+  }
 }
 
 if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
@@ -46,7 +41,7 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
   // lazy require native module...the native module may not have installed
   module.exports.__defineGetter__('native', function () {
     delete module.exports.native
-    var native = null
+    let native = null
     try {
       native = new PG(require('./native'))
     } catch (err) {
