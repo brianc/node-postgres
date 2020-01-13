@@ -17,6 +17,7 @@ addons:
 
 matrix:
   include:
+    # Run tests/paths that require password authentication
     - node_js: lts/erbium
       env:
         - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=test-password
