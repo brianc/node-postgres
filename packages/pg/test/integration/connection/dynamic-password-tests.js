@@ -8,6 +8,11 @@ const Client = pg.Client;
 const password = process.env.PGPASSWORD || null
 const sleep = millis => new Promise(resolve => setTimeout(resolve, millis))
 
+if (!password) {
+    // skip these tests; no password will be requested
+    return
+}
+
 suite.testAsync('Get password from a sync function', () => {
     let wasCalled = false
     function getPassword() {
