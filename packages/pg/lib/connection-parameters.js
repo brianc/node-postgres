@@ -61,9 +61,8 @@ var ConnectionParameters = function (config) {
   Object.defineProperty(this, 'password', {
     enumerable: false,
     configurable: false,
-    get() {
-      return password
-    }
+    writable: false,
+    value: password
   })
 
   this.binary = val('binary', config)

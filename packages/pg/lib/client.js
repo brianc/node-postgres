@@ -33,16 +33,12 @@ var Client = function (config) {
 
   // "hiding" the password so it doesn't show up in stack traces
   // or if the client is console.logged
-  let password = this.connectionParameters.password
+  const password = this.connectionParameters.password
   Object.defineProperty(this, 'password', {
     enumerable: false,
     configurable: false,
-    get() {
-      return password
-    },
-    set(value) {
-      password = value
-    }
+    writable: true,
+    value: password
   })
 
   this.replication = this.connectionParameters.replication
