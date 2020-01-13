@@ -67,8 +67,8 @@ class Pool extends EventEmitter {
       Object.defineProperty(this.options, 'password', {
         configurable: true,
         enumerable: false,
-        value: options.password,
-        writable: true
+        writable: true,
+        value: options.password
       })
     }
 
