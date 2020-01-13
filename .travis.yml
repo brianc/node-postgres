@@ -1,8 +1,8 @@
 language: node_js
 dist: bionic
 
-before_script:
-  - node packages/pg/script/create-test-tables.js pg://postgres@127.0.0.1:5432/postgres
+before_script: |
+  node packages/pg/script/create-test-tables.js postgresql:///
 
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
@@ -17,6 +17,18 @@ addons:
 
 matrix:
   include:
+    # Run tests/paths that require password authentication
+    - node_js: lts/erbium
+      env:
+        - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=test-password
+      before_script: |
+        sudo -u postgres sed -i \
+          -e '/^local/ s/trust$/peer/' \
+          -e '/^host/ s/trust$/md5/' \
+          /etc/postgresql/10/main/pg_hba.conf
+        sudo -u postgres psql -c "ALTER ROLE postgres PASSWORD 'test-password'; SELECT pg_reload_conf()"
+        node packages/pg/script/create-test-tables.js postgresql:///
+
     - node_js: lts/carbon
       addons:
         postgresql: "9.5"
