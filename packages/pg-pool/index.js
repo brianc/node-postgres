@@ -60,15 +60,19 @@ class Pool extends EventEmitter {
   constructor (options, Client) {
     super()
     this.options = Object.assign({}, options)
-    const password = this.options.password
-    // "hiding" the password so it doesn't show up in stack traces
-    // or if the client is console.logged
-    Object.defineProperty(this.options, 'password', {
-      configurable: true,
-      enumerable: false,
-      value: password,
-      writable: true
-    })
+
+    if ('password' in this.options) {
+      const password = this.options.password
+      // "hiding" the password so it doesn't show up in stack traces
+      // or if the client is console.logged
+      Object.defineProperty(this.options, 'password', {
+        configurable: true,
+        enumerable: false,
+        value: password,
+        writable: true
+      })
+    }
+
     this.options.max = this.options.max || this.options.poolSize || 10
     this.log = this.options.log || function () { }
     this.Client = this.options.Client || Client || require('pg').Client
