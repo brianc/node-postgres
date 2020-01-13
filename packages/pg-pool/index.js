@@ -61,14 +61,13 @@ class Pool extends EventEmitter {
     super()
     this.options = Object.assign({}, options)
 
-    if ('password' in this.options) {
-      const password = this.options.password
+    if (options != null && 'password' in options) {
       // "hiding" the password so it doesn't show up in stack traces
       // or if the client is console.logged
       Object.defineProperty(this.options, 'password', {
         configurable: true,
         enumerable: false,
-        value: password,
+        value: options.password,
         writable: true
       })
     }
