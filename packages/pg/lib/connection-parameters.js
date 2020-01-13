@@ -61,7 +61,7 @@ var ConnectionParameters = function (config) {
   Object.defineProperty(this, 'password', {
     enumerable: false,
     configurable: false,
-    writable: false,
+    writable: true,
     value: password
   })
 
