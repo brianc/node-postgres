@@ -199,7 +199,7 @@ Client.prototype.query = function (config, values, callback) {
 
       // we already returned an error,
       // just do nothing if query completes
-      query.callback = () => { }
+      query.callback = () => {}
 
       // Remove from queue
       var index = this._queryQueue.indexOf(query)
@@ -292,7 +292,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
 // attempt to cancel an in-progress query
 Client.prototype.cancel = function (query) {
   if (this._activeQuery === query) {
-    this.native.cancel(function () { })
+    this.native.cancel(function () {})
   } else if (this._queryQueue.indexOf(query) !== -1) {
     this._queryQueue.splice(this._queryQueue.indexOf(query), 1)
   }
