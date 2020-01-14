@@ -11,7 +11,7 @@
     "postgresql",
     "rdbms"
   ],
-  "homepage": "http://github.com/brianc/node-postgres",
+  "homepage": "https://github.com/brianc/node-postgres",
   "repository": {
     "type": "git",
     "url": "git://github.com/brianc/node-postgres.git"
