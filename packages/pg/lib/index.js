@@ -12,25 +12,23 @@ var defaults = require('./defaults')
 var Connection = require('./connection')
 var Pool = require('pg-pool')
 
-const poolFactory = (pg) => {
+const poolFactory = (Client) => {
   return class BoundPool extends Pool {
     constructor (options) {
-      var config = Object.assign({ Client: pg.Client }, options)
+      var config = Object.assign({ Client: Client }, options)
       super(config)
     }
   }
 }
 
-class PG {
-  constructor (clientConstructor) {
-    this.defaults = defaults
-    this.Client = clientConstructor
-    this.Query = this.Client.Query
-    this.Pool = poolFactory(this)
-    this._pools = []
-    this.Connection = Connection
-    this.types = require('pg-types')
-  }
+var PG = function (clientConstructor) {
+  this.defaults = defaults
+  this.Client = clientConstructor
+  this.Query = this.Client.Query
+  this.Pool = poolFactory(this.Client)
+  this._pools = []
+  this.Connection = Connection
+  this.types = require('pg-types')
 }
 
 if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
