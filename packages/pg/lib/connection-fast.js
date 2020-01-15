@@ -15,6 +15,8 @@ var Writer = require('buffer-writer')
 // eslint-disable-next-line
 var PacketStream = require('pg-packet-stream')
 
+var warnDeprecation = require('./compat/warn-deprecation')
+
 var TEXT_MODE = 0
 
 // TODO(bmc) support binary mode here
@@ -104,6 +106,9 @@ Connection.prototype.connect = function (port, host) {
       cert: self.ssl.cert,
       secureOptions: self.ssl.secureOptions,
       NPNProtocols: self.ssl.NPNProtocols
+    }
+    if (typeof self.ssl.rejectUnauthorized !== 'boolean') {
+      warnDeprecation('Implicit disabling of certificate verification is deprecated and will be removed in pg 8. Specify `rejectUnauthorized: true` to require a valid CA or `rejectUnauthorized: false` to explicitly opt out of MITM protection.', 'PG-SSL-VERIFY')
     }
     if (net.isIP(host) === 0) {
       options.servername = host
