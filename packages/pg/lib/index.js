@@ -44,20 +44,28 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
   module.exports = new PG(Client)
 
   // lazy require native module...the native module may not have installed
-  module.exports.__defineGetter__('native', function () {
-    delete module.exports.native
-    var native = null
-    try {
-      native = new PG(require('./native'))
-    } catch (err) {
-      if (err.code !== 'MODULE_NOT_FOUND') {
-        throw err
+  Object.defineProperty(module.exports, 'native', {
+    configurable: true,
+    enumerable: false,
+    get() {
+      var native = null
+      try {
+        native = new PG(require('./native'))
+      } catch (err) {
+        if (err.code !== 'MODULE_NOT_FOUND') {
+          throw err
+        }
+        /* eslint-disable no-console */
+        console.error(err.message)
+        /* eslint-enable no-console */
       }
-      /* eslint-disable no-console */
-      console.error(err.message)
-      /* eslint-enable no-console */
+
+      // overwrite module.exports.native so that getter is never called again
+      Object.defineProperty(module.exports, 'native', {
+        value: native
+      })
+
+      return native
     }
-    module.exports.native = native
-    return native
   })
 }
