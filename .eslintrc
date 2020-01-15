@@ -1,6 +1,34 @@
 {
-  "extends": "standard",
+  "plugins": [
+    "node"
+  ],
+  "extends": [
+    "standard",
+    "eslint:recommended",
+    "plugin:node/recommended"
+  ],
+  "ignorePatterns": [
+    "**/*.ts"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "es6": true,
+    "mocha": true
+  },
   "rules": {
-    "no-new-func": "off"
+    "space-before-function-paren": "off",
+    "node/no-unsupported-features/es-syntax": "off",
+    "node/no-unpublished-require": [
+      "error",
+      {
+        "allowModules": [
+          "pg"
+        ]
+      }
+    ]
   }
 }
