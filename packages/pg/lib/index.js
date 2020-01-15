@@ -7,25 +7,18 @@
  * README.md file in the root directory of this source tree.
  */
 
-var util = require('util')
 var Client = require('./client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 var Pool = require('pg-pool')
-const checkConstructor = require('./compat/check-constructor')
 
 const poolFactory = (Client) => {
-  var BoundPool = function (options) {
-    // eslint-disable-next-line no-eval
-    checkConstructor('pg.Pool', 'PG-POOL-NEW', () => eval('new.target'))
-
-    var config = Object.assign({ Client: Client }, options)
-    return new Pool(config)
+  return class BoundPool extends Pool {
+    constructor (options) {
+      var config = Object.assign({ Client: Client }, options)
+      super(config)
+    }
   }
-
-  util.inherits(BoundPool, Pool)
-
-  return BoundPool
 }
 
 var PG = function (clientConstructor) {
