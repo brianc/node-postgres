@@ -15,8 +15,7 @@ var Pool = require('pg-pool')
 const poolFactory = (Client) => {
   return class BoundPool extends Pool {
     constructor (options) {
-      var config = Object.assign({ Client: Client }, options)
-      super(config)
+      super(options, Client)
     }
   }
 }
