@@ -25,29 +25,8 @@ class PendingItem {
   }
 }
 
-function throwOnRelease () {
+function throwOnDoubleRelease () {
   throw new Error('Release called on client which has already been released to the pool.')
-}
-
-function release (client, err) {
-  client.release = throwOnRelease
-  if (err || this.ending || !client._queryable || client._ending) {
-    this._remove(client)
-    this._pulseQueue()
-    return
-  }
-
-  // idle timeout
-  let tid
-  if (this.options.idleTimeoutMillis) {
-    tid = setTimeout(() => {
-      this.log('remove idle client')
-      this._remove(client)
-    }, this.options.idleTimeoutMillis)
-  }
-
-  this._idle.push(new IdleItem(client, tid))
-  this._pulseQueue()
 }
 
 function promisify (Promise, callback) {
@@ -269,7 +248,7 @@ class Pool extends EventEmitter {
 
     client.release = (err) => {
       if (released) {
-        throw new Error('Release called on client which has already been released to the pool.')
+        throwOnDoubleRelease()
       }
 
       released = true
@@ -305,7 +284,8 @@ class Pool extends EventEmitter {
   _release (client, idleListener, err) {
     client.on('error', idleListener)
 
-    if (err || this.ending) {
+    // TODO(bmc): expose a proper, public interface _queryable and _ending
+    if (err || this.ending || !client._queryable || client._ending) {
       this._remove(client)
       this._pulseQueue()
       return
