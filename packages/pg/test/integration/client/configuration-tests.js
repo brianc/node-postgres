@@ -14,7 +14,7 @@ for (var key in process.env) {
 suite.test('default values are used in new clients', function () {
   assert.same(pg.defaults, {
     user: process.env.USER,
-    database: process.env.USER,
+    database: undefined,
     password: null,
     port: 5432,
     rows: 0,
@@ -52,6 +52,28 @@ suite.test('modified values are passed to created clients', function () {
     port: 1234,
     host: 'blam'
   })
+})
+
+suite.test('database defaults to user when user is non-default', () => {
+  {
+    pg.defaults.database = undefined
+
+    const client = new Client({
+      user: 'foo',
+    })
+
+    assert.strictEqual(client.database, 'foo')
+  }
+
+  {
+    pg.defaults.database = 'bar'
+
+    const client = new Client({
+      user: 'foo',
+    })
+
+    assert.strictEqual(client.database, 'bar')
+  }
 })
 
 suite.test('cleanup', () => {
