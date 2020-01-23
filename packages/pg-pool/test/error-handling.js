@@ -181,40 +181,6 @@ describe('pool error handling', function () {
     })
   })
 
-  describe('releasing a not queryable client', () => {
-    it('removes the client from the pool', (done) => {
-      const pool = new Pool({ max: 1 })
-      const connectionError = new Error('connection failed')
-
-      pool.once('error', () => {
-        // Ignore error on pool
-      })
-
-      pool.connect((err, client) => {
-        expect(err).to.be(undefined)
-
-        client.once('error', (err) => {
-          expect(err).to.eql(connectionError)
-
-          // Releasing the client should remove it from the pool,
-          // whether called with an error or not
-          client.release()
-
-          // Verify that the pool is still usuable and new client has been
-          // created
-          pool.query('SELECT $1::text as name', ['brianc'], (err, res) => {
-            expect(err).to.be(undefined)
-            expect(res.rows).to.eql([{ name: 'brianc' }])
-
-            pool.end(done)
-          })
-        })
-
-        client.emit('error', connectionError)
-      })
-    })
-  })
-
   describe('pool with lots of errors', () => {
     it('continues to work and provide new clients', co.wrap(function* () {
       const pool = new Pool({ max: 1 })
