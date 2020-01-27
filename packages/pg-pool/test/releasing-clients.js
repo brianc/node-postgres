@@ -41,7 +41,7 @@ describe('releasing clients', () => {
     // end the client gracefully (but you shouldn't do this with pooled clients)
     client.end()
 
-    // try to return it to the bool
+    // try to return it to the pool
     client.release()
     expect(pool.totalCount).to.eql(0)
     expect(pool.idleCount).to.eql(0)
