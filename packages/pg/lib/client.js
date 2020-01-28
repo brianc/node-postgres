@@ -378,23 +378,25 @@ Client.prototype.getStartupConf = function () {
   return data
 }
 
-Client.prototype.cancel = function (client, query) {
-  if (client.activeQuery === query) {
-    var con = this.connection
+Client.prototype.cancelActiveQuery = function () {
+  var con = new Connection({
+    ssl: this.connectionParameters.ssl
+  })
 
-    if (this.host && this.host.indexOf('/') === 0) {
-      con.connect(this.host + '/.s.PGSQL.' + this.port)
-    } else {
-      con.connect(this.port, this.host)
-    }
-
-    // once connection is established send cancel message
-    con.on('connect', function () {
-      con.cancel(client.processID, client.secretKey)
-    })
-  } else if (client.queryQueue.indexOf(query) !== -1) {
-    client.queryQueue.splice(client.queryQueue.indexOf(query), 1)
+  if (this.host && this.host.indexOf('/') === 0) {
+    con.connect(this.host + '/.s.PGSQL.' + this.port)
+  } else {
+    con.connect(this.port, this.host)
   }
+
+  return new Promise((resolve, reject) => {
+    // once connection is established send cancel message
+    con.on('connect', () => {
+      con.cancel(this.processID, this.secretKey)
+    })
+    con.once('end', resolve)
+    con.once('error', reject)
+  })
 }
 
 Client.prototype.setTypeParser = function (oid, format, parseFn) {

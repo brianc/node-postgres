@@ -286,6 +286,12 @@ Client.prototype.cancel = function (query) {
   }
 }
 
+Client.prototype.cancelActiveQuery = function () {
+  return new Promise((resolve, reject) => {
+    this.native.cancel((err) => err ? reject(err) : resolve())
+  })
+}
+
 Client.prototype.setTypeParser = function (oid, format, parseFn) {
   return this._types.setTypeParser(oid, format, parseFn)
 }
