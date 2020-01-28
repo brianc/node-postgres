@@ -89,7 +89,10 @@ Client.prototype._connect = function (cb) {
   this.connectionParameters.getLibpqConnectionString(function (err, conString) {
     if (err) return cb(err)
     self.native.connect(conString, function (err) {
-      if (err) return cb(err)
+      if (err) {
+        self.native.end()
+        return cb(err)
+      }
 
       // set internal states to connected
       self._connected = true

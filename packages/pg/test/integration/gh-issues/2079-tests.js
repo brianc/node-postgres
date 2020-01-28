@@ -6,15 +6,20 @@ var assert = require('assert')
 const suite = new helper.Suite()
 
 // makes a backend server that responds with a non 'S' ssl response buffer
-const makeTerminatingBackend = (code) => {
+let makeTerminatingBackend = (byte) => {
   const { createServer }  = require('net')
 
   const server = createServer((socket) => {
-    const packet = Buffer.from(code, 'utf-8')
-    socket.write(packet)
     // attach a listener so the socket can drain
-    socket.on('data', () => {
-
+    // https://www.postgresql.org/docs/9.3/protocol-message-formats.html
+    socket.on('data', (buff) => {
+      const code = buff.readInt32BE(4)
+      // I don't see anything in the docs about 80877104
+      // but libpq is sending it...
+      if (code === 80877103 || code === 80877104) {
+        const packet = Buffer.from(byte, 'utf-8')
+        socket.write(packet)
+      }
     })
     socket.on('close', () => {
       server.close()
@@ -28,7 +33,7 @@ const makeTerminatingBackend = (code) => {
 
 suite.test('SSL connection error allows event loop to exit', (done) => {
   const port = makeTerminatingBackend('N')
-  const client = new helper.pg.Client({ ssl: true, port })
+  const client = new helper.pg.Client({ ssl: 'require', port })
   // since there was a connection error the client's socket should be closed
   // and the event loop will have no refs and exit cleanly
   client.connect((err) => {
@@ -40,7 +45,7 @@ suite.test('SSL connection error allows event loop to exit', (done) => {
 
 suite.test('Non "S" response code allows event loop to exit', (done) => {
   const port = makeTerminatingBackend('X')
-  const client = new helper.pg.Client({ ssl: true, port })
+  const client = new helper.pg.Client({ ssl: 'require', port })
   // since there was a connection error the client's socket should be closed
   // and the event loop will have no refs and exit cleanly
   client.connect((err) => {

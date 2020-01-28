@@ -88,10 +88,10 @@ Connection.prototype.connect = function (port, host) {
       case 'S': // Server supports SSL connections, continue with a secure connection
         break
       case 'N': // Server does not support SSL connections
-        self.end()
+        self.stream.end()
         return self.emit('error', new Error('The server does not support SSL connections'))
       default: // Any other response byte, including 'E' (ErrorResponse) indicating a server error
-        self.end()
+        self.stream.end()
         return self.emit('error', new Error('There was an error establishing an SSL connection'))
     }
     var tls = require('tls')
@@ -114,8 +114,15 @@ Connection.prototype.connect = function (port, host) {
       options.servername = host
     }
     self.stream = tls.connect(options)
-    self.attachListeners(self.stream)
     self.stream.on('error', reportStreamError)
+
+    // send SSLRequest packet
+    const buff = Buffer.alloc(8)
+    buff.writeUInt32BE(8)
+    buff.writeUInt32BE(80877103, 4)
+    self.stream.write(buff)
+
+    self.attachListeners(self.stream)
 
     self.emit('sslconnect')
   })
