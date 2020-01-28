@@ -85,11 +85,13 @@ Connection.prototype.connect = function (port, host) {
   this.stream.once('data', function (buffer) {
     var responseCode = buffer.toString('utf8')
     switch (responseCode) {
-      case 'N': // Server does not support SSL connections
-        return self.emit('error', new Error('The server does not support SSL connections'))
       case 'S': // Server supports SSL connections, continue with a secure connection
         break
+      case 'N': // Server does not support SSL connections
+        self.end()
+        return self.emit('error', new Error('The server does not support SSL connections'))
       default: // Any other response byte, including 'E' (ErrorResponse) indicating a server error
+        self.end()
         return self.emit('error', new Error('There was an error establishing an SSL connection'))
     }
     var tls = require('tls')
