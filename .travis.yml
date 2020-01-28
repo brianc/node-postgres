@@ -10,7 +10,10 @@ env:
 node_js:
   - lts/dubnium
   - lts/erbium
-  - 13
+  # node 13.7 seems to have changed behavior of async iterators exiting early on streams
+  # if 13.8 still has this problem when it comes down I'll talk to the node team about the change
+  # in the mean time...peg to 13.6 
+  - 13.6
 
 addons:
   postgresql: "10"

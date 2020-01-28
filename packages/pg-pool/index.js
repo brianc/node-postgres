@@ -25,6 +25,10 @@ class PendingItem {
   }
 }
 
+function throwOnDoubleRelease () {
+  throw new Error('Release called on client which has already been released to the pool.')
+}
+
 function promisify (Promise, callback) {
   if (callback) {
     return { callback: callback, result: undefined }
@@ -244,7 +248,7 @@ class Pool extends EventEmitter {
 
     client.release = (err) => {
       if (released) {
-        throw new Error('Release called on client which has already been released to the pool.')
+        throwOnDoubleRelease()
       }
 
       released = true
@@ -280,7 +284,8 @@ class Pool extends EventEmitter {
   _release (client, idleListener, err) {
     client.on('error', idleListener)
 
-    if (err || this.ending) {
+    // TODO(bmc): expose a proper, public interface _queryable and _ending
+    if (err || this.ending || !client._queryable || client._ending) {
       this._remove(client)
       this._pulseQueue()
       return
