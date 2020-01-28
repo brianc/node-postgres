@@ -10,7 +10,6 @@ const makeTerminatingBackend = (code) => {
   const { createServer }  = require('net')
 
   const server = createServer((socket) => {
-    console.log('i got a socket')
     const packet = Buffer.from(code, 'utf-8')
     socket.write(packet)
     // attach a listener so the socket can drain
