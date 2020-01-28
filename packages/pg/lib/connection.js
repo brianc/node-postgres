@@ -120,7 +120,9 @@ Connection.prototype.connect = function (port, host) {
     const buff = Buffer.alloc(8)
     buff.writeUInt32BE(8)
     buff.writeUInt32BE(80877103, 4)
-    self.stream.write(buff)
+    if (self.stream.writable) {
+      self.stream.write(buff)
+    }
 
     self.attachListeners(self.stream)
 
@@ -354,6 +356,10 @@ Connection.prototype.end = function () {
   // 0x58 = 'X'
   this.writer.add(emptyBuffer)
   this._ending = true
+  if (!this.stream.writable) {
+    this.stream.end()
+    return
+  }
   return this.stream.write(END_BUFFER, () => {
     this.stream.end()
   })

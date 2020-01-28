@@ -211,14 +211,14 @@ describe('pool error handling', function () {
       const pool = new Pool({ max: 1, port: closeServer.address().port, host: 'localhost' })
       pool.connect((err) => {
         expect(err).to.be.an(Error)
-        if (err.errno) {
-          expect(err.errno).to.be('ECONNRESET')
+        if (err.code) {
+          expect(err.code).to.be('ECONNRESET')
         }
       })
       pool.connect((err) => {
         expect(err).to.be.an(Error)
-        if (err.errno) {
-          expect(err.errno).to.be('ECONNRESET')
+        if (err.code) {
+          expect(err.code).to.be('ECONNRESET')
         }
         closeServer.close(() => {
           pool.end(done)
