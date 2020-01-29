@@ -40,11 +40,17 @@ function parse(str) {
     config.host = result.hostname;
   }
 
+  // If the host is missing it might be a URL-encoded path to a socket.
+  var pathname = result.pathname;
+  if (!config.host && pathname && pathname.toLowerCase().startsWith('%2f')) {
+    var pathnameSplit = pathname.split('/');
+    config.host = decodeURIComponent(pathnameSplit[0]);
+    pathname = pathnameSplit.splice(1).join('/');
+  }
   // result.pathname is not always guaranteed to have a '/' prefix (e.g. relative urls)
   // only strip the slash if it is present.
-  var pathname = result.pathname;
   if (pathname && pathname.charAt(0) === '/') {
-    pathname = result.pathname.slice(1) || null;
+    pathname = pathname.slice(1) || null;
   }
   config.database = pathname && decodeURI(pathname);
 
