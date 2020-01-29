@@ -42,7 +42,7 @@ function parse(str) {
 
   // If the host is missing it might be a URL-encoded path to a socket.
   var pathname = result.pathname;
-  if (!config.host && pathname && pathname.toLowerCase().startsWith('%2f')) {
+  if (!config.host && pathname && /^%2f/i.test(pathname)) {
     var pathnameSplit = pathname.split('/');
     config.host = decodeURIComponent(pathnameSplit[0]);
     pathname = pathnameSplit.splice(1).join('/');
