@@ -4,6 +4,11 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@7.18.0
+
+- This will likely be the last minor release before pg@8.0.
+- This version contains a few bug fixes and adds a deprecation warning for [a pending change in 8.0](https://github.com/brianc/node-postgres/issues/2009#issuecomment-579371651) which will flip the default behavior over SSL from `rejectUnauthorized` from `false` to `true` making things more secure in the general use case.
+
 ### pg-query-stream@3.0.0
 
 - [Rewrote stream internals](https://github.com/brianc/node-postgres/pull/2051) to better conform to node stream semantics.  This should make pg-query-stream much better at respecting [highWaterMark](https://nodejs.org/api/stream.html#stream_new_stream_readable_options) and getting rid of some edge case bugs when using pg-query-stream as an async iterator.  Due to the size and nature of this change (effectively a full re-write) it's safest to bump the semver major here, though almost all tests remain untouched and still passing, which brings us to a breaking change to the API....
