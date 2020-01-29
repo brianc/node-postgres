@@ -120,6 +120,19 @@ describe('parse', function(){
     (subject.database === null).should.equal(true);
   });
 
+  it('configuration parameter host', function() {
+    var subject = parse('pg://user:pass@/dbname?host=/unix/socket');
+    subject.user.should.equal('user');
+    subject.password.should.equal('pass');
+    subject.host.should.equal('/unix/socket');
+    subject.database.should.equal('dbname');
+  });
+
+  it('configuration parameter host overrides url host', function() {
+    var subject = parse('pg://user:pass@localhost/dbname?host=/unix/socket');
+    subject.host.should.equal('/unix/socket');
+  });
+
   it('configuration parameter application_name', function(){
     var connectionString = 'pg:///?application_name=TheApp';
     var subject = parse(connectionString);

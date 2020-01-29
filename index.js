@@ -35,7 +35,10 @@ function parse(str) {
     config.client_encoding = result.query.encoding;
     return config;
   }
-  config.host = result.hostname;
+  if (!config.host) {
+    // Only set the host if there is no equivalent query param.
+    config.host = result.hostname;
+  }
 
   // result.pathname is not always guaranteed to have a '/' prefix (e.g. relative urls)
   // only strip the slash if it is present.
