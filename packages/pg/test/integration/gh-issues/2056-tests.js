@@ -5,6 +5,7 @@ var assert = require('assert')
 
 const suite = new helper.Suite()
 
+
 suite.test('All queries should return a result array', (done) => {
   const client = new helper.pg.Client()
   client.connect()
