@@ -32,8 +32,11 @@ suite.test('emits notify message', function (done) {
   }))
 })
 
+const isInTravis = process.env.CI === 'true'
+const skip = !isInTravis
+
 // this test fails on travis due to their config
-suite.test('emits notice message', function (done) {
+suite.test('emits notice message', skip, function (done) {
   if (helper.args.native) {
     console.error('notice messages do not work curreintly with node-libpq')
     return done()
