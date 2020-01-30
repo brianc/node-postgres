@@ -46,11 +46,11 @@ var Client = module.exports = function (config) {
 
   // "hiding" the password so it doesn't show up in stack traces
   // or if the client is console.logged
-  const hiddenPassword = cp.password
   Object.defineProperty(this, 'password', {
+    configurable: true,
     enumerable: false,
     writable: true,
-    value: hiddenPassword
+    value: cp.password
   })
   this.database = cp.database
   this.host = cp.host
