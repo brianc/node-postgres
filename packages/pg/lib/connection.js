@@ -115,17 +115,7 @@ Connection.prototype.connect = function (port, host) {
     }
     self.stream = tls.connect(options)
     self.stream.on('error', reportStreamError)
-
-    // send SSLRequest packet
-    const buff = Buffer.alloc(8)
-    buff.writeUInt32BE(8)
-    buff.writeUInt32BE(80877103, 4)
-    if (self.stream.writable) {
-      self.stream.write(buff)
-    }
-
     self.attachListeners(self.stream)
-
     self.emit('sslconnect')
   })
 }
