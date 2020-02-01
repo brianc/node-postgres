@@ -120,6 +120,43 @@ describe('parse', function(){
     (subject.database === null).should.equal(true);
   });
 
+  it('configuration parameter host', function() {
+    var subject = parse('pg://user:pass@/dbname?host=/unix/socket');
+    subject.user.should.equal('user');
+    subject.password.should.equal('pass');
+    subject.host.should.equal('/unix/socket');
+    subject.database.should.equal('dbname');
+  });
+
+  it('configuration parameter host overrides url host', function() {
+    var subject = parse('pg://user:pass@localhost/dbname?host=/unix/socket');
+    subject.host.should.equal('/unix/socket');
+  });
+
+  it('url with encoded socket', function() {
+    var subject = parse('pg://user:pass@%2Funix%2Fsocket/dbname');
+    subject.user.should.equal('user');
+    subject.password.should.equal('pass');
+    subject.host.should.equal('/unix/socket');
+    subject.database.should.equal('dbname');
+  });
+
+  it('url with real host and an encoded db name', function() {
+    var subject = parse('pg://user:pass@localhost/%2Fdbname');
+    subject.user.should.equal('user');
+    subject.password.should.equal('pass');
+    subject.host.should.equal('localhost');
+    subject.database.should.equal('%2Fdbname');
+  });
+
+  it('configuration parameter host treats encoded socket as part of the db name', function() {
+    var subject = parse('pg://user:pass@%2Funix%2Fsocket/dbname?host=localhost');
+    subject.user.should.equal('user');
+    subject.password.should.equal('pass');
+    subject.host.should.equal('localhost');
+    subject.database.should.equal('%2Funix%2Fsocket/dbname');
+  });
+
   it('configuration parameter application_name', function(){
     var connectionString = 'pg:///?application_name=TheApp';
     var subject = parse(connectionString);
