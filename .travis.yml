@@ -10,7 +10,7 @@ env:
 node_js:
   - lts/dubnium
   - lts/erbium
-  - 13.6
+  - 13
 
 addons:
   postgresql: "10"
