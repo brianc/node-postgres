@@ -21,7 +21,7 @@
   "dependencies": {
     "buffer-writer": "2.0.0",
     "packet-reader": "1.0.0",
-    "pg-connection-string": "0.1.3",
+    "pg-connection-string": "2.1.0",
     "pg-packet-stream": "^1.1.0",
     "pg-pool": "^2.0.10",
     "pg-types": "^2.1.0",
