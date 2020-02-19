@@ -597,7 +597,7 @@ Connection.prototype._readValue = function (buffer) {
 }
 
 // parses error
-Connection.prototype.parseE = function (buffer, length) {
+Connection.prototype.parseE = function (buffer, length, isNotice) {
   var fields = {}
   var fieldType = this.readString(buffer, 1)
   while (fieldType !== '\0') {
@@ -606,10 +606,10 @@ Connection.prototype.parseE = function (buffer, length) {
   }
 
   // the msg is an Error instance
-  var msg = new Error(fields.M)
+  var msg = isNotice ? { message: fields.M } : new Error(fields.M)
 
   // for compatibility with Message
-  msg.name = 'error'
+  msg.name = isNotice ? 'notice' : 'error'
   msg.length = length
 
   msg.severity = fields.S
@@ -633,7 +633,7 @@ Connection.prototype.parseE = function (buffer, length) {
 
 // same thing, different name
 Connection.prototype.parseN = function (buffer, length) {
-  var msg = this.parseE(buffer, length)
+  var msg = this.parseE(buffer, length, true)
   msg.name = 'notice'
   return msg
 }
