@@ -15,6 +15,7 @@ class PgQueryStream extends Readable {
     this.handleCommandComplete = this.cursor.handleCommandComplete.bind(this.cursor)
     this.handleReadyForQuery = this.cursor.handleReadyForQuery.bind(this.cursor)
     this.handleError = this.cursor.handleError.bind(this.cursor)
+    this.handleEmptyQuery = this.cursor.handleEmptyQuery.bind(this.cursor)
   }
 
   submit(connection) {
