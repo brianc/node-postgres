@@ -563,10 +563,10 @@ Client.prototype.end = function (cb) {
   }
 
   if (cb) {
-    this.connection.stream.once('close', cb)
+    this.connection.once('end', cb)
   } else {
     return new this._Promise((resolve) => {
-      this.connection.stream.once('close', resolve)
+      this.connection.once('end', resolve)
     })
   }
 }
