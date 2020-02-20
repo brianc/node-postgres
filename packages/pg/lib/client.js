@@ -545,6 +545,15 @@ Client.prototype.query = function (config, values, callback) {
 Client.prototype.end = function (cb) {
   this._ending = true
 
+  // if we have never connected, then end is a noop, callback immediately
+  if (this.connection.stream.pending && !this.connection.stream.connecting) {
+    if (cb) {
+      cb()
+    } else {
+      return Promise.resolve()
+    }
+  }
+
   if (this.activeQuery || !this._queryable) {
     // if we have an active query we need to force a disconnect
     // on the socket - otherwise a hung query could block end forever
@@ -554,10 +563,10 @@ Client.prototype.end = function (cb) {
   }
 
   if (cb) {
-    this.connection.once('end', cb)
+    this.connection.stream.once('close', cb)
   } else {
     return new this._Promise((resolve) => {
-      this.connection.once('end', resolve)
+      this.connection.stream.once('close', resolve)
     })
   }
 }
