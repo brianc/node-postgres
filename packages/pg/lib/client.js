@@ -550,7 +550,7 @@ Client.prototype.end = function (cb) {
     if (cb) {
       cb()
     } else {
-      return Promise.resolve()
+      return this._Promise.resolve()
     }
   }
 
