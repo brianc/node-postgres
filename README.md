@@ -75,7 +75,7 @@ I will __happily__ accept your pull request if it:
 - looks reasonable
 - does not break backwards compatibility
 
-If your change involves breaking backwards compatibility please please point that out in the pull request & we can discuss & plan when and how to release it and what type of documentation or communicate it will require.
+If your change involves breaking backwards compatibility please please point that out in the pull request & we can discuss & plan when and how to release it and what type of documentation or communication it will require.
 
 ## Troubleshooting and FAQ
 
