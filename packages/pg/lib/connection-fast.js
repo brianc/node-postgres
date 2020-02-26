@@ -13,7 +13,7 @@ var util = require('util')
 
 var Writer = require('buffer-writer')
 // eslint-disable-next-line
-var PacketStream = require('pg-packet-stream')
+const { parse } = require('pg-packet-stream')
 
 var warnDeprecation = require('./compat/warn-deprecation')
 
@@ -122,19 +122,15 @@ Connection.prototype.connect = function (port, host) {
 }
 
 Connection.prototype.attachListeners = function (stream) {
-  var self = this
-  const mode = this._mode === TEXT_MODE ? 'text' : 'binary'
-  const packetStream = new PacketStream.PgPacketStream({ mode })
-  this.stream.pipe(packetStream)
-  packetStream.on('data', (msg) => {
-    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
-    if (self._emitMessage) {
-      self.emit('message', msg)
-    }
-    self.emit(eventName, msg)
+  stream.on('end', () => {
+    this.emit('end')
   })
-  stream.on('end', function () {
-    self.emit('end')
+  parse(stream, (msg) => {
+    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+    if (this._emitMessage) {
+      this.emit('message', msg)
+    }
+    this.emit(eventName, msg)
   })
 }
 
