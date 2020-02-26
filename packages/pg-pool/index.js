@@ -116,11 +116,20 @@ class Pool extends EventEmitter {
     const pendingItem = this._pendingQueue.shift()
     if (this._idle.length) {
       const idleItem = this._idle.pop()
-      clearTimeout(idleItem.timeoutId)
       const client = idleItem.client
-      const idleListener = idleItem.idleListener
+      clearTimeout(idleItem.timeoutId)
 
-      return this._acquireClient(client, pendingItem, idleListener, false)
+      // TODO(bmc): we need a better state represetation on the client itself
+      // to indicate if it's connecting, idle, running a query, closed, etc...
+      // but for now we can look at it's stream.
+      // remove this client, it's died in the background - this can happen
+      // in aws lambdas - they go idle and the streams are closed without an error
+      if (client.connection.stream.readyState !== 'open') {
+        this._remove(client)
+      } else {
+        const idleListener = idleItem.idleListener
+        return this._acquireClient(client, pendingItem, idleListener, false)
+      }
     }
     if (!this._isFull()) {
       return this.newClient(pendingItem)
