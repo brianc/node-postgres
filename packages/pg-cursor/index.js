@@ -120,6 +120,9 @@ Cursor.prototype._sendRows = function () {
 
 Cursor.prototype.handleCommandComplete = function (msg) {
   this._result.addCommandComplete(msg)
+  // The cursor might have been .close()'d right before this listener gets
+  // called. Let's not close the portal twice.
+  if (this.state === 'done') return
   this._closePortal()
 }
 
