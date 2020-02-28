@@ -113,11 +113,10 @@ Connection.prototype.attachListeners = function (stream) {
   const packetStream = new PacketStream.PgPacketStream({ mode })
   this.stream.pipe(packetStream)
   packetStream.on('data', (msg) => {
-    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
     if (self._emitMessage) {
       self.emit('message', msg)
     }
-    self.emit(eventName, msg)
+    self.emit(msg.name, msg)
   })
   stream.on('end', function () {
     self.emit('end')

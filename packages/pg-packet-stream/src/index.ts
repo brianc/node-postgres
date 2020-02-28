@@ -1,5 +1,5 @@
 import { Transform, TransformCallback, TransformOptions } from 'stream';
-import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password } from './messages';
+import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, ErrorFields, DatabaseError, Notice, ErrorMessage, NoticeMessage, BackendMessage, MessageName, AuthenticationMD5Password } from './messages';
 import { BufferReader } from './BufferReader';
 import assert from 'assert'
 
@@ -130,9 +130,9 @@ export class PgPacketStream extends Transform {
       case MessageCodes.BackendKeyData:
         return this.parseBackendKeyData(offset, length, bytes);
       case MessageCodes.ErrorMessage:
-        return this.parseErrorMessage(offset, length, bytes, MessageName.error);
+        return this.parseErrorMessage(offset, length, bytes);
       case MessageCodes.NoticeMessage:
-        return this.parseErrorMessage(offset, length, bytes, MessageName.notice);
+        return this.parseNoticeMessage(offset, length, bytes);
       case MessageCodes.RowDescriptionMessage:
         return this.parseRowDescriptionMessage(offset, length, bytes);
       case MessageCodes.CopyIn:
@@ -295,7 +295,7 @@ export class PgPacketStream extends Transform {
     return message;
   }
 
-  private parseErrorMessage(offset: number, length: number, bytes: Buffer, name: MessageName) {
+  private parseErrorFields(offset: number, length: number, bytes: Buffer): ErrorFields {
     this.reader.setBuffer(offset, bytes);
     var fields: Record<string, string> = {}
     var fieldType = this.reader.string(1)
@@ -304,25 +304,38 @@ export class PgPacketStream extends Transform {
       fieldType = this.reader.string(1)
     }
 
-    // the msg is an Error instance
-    var message = new DatabaseError(fields.M, length, name)
+    return {
+      message: fields.M,
+      severity: fields.S,
+      code: fields.C,
+      detail: fields.D,
+      hint: fields.H,
+      position: fields.P,
+      internalPosition: fields.p,
+      internalQuery: fields.q,
+      where: fields.W,
+      schema: fields.s,
+      table: fields.t,
+      column: fields.c,
+      dataType: fields.d,
+      constraint: fields.n,
+      file: fields.F,
+      line: fields.L,
+      routine: fields.R,
+    }
+  }
 
-    message.severity = fields.S
-    message.code = fields.C
-    message.detail = fields.D
-    message.hint = fields.H
-    message.position = fields.P
-    message.internalPosition = fields.p
-    message.internalQuery = fields.q
-    message.where = fields.W
-    message.schema = fields.s
-    message.table = fields.t
-    message.column = fields.c
-    message.dataType = fields.d
-    message.constraint = fields.n
-    message.file = fields.F
-    message.line = fields.L
-    message.routine = fields.R
-    return message;
+  private parseErrorMessage(offset: number, length: number, bytes: Buffer) {
+    let fields = this.parseErrorFields(offset, length, bytes)
+    let error = new DatabaseError(fields.message)
+    Object.assign(error, fields)
+    return new ErrorMessage(length, error)
+  }
+
+  private parseNoticeMessage(offset: number, length: number, bytes: Buffer) {
+    let fields = this.parseErrorFields(offset, length, bytes)
+    let notice = new Notice()
+    Object.assign(notice, fields)
+    return new NoticeMessage(length, notice)
   }
 }

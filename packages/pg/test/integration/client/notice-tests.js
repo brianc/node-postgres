@@ -57,7 +57,6 @@ $$;
     assert.ok(notice != null)
     // notice messages should not be error instances
     assert(notice instanceof Error === false)
-    assert.strictEqual(notice.name, 'notice')
     assert.strictEqual(notice.message, 'hello, world!')
     assert.strictEqual(notice.detail, 'this is a test')
     assert.strictEqual(notice.code, '23505')

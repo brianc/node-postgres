@@ -25,7 +25,7 @@ export const enum MessageName {
   authenticationSASL = 'authenticationSASL',
   authenticationSASLContinue = 'authenticationSASLContinue',
   authenticationSASLFinal = 'authenticationSASLFinal',
-  error = 'error',
+  errorMessage = 'errorMessage',
   notice = 'notice',
 }
 
@@ -74,7 +74,8 @@ export const copyDone: BackendMessage = {
   length: 4,
 }
 
-export class DatabaseError extends Error {
+interface ErrorFields {
+  public message: string | undefined;
   public severity: string | undefined;
   public code: string | undefined;
   public detail: string | undefined;
@@ -91,8 +92,26 @@ export class DatabaseError extends Error {
   public file: string | undefined;
   public line: string | undefined;
   public routine: string | undefined;
-  constructor(message: string, public readonly length: number, public readonly name: MessageName) {
-    super(message)
+}
+
+export class DatabaseError extends Error {
+}
+
+export interface DatabaseError extends Error, ErrorFields {
+}
+
+export class Notice extends ErrorFields {
+}
+
+export class ErrorMessage {
+  public readonly name = MessageName.errorMessage;
+  constructor(public readonly length: number, public readonly error: DatabaseError) {
+  }
+}
+
+export class NoticeMessage {
+  public readonly name = MessageName.notice;
+  constructor(public readonly length: number, public readonly notice: Notice) {
   }
 }
 

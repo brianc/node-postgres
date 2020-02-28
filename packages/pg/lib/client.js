@@ -205,6 +205,10 @@ Client.prototype._connect = function (callback) {
     this.emit('error', err)
   }
 
+  const connectingErrorMessageHandler = (msg) => {
+    connectingErrorHandler(msg.error)
+  }
+
   const connectedErrorHandler = (err) => {
     this._queryable = false
     this._errorAllQueries(err)
@@ -215,16 +219,16 @@ Client.prototype._connect = function (callback) {
     const activeQuery = this.activeQuery
 
     if (!activeQuery) {
-      connectedErrorHandler(msg)
+      connectedErrorHandler(msg.error)
       return
     }
 
     this.activeQuery = null
-    activeQuery.handleError(msg, con)
+    activeQuery.handleError(msg.error, con)
   }
 
   con.on('error', connectingErrorHandler)
-  con.on('errorMessage', connectingErrorHandler)
+  con.on('errorMessage', connectingErrorMessageHandler)
 
   // hook up query handling events to connection
   // after the connection initially becomes ready for queries
@@ -233,7 +237,7 @@ Client.prototype._connect = function (callback) {
     self._connected = true
     self._attachListeners(con)
     con.removeListener('error', connectingErrorHandler)
-    con.removeListener('errorMessage', connectingErrorHandler)
+    con.removeListener('errorMessage', connectingErrorMessageHandler)
     con.on('error', connectedErrorHandler)
     con.on('errorMessage', connectedErrorMessageHandler)
     clearTimeout(connectionTimeoutHandle)
@@ -288,7 +292,7 @@ Client.prototype._connect = function (callback) {
   })
 
   con.on('notice', function (msg) {
-    self.emit('notice', msg)
+    self.emit('notice', msg.notice)
   })
 }
 

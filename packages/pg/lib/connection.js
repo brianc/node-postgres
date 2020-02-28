@@ -113,11 +113,10 @@ Connection.prototype.attachListeners = function (stream) {
     var packet = self._reader.read()
     while (packet) {
       var msg = self.parseMessage(packet)
-      var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
       if (self._emitMessage) {
         self.emit('message', msg)
       }
-      self.emit(eventName, msg)
+      self.emit(msg.name, msg)
       packet = self._reader.read()
     }
   })
@@ -587,8 +586,7 @@ Connection.prototype._readValue = function (buffer) {
   return this.readBytes(buffer, length)
 }
 
-// parses error
-Connection.prototype.parseE = function (buffer, length, isNotice) {
+Connection.prototype._parseErrorFields = function (buffer, length) {
   var fields = {}
   var fieldType = this.readString(buffer, 1)
   while (fieldType !== '\0') {
@@ -596,36 +594,40 @@ Connection.prototype.parseE = function (buffer, length, isNotice) {
     fieldType = this.readString(buffer, 1)
   }
 
-  // the msg is an Error instance
-  var msg = isNotice ? { message: fields.M } : new Error(fields.M)
+  return {
+    message: fields.M,
+    severity: fields.S,
+    code: fields.C,
+    detail: fields.D,
+    hint: fields.H,
+    position: fields.P,
+    internalPosition: fields.p,
+    internalQuery: fields.q,
+    where: fields.W,
+    schema: fields.s,
+    table: fields.t,
+    column: fields.c,
+    dataType: fields.d,
+    constraint: fields.n,
+    file: fields.F,
+    line: fields.L,
+    routine: fields.R,
+  }
+}
 
-  // for compatibility with Message
-  msg.name = isNotice ? 'notice' : 'error'
-  msg.length = length
-
-  msg.severity = fields.S
-  msg.code = fields.C
-  msg.detail = fields.D
-  msg.hint = fields.H
-  msg.position = fields.P
-  msg.internalPosition = fields.p
-  msg.internalQuery = fields.q
-  msg.where = fields.W
-  msg.schema = fields.s
-  msg.table = fields.t
-  msg.column = fields.c
-  msg.dataType = fields.d
-  msg.constraint = fields.n
-  msg.file = fields.F
-  msg.line = fields.L
-  msg.routine = fields.R
+// parses error
+Connection.prototype.parseE = function (buffer, length) {
+  var msg = new Message('errorMessage', length)
+  var parsedFields = this._parseErrorFields(buffer, length)
+  msg.error = Object.assign(new Error(parsedFields.message), parsedFields)
   return msg
 }
 
 // same thing, different name
 Connection.prototype.parseN = function (buffer, length) {
-  var msg = this.parseE(buffer, length, true)
-  msg.name = 'notice'
+  var msg = new Message('notice', length)
+  var parsedFields = this._parseErrorFields(buffer, length)
+  msg.notice = parsedFields
   return msg
 }
 
