@@ -238,7 +238,7 @@ describe('pool error handling', function () {
     })
 
     setTimeout(() => {
-      pool._clients[0].end()
+      pool._clients[0].client.end()
     }, 1000)
   })
 })

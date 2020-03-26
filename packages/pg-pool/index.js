@@ -11,9 +11,16 @@ const removeWhere = (list, predicate) => {
     : list.splice(i, 1)[0]
 }
 
-class IdleItem {
-  constructor (client, idleListener, timeoutId) {
+class ClientItem {
+  constructor(client, useCount) {
     this.client = client
+    this.useCount = useCount
+  }
+}
+
+class IdleItem {
+  constructor (clientItem, idleListener, timeoutId) {
+    this.clientItem = clientItem
     this.idleListener = idleListener
     this.timeoutId = timeoutId
   }
@@ -45,18 +52,18 @@ function promisify (Promise, callback) {
   return { callback: cb, result: result }
 }
 
-function makeIdleListener (pool, client) {
+function makeIdleListener (pool, clientItem) {
   return function idleListener (err) {
-    err.client = client
+    err.client = clientItem.client
 
-    client.removeListener('error', idleListener)
-    client.on('error', () => {
+    clientItem.client.removeListener('error', idleListener)
+    clientItem.client.on('error', () => {
       pool.log('additional client error after disconnection due to error', err)
     })
-    pool._remove(client)
+    pool._remove(clientItem)
     // TODO - document that once the pool emits an error
     // the client has already been closed & purged and is unusable
-    pool.emit('error', err, client)
+    pool.emit('error', err, clientItem.client)
   }
 }
 
@@ -65,6 +72,7 @@ class Pool extends EventEmitter {
     super()
     this.options = Object.assign({}, options)
     this.options.max = this.options.max || this.options.poolSize || 10
+    this.options.maxUses = this.options.maxUses || Infinity
     this.log = this.options.log || function () { }
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
@@ -95,7 +103,7 @@ class Pool extends EventEmitter {
       this.log('pulse queue on ending')
       if (this._idle.length) {
         this._idle.slice().map(item => {
-          this._remove(item.client)
+          this._remove(item.clientItem)
         })
       }
       if (!this._clients.length) {
@@ -117,10 +125,10 @@ class Pool extends EventEmitter {
     if (this._idle.length) {
       const idleItem = this._idle.pop()
       clearTimeout(idleItem.timeoutId)
-      const client = idleItem.client
+      const clientItem = idleItem.clientItem
       const idleListener = idleItem.idleListener
 
-      return this._acquireClient(client, pendingItem, idleListener, false)
+      return this._acquireClient(clientItem, pendingItem, idleListener, false)
     }
     if (!this._isFull()) {
       return this.newClient(pendingItem)
@@ -128,19 +136,19 @@ class Pool extends EventEmitter {
     throw new Error('unexpected condition')
   }
 
-  _remove (client) {
+  _remove (clientItem) {
     const removed = removeWhere(
       this._idle,
-      item => item.client === client
+      item => item.clientItem === clientItem
     )
 
     if (removed !== undefined) {
       clearTimeout(removed.timeoutId)
     }
 
-    this._clients = this._clients.filter(c => c !== client)
-    client.end()
-    this.emit('remove', client)
+    this._clients = this._clients.filter(c => c !== clientItem)
+    clientItem.client.end()
+    this.emit('remove', clientItem.client)
   }
 
   connect (cb) {
@@ -191,8 +199,9 @@ class Pool extends EventEmitter {
 
   newClient (pendingItem) {
     const client = new this.Client(this.options)
-    this._clients.push(client)
-    const idleListener = makeIdleListener(this, client)
+    const clientItem = new ClientItem(client, 0)
+    this._clients.push(clientItem)
+    const idleListener = makeIdleListener(this, clientItem)
 
     this.log('checking client timeout')
 
@@ -217,7 +226,7 @@ class Pool extends EventEmitter {
       if (err) {
         this.log('client failed to connect', err)
         // remove the dead client from our list of clients
-        this._clients = this._clients.filter(c => c !== client)
+        this._clients = this._clients.filter(c => c !== clientItem)
         if (timeoutHit) {
           err.message = 'Connection terminated due to connection timeout'
         }
@@ -230,63 +239,67 @@ class Pool extends EventEmitter {
         }
       } else {
         this.log('new client connected')
-
-        return this._acquireClient(client, pendingItem, idleListener, true)
+        return this._acquireClient(clientItem, pendingItem, idleListener, true)
       }
     })
   }
 
   // acquire a client for a pending work item
-  _acquireClient (client, pendingItem, idleListener, isNew) {
+  _acquireClient (clientItem, pendingItem, idleListener, isNew) {
     if (isNew) {
-      this.emit('connect', client)
+      this.emit('connect', clientItem.client)
     }
 
-    this.emit('acquire', client)
+    this.emit('acquire', clientItem.client)
 
     let released = false
 
-    client.release = (err) => {
+    clientItem.useCount += 1
+
+    clientItem.client.release = (err) => {
       if (released) {
         throwOnDoubleRelease()
       }
 
       released = true
-      this._release(client, idleListener, err)
+      this._release(clientItem, idleListener, err)
     }
 
-    client.removeListener('error', idleListener)
+    clientItem.client.removeListener('error', idleListener)
 
     if (!pendingItem.timedOut) {
       if (isNew && this.options.verify) {
-        this.options.verify(client, (err) => {
+        this.options.verify(clientItem.client, (err) => {
           if (err) {
-            client.release(err)
+            clientItem.client.release(err)
             return pendingItem.callback(err, undefined, NOOP)
           }
 
-          pendingItem.callback(undefined, client, client.release)
+          pendingItem.callback(undefined, clientItem.client, clientItem.client.release)
         })
       } else {
-        pendingItem.callback(undefined, client, client.release)
+        pendingItem.callback(undefined, clientItem.client, clientItem.client.release)
       }
     } else {
       if (isNew && this.options.verify) {
-        this.options.verify(client, client.release)
+        this.options.verify(clientItem.client, clientItem.client.release)
       } else {
-        client.release()
+        clientItem.client.release()
       }
     }
   }
 
   // release a client back to the poll, include an error
   // to remove it from the pool
-  _release (client, idleListener, err) {
-    client.on('error', idleListener)
+  _release (clientItem, idleListener, err) {
+    clientItem.client.on('error', idleListener)
 
     // TODO(bmc): expose a proper, public interface _queryable and _ending
-    if (err || this.ending || !client._queryable || client._ending) {
-      this._remove(client)
+    if (err || this.ending || !clientItem.client._queryable || clientItem.client._ending || clientItem.useCount >= this.options.maxUses) {
+      if (clientItem.useCount >= this.options.maxUses) {
+        this.log('removing expended client')
+      }
+      this._remove(clientItem)
       this._pulseQueue()
       return
     }
@@ -296,11 +309,11 @@ class Pool extends EventEmitter {
     if (this.options.idleTimeoutMillis) {
       tid = setTimeout(() => {
         this.log('remove idle client')
-        this._remove(client)
+        this._remove(clientItem)
       }, this.options.idleTimeoutMillis)
     }
 
-    this._idle.push(new IdleItem(client, idleListener, tid))
+    this._idle.push(new IdleItem(clientItem, idleListener, tid))
     this._pulseQueue()
   }
 

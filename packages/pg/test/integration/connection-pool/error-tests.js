@@ -111,7 +111,7 @@ suite.test('handles socket error during pool.query and destroys it immediately',
     })
 
     setTimeout(() => {
-      pool._clients[0].native.cancel((err) => {
+      pool._clients[0].client.native.cancel((err) => {
         assert.ifError(err)
       })
     }, 100)
@@ -122,7 +122,7 @@ suite.test('handles socket error during pool.query and destroys it immediately',
       cb()
     })
 
-    const stream = pool._clients[0].connection.stream
+    const stream = pool._clients[0].client.connection.stream
     setTimeout(() => {
       stream.emit('error', new Error('network issue'))
     }, 100)
