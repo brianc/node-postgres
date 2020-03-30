@@ -15,8 +15,6 @@ var Writer = require('buffer-writer')
 // eslint-disable-next-line
 var PacketStream = require('pg-packet-stream')
 
-var warnDeprecation = require('./compat/warn-deprecation')
-
 var TEXT_MODE = 0
 
 // TODO(bmc) support binary mode here
@@ -95,21 +93,9 @@ Connection.prototype.connect = function (port, host) {
         return self.emit('error', new Error('There was an error establishing an SSL connection'))
     }
     var tls = require('tls')
-    const options = {
-      socket: self.stream,
-      checkServerIdentity: self.ssl.checkServerIdentity || tls.checkServerIdentity,
-      rejectUnauthorized: self.ssl.rejectUnauthorized,
-      ca: self.ssl.ca,
-      pfx: self.ssl.pfx,
-      key: self.ssl.key,
-      passphrase: self.ssl.passphrase,
-      cert: self.ssl.cert,
-      secureOptions: self.ssl.secureOptions,
-      NPNProtocols: self.ssl.NPNProtocols
-    }
-    if (typeof self.ssl.rejectUnauthorized !== 'boolean') {
-      warnDeprecation('Implicit disabling of certificate verification is deprecated and will be removed in pg 8. Specify `rejectUnauthorized: true` to require a valid CA or `rejectUnauthorized: false` to explicitly opt out of MITM protection.', 'PG-SSL-VERIFY')
-    }
+    const options = Object.assign({
+      socket: self.stream
+    }, self.ssl)
     if (net.isIP(host) === 0) {
       options.servername = host
     }

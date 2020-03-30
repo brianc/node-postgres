@@ -43,7 +43,15 @@ var Client = module.exports = function (config) {
   // for the time being. TODO: deprecate all this jazz
   var cp = this.connectionParameters = new ConnectionParameters(config)
   this.user = cp.user
-  this.password = cp.password
+
+  // "hiding" the password so it doesn't show up in stack traces
+  // or if the client is console.logged
+  Object.defineProperty(this, 'password', {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: cp.password
+  })
   this.database = cp.database
   this.host = cp.host
   this.port = cp.port
