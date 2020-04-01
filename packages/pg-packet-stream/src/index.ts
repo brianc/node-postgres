@@ -1,5 +1,5 @@
-import { Transform, TransformCallback, TransformOptions } from 'stream';
-import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password } from './messages';
+import { TransformOptions } from 'stream';
+import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password, NoticeMessage } from './messages';
 import { BufferReader } from './BufferReader';
 import assert from 'assert'
 
@@ -303,8 +303,9 @@ class PgPacketParser {
       fieldType = this.reader.string(1)
     }
 
-    // the msg is an Error instance
-    var message = new DatabaseError(fields.M, length, name)
+    const messageValue = fields.M
+
+    const message = name === MessageName.notice ? new NoticeMessage(length, messageValue) : new DatabaseError(messageValue, length, name)
 
     message.severity = fields.S
     message.code = fields.C

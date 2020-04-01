@@ -6,6 +6,8 @@ before_script: |
 
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
+  # test w/ new faster parsing code
+  - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PG_FAST_CONNECTION=true
 
 node_js:
   - lts/dubnium
