@@ -61,6 +61,7 @@ const run = async () => {
   console.log("insert queries:", queries);
   console.log("qps", queries / seconds);
   console.log("on my laptop best so far seen 5799 qps")
+  console.log()
   await client.end();
   await client.end();
 };

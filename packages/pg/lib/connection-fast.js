@@ -19,7 +19,7 @@ var TEXT_MODE = 0
 
 // TODO(bmc) support binary mode here
 // var BINARY_MODE = 1
-console.log('using faster connection')
+console.log('***using faster connection***')
 var Connection = function (config) {
   EventEmitter.call(this)
   config = config || {}
