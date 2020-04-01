@@ -77,9 +77,9 @@ class Pool extends EventEmitter {
     this._idle = []
     this._pendingQueue = []
     this._endCallback = undefined
-    this.finishing = false
     this.ending = false
     this.ended = false
+    this.force = false
   }
 
   _isFull () {
@@ -92,7 +92,7 @@ class Pool extends EventEmitter {
       this.log('pulse queue ended')
       return
     }
-    if (this.ending && (!this.finishing || !this._pendingQueue.length)) {
+    if (this.ending && (this.force || !this._pendingQueue.length)) {
       this.log('pulse queue on ending')
       if (this._idle.length) {
         this._idle.slice().map(item => {
@@ -358,22 +358,18 @@ class Pool extends EventEmitter {
     return response.result
   }
 
-  end (cb) {
+  end (cb, force) {
     this.log('ending')
     if (this.ending) {
       const err = new Error('Called end on pool more than once')
       return cb ? cb(err) : this.Promise.reject(err)
     }
     this.ending = true
+    this.force = force
     const promised = promisify(this.Promise, cb)
     this._endCallback = promised.callback
     this._pulseQueue()
     return promised.result
-  }
-
-  finish (cb) {
-    this.finishing = true
-    return this.end(cb)
   }
 
   get waitingCount () {
