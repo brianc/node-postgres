@@ -4,6 +4,18 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@8.0.0
+
+#### note: for detailed release notes please [check here](https://node-postgres.com/announcements#2020-02-25)
+
+- Remove versions of node older than `6 lts` from the test matrix.  `pg>=8.0` may still work on older versions but it is no longer officially supported.
+- Change default behavior when not specifying `rejectUnauthorized` with the SSL connection parameters.  Previously we defaulted to `rejectUnauthorized: false` when it was not specifically included.  We now default to `rejectUnauthorized: true.`  Manually specify `{ ssl: { rejectUnauthorized: false } }` for old behavior.
+- Change [default database](https://github.com/brianc/node-postgres/pull/1679) when not specified to use the `user` config option if available. Previously `process.env.USER` was used.
+- Change `pg.Pool` and `pg.Query` to [be](https://github.com/brianc/node-postgres/pull/2126) an [es6 class](https://github.com/brianc/node-postgres/pull/2063).
+- Make `pg.native` non enumerable.
+- `notice` messages are [no longer instances](https://github.com/brianc/node-postgres/pull/2090) of `Error`.
+- Passwords no longer [show up](https://github.com/brianc/node-postgres/pull/2070) when instances of clients or pools are logged.
+
 ### pg@7.18.0
 
 - This will likely be the last minor release before pg@8.0.
