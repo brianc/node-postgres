@@ -365,7 +365,7 @@ class Pool extends EventEmitter {
       return cb ? cb(err) : this.Promise.reject(err)
     }
     this.ending = true
-    this.force = cb === true || force
+    this.force = force
     const promised = promisify(this.Promise, cb)
     this._endCallback = promised.callback
     this._pulseQueue()
