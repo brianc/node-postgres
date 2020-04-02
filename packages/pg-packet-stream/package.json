@@ -16,7 +16,9 @@
   },
   "scripts": {
     "test": "mocha dist/**/*.test.js",
-    "prepublish": "tsc",
-    "pretest": "tsc"
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "prepublish": "yarn build",
+    "pretest": "yarn build"
   }
 }

@@ -1,8 +1,9 @@
 import buffers from './testing/test-buffers'
 import BufferList from './testing/buffer-list'
-import { PgPacketStream } from './'
+import { parse } from './'
 import assert from 'assert'
-import { Readable } from 'stream'
+import { PassThrough } from 'stream'
+import { BackendMessage } from './messages'
 
 var authOkBuffer = buffers.authenticationOk()
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
@@ -137,25 +138,14 @@ var expectedTwoRowMessage = {
   }]
 }
 
-const concat = (stream: Readable): Promise<any[]> => {
-  return new Promise((resolve) => {
-    const results: any[] = []
-    stream.on('data', item => results.push(item))
-    stream.on('end', () => resolve(results))
-  })
-}
-
 var testForMessage = function (buffer: Buffer, expectedMessage: any) {
   it('recieves and parses ' + expectedMessage.name, async () => {
-    const parser = new PgPacketStream();
-    parser.write(buffer);
-    parser.end();
-    const [lastMessage] = await concat(parser);
+    const messages = await parseBuffers([buffer])
+    const [lastMessage] = messages;
 
     for (const key in expectedMessage) {
-      assert.deepEqual(lastMessage[key], expectedMessage[key])
+      assert.deepEqual((lastMessage as any)[key], expectedMessage[key])
     }
-
   })
 }
 
@@ -195,6 +185,19 @@ var expectedNotificationResponseMessage = {
   processId: 4,
   channel: 'hi',
   payload: 'boom'
+}
+
+
+
+const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
+  const stream = new PassThrough();
+  for (const buffer of buffers) {
+    stream.write(buffer);
+  }
+  stream.end()
+  const msgs: BackendMessage[] = []
+  await parse(stream, (msg) => msgs.push(msg))
+  return msgs
 }
 
 describe('PgPacketStream', function () {
@@ -391,18 +394,9 @@ describe('PgPacketStream', function () {
   describe('split buffer, single message parsing', function () {
     var fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
 
-    const parse = async (buffers: Buffer[]): Promise<any> => {
-      const parser = new PgPacketStream();
-      for (const buffer of buffers) {
-        parser.write(buffer);
-      }
-      parser.end()
-      const [msg] = await concat(parser)
-      return msg;
-    }
-
     it('parses when full buffer comes in', async function () {
-      const message = await parse([fullBuffer]);
+      const messages = await parseBuffers([fullBuffer]);
+      const message = messages[0] as any
       assert.equal(message.fields.length, 5)
       assert.equal(message.fields[0], null)
       assert.equal(message.fields[1], 'bang')
@@ -416,7 +410,8 @@ describe('PgPacketStream', function () {
       var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
       fullBuffer.copy(secondBuffer, 0, firstBuffer.length)
-      const message = await parse([firstBuffer, secondBuffer]);
+      const messages = await parseBuffers([fullBuffer]);
+      const message = messages[0] as any
       assert.equal(message.fields.length, 5)
       assert.equal(message.fields[0], null)
       assert.equal(message.fields[1], 'bang')
@@ -447,15 +442,6 @@ describe('PgPacketStream', function () {
     dataRowBuffer.copy(fullBuffer, 0, 0)
     readyForQueryBuffer.copy(fullBuffer, dataRowBuffer.length, 0)
 
-    const parse = (buffers: Buffer[]): Promise<any[]> => {
-      const parser = new PgPacketStream();
-      for (const buffer of buffers) {
-        parser.write(buffer);
-      }
-      parser.end()
-      return concat(parser)
-    }
-
     var verifyMessages = function (messages: any[]) {
       assert.strictEqual(messages.length, 2)
       assert.deepEqual(messages[0], {
@@ -473,7 +459,7 @@ describe('PgPacketStream', function () {
     }
     // sanity check
     it('recieves both messages when packet is not split', async function () {
-      const messages = await parse([fullBuffer])
+      const messages = await parseBuffers([fullBuffer])
       verifyMessages(messages)
     })
 
@@ -482,7 +468,7 @@ describe('PgPacketStream', function () {
       var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
       fullBuffer.copy(secondBuffer, 0, firstBuffer.length)
-      const messages = await parse([firstBuffer, secondBuffer])
+      const messages = await parseBuffers([firstBuffer, secondBuffer])
       verifyMessages(messages)
     }
 

@@ -1,5 +1,5 @@
-import { Transform, TransformCallback, TransformOptions } from 'stream';
-import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password } from './messages';
+import { TransformOptions } from 'stream';
+import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password, NoticeMessage } from './messages';
 import { BufferReader } from './BufferReader';
 import assert from 'assert'
 
@@ -46,23 +46,27 @@ const enum MessageCodes {
   CopyData = 0x64, // d
 }
 
-export class PgPacketStream extends Transform {
+type MessageCallback = (msg: BackendMessage) => void;
+
+export function parse(stream: NodeJS.ReadableStream, callback: MessageCallback): Promise<void> {
+  const parser = new PgPacketParser()
+  stream.on('data', (buffer: Buffer) => parser.parse(buffer, callback))
+  return new Promise((resolve) => stream.on('end', () => resolve()))
+}
+
+class PgPacketParser {
   private remainingBuffer: Buffer = emptyBuffer;
   private reader = new BufferReader();
   private mode: Mode;
 
   constructor(opts?: StreamOptions) {
-    super({
-      ...opts,
-      readableObjectMode: true
-    })
     if (opts?.mode === 'binary') {
       throw new Error('Binary mode not supported yet')
     }
     this.mode = opts?.mode || 'text';
   }
 
-  public _transform(buffer: Buffer, encoding: string, callback: TransformCallback) {
+  public parse(buffer: Buffer, callback: MessageCallback) {
     let combinedBuffer = buffer;
     if (this.remainingBuffer.byteLength) {
       combinedBuffer = Buffer.allocUnsafe(this.remainingBuffer.byteLength + buffer.byteLength);
@@ -81,7 +85,7 @@ export class PgPacketStream extends Transform {
 
       if (fullMessageLength + offset <= combinedBuffer.byteLength) {
         const message = this.handlePacket(offset + HEADER_LENGTH, code, length, combinedBuffer);
-        this.push(message)
+        callback(message)
         offset += fullMessageLength;
       } else {
         break;
@@ -94,7 +98,6 @@ export class PgPacketStream extends Transform {
       this.remainingBuffer = combinedBuffer.slice(offset)
     }
 
-    callback(null);
   }
 
   private handlePacket(offset: number, code: number, length: number, bytes: Buffer): BackendMessage {
@@ -144,10 +147,6 @@ export class PgPacketStream extends Transform {
       default:
         assert.fail(`unknown message code: ${code.toString(16)}`)
     }
-  }
-
-  public _flush(callback: TransformCallback) {
-    this._transform(Buffer.alloc(0), 'utf-8', callback)
   }
 
   private parseReadyForQueryMessage(offset: number, length: number, bytes: Buffer) {
@@ -304,8 +303,9 @@ export class PgPacketStream extends Transform {
       fieldType = this.reader.string(1)
     }
 
-    // the msg is an Error instance
-    var message = new DatabaseError(fields.M, length, name)
+    const messageValue = fields.M
+
+    const message = name === MessageName.notice ? new NoticeMessage(length, messageValue) : new DatabaseError(messageValue, length, name)
 
     message.severity = fields.S
     message.code = fields.C

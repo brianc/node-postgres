@@ -13,13 +13,13 @@ var util = require('util')
 
 var Writer = require('buffer-writer')
 // eslint-disable-next-line
-var PacketStream = require('pg-packet-stream')
+const { parse } = require('pg-packet-stream')
 
 var TEXT_MODE = 0
 
 // TODO(bmc) support binary mode here
 // var BINARY_MODE = 1
-console.log('using faster connection')
+console.log('***using faster connection***')
 var Connection = function (config) {
   EventEmitter.call(this)
   config = config || {}
@@ -84,12 +84,13 @@ Connection.prototype.connect = function (port, host) {
   this.stream.once('data', function (buffer) {
     var responseCode = buffer.toString('utf8')
     switch (responseCode) {
-      case 'N': // Server does not support SSL connections
-        return self.emit('error', new Error('The server does not support SSL connections'))
       case 'S': // Server supports SSL connections, continue with a secure connection
         break
-      default:
-        // Any other response byte, including 'E' (ErrorResponse) indicating a server error
+      case 'N': // Server does not support SSL connections
+        self.stream.end()
+        return self.emit('error', new Error('The server does not support SSL connections'))
+      default: // Any other response byte, including 'E' (ErrorResponse) indicating a server error
+        self.stream.end()
         return self.emit('error', new Error('There was an error establishing an SSL connection'))
     }
     var tls = require('tls')
@@ -108,19 +109,15 @@ Connection.prototype.connect = function (port, host) {
 }
 
 Connection.prototype.attachListeners = function (stream) {
-  var self = this
-  const mode = this._mode === TEXT_MODE ? 'text' : 'binary'
-  const packetStream = new PacketStream.PgPacketStream({ mode })
-  this.stream.pipe(packetStream)
-  packetStream.on('data', (msg) => {
-    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
-    if (self._emitMessage) {
-      self.emit('message', msg)
-    }
-    self.emit(eventName, msg)
+  stream.on('end', () => {
+    this.emit('end')
   })
-  stream.on('end', function () {
-    self.emit('end')
+  parse(stream, (msg) => {
+    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+    if (this._emitMessage) {
+      this.emit('message', msg)
+    }
+    this.emit(eventName, msg)
   })
 }
 
@@ -331,6 +328,10 @@ Connection.prototype.end = function () {
   // 0x58 = 'X'
   this.writer.clear()
   this._ending = true
+  if (!this.stream.writable) {
+    this.stream.end()
+    return
+  }
   return this.stream.write(END_BUFFER, () => {
     this.stream.end()
   })

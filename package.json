@@ -11,6 +11,8 @@
   ],
   "scripts": {
     "test": "yarn lerna exec yarn test",
+    "build": "yarn lerna exec --scope pg-packet-stream yarn build",
+    "pretest": "yarn build",
     "lint": "yarn lerna exec --parallel yarn lint"
   },
   "devDependencies": {
