@@ -169,6 +169,16 @@ const execute = (config: ExecOpts = {}): Buffer => {
     .flush(code.execute)
 }
 
+const cancel = (processID: number, secretKey: number): Buffer => {
+  const buffer = Buffer.allocUnsafe(16)
+  buffer.writeInt32BE(16, 0)
+  buffer.writeInt16BE(1234, 4)
+  buffer.writeInt16BE(5678, 6)
+  buffer.writeInt32BE(processID, 8)
+  buffer.writeInt32BE(secretKey, 12)
+  return buffer;
+}
+
 type PortalOpts = {
   type: 'S' | 'P',
   name?: string;
@@ -220,7 +230,8 @@ const serialize = {
   end: () => endBuffer,
   copyData,
   copyDone: () => copyDoneBuffer,
-  copyFail
+  copyFail,
+  cancel
 }
 
 export { serialize }

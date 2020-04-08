@@ -39,6 +39,7 @@ export class Writer {
     return this;
   }
 
+
   public addCString(string: string): Writer {
     //just write a 0 for empty or null strings
     if (!string) {
@@ -81,39 +82,20 @@ export class Writer {
     return this;
   }
 
-  public clear(): void {
-    this.offset = 5;
-    this.headerPosition = 0;
-  }
-
-  //appends a header block to all the written data since the last
-  //subsequent header or to the beginning if there is only one data block
-  public addHeader(code: number, last: boolean = false) {
-    var origOffset = this.offset;
-    this.offset = this.headerPosition;
-    this.buffer[this.offset++] = code;
-    //length is everything in this packet minus the code
-    this.addInt32(origOffset - (this.headerPosition + 1));
-    //set next header position
-    this.headerPosition = origOffset;
-    //make space for next header
-    this.offset = origOffset;
-    if (!last) {
-      this._ensure(5);
-      this.offset += 5;
-    }
-  }
-
-  public join(code?: number): Buffer {
+  private join(code?: number): Buffer {
     if (code) {
-      this.addHeader(code, true);
+      this.buffer[this.headerPosition] = code;
+      //length is everything in this packet minus the code
+      const length = this.offset - (this.headerPosition + 1)
+      this.buffer.writeInt32BE(length, this.headerPosition + 1)
     }
     return this.buffer.slice(code ? 0 : 5, this.offset);
   }
 
   public flush(code?: number): Buffer {
     var result = this.join(code);
-    this.clear();
+    this.offset = 5;
+    this.headerPosition = 0;
     return result;
   }
 }

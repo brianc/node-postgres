@@ -11,11 +11,8 @@ var net = require('net')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 
-var Writer = require('buffer-writer')
 // eslint-disable-next-line
 const { parse, serialize } = require('pg-packet-stream')
-
-var TEXT_MODE = 0
 
 // TODO(bmc) support binary mode here
 // var BINARY_MODE = 1
@@ -28,15 +25,9 @@ var Connection = function (config) {
   this._keepAlive = config.keepAlive
   this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
   this.lastBuffer = false
-  this.lastOffset = 0
-  this.buffer = null
-  this.offset = null
-  this.encoding = config.encoding || 'utf8'
   this.parsedStatements = {}
-  this.writer = new Writer()
   this.ssl = config.ssl || false
   this._ending = false
-  this._mode = TEXT_MODE
   this._emitMessage = false
   var self = this
   this.on('newListener', function (eventName) {
@@ -130,20 +121,7 @@ Connection.prototype.startup = function (config) {
 }
 
 Connection.prototype.cancel = function (processID, secretKey) {
-  var bodyBuffer = this.writer
-    .addInt16(1234)
-    .addInt16(5678)
-    .addInt32(processID)
-    .addInt32(secretKey)
-    .flush()
-
-  var length = bodyBuffer.length + 4
-
-  var buffer = new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .join()
-  this.stream.write(buffer)
+  this._send(serialize.cancel(processID, secretKey))
 }
 
 Connection.prototype.password = function (password) {
@@ -196,19 +174,14 @@ Connection.prototype.flush = function () {
 const syncBuffer = serialize.sync()
 Connection.prototype.sync = function () {
   this._ending = true
-  // clear out any pending data in the writer
-  this.writer.clear()
-  if (this.stream.writable) {
-    this.stream.write(syncBuffer)
-    this.stream.write(flushBuffer)
-  }
+  this._send(syncBuffer)
+  this._send(flushBuffer)
 }
 
 const endBuffer = serialize.end()
 
 Connection.prototype.end = function () {
   // 0x58 = 'X'
-  this.writer.clear()
   this._ending = true
   if (!this.stream.writable) {
     this.stream.end()

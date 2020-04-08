@@ -245,8 +245,12 @@ describe('serializer', () => {
       const actual = serialize.copyDone()
       const expected = new BufferList().join(true, 'c')
       assert.deepEqual(actual, expected)
-
     })
   })
 
+  it('builds cancel message', () => {
+    const actual = serialize.cancel(3, 4)
+    const expected = new BufferList().addInt16(1234).addInt16(5678).addInt32(3).addInt32(4).join(true)
+    assert.deepEqual(actual, expected)
+  })
 })
