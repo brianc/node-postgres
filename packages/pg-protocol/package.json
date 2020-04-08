@@ -1,6 +1,7 @@
 {
-  "name": "pg-packet-stream",
+  "name": "pg-protocol",
   "version": "1.1.0",
+  "description": "The postgres client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
