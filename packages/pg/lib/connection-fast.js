@@ -11,11 +11,8 @@ var net = require('net')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 
-var Writer = require('buffer-writer')
 // eslint-disable-next-line
-const { parse } = require('pg-packet-stream')
-
-var TEXT_MODE = 0
+const { parse, serialize } = require('../../pg-protocol/dist')
 
 // TODO(bmc) support binary mode here
 // var BINARY_MODE = 1
@@ -28,15 +25,9 @@ var Connection = function (config) {
   this._keepAlive = config.keepAlive
   this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
   this.lastBuffer = false
-  this.lastOffset = 0
-  this.buffer = null
-  this.offset = null
-  this.encoding = config.encoding || 'utf8'
   this.parsedStatements = {}
-  this.writer = new Writer()
   this.ssl = config.ssl || false
   this._ending = false
-  this._mode = TEXT_MODE
   this._emitMessage = false
   var self = this
   this.on('newListener', function (eventName) {
@@ -122,244 +113,103 @@ Connection.prototype.attachListeners = function (stream) {
 }
 
 Connection.prototype.requestSsl = function () {
-  var bodyBuffer = this.writer
-    .addInt16(0x04d2)
-    .addInt16(0x162f)
-    .flush()
-
-  var length = bodyBuffer.length + 4
-
-  var buffer = new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .join()
-  this.stream.write(buffer)
+  this.stream.write(serialize.requestSsl())
 }
 
 Connection.prototype.startup = function (config) {
-  var writer = this.writer.addInt16(3).addInt16(0)
-
-  Object.keys(config).forEach(function (key) {
-    var val = config[key]
-    writer.addCString(key).addCString(val)
-  })
-
-  writer.addCString('client_encoding').addCString("'utf-8'")
-
-  var bodyBuffer = writer.addCString('').flush()
-  // this message is sent without a code
-
-  var length = bodyBuffer.length + 4
-
-  var buffer = new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .join()
-  this.stream.write(buffer)
+  this.stream.write(serialize.startup(config))
 }
 
 Connection.prototype.cancel = function (processID, secretKey) {
-  var bodyBuffer = this.writer
-    .addInt16(1234)
-    .addInt16(5678)
-    .addInt32(processID)
-    .addInt32(secretKey)
-    .flush()
-
-  var length = bodyBuffer.length + 4
-
-  var buffer = new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .join()
-  this.stream.write(buffer)
+  this._send(serialize.cancel(processID, secretKey))
 }
 
 Connection.prototype.password = function (password) {
-  // 0x70 = 'p'
-  this._send(0x70, this.writer.addCString(password))
+  this._send(serialize.password(password))
 }
 
 Connection.prototype.sendSASLInitialResponseMessage = function (mechanism, initialResponse) {
-  // 0x70 = 'p'
-  this.writer
-    .addCString(mechanism)
-    .addInt32(Buffer.byteLength(initialResponse))
-    .addString(initialResponse)
-
-  this._send(0x70)
+  this._send(serialize.sendSASLInitialResponseMessage(mechanism, initialResponse))
 }
 
 Connection.prototype.sendSCRAMClientFinalMessage = function (additionalData) {
-  // 0x70 = 'p'
-  this.writer.addString(additionalData)
-
-  this._send(0x70)
+  this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
 }
 
-Connection.prototype._send = function (code, more) {
+Connection.prototype._send = function (buffer) {
   if (!this.stream.writable) {
     return false
   }
-  return this.stream.write(this.writer.flush(code))
+  return this.stream.write(buffer)
 }
 
 Connection.prototype.query = function (text) {
-  // 0x51 = Q
-  this.stream.write(this.writer.addCString(text).flush(0x51))
+  this._send(serialize.query(text))
 }
 
 // send parse message
 Connection.prototype.parse = function (query) {
-  // expect something like this:
-  // { name: 'queryName',
-  //   text: 'select * from blah',
-  //   types: ['int8', 'bool'] }
-
-  // normalize missing query names to allow for null
-  query.name = query.name || ''
-  if (query.name.length > 63) {
-    /* eslint-disable no-console */
-    console.error('Warning! Postgres only supports 63 characters for query names.')
-    console.error('You supplied %s (%s)', query.name, query.name.length)
-    console.error('This can cause conflicts and silent errors executing queries')
-    /* eslint-enable no-console */
-  }
-  // normalize null type array
-  query.types = query.types || []
-  var len = query.types.length
-  var buffer = this.writer
-    .addCString(query.name) // name of query
-    .addCString(query.text) // actual query text
-    .addInt16(len)
-  for (var i = 0; i < len; i++) {
-    buffer.addInt32(query.types[i])
-  }
-
-  var code = 0x50
-  this._send(code)
-  this.flush()
+  this._send(serialize.parse(query))
 }
 
 // send bind message
 // "more" === true to buffer the message until flush() is called
 Connection.prototype.bind = function (config) {
-  // normalize config
-  config = config || {}
-  config.portal = config.portal || ''
-  config.statement = config.statement || ''
-  config.binary = config.binary || false
-  var values = config.values || []
-  var len = values.length
-  var useBinary = false
-  for (var j = 0; j < len; j++) {
-    useBinary |= values[j] instanceof Buffer
-  }
-  var buffer = this.writer.addCString(config.portal).addCString(config.statement)
-  if (!useBinary) {
-    buffer.addInt16(0)
-  } else {
-    buffer.addInt16(len)
-    for (j = 0; j < len; j++) {
-      buffer.addInt16(values[j] instanceof Buffer)
-    }
-  }
-  buffer.addInt16(len)
-  for (var i = 0; i < len; i++) {
-    var val = values[i]
-    if (val === null || typeof val === 'undefined') {
-      buffer.addInt32(-1)
-    } else if (val instanceof Buffer) {
-      buffer.addInt32(val.length)
-      buffer.add(val)
-    } else {
-      buffer.addInt32(Buffer.byteLength(val))
-      buffer.addString(val)
-    }
-  }
-
-  if (config.binary) {
-    buffer.addInt16(1) // format codes to use binary
-    buffer.addInt16(1)
-  } else {
-    buffer.addInt16(0) // format codes to use text
-  }
-  // 0x42 = 'B'
-  this._send(0x42)
-  this.flush()
+  this._send(serialize.bind(config))
 }
 
 // send execute message
 // "more" === true to buffer the message until flush() is called
 Connection.prototype.execute = function (config) {
-  config = config || {}
-  config.portal = config.portal || ''
-  config.rows = config.rows || ''
-  this.writer.addCString(config.portal).addInt32(config.rows)
-
-  // 0x45 = 'E'
-  this._send(0x45)
-  this.flush()
+  this._send(serialize.execute(config))
 }
 
-var emptyBuffer = Buffer.alloc(0)
-
-const flushBuffer = Buffer.from([0x48, 0x00, 0x00, 0x00, 0x04])
+const flushBuffer = serialize.flush()
 Connection.prototype.flush = function () {
   if (this.stream.writable) {
     this.stream.write(flushBuffer)
   }
 }
 
-const syncBuffer = Buffer.from([0x53, 0x00, 0x00, 0x00, 0x04])
+const syncBuffer = serialize.sync()
 Connection.prototype.sync = function () {
   this._ending = true
-  // clear out any pending data in the writer
-  this.writer.clear()
-  if (this.stream.writable) {
-    this.stream.write(syncBuffer)
-    this.stream.write(flushBuffer)
-  }
+  this._send(syncBuffer)
+  this._send(flushBuffer)
 }
 
-const END_BUFFER = Buffer.from([0x58, 0x00, 0x00, 0x00, 0x04])
+const endBuffer = serialize.end()
 
 Connection.prototype.end = function () {
   // 0x58 = 'X'
-  this.writer.clear()
   this._ending = true
   if (!this.stream.writable) {
     this.stream.end()
     return
   }
-  return this.stream.write(END_BUFFER, () => {
+  return this.stream.write(endBuffer, () => {
     this.stream.end()
   })
 }
 
 Connection.prototype.close = function (msg) {
-  this.writer.addCString(msg.type + (msg.name || ''))
-  this._send(0x43)
+  this._send(serialize.close(msg))
 }
 
 Connection.prototype.describe = function (msg) {
-  this.writer.addCString(msg.type + (msg.name || ''))
-  this._send(0x44)
-  this.flush()
+  this._send(serialize.describe(msg))
 }
 
 Connection.prototype.sendCopyFromChunk = function (chunk) {
-  this.stream.write(this.writer.add(chunk).flush(0x64))
+  this._send(serialize.copyData(chunk))
 }
 
 Connection.prototype.endCopyFrom = function () {
-  this.stream.write(this.writer.add(emptyBuffer).flush(0x63))
+  this._send(serialize.copyDone())
 }
 
 Connection.prototype.sendCopyFail = function (msg) {
-  // this.stream.write(this.writer.add(emptyBuffer).flush(0x66));
-  this.writer.addCString(msg)
-  this._send(0x66)
+  this._send(serialize.copyFail(msg))
 }
 
 module.exports = Connection

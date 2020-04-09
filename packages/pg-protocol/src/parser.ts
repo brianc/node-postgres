@@ -1,6 +1,6 @@
 import { TransformOptions } from 'stream';
 import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password, NoticeMessage } from './messages';
-import { BufferReader } from './BufferReader';
+import { BufferReader } from './buffer-reader';
 import assert from 'assert'
 
 // every message is prefixed with a single bye
@@ -46,15 +46,9 @@ const enum MessageCodes {
   CopyData = 0x64, // d
 }
 
-type MessageCallback = (msg: BackendMessage) => void;
+export type MessageCallback = (msg: BackendMessage) => void;
 
-export function parse(stream: NodeJS.ReadableStream, callback: MessageCallback): Promise<void> {
-  const parser = new PgPacketParser()
-  stream.on('data', (buffer: Buffer) => parser.parse(buffer, callback))
-  return new Promise((resolve) => stream.on('end', () => resolve()))
-}
-
-class PgPacketParser {
+export class Parser {
   private remainingBuffer: Buffer = emptyBuffer;
   private reader = new BufferReader();
   private mode: Mode;
