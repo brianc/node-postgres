@@ -126,7 +126,9 @@ const bind = (config: BindOpts = {}): Buffer => {
   var buffer = writer
     .addCString(portal)
     .addCString(statement)
-  if (!useBinary) { buffer.addInt16(0) } else {
+  if (!useBinary) {
+    buffer.addInt16(0)
+  } else {
     buffer.addInt16(len)
     for (j = 0; j < len; j++) {
       buffer.addInt16(values[j] instanceof Buffer ? 1 : 0)

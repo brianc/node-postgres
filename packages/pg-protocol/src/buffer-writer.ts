@@ -6,9 +6,8 @@ export class Writer {
   private buffer: Buffer;
   private offset: number = 5;
   private headerPosition: number = 0;
-  private readonly encoding = 'utf-8';
-  constructor(size: number = 1024) {
-    this.buffer = Buffer.alloc(size + 5)
+  constructor(private size = 256) {
+    this.buffer = Buffer.alloc(size)
   }
 
   private _ensure(size: number): void {
@@ -41,25 +40,16 @@ export class Writer {
 
 
   public addCString(string: string): Writer {
-    //just write a 0 for empty or null strings
     if (!string) {
       this._ensure(1);
     } else {
       var len = Buffer.byteLength(string);
-      this._ensure(len + 1); //+1 for null terminator
-      this.buffer.write(string, this.offset, this.encoding)
+      this._ensure(len + 1); // +1 for null terminator
+      this.buffer.write(string, this.offset, 'utf-8')
       this.offset += len;
     }
 
     this.buffer[this.offset++] = 0; // null terminator
-    return this;
-  }
-
-  // note: this assumes character is 1 byte - used for writing protocol charcodes
-  public addChar(c: string): Writer {
-    this._ensure(1);
-    this.buffer.write(c, this.offset);
-    this.offset++;
     return this;
   }
 
@@ -69,10 +59,6 @@ export class Writer {
     this.buffer.write(string, this.offset);
     this.offset += len;
     return this;
-  }
-
-  public getByteLength(): number {
-    return this.offset - 5;
   }
 
   public add(otherBuffer: Buffer): Writer {
@@ -96,6 +82,7 @@ export class Writer {
     var result = this.join(code);
     this.offset = 5;
     this.headerPosition = 0;
+    this.buffer = Buffer.allocUnsafe(this.size)
     return result;
   }
 }
