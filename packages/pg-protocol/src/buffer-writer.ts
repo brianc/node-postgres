@@ -8,7 +8,7 @@ export class Writer {
     this.buffer = Buffer.alloc(size)
   }
 
-  private _ensure(size: number): void {
+  private ensure(size: number): void {
     var remaining = this.buffer.length - this.offset;
     if (remaining < size) {
       var oldBuffer = this.buffer;
@@ -21,7 +21,7 @@ export class Writer {
   }
 
   public addInt32(num: number): Writer {
-    this._ensure(4);
+    this.ensure(4);
     this.buffer[this.offset++] = (num >>> 24 & 0xFF);
     this.buffer[this.offset++] = (num >>> 16 & 0xFF);
     this.buffer[this.offset++] = (num >>> 8 & 0xFF);
@@ -30,7 +30,7 @@ export class Writer {
   }
 
   public addInt16(num: number): Writer {
-    this._ensure(2);
+    this.ensure(2);
     this.buffer[this.offset++] = (num >>> 8 & 0xFF);
     this.buffer[this.offset++] = (num >>> 0 & 0xFF);
     return this;
@@ -39,10 +39,10 @@ export class Writer {
 
   public addCString(string: string): Writer {
     if (!string) {
-      this._ensure(1);
+      this.ensure(1);
     } else {
       var len = Buffer.byteLength(string);
-      this._ensure(len + 1); // +1 for null terminator
+      this.ensure(len + 1); // +1 for null terminator
       this.buffer.write(string, this.offset, 'utf-8')
       this.offset += len;
     }
@@ -53,14 +53,14 @@ export class Writer {
 
   public addString(string: string = ""): Writer {
     var len = Buffer.byteLength(string);
-    this._ensure(len);
+    this.ensure(len);
     this.buffer.write(string, this.offset);
     this.offset += len;
     return this;
   }
 
   public add(otherBuffer: Buffer): Writer {
-    this._ensure(otherBuffer.length);
+    this.ensure(otherBuffer.length);
     otherBuffer.copy(this.buffer, this.offset);
     this.offset += otherBuffer.length;
     return this;
