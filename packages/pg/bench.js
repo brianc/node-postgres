@@ -54,7 +54,7 @@ const run = async () => {
   queries = await bench(client, seq, seconds * 1000);
   console.log("sequence queries:", queries);
   console.log("qps", queries / seconds);
-  console.log("on my laptop best so far seen 1209 qps")
+  console.log("on my laptop best so far seen 1309 qps")
 
   console.log('')
   queries = await bench(client, insert, seconds * 1000);

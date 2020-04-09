@@ -214,11 +214,8 @@ export class Parser {
     const fields: any[] = new Array(fieldCount);
     for (let i = 0; i < fieldCount; i++) {
       const len = this.reader.int32();
-      if (len === -1) {
-        fields[i] = null
-      } else if (this.mode === 'text') {
-        fields[i] = this.reader.string(len)
-      }
+      // a -1 for length means the value of the field is null
+      fields[i] = len === -1 ? null : this.reader.string(len)
     }
     return new DataRowMessage(length, fields);
   }
@@ -290,8 +287,8 @@ export class Parser {
 
   private parseErrorMessage(offset: number, length: number, bytes: Buffer, name: MessageName) {
     this.reader.setBuffer(offset, bytes);
-    var fields: Record<string, string> = {}
-    var fieldType = this.reader.string(1)
+    const fields: Record<string, string> = {}
+    let fieldType = this.reader.string(1)
     while (fieldType !== '\0') {
       fields[fieldType] = this.reader.cstring()
       fieldType = this.reader.string(1)
