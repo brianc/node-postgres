@@ -1,6 +1,4 @@
-//binary data writer tuned for creating
-//postgres message packets as effeciently as possible by reusing the
-//same buffer to avoid memcpy and limit memory allocations
+//binary data writer tuned for encoding binary specific to the postgres binary protocol
 
 export class Writer {
   private buffer: Buffer;

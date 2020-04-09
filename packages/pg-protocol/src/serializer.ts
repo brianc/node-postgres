@@ -73,6 +73,8 @@ type ParseOpts = {
   text: string;
 }
 
+const emptyArray: any[] = []
+
 const parse = (query: ParseOpts): Buffer => {
   // expect something like this:
   // { name: 'queryName',
@@ -80,23 +82,26 @@ const parse = (query: ParseOpts): Buffer => {
   //   types: ['int8', 'bool'] }
 
   // normalize missing query names to allow for null
-  query.name = query.name || ''
-  if (query.name.length > 63) {
+  const name = query.name || ''
+  if (name.length > 63) {
     /* eslint-disable no-console */
     console.error('Warning! Postgres only supports 63 characters for query names.')
-    console.error('You supplied %s (%s)', query.name, query.name.length)
+    console.error('You supplied %s (%s)', name, name.length)
     console.error('This can cause conflicts and silent errors executing queries')
     /* eslint-enable no-console */
   }
-  // normalize null type array
-  query.types = query.types || []
-  var len = query.types.length
+
+  const types = query.types || emptyArray
+
+  var len = types.length
+
   var buffer = writer
-    .addCString(query.name) // name of query
+    .addCString(name) // name of query
     .addCString(query.text) // actual query text
     .addInt16(len)
+
   for (var i = 0; i < len; i++) {
-    buffer.addInt32(query.types[i])
+    buffer.addInt32(types[i])
   }
 
   return writer.flush(code.parse)
@@ -114,7 +119,7 @@ const bind = (config: BindOpts = {}): Buffer => {
   const portal = config.portal || ''
   const statement = config.statement || ''
   const binary = config.binary || false
-  var values = config.values || []
+  var values = config.values || emptyArray
   var len = values.length
 
   var useBinary = false
@@ -162,13 +167,27 @@ type ExecOpts = {
   rows?: number;
 }
 
-const execute = (config: ExecOpts = {}): Buffer => {
+const emptyExecute = Buffer.from([code.execute, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00])
+
+const execute = (config?: ExecOpts): Buffer => {
+  // this is the happy path for most queries
+  if (!config || !config.portal && !config.rows) {
+    return emptyExecute;
+  }
+
   const portal = config.portal || ''
   const rows = config.rows || 0
-  return writer
-    .addCString(portal)
-    .addInt32(rows)
-    .flush(code.execute)
+
+  const portalLength = Buffer.byteLength(portal)
+  const len = 4 + portalLength + 1 + 4
+  // one extra bit for code
+  const buff = Buffer.allocUnsafe(1 + len)
+  buff[0] = code.execute
+  buff.writeInt32BE(len, 1)
+  buff.write(portal, 5, 'utf-8')
+  buff[portalLength + 5] = 0; // null terminate portal cString
+  buff.writeUInt32BE(rows, buff.length - 4)
+  return buff;
 }
 
 const cancel = (processID: number, secretKey: number): Buffer => {
@@ -187,12 +206,26 @@ type PortalOpts = {
 }
 
 const cstringMessage = (code: code, string: string): Buffer => {
-  return writer.addCString(string).flush(code)
+  const stringLen = Buffer.byteLength(string)
+  const len = 4 + stringLen + 1
+  // one extra bit for code
+  const buffer = Buffer.allocUnsafe(1 + len)
+  buffer[0] = code
+  buffer.writeInt32BE(len, 1)
+  buffer.write(string, 5, 'utf-8')
+  buffer[len] = 0 // null terminate cString
+  return buffer
 }
 
+const emptyDescribePortal = writer.addCString('P').flush(code.describe)
+const emptyDescribeStatement = writer.addCString('S').flush(code.describe)
+
 const describe = (msg: PortalOpts): Buffer => {
-  const text = `${msg.type}${msg.name || ''}`
-  return cstringMessage(code.describe, text)
+  return msg.name ? 
+    cstringMessage(code.describe,`${msg.type}${msg.name || ''}`) : 
+    msg.type === 'P' ? 
+      emptyDescribePortal : 
+      emptyDescribeStatement;
 }
 
 const close = (msg: PortalOpts): Buffer => {
