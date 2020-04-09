@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg-pool@3.1.0
+
+- Add [maxUses](https://github.com/brianc/node-postgres/pull/2157) config option.
+
 ### pg@8.0.0
 
 #### note: for detailed release notes please [check here](https://node-postgres.com/announcements#2020-02-25)
