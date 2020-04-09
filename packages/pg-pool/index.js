@@ -77,6 +77,7 @@ class Pool extends EventEmitter {
     }
 
     this.options.max = this.options.max || this.options.poolSize || 10
+    this.options.maxUses = this.options.maxUses || Infinity
     this.log = this.options.log || function () { }
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
@@ -296,8 +297,13 @@ class Pool extends EventEmitter {
   _release (client, idleListener, err) {
     client.on('error', idleListener)
 
+    client._poolUseCount = (client._poolUseCount || 0) + 1
+
     // TODO(bmc): expose a proper, public interface _queryable and _ending
-    if (err || this.ending || !client._queryable || client._ending) {
+    if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
+      if (client._poolUseCount >= this.options.maxUses) {
+        this.log('remove expended client')
+      }
       this._remove(client)
       this._pulseQueue()
       return

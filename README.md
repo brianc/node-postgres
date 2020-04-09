@@ -77,6 +77,14 @@ I will __happily__ accept your pull request if it:
 
 If your change involves breaking backwards compatibility please please point that out in the pull request & we can discuss & plan when and how to release it and what type of documentation or communication it will require.
 
+### Setting up for local development
+
+1. Clone the repo
+2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+3. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
+4. Ensure you have the proper environment variables configured for connecting to the instance
+5. Run `yarn test` to run all the tests
+
 ## Troubleshooting and FAQ
 
 The causes and solutions to common errors can be found among the [Frequently Asked Questions (FAQ)](https://github.com/brianc/node-postgres/wiki/FAQ)
