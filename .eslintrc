@@ -10,8 +10,7 @@
     "node_modules",
     "packages/pg",
     "packages/pg-protocol",
-    "packages/pg-pool",
-    "packages/pg-query-stream"
+    "packages/pg-pool"
   ],
   "parserOptions": {
     "ecmaVersion": 2017,
