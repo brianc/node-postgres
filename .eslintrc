@@ -1,14 +1,17 @@
 {
   "plugins": [
-    "node"
+    "prettier"
   ],
   "extends": [
-    "standard",
-    "eslint:recommended",
-    "plugin:node/recommended"
+    "plugin:prettier/recommended"
   ],
   "ignorePatterns": [
-    "**/*.ts"
+    "**/*.ts",
+    "node_modules",
+    "packages/pg",
+    "packages/pg-protocol",
+    "packages/pg-pool",
+    "packages/pg-query-stream"
   ],
   "parserOptions": {
     "ecmaVersion": 2017,
@@ -18,17 +21,5 @@
     "node": true,
     "es6": true,
     "mocha": true
-  },
-  "rules": {
-    "space-before-function-paren": "off",
-    "node/no-unsupported-features/es-syntax": "off",
-    "node/no-unpublished-require": [
-      "error",
-      {
-        "allowModules": [
-          "pg"
-        ]
-      }
-    ]
   }
 }
