@@ -1,7 +1,32 @@
 import { TransformOptions } from 'stream';
-import { Mode, bindComplete, parseComplete, closeComplete, noData, portalSuspended, copyDone, replicationStart, emptyQuery, ReadyForQueryMessage, CommandCompleteMessage, CopyDataMessage, CopyResponse, NotificationResponseMessage, RowDescriptionMessage, Field, DataRowMessage, ParameterStatusMessage, BackendKeyDataMessage, DatabaseError, BackendMessage, MessageName, AuthenticationMD5Password, NoticeMessage } from './messages';
+import {
+  Mode,
+  bindComplete,
+  parseComplete,
+  closeComplete,
+  noData,
+  portalSuspended,
+  copyDone,
+  replicationStart,
+  emptyQuery,
+  ReadyForQueryMessage,
+  CommandCompleteMessage,
+  CopyDataMessage,
+  CopyResponse,
+  NotificationResponseMessage,
+  RowDescriptionMessage,
+  Field,
+  DataRowMessage,
+  ParameterStatusMessage,
+  BackendKeyDataMessage,
+  DatabaseError,
+  BackendMessage,
+  MessageName,
+  AuthenticationMD5Password,
+  NoticeMessage,
+} from './messages';
 import { BufferReader } from './buffer-reader';
-import assert from 'assert'
+import assert from 'assert';
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1;
@@ -14,13 +39,13 @@ const HEADER_LENGTH = CODE_LENGTH + LEN_LENGTH;
 export type Packet = {
   code: number;
   packet: Buffer;
-}
+};
 
 const emptyBuffer = Buffer.allocUnsafe(0);
 
 type StreamOptions = TransformOptions & {
-  mode: Mode
-}
+  mode: Mode;
+};
 
 const enum MessageCodes {
   DataRow = 0x44, // D
@@ -55,7 +80,7 @@ export class Parser {
 
   constructor(opts?: StreamOptions) {
     if (opts?.mode === 'binary') {
-      throw new Error('Binary mode not supported yet')
+      throw new Error('Binary mode not supported yet');
     }
     this.mode = opts?.mode || 'text';
   }
@@ -64,11 +89,11 @@ export class Parser {
     let combinedBuffer = buffer;
     if (this.remainingBuffer.byteLength) {
       combinedBuffer = Buffer.allocUnsafe(this.remainingBuffer.byteLength + buffer.byteLength);
-      this.remainingBuffer.copy(combinedBuffer)
-      buffer.copy(combinedBuffer, this.remainingBuffer.byteLength)
+      this.remainingBuffer.copy(combinedBuffer);
+      buffer.copy(combinedBuffer, this.remainingBuffer.byteLength);
     }
     let offset = 0;
-    while ((offset + HEADER_LENGTH) <= combinedBuffer.byteLength) {
+    while (offset + HEADER_LENGTH <= combinedBuffer.byteLength) {
       // code is 1 byte long - it identifies the message type
       const code = combinedBuffer[offset];
 
@@ -79,7 +104,7 @@ export class Parser {
 
       if (fullMessageLength + offset <= combinedBuffer.byteLength) {
         const message = this.handlePacket(offset + HEADER_LENGTH, code, length, combinedBuffer);
-        callback(message)
+        callback(message);
         offset += fullMessageLength;
       } else {
         break;
@@ -89,9 +114,8 @@ export class Parser {
     if (offset === combinedBuffer.byteLength) {
       this.remainingBuffer = emptyBuffer;
     } else {
-      this.remainingBuffer = combinedBuffer.slice(offset)
+      this.remainingBuffer = combinedBuffer.slice(offset);
     }
-
   }
 
   private handlePacket(offset: number, code: number, length: number, bytes: Buffer): BackendMessage {
@@ -139,14 +163,14 @@ export class Parser {
       case MessageCodes.CopyData:
         return this.parseCopyData(offset, length, bytes);
       default:
-        assert.fail(`unknown message code: ${code.toString(16)}`)
+        assert.fail(`unknown message code: ${code.toString(16)}`);
     }
   }
 
   private parseReadyForQueryMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
     const status = this.reader.string(1);
-    return new ReadyForQueryMessage(length, status)
+    return new ReadyForQueryMessage(length, status);
   }
 
   private parseCommandCompleteMessage(offset: number, length: number, bytes: Buffer) {
@@ -161,17 +185,17 @@ export class Parser {
   }
 
   private parseCopyInMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, MessageName.copyInResponse)
+    return this.parseCopyMessage(offset, length, bytes, MessageName.copyInResponse);
   }
 
   private parseCopyOutMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, MessageName.copyOutResponse)
+    return this.parseCopyMessage(offset, length, bytes, MessageName.copyOutResponse);
   }
 
   private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: MessageName) {
     this.reader.setBuffer(offset, bytes);
     const isBinary = this.reader.byte() !== 0;
-    const columnCount = this.reader.int16()
+    const columnCount = this.reader.int16();
     const message = new CopyResponse(length, messageName, isBinary, columnCount);
     for (let i = 0; i < columnCount; i++) {
       message.columnTypes[i] = this.reader.int16();
@@ -189,23 +213,23 @@ export class Parser {
 
   private parseRowDescriptionMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
-    const fieldCount = this.reader.int16()
+    const fieldCount = this.reader.int16();
     const message = new RowDescriptionMessage(length, fieldCount);
     for (let i = 0; i < fieldCount; i++) {
-      message.fields[i] = this.parseField()
+      message.fields[i] = this.parseField();
     }
     return message;
   }
 
   private parseField(): Field {
-    const name = this.reader.cstring()
-    const tableID = this.reader.int32()
-    const columnID = this.reader.int16()
-    const dataTypeID = this.reader.int32()
-    const dataTypeSize = this.reader.int16()
-    const dataTypeModifier = this.reader.int32()
+    const name = this.reader.cstring();
+    const tableID = this.reader.int32();
+    const columnID = this.reader.int16();
+    const dataTypeID = this.reader.int32();
+    const dataTypeSize = this.reader.int16();
+    const dataTypeModifier = this.reader.int32();
     const mode = this.reader.int16() === 0 ? 'text' : 'binary';
-    return new Field(name, tableID, columnID, dataTypeID, dataTypeSize, dataTypeModifier, mode)
+    return new Field(name, tableID, columnID, dataTypeID, dataTypeSize, dataTypeModifier, mode);
   }
 
   private parseDataRowMessage(offset: number, length: number, bytes: Buffer) {
@@ -215,7 +239,7 @@ export class Parser {
     for (let i = 0; i < fieldCount; i++) {
       const len = this.reader.int32();
       // a -1 for length means the value of the field is null
-      fields[i] = len === -1 ? null : this.reader.string(len)
+      fields[i] = len === -1 ? null : this.reader.string(len);
     }
     return new DataRowMessage(length, fields);
   }
@@ -223,21 +247,20 @@ export class Parser {
   private parseParameterStatusMessage(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
     const name = this.reader.cstring();
-    const value = this.reader.cstring()
-    return new ParameterStatusMessage(length, name, value)
+    const value = this.reader.cstring();
+    return new ParameterStatusMessage(length, name, value);
   }
 
   private parseBackendKeyData(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
-    const processID = this.reader.int32()
-    const secretKey = this.reader.int32()
-    return new BackendKeyDataMessage(length, processID, secretKey)
+    const processID = this.reader.int32();
+    const secretKey = this.reader.int32();
+    return new BackendKeyDataMessage(length, processID, secretKey);
   }
-
 
   public parseAuthenticationResponse(offset: number, length: number, bytes: Buffer) {
     this.reader.setBuffer(offset, bytes);
-    const code = this.reader.int32()
+    const code = this.reader.int32();
     // TODO(bmc): maybe better types here
     const message: BackendMessage & any = {
       name: MessageName.authenticationOk,
@@ -249,71 +272,74 @@ export class Parser {
         break;
       case 3: // AuthenticationCleartextPassword
         if (message.length === 8) {
-          message.name = MessageName.authenticationCleartextPassword
+          message.name = MessageName.authenticationCleartextPassword;
         }
-        break
+        break;
       case 5: // AuthenticationMD5Password
         if (message.length === 12) {
-          message.name = MessageName.authenticationMD5Password
+          message.name = MessageName.authenticationMD5Password;
           const salt = this.reader.bytes(4);
           return new AuthenticationMD5Password(length, salt);
         }
-        break
+        break;
       case 10: // AuthenticationSASL
-        message.name = MessageName.authenticationSASL
-        message.mechanisms = []
+        message.name = MessageName.authenticationSASL;
+        message.mechanisms = [];
         let mechanism: string;
         do {
-          mechanism = this.reader.cstring()
+          mechanism = this.reader.cstring();
 
           if (mechanism) {
-            message.mechanisms.push(mechanism)
+            message.mechanisms.push(mechanism);
           }
-        } while (mechanism)
+        } while (mechanism);
         break;
       case 11: // AuthenticationSASLContinue
-        message.name = MessageName.authenticationSASLContinue
-        message.data = this.reader.string(length - 4)
+        message.name = MessageName.authenticationSASLContinue;
+        message.data = this.reader.string(length - 4);
         break;
       case 12: // AuthenticationSASLFinal
-        message.name = MessageName.authenticationSASLFinal
-        message.data = this.reader.string(length - 4)
+        message.name = MessageName.authenticationSASLFinal;
+        message.data = this.reader.string(length - 4);
         break;
       default:
-        throw new Error('Unknown authenticationOk message type ' + code)
+        throw new Error('Unknown authenticationOk message type ' + code);
     }
     return message;
   }
 
   private parseErrorMessage(offset: number, length: number, bytes: Buffer, name: MessageName) {
     this.reader.setBuffer(offset, bytes);
-    const fields: Record<string, string> = {}
-    let fieldType = this.reader.string(1)
+    const fields: Record<string, string> = {};
+    let fieldType = this.reader.string(1);
     while (fieldType !== '\0') {
-      fields[fieldType] = this.reader.cstring()
-      fieldType = this.reader.string(1)
+      fields[fieldType] = this.reader.cstring();
+      fieldType = this.reader.string(1);
     }
 
-    const messageValue = fields.M
+    const messageValue = fields.M;
 
-    const message = name === MessageName.notice ? new NoticeMessage(length, messageValue) : new DatabaseError(messageValue, length, name)
+    const message =
+      name === MessageName.notice
+        ? new NoticeMessage(length, messageValue)
+        : new DatabaseError(messageValue, length, name);
 
-    message.severity = fields.S
-    message.code = fields.C
-    message.detail = fields.D
-    message.hint = fields.H
-    message.position = fields.P
-    message.internalPosition = fields.p
-    message.internalQuery = fields.q
-    message.where = fields.W
-    message.schema = fields.s
-    message.table = fields.t
-    message.column = fields.c
-    message.dataType = fields.d
-    message.constraint = fields.n
-    message.file = fields.F
-    message.line = fields.L
-    message.routine = fields.R
+    message.severity = fields.S;
+    message.code = fields.C;
+    message.detail = fields.D;
+    message.hint = fields.H;
+    message.position = fields.P;
+    message.internalPosition = fields.p;
+    message.internalQuery = fields.q;
+    message.where = fields.W;
+    message.schema = fields.s;
+    message.table = fields.t;
+    message.column = fields.c;
+    message.dataType = fields.d;
+    message.constraint = fields.n;
+    message.file = fields.F;
+    message.line = fields.L;
+    message.routine = fields.R;
     return message;
   }
 }

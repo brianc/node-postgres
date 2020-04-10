@@ -1,1 +1,1 @@
-declare module 'chunky'
+declare module 'chunky';

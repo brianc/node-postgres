@@ -2,14 +2,15 @@
   "plugins": [
     "prettier"
   ],
+  "parser": "@typescript-eslint/parser",
   "extends": [
-    "plugin:prettier/recommended"
+    "plugin:prettier/recommended",
+    "prettier/@typescript-eslint"
   ],
   "ignorePatterns": [
-    "**/*.ts",
     "node_modules",
     "packages/pg",
-    "packages/pg-protocol",
+    "packages/pg-protocol/dist/**/*",
     "packages/pg-pool"
   ],
   "parserOptions": {

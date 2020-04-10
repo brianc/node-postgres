@@ -5,7 +5,7 @@ export class Writer {
   private offset: number = 5;
   private headerPosition: number = 0;
   constructor(private size = 256) {
-    this.buffer = Buffer.alloc(size)
+    this.buffer = Buffer.alloc(size);
   }
 
   private ensure(size: number): void {
@@ -22,20 +22,19 @@ export class Writer {
 
   public addInt32(num: number): Writer {
     this.ensure(4);
-    this.buffer[this.offset++] = (num >>> 24 & 0xFF);
-    this.buffer[this.offset++] = (num >>> 16 & 0xFF);
-    this.buffer[this.offset++] = (num >>> 8 & 0xFF);
-    this.buffer[this.offset++] = (num >>> 0 & 0xFF);
+    this.buffer[this.offset++] = (num >>> 24) & 0xff;
+    this.buffer[this.offset++] = (num >>> 16) & 0xff;
+    this.buffer[this.offset++] = (num >>> 8) & 0xff;
+    this.buffer[this.offset++] = (num >>> 0) & 0xff;
     return this;
   }
 
   public addInt16(num: number): Writer {
     this.ensure(2);
-    this.buffer[this.offset++] = (num >>> 8 & 0xFF);
-    this.buffer[this.offset++] = (num >>> 0 & 0xFF);
+    this.buffer[this.offset++] = (num >>> 8) & 0xff;
+    this.buffer[this.offset++] = (num >>> 0) & 0xff;
     return this;
   }
-
 
   public addCString(string: string): Writer {
     if (!string) {
@@ -43,7 +42,7 @@ export class Writer {
     } else {
       var len = Buffer.byteLength(string);
       this.ensure(len + 1); // +1 for null terminator
-      this.buffer.write(string, this.offset, 'utf-8')
+      this.buffer.write(string, this.offset, 'utf-8');
       this.offset += len;
     }
 
@@ -51,7 +50,7 @@ export class Writer {
     return this;
   }
 
-  public addString(string: string = ""): Writer {
+  public addString(string: string = ''): Writer {
     var len = Buffer.byteLength(string);
     this.ensure(len);
     this.buffer.write(string, this.offset);
@@ -70,8 +69,8 @@ export class Writer {
     if (code) {
       this.buffer[this.headerPosition] = code;
       //length is everything in this packet minus the code
-      const length = this.offset - (this.headerPosition + 1)
-      this.buffer.writeInt32BE(length, this.headerPosition + 1)
+      const length = this.offset - (this.headerPosition + 1);
+      this.buffer.writeInt32BE(length, this.headerPosition + 1);
     }
     return this.buffer.slice(code ? 0 : 5, this.offset);
   }
@@ -80,8 +79,7 @@ export class Writer {
     var result = this.join(code);
     this.offset = 5;
     this.headerPosition = 0;
-    this.buffer = Buffer.allocUnsafe(this.size)
+    this.buffer = Buffer.allocUnsafe(this.size);
     return result;
   }
 }
-
