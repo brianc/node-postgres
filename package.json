@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "yarn lerna exec yarn test",
+    "test": "yarn lint && yarn lerna exec yarn test",
     "build": "yarn lerna exec --scope pg-protocol yarn build",
     "pretest": "yarn build",
     "lint": "!([[ -e node_modules/.bin/prettier ]]) || eslint '*/**/*.{js,ts,tsx}'"
