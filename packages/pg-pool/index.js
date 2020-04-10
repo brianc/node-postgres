@@ -1,7 +1,7 @@
 'use strict'
 const EventEmitter = require('events').EventEmitter
 
-const NOOP = function () {}
+const NOOP = function() {}
 
 const removeWhere = (list, predicate) => {
   const i = list.findIndex(predicate)
@@ -33,10 +33,10 @@ function promisify(Promise, callback) {
   }
   let rej
   let res
-  const cb = function (err, client) {
+  const cb = function(err, client) {
     err ? rej(err) : res(client)
   }
-  const result = new Promise(function (resolve, reject) {
+  const result = new Promise(function(resolve, reject) {
     res = resolve
     rej = reject
   })
@@ -76,7 +76,7 @@ class Pool extends EventEmitter {
 
     this.options.max = this.options.max || this.options.poolSize || 10
     this.options.maxUses = this.options.maxUses || Infinity
-    this.log = this.options.log || function () {}
+    this.log = this.options.log || function() {}
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
 
@@ -321,7 +321,7 @@ class Pool extends EventEmitter {
     // guard clause against passing a function as the first parameter
     if (typeof text === 'function') {
       const response = promisify(this.Promise, text)
-      setImmediate(function () {
+      setImmediate(function() {
         return response.callback(new Error('Passing a function as the first parameter to pool.query is not supported'))
       })
       return response.result

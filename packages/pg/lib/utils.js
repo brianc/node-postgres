@@ -44,7 +44,7 @@ function arrayString(val) {
 // to their 'raw' counterparts for use as a postgres parameter
 // note: you can override this function to provide your own conversion mechanism
 // for complex types, etc...
-var prepareValue = function (val, seen) {
+var prepareValue = function(val, seen) {
   if (val instanceof Buffer) {
     return val
   }
@@ -170,12 +170,15 @@ function normalizeQueryConfig(config, values, callback) {
   return config
 }
 
-const md5 = function (string) {
-  return crypto.createHash('md5').update(string, 'utf-8').digest('hex')
+const md5 = function(string) {
+  return crypto
+    .createHash('md5')
+    .update(string, 'utf-8')
+    .digest('hex')
 }
 
 // See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
-const postgresMd5PasswordHash = function (user, password, salt) {
+const postgresMd5PasswordHash = function(user, password, salt) {
   var inner = md5(password + user)
   var outer = md5(Buffer.concat([Buffer.from(inner), salt]))
   return 'md5' + outer

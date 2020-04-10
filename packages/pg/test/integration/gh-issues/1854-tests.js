@@ -14,7 +14,7 @@ suite.test('Parameter serialization errors should not cause query to hang', (don
     .connect()
     .then(() => {
       const obj = {
-        toPostgres: function () {
+        toPostgres: function() {
           throw expectedErr
         },
       }

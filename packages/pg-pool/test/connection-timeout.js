@@ -54,7 +54,7 @@ describe('connection timeout', () => {
   it(
     'should handle multiple timeouts',
     co.wrap(
-      function* () {
+      function*() {
         const errors = []
         const pool = new Pool({ connectionTimeoutMillis: 1, port: this.port, host: 'localhost' })
         for (var i = 0; i < 15; i++) {
@@ -142,7 +142,7 @@ describe('connection timeout', () => {
     const orgConnect = Client.prototype.connect
     let called = false
 
-    Client.prototype.connect = function (cb) {
+    Client.prototype.connect = function(cb) {
       // Simulate a failure on first call
       if (!called) {
         called = true
@@ -179,7 +179,7 @@ describe('connection timeout', () => {
 
     let connection = 0
 
-    Client.prototype.connect = function (cb) {
+    Client.prototype.connect = function(cb) {
       // Simulate a failure on first call
       if (connection === 0) {
         connection++

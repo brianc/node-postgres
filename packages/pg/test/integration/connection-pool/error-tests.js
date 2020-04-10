@@ -14,15 +14,15 @@ suite.test('errors emitted on checked-out clients', (cb) => {
   const pool = new pg.Pool({ max: 2 })
   // get first client
   pool.connect(
-    assert.success(function (client, done) {
-      client.query('SELECT NOW()', function () {
+    assert.success(function(client, done) {
+      client.query('SELECT NOW()', function() {
         pool.connect(
-          assert.success(function (client2, done2) {
+          assert.success(function(client2, done2) {
             var pidColName = 'procpid'
             helper.versionGTE(
               client2,
               90200,
-              assert.success(function (isGreater) {
+              assert.success(function(isGreater) {
                 var killIdleQuery =
                   'SELECT pid, (SELECT pg_terminate_backend(pid)) AS killed FROM pg_stat_activity WHERE state = $1'
                 var params = ['idle']
@@ -42,7 +42,7 @@ suite.test('errors emitted on checked-out clients', (cb) => {
                 client2.query(
                   killIdleQuery,
                   params,
-                  assert.success(function (res) {
+                  assert.success(function(res) {
                     // check to make sure client connection actually was killed
                     // return client2 to the pool
                     done2()

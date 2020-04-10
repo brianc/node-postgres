@@ -12,7 +12,7 @@ var Connection = require('./../lib/connection')
 
 global.Client = require('./../lib').Client
 
-process.on('uncaughtException', function (d) {
+process.on('uncaughtException', function(d) {
   if ('stack' in d && 'message' in d) {
     console.log('Message: ' + d.message)
     console.log(d.stack)
@@ -22,21 +22,21 @@ process.on('uncaughtException', function (d) {
   process.exit(-1)
 })
 
-assert.same = function (actual, expected) {
+assert.same = function(actual, expected) {
   for (var key in expected) {
     assert.equal(actual[key], expected[key])
   }
 }
 
-assert.emits = function (item, eventName, callback, message) {
+assert.emits = function(item, eventName, callback, message) {
   var called = false
-  var id = setTimeout(function () {
-    test("Should have called '" + eventName + "' event", function () {
+  var id = setTimeout(function() {
+    test("Should have called '" + eventName + "' event", function() {
       assert.ok(called, message || "Expected '" + eventName + "' to be called.")
     })
   }, 5000)
 
-  item.once(eventName, function () {
+  item.once(eventName, function() {
     if (eventName === 'error') {
       // belt and braces test to ensure all error events return an error
       assert.ok(
@@ -53,7 +53,7 @@ assert.emits = function (item, eventName, callback, message) {
   })
 }
 
-assert.UTCDate = function (actual, year, month, day, hours, min, sec, milisecond) {
+assert.UTCDate = function(actual, year, month, day, hours, min, sec, milisecond) {
   var actualYear = actual.getUTCFullYear()
   assert.equal(actualYear, year, 'expected year ' + year + ' but got ' + actualYear)
 
@@ -76,7 +76,7 @@ assert.UTCDate = function (actual, year, month, day, hours, min, sec, milisecond
   assert.equal(actualMili, milisecond, 'expected milisecond ' + milisecond + ' but got ' + actualMili)
 }
 
-assert.equalBuffers = function (actual, expected) {
+assert.equalBuffers = function(actual, expected) {
   if (actual.length != expected.length) {
     spit(actual, expected)
     assert.equal(actual.length, expected.length)
@@ -89,13 +89,13 @@ assert.equalBuffers = function (actual, expected) {
   }
 }
 
-assert.empty = function (actual) {
+assert.empty = function(actual) {
   assert.lengthIs(actual, 0)
 }
 
-assert.success = function (callback) {
+assert.success = function(callback) {
   if (callback.length === 1 || callback.length === 0) {
-    return assert.calls(function (err, arg) {
+    return assert.calls(function(err, arg) {
       if (err) {
         console.log(err)
       }
@@ -103,7 +103,7 @@ assert.success = function (callback) {
       callback(arg)
     })
   } else if (callback.length === 2) {
-    return assert.calls(function (err, arg1, arg2) {
+    return assert.calls(function(err, arg1, arg2) {
       if (err) {
         console.log(err)
       }
@@ -115,7 +115,7 @@ assert.success = function (callback) {
   }
 }
 
-assert.throws = function (offender) {
+assert.throws = function(offender) {
   try {
     offender()
   } catch (e) {
@@ -125,14 +125,14 @@ assert.throws = function (offender) {
   assert.ok(false, 'Expected ' + offender + ' to throw exception')
 }
 
-assert.lengthIs = function (actual, expectedLength) {
+assert.lengthIs = function(actual, expectedLength) {
   assert.equal(actual.length, expectedLength)
 }
 
-var expect = function (callback, timeout) {
+var expect = function(callback, timeout) {
   var executed = false
   timeout = timeout || parseInt(process.env.TEST_TIMEOUT) || 5000
-  var id = setTimeout(function () {
+  var id = setTimeout(function() {
     assert.ok(
       executed,
       'Expected execution of function to be fired within ' +
@@ -145,7 +145,7 @@ var expect = function (callback, timeout) {
   }, timeout)
 
   if (callback.length < 3) {
-    return function (err, queryResult) {
+    return function(err, queryResult) {
       clearTimeout(id)
       if (err) {
         assert.ok(err instanceof Error, 'Expected errors to be instances of Error: ' + sys.inspect(err))
@@ -153,7 +153,7 @@ var expect = function (callback, timeout) {
       callback.apply(this, arguments)
     }
   } else if (callback.length == 3) {
-    return function (err, arg1, arg2) {
+    return function(err, arg1, arg2) {
       clearTimeout(id)
       if (err) {
         assert.ok(err instanceof Error, 'Expected errors to be instances of Error: ' + sys.inspect(err))
@@ -166,7 +166,7 @@ var expect = function (callback, timeout) {
 }
 assert.calls = expect
 
-assert.isNull = function (item, message) {
+assert.isNull = function(item, message) {
   message = message || 'expected ' + item + ' to be null'
   assert.ok(item === null, message)
 }
@@ -177,7 +177,7 @@ const getMode = () => {
   return ''
 }
 
-global.test = function (name, action) {
+global.test = function(name, action) {
   test.testCount++
   test[name] = action
   var result = test[name]()
@@ -193,11 +193,11 @@ process.stdout.write(require('path').basename(process.argv[1]))
 if (args.binary) process.stdout.write(' (binary)')
 if (args.native) process.stdout.write(' (native)')
 
-process.on('exit', function () {
+process.on('exit', function() {
   console.log('')
 })
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', function(err) {
   console.error('\n %s', err.stack || err.toString())
   // causes xargs to abort right away
   process.exit(255)
@@ -205,7 +205,7 @@ process.on('uncaughtException', function (err) {
 
 var count = 0
 
-var Sink = function (expected, timeout, callback) {
+var Sink = function(expected, timeout, callback) {
   var defaultTimeout = 5000
   if (typeof timeout === 'function') {
     callback = timeout
@@ -213,12 +213,12 @@ var Sink = function (expected, timeout, callback) {
   }
   timeout = timeout || defaultTimeout
   var internalCount = 0
-  var kill = function () {
+  var kill = function() {
     assert.ok(false, 'Did not reach expected ' + expected + ' with an idle timeout of ' + timeout)
   }
   var killTimeout = setTimeout(kill, timeout)
   return {
-    add: function (count) {
+    add: function(count) {
       count = count || 1
       internalCount += count
       clearTimeout(killTimeout)
@@ -234,13 +234,13 @@ var Sink = function (expected, timeout, callback) {
 
 var getTimezoneOffset = Date.prototype.getTimezoneOffset
 
-var setTimezoneOffset = function (minutesOffset) {
-  Date.prototype.getTimezoneOffset = function () {
+var setTimezoneOffset = function(minutesOffset) {
+  Date.prototype.getTimezoneOffset = function() {
     return minutesOffset
   }
 }
 
-var resetTimezoneOffset = function () {
+var resetTimezoneOffset = function() {
   Date.prototype.getTimezoneOffset = getTimezoneOffset
 }
 

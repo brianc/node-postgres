@@ -7,7 +7,7 @@ function testTypeParser(client, expectedResult, done) {
   client.query('INSERT INTO parserOverrideTest(id) VALUES ($1)', [boolValue])
   client.query(
     'SELECT * FROM parserOverrideTest',
-    assert.success(function (result) {
+    assert.success(function(result) {
       assert.equal(result.rows[0].id, expectedResult)
       done()
     })
@@ -16,21 +16,21 @@ function testTypeParser(client, expectedResult, done) {
 
 const pool = new helper.pg.Pool(helper.config)
 pool.connect(
-  assert.success(function (client1, done1) {
+  assert.success(function(client1, done1) {
     pool.connect(
-      assert.success(function (client2, done2) {
+      assert.success(function(client2, done2) {
         var boolTypeOID = 16
-        client1.setTypeParser(boolTypeOID, function () {
+        client1.setTypeParser(boolTypeOID, function() {
           return 'first client'
         })
-        client2.setTypeParser(boolTypeOID, function () {
+        client2.setTypeParser(boolTypeOID, function() {
           return 'second client'
         })
 
-        client1.setTypeParser(boolTypeOID, 'binary', function () {
+        client1.setTypeParser(boolTypeOID, 'binary', function() {
           return 'first client binary'
         })
-        client2.setTypeParser(boolTypeOID, 'binary', function () {
+        client2.setTypeParser(boolTypeOID, 'binary', function() {
           return 'second client binary'
         })
 

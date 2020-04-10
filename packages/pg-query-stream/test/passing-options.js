@@ -2,8 +2,8 @@ var assert = require('assert')
 var helper = require('./helper')
 var QueryStream = require('../')
 
-helper('passing options', function (client) {
-  it('passes row mode array', function (done) {
+helper('passing options', function(client) {
+  it('passes row mode array', function(done) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { rowMode: 'array' })
     var query = client.query(stream)
     var result = []
@@ -17,7 +17,7 @@ helper('passing options', function (client) {
     })
   })
 
-  it('passes custom types', function (done) {
+  it('passes custom types', function(done) {
     const types = {
       getTypeParser: () => (string) => string,
     }

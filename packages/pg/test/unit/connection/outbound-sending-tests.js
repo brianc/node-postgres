@@ -6,13 +6,13 @@ var con = new Connection({
   stream: stream,
 })
 
-assert.received = function (stream, buffer) {
+assert.received = function(stream, buffer) {
   assert.lengthIs(stream.packets, 1)
   var packet = stream.packets.pop()
   assert.equalBuffers(packet, buffer)
 }
 
-test('sends startup message', function () {
+test('sends startup message', function() {
   con.startup({
     user: 'brian',
     database: 'bang',
@@ -33,43 +33,58 @@ test('sends startup message', function () {
   )
 })
 
-test('sends password message', function () {
+test('sends password message', function() {
   con.password('!')
   assert.received(stream, new BufferList().addCString('!').join(true, 'p'))
 })
 
-test('sends SASLInitialResponseMessage message', function () {
+test('sends SASLInitialResponseMessage message', function() {
   con.sendSASLInitialResponseMessage('mech', 'data')
-  assert.received(stream, new BufferList().addCString('mech').addInt32(4).addString('data').join(true, 'p'))
+  assert.received(
+    stream,
+    new BufferList()
+      .addCString('mech')
+      .addInt32(4)
+      .addString('data')
+      .join(true, 'p')
+  )
 })
 
-test('sends SCRAMClientFinalMessage message', function () {
+test('sends SCRAMClientFinalMessage message', function() {
   con.sendSCRAMClientFinalMessage('data')
   assert.received(stream, new BufferList().addString('data').join(true, 'p'))
 })
 
-test('sends query message', function () {
+test('sends query message', function() {
   var txt = 'select * from boom'
   con.query(txt)
   assert.received(stream, new BufferList().addCString(txt).join(true, 'Q'))
 })
 
-test('sends parse message', function () {
+test('sends parse message', function() {
   con.parse({ text: '!' })
-  var expected = new BufferList().addCString('').addCString('!').addInt16(0).join(true, 'P')
+  var expected = new BufferList()
+    .addCString('')
+    .addCString('!')
+    .addInt16(0)
+    .join(true, 'P')
   assert.received(stream, expected)
 })
 
-test('sends parse message with named query', function () {
+test('sends parse message with named query', function() {
   con.parse({
     name: 'boom',
     text: 'select * from boom',
     types: [],
   })
-  var expected = new BufferList().addCString('boom').addCString('select * from boom').addInt16(0).join(true, 'P')
+  var expected = new BufferList()
+    .addCString('boom')
+    .addCString('select * from boom')
+    .addInt16(0)
+    .join(true, 'P')
   assert.received(stream, expected)
 
-  test('with multiple parameters', function () {
+  test('with multiple parameters', function() {
     con.parse({
       name: 'force',
       text: 'select * from bang where name = $1',
@@ -88,8 +103,8 @@ test('sends parse message with named query', function () {
   })
 })
 
-test('bind messages', function () {
-  test('with no values', function () {
+test('bind messages', function() {
+  test('with no values', function() {
     con.bind()
 
     var expectedBuffer = new BufferList()
@@ -102,7 +117,7 @@ test('bind messages', function () {
     assert.received(stream, expectedBuffer)
   })
 
-  test('with named statement, portal, and values', function () {
+  test('with named statement, portal, and values', function() {
     con.bind({
       portal: 'bang',
       statement: 'woo',
@@ -126,7 +141,7 @@ test('bind messages', function () {
   })
 })
 
-test('with named statement, portal, and buffer value', function () {
+test('with named statement, portal, and buffer value', function() {
   con.bind({
     portal: 'bang',
     statement: 'woo',
@@ -153,52 +168,64 @@ test('with named statement, portal, and buffer value', function () {
   assert.received(stream, expectedBuffer)
 })
 
-test('sends execute message', function () {
-  test('for unamed portal with no row limit', function () {
+test('sends execute message', function() {
+  test('for unamed portal with no row limit', function() {
     con.execute()
-    var expectedBuffer = new BufferList().addCString('').addInt32(0).join(true, 'E')
+    var expectedBuffer = new BufferList()
+      .addCString('')
+      .addInt32(0)
+      .join(true, 'E')
     assert.received(stream, expectedBuffer)
   })
 
-  test('for named portal with row limit', function () {
+  test('for named portal with row limit', function() {
     con.execute({
       portal: 'my favorite portal',
       rows: 100,
     })
-    var expectedBuffer = new BufferList().addCString('my favorite portal').addInt32(100).join(true, 'E')
+    var expectedBuffer = new BufferList()
+      .addCString('my favorite portal')
+      .addInt32(100)
+      .join(true, 'E')
     assert.received(stream, expectedBuffer)
   })
 })
 
-test('sends flush command', function () {
+test('sends flush command', function() {
   con.flush()
   var expected = new BufferList().join(true, 'H')
   assert.received(stream, expected)
 })
 
-test('sends sync command', function () {
+test('sends sync command', function() {
   con.sync()
   var expected = new BufferList().join(true, 'S')
   assert.received(stream, expected)
 })
 
-test('sends end command', function () {
+test('sends end command', function() {
   con.end()
   var expected = Buffer.from([0x58, 0, 0, 0, 4])
   assert.received(stream, expected)
   assert.equal(stream.closed, true)
 })
 
-test('sends describe command', function () {
-  test('describe statement', function () {
+test('sends describe command', function() {
+  test('describe statement', function() {
     con.describe({ type: 'S', name: 'bang' })
-    var expected = new BufferList().addChar('S').addCString('bang').join(true, 'D')
+    var expected = new BufferList()
+      .addChar('S')
+      .addCString('bang')
+      .join(true, 'D')
     assert.received(stream, expected)
   })
 
-  test('describe unnamed portal', function () {
+  test('describe unnamed portal', function() {
     con.describe({ type: 'P' })
-    var expected = new BufferList().addChar('P').addCString('').join(true, 'D')
+    var expected = new BufferList()
+      .addChar('P')
+      .addCString('')
+      .join(true, 'D')
     assert.received(stream, expected)
   })
 })

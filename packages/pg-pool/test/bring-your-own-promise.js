@@ -13,10 +13,10 @@ const checkType = (promise) => {
   return promise.catch((e) => undefined)
 }
 
-describe('Bring your own promise', function () {
+describe('Bring your own promise', function() {
   it(
     'uses supplied promise for operations',
-    co.wrap(function* () {
+    co.wrap(function*() {
       const pool = new Pool({ Promise: BluebirdPromise })
       const client1 = yield checkType(pool.connect())
       client1.release()
@@ -30,7 +30,7 @@ describe('Bring your own promise', function () {
 
   it(
     'uses promises in errors',
-    co.wrap(function* () {
+    co.wrap(function*() {
       const pool = new Pool({ Promise: BluebirdPromise, port: 48484 })
       yield checkType(pool.connect())
       yield checkType(pool.end())

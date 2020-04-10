@@ -1,8 +1,8 @@
 'use strict'
 var helper = require(__dirname + '/test-helper')
 
-var testForTag = function (tagText, callback) {
-  test('includes command tag data for tag ' + tagText, function () {
+var testForTag = function(tagText, callback) {
+  test('includes command tag data for tag ' + tagText, function() {
     var client = helper.client()
     client.connection.emit('readyForQuery')
 
@@ -23,8 +23,8 @@ var testForTag = function (tagText, callback) {
   })
 }
 
-var check = function (oid, rowCount, command) {
-  return function (result) {
+var check = function(oid, rowCount, command) {
+  return function(result) {
     if (oid != null) {
       assert.equal(result.oid, oid)
     }

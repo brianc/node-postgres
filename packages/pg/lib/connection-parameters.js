@@ -13,7 +13,7 @@ var defaults = require('./defaults')
 
 var parse = require('pg-connection-string').parse // parses a connection string
 
-var val = function (key, config, envVar) {
+var val = function(key, config, envVar) {
   if (envVar === undefined) {
     envVar = process.env['PG' + key.toUpperCase()]
   } else if (envVar === false) {
@@ -25,7 +25,7 @@ var val = function (key, config, envVar) {
   return config[key] || envVar || defaults[key]
 }
 
-var useSsl = function () {
+var useSsl = function() {
   switch (process.env.PGSSLMODE) {
     case 'disable':
       return false
@@ -38,7 +38,7 @@ var useSsl = function () {
   return defaults.ssl
 }
 
-var ConnectionParameters = function (config) {
+var ConnectionParameters = function(config) {
   // if a string is passed, it is a raw connection string so we parse it into a config
   config = typeof config === 'string' ? parse(config) : config || {}
 
@@ -98,18 +98,18 @@ var ConnectionParameters = function (config) {
 }
 
 // Convert arg to a string, surround in single quotes, and escape single quotes and backslashes
-var quoteParamValue = function (value) {
+var quoteParamValue = function(value) {
   return "'" + ('' + value).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"
 }
 
-var add = function (params, config, paramName) {
+var add = function(params, config, paramName) {
   var value = config[paramName]
   if (value !== undefined && value !== null) {
     params.push(paramName + '=' + quoteParamValue(value))
   }
 }
 
-ConnectionParameters.prototype.getLibpqConnectionString = function (cb) {
+ConnectionParameters.prototype.getLibpqConnectionString = function(cb) {
   var params = []
   add(params, this, 'user')
   add(params, this, 'password')
@@ -140,7 +140,7 @@ ConnectionParameters.prototype.getLibpqConnectionString = function (cb) {
   if (this.client_encoding) {
     params.push('client_encoding=' + quoteParamValue(this.client_encoding))
   }
-  dns.lookup(this.host, function (err, address) {
+  dns.lookup(this.host, function(err, address) {
     if (err) return cb(err, null)
     params.push('hostaddr=' + quoteParamValue(address))
     return cb(null, params.join(' '))

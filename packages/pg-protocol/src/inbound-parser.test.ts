@@ -14,7 +14,7 @@ var parseCompleteBuffer = buffers.parseComplete()
 var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
 
-var addRow = function (bufferList: BufferList, name: string, offset: number) {
+var addRow = function(bufferList: BufferList, name: string, offset: number) {
   return bufferList
     .addCString(name) // field name
     .addInt32(offset++) // table id
@@ -144,7 +144,7 @@ var expectedTwoRowMessage = {
   ],
 }
 
-var testForMessage = function (buffer: Buffer, expectedMessage: any) {
+var testForMessage = function(buffer: Buffer, expectedMessage: any) {
   it('recieves and parses ' + expectedMessage.name, async () => {
     const messages = await parseBuffers([buffer])
     const [lastMessage] = messages
@@ -204,7 +204,7 @@ const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
   return msgs
 }
 
-describe('PgPacketStream', function () {
+describe('PgPacketStream', function() {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage)
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage)
   testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
@@ -226,21 +226,21 @@ describe('PgPacketStream', function () {
     name: 'noData',
   })
 
-  describe('rowDescription messages', function () {
+  describe('rowDescription messages', function() {
     testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage)
     testForMessage(oneRowDescBuff, expectedOneRowMessage)
     testForMessage(twoRowBuf, expectedTwoRowMessage)
   })
 
-  describe('parsing rows', function () {
-    describe('parsing empty row', function () {
+  describe('parsing rows', function() {
+    describe('parsing empty row', function() {
       testForMessage(emptyRowFieldBuf, {
         name: 'dataRow',
         fieldCount: 0,
       })
     })
 
-    describe('parsing data row with fields', function () {
+    describe('parsing data row with fields', function() {
       testForMessage(oneFieldBuf, {
         name: 'dataRow',
         fieldCount: 1,
@@ -249,7 +249,7 @@ describe('PgPacketStream', function () {
     })
   })
 
-  describe('notice message', function () {
+  describe('notice message', function() {
     // this uses the same logic as error message
     var buff = buffers.notice([{ type: 'C', value: 'code' }])
     testForMessage(buff, {
@@ -262,7 +262,7 @@ describe('PgPacketStream', function () {
     name: 'error',
   })
 
-  describe('with all the fields', function () {
+  describe('with all the fields', function() {
     var buffer = buffers.error([
       {
         type: 'S',
@@ -351,13 +351,13 @@ describe('PgPacketStream', function () {
     name: 'closeComplete',
   })
 
-  describe('parses portal suspended message', function () {
+  describe('parses portal suspended message', function() {
     testForMessage(portalSuspendedBuffer, {
       name: 'portalSuspended',
     })
   })
 
-  describe('parses replication start message', function () {
+  describe('parses replication start message', function() {
     testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
       name: 'replicationStart',
       length: 4,
@@ -408,10 +408,10 @@ describe('PgPacketStream', function () {
   // since the data message on a stream can randomly divide the incomming
   // tcp packets anywhere, we need to make sure we can parse every single
   // split on a tcp message
-  describe('split buffer, single message parsing', function () {
+  describe('split buffer, single message parsing', function() {
     var fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
 
-    it('parses when full buffer comes in', async function () {
+    it('parses when full buffer comes in', async function() {
       const messages = await parseBuffers([fullBuffer])
       const message = messages[0] as any
       assert.equal(message.fields.length, 5)
@@ -422,7 +422,7 @@ describe('PgPacketStream', function () {
       assert.equal(message.fields[4], '!')
     })
 
-    var testMessageRecievedAfterSpiltAt = async function (split: number) {
+    var testMessageRecievedAfterSpiltAt = async function(split: number) {
       var firstBuffer = Buffer.alloc(fullBuffer.length - split)
       var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
@@ -437,29 +437,29 @@ describe('PgPacketStream', function () {
       assert.equal(message.fields[4], '!')
     }
 
-    it('parses when split in the middle', function () {
+    it('parses when split in the middle', function() {
       testMessageRecievedAfterSpiltAt(6)
     })
 
-    it('parses when split at end', function () {
+    it('parses when split at end', function() {
       testMessageRecievedAfterSpiltAt(2)
     })
 
-    it('parses when split at beginning', function () {
+    it('parses when split at beginning', function() {
       testMessageRecievedAfterSpiltAt(fullBuffer.length - 2)
       testMessageRecievedAfterSpiltAt(fullBuffer.length - 1)
       testMessageRecievedAfterSpiltAt(fullBuffer.length - 5)
     })
   })
 
-  describe('split buffer, multiple message parsing', function () {
+  describe('split buffer, multiple message parsing', function() {
     var dataRowBuffer = buffers.dataRow(['!'])
     var readyForQueryBuffer = buffers.readyForQuery()
     var fullBuffer = Buffer.alloc(dataRowBuffer.length + readyForQueryBuffer.length)
     dataRowBuffer.copy(fullBuffer, 0, 0)
     readyForQueryBuffer.copy(fullBuffer, dataRowBuffer.length, 0)
 
-    var verifyMessages = function (messages: any[]) {
+    var verifyMessages = function(messages: any[]) {
       assert.strictEqual(messages.length, 2)
       assert.deepEqual(messages[0], {
         name: 'dataRow',
@@ -475,12 +475,12 @@ describe('PgPacketStream', function () {
       })
     }
     // sanity check
-    it('recieves both messages when packet is not split', async function () {
+    it('recieves both messages when packet is not split', async function() {
       const messages = await parseBuffers([fullBuffer])
       verifyMessages(messages)
     })
 
-    var splitAndVerifyTwoMessages = async function (split: number) {
+    var splitAndVerifyTwoMessages = async function(split: number) {
       var firstBuffer = Buffer.alloc(fullBuffer.length - split)
       var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
@@ -489,11 +489,11 @@ describe('PgPacketStream', function () {
       verifyMessages(messages)
     }
 
-    describe('recieves both messages when packet is split', function () {
-      it('in the middle', function () {
+    describe('recieves both messages when packet is split', function() {
+      it('in the middle', function() {
         return splitAndVerifyTwoMessages(11)
       })
-      it('at the front', function () {
+      it('at the front', function() {
         return Promise.all([
           splitAndVerifyTwoMessages(fullBuffer.length - 1),
           splitAndVerifyTwoMessages(fullBuffer.length - 4),
@@ -501,7 +501,7 @@ describe('PgPacketStream', function () {
         ])
       })
 
-      it('at the end', function () {
+      it('at the end', function() {
         return Promise.all([splitAndVerifyTwoMessages(8), splitAndVerifyTwoMessages(1)])
       })
     })

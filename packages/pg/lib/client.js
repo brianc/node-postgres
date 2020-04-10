@@ -22,7 +22,7 @@ if (process.env.PG_FAST_CONNECTION) {
   Connection = require('./connection-fast')
 }
 
-var Client = function (config) {
+var Client = function(config) {
   EventEmitter.call(this)
 
   this.connectionParameters = new ConnectionParameters(config)
@@ -71,7 +71,7 @@ var Client = function (config) {
 
 util.inherits(Client, EventEmitter)
 
-Client.prototype._errorAllQueries = function (err) {
+Client.prototype._errorAllQueries = function(err) {
   const enqueueError = (query) => {
     process.nextTick(() => {
       query.handleError(err, this.connection)
@@ -87,7 +87,7 @@ Client.prototype._errorAllQueries = function (err) {
   this.queryQueue.length = 0
 }
 
-Client.prototype._connect = function (callback) {
+Client.prototype._connect = function(callback) {
   var self = this
   var con = this.connection
   if (this._connecting || this._connected) {
@@ -114,7 +114,7 @@ Client.prototype._connect = function (callback) {
   }
 
   // once connection is established send startup message
-  con.on('connect', function () {
+  con.on('connect', function() {
     if (self.ssl) {
       con.requestSsl()
     } else {
@@ -122,12 +122,12 @@ Client.prototype._connect = function (callback) {
     }
   })
 
-  con.on('sslconnect', function () {
+  con.on('sslconnect', function() {
     con.startup(self.getStartupConf())
   })
 
   function checkPgPass(cb) {
-    return function (msg) {
+    return function(msg) {
       if (typeof self.password === 'function') {
         self._Promise
           .resolve()
@@ -150,7 +150,7 @@ Client.prototype._connect = function (callback) {
       } else if (self.password !== null) {
         cb(msg)
       } else {
-        pgPass(self.connectionParameters, function (pass) {
+        pgPass(self.connectionParameters, function(pass) {
           if (undefined !== pass) {
             self.connectionParameters.password = self.password = pass
           }
@@ -163,7 +163,7 @@ Client.prototype._connect = function (callback) {
   // password request handling
   con.on(
     'authenticationCleartextPassword',
-    checkPgPass(function () {
+    checkPgPass(function() {
       con.password(self.password)
     })
   )
@@ -171,7 +171,7 @@ Client.prototype._connect = function (callback) {
   // password request handling
   con.on(
     'authenticationMD5Password',
-    checkPgPass(function (msg) {
+    checkPgPass(function(msg) {
       con.password(utils.postgresMd5PasswordHash(self.user, self.password, msg.salt))
     })
   )
@@ -180,7 +180,7 @@ Client.prototype._connect = function (callback) {
   var saslSession
   con.on(
     'authenticationSASL',
-    checkPgPass(function (msg) {
+    checkPgPass(function(msg) {
       saslSession = sasl.startSession(msg.mechanisms)
 
       con.sendSASLInitialResponseMessage(saslSession.mechanism, saslSession.response)
@@ -188,20 +188,20 @@ Client.prototype._connect = function (callback) {
   )
 
   // password request handling (SASL)
-  con.on('authenticationSASLContinue', function (msg) {
+  con.on('authenticationSASLContinue', function(msg) {
     sasl.continueSession(saslSession, self.password, msg.data)
 
     con.sendSCRAMClientFinalMessage(saslSession.response)
   })
 
   // password request handling (SASL)
-  con.on('authenticationSASLFinal', function (msg) {
+  con.on('authenticationSASLFinal', function(msg) {
     sasl.finalizeSession(saslSession, msg.data)
 
     saslSession = null
   })
 
-  con.once('backendKeyData', function (msg) {
+  con.once('backendKeyData', function(msg) {
     self.processID = msg.processID
     self.secretKey = msg.secretKey
   })
@@ -241,7 +241,7 @@ Client.prototype._connect = function (callback) {
 
   // hook up query handling events to connection
   // after the connection initially becomes ready for queries
-  con.once('readyForQuery', function () {
+  con.once('readyForQuery', function() {
     self._connecting = false
     self._connected = true
     self._attachListeners(con)
@@ -261,7 +261,7 @@ Client.prototype._connect = function (callback) {
     self.emit('connect')
   })
 
-  con.on('readyForQuery', function () {
+  con.on('readyForQuery', function() {
     var activeQuery = self.activeQuery
     self.activeQuery = null
     self.readyForQuery = true
@@ -298,12 +298,12 @@ Client.prototype._connect = function (callback) {
     })
   })
 
-  con.on('notice', function (msg) {
+  con.on('notice', function(msg) {
     self.emit('notice', msg)
   })
 }
 
-Client.prototype.connect = function (callback) {
+Client.prototype.connect = function(callback) {
   if (callback) {
     this._connect(callback)
     return
@@ -320,32 +320,32 @@ Client.prototype.connect = function (callback) {
   })
 }
 
-Client.prototype._attachListeners = function (con) {
+Client.prototype._attachListeners = function(con) {
   const self = this
   // delegate rowDescription to active query
-  con.on('rowDescription', function (msg) {
+  con.on('rowDescription', function(msg) {
     self.activeQuery.handleRowDescription(msg)
   })
 
   // delegate dataRow to active query
-  con.on('dataRow', function (msg) {
+  con.on('dataRow', function(msg) {
     self.activeQuery.handleDataRow(msg)
   })
 
   // delegate portalSuspended to active query
   // eslint-disable-next-line no-unused-vars
-  con.on('portalSuspended', function (msg) {
+  con.on('portalSuspended', function(msg) {
     self.activeQuery.handlePortalSuspended(con)
   })
 
   // delegate emptyQuery to active query
   // eslint-disable-next-line no-unused-vars
-  con.on('emptyQuery', function (msg) {
+  con.on('emptyQuery', function(msg) {
     self.activeQuery.handleEmptyQuery(con)
   })
 
   // delegate commandComplete to active query
-  con.on('commandComplete', function (msg) {
+  con.on('commandComplete', function(msg) {
     self.activeQuery.handleCommandComplete(msg, con)
   })
 
@@ -353,27 +353,27 @@ Client.prototype._attachListeners = function (con) {
   // we track that its already been executed so we don't parse
   // it again on the same client
   // eslint-disable-next-line no-unused-vars
-  con.on('parseComplete', function (msg) {
+  con.on('parseComplete', function(msg) {
     if (self.activeQuery.name) {
       con.parsedStatements[self.activeQuery.name] = self.activeQuery.text
     }
   })
 
   // eslint-disable-next-line no-unused-vars
-  con.on('copyInResponse', function (msg) {
+  con.on('copyInResponse', function(msg) {
     self.activeQuery.handleCopyInResponse(self.connection)
   })
 
-  con.on('copyData', function (msg) {
+  con.on('copyData', function(msg) {
     self.activeQuery.handleCopyData(msg, self.connection)
   })
 
-  con.on('notification', function (msg) {
+  con.on('notification', function(msg) {
     self.emit('notification', msg)
   })
 }
 
-Client.prototype.getStartupConf = function () {
+Client.prototype.getStartupConf = function() {
   var params = this.connectionParameters
 
   var data = {
@@ -398,7 +398,7 @@ Client.prototype.getStartupConf = function () {
   return data
 }
 
-Client.prototype.cancel = function (client, query) {
+Client.prototype.cancel = function(client, query) {
   if (client.activeQuery === query) {
     var con = this.connection
 
@@ -409,7 +409,7 @@ Client.prototype.cancel = function (client, query) {
     }
 
     // once connection is established send cancel message
-    con.on('connect', function () {
+    con.on('connect', function() {
       con.cancel(client.processID, client.secretKey)
     })
   } else if (client.queryQueue.indexOf(query) !== -1) {
@@ -417,21 +417,21 @@ Client.prototype.cancel = function (client, query) {
   }
 }
 
-Client.prototype.setTypeParser = function (oid, format, parseFn) {
+Client.prototype.setTypeParser = function(oid, format, parseFn) {
   return this._types.setTypeParser(oid, format, parseFn)
 }
 
-Client.prototype.getTypeParser = function (oid, format) {
+Client.prototype.getTypeParser = function(oid, format) {
   return this._types.getTypeParser(oid, format)
 }
 
 // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
-Client.prototype.escapeIdentifier = function (str) {
+Client.prototype.escapeIdentifier = function(str) {
   return '"' + str.replace(/"/g, '""') + '"'
 }
 
 // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
-Client.prototype.escapeLiteral = function (str) {
+Client.prototype.escapeLiteral = function(str) {
   var hasBackslash = false
   var escaped = "'"
 
@@ -456,7 +456,7 @@ Client.prototype.escapeLiteral = function (str) {
   return escaped
 }
 
-Client.prototype._pulseQueryQueue = function () {
+Client.prototype._pulseQueryQueue = function() {
   if (this.readyForQuery === true) {
     this.activeQuery = this.queryQueue.shift()
     if (this.activeQuery) {
@@ -478,7 +478,7 @@ Client.prototype._pulseQueryQueue = function () {
   }
 }
 
-Client.prototype.query = function (config, values, callback) {
+Client.prototype.query = function(config, values, callback) {
   // can take in strings, config object or query object
   var query
   var result
@@ -562,7 +562,7 @@ Client.prototype.query = function (config, values, callback) {
   return result
 }
 
-Client.prototype.end = function (cb) {
+Client.prototype.end = function(cb) {
   this._ending = true
 
   // if we have never connected, then end is a noop, callback immediately

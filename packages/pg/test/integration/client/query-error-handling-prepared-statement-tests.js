@@ -5,10 +5,10 @@ var util = require('util')
 
 var suite = new helper.Suite()
 
-suite.test('client end during query execution of prepared statement', function (done) {
+suite.test('client end during query execution of prepared statement', function(done) {
   var client = new Client()
   client.connect(
-    assert.success(function () {
+    assert.success(function() {
       var sleepQuery = 'select pg_sleep($1)'
 
       var queryConfig = {
@@ -19,7 +19,7 @@ suite.test('client end during query execution of prepared statement', function (
 
       var queryInstance = new Query(
         queryConfig,
-        assert.calls(function (err, result) {
+        assert.calls(function(err, result) {
           assert.equal(err.message, 'Connection terminated')
           done()
         })
@@ -27,15 +27,15 @@ suite.test('client end during query execution of prepared statement', function (
 
       var query1 = client.query(queryInstance)
 
-      query1.on('error', function (err) {
+      query1.on('error', function(err) {
         assert.fail('Prepared statement should not emit error')
       })
 
-      query1.on('row', function (row) {
+      query1.on('row', function(row) {
         assert.fail('Prepared statement should not emit row')
       })
 
-      query1.on('end', function (err) {
+      query1.on('end', function(err) {
         assert.fail('Prepared statement when executed should not return before being killed')
       })
 
@@ -49,11 +49,11 @@ function killIdleQuery(targetQuery, cb) {
   var pidColName = 'procpid'
   var queryColName = 'current_query'
   client2.connect(
-    assert.success(function () {
+    assert.success(function() {
       helper.versionGTE(
         client2,
         90200,
-        assert.success(function (isGreater) {
+        assert.success(function(isGreater) {
           if (isGreater) {
             pidColName = 'pid'
             queryColName = 'query'
@@ -69,7 +69,7 @@ function killIdleQuery(targetQuery, cb) {
           client2.query(
             killIdleQuery,
             [targetQuery],
-            assert.calls(function (err, res) {
+            assert.calls(function(err, res) {
               assert.ifError(err)
               assert.equal(res.rows.length, 1)
               client2.end(cb)
@@ -82,13 +82,13 @@ function killIdleQuery(targetQuery, cb) {
   )
 }
 
-suite.test('query killed during query execution of prepared statement', function (done) {
+suite.test('query killed during query execution of prepared statement', function(done) {
   if (helper.args.native) {
     return done()
   }
   var client = new Client(helper.args)
   client.connect(
-    assert.success(function () {
+    assert.success(function() {
       var sleepQuery = 'select pg_sleep($1)'
 
       const queryConfig = {
@@ -102,20 +102,20 @@ suite.test('query killed during query execution of prepared statement', function
 
       var query1 = client.query(
         new Query(queryConfig),
-        assert.calls(function (err, result) {
+        assert.calls(function(err, result) {
           assert.equal(err.message, 'terminating connection due to administrator command')
         })
       )
 
-      query1.on('error', function (err) {
+      query1.on('error', function(err) {
         assert.fail('Prepared statement should not emit error')
       })
 
-      query1.on('row', function (row) {
+      query1.on('row', function(row) {
         assert.fail('Prepared statement should not emit row')
       })
 
-      query1.on('end', function (err) {
+      query1.on('end', function(err) {
         assert.fail('Prepared statement when executed should not return before being killed')
       })
 

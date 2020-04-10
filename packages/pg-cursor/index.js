@@ -25,18 +25,18 @@ function Cursor(text, values, config) {
 
 util.inherits(Cursor, EventEmitter)
 
-Cursor.prototype._ifNoData = function () {
+Cursor.prototype._ifNoData = function() {
   this.state = 'idle'
   this._shiftQueue()
 }
 
-Cursor.prototype._rowDescription = function () {
+Cursor.prototype._rowDescription = function() {
   if (this.connection) {
     this.connection.removeListener('noData', this._ifNoData)
   }
 }
 
-Cursor.prototype.submit = function (connection) {
+Cursor.prototype.submit = function(connection) {
   this.connection = connection
   this._portal = 'C_' + nextUniqueID++
 
@@ -75,13 +75,13 @@ Cursor.prototype.submit = function (connection) {
   con.once('rowDescription', this._rowDescription)
 }
 
-Cursor.prototype._shiftQueue = function () {
+Cursor.prototype._shiftQueue = function() {
   if (this._queue.length) {
     this._getRows.apply(this, this._queue.shift())
   }
 }
 
-Cursor.prototype._closePortal = function () {
+Cursor.prototype._closePortal = function() {
   // because we opened a named portal to stream results
   // we need to close the same named portal.  Leaving a named portal
   // open can lock tables for modification if inside a transaction.
@@ -90,19 +90,19 @@ Cursor.prototype._closePortal = function () {
   this.connection.sync()
 }
 
-Cursor.prototype.handleRowDescription = function (msg) {
+Cursor.prototype.handleRowDescription = function(msg) {
   this._result.addFields(msg.fields)
   this.state = 'idle'
   this._shiftQueue()
 }
 
-Cursor.prototype.handleDataRow = function (msg) {
+Cursor.prototype.handleDataRow = function(msg) {
   const row = this._result.parseRow(msg.fields)
   this.emit('row', row, this._result)
   this._rows.push(row)
 }
 
-Cursor.prototype._sendRows = function () {
+Cursor.prototype._sendRows = function() {
   this.state = 'idle'
   setImmediate(() => {
     const cb = this._cb
@@ -118,26 +118,26 @@ Cursor.prototype._sendRows = function () {
   })
 }
 
-Cursor.prototype.handleCommandComplete = function (msg) {
+Cursor.prototype.handleCommandComplete = function(msg) {
   this._result.addCommandComplete(msg)
   this._closePortal()
 }
 
-Cursor.prototype.handlePortalSuspended = function () {
+Cursor.prototype.handlePortalSuspended = function() {
   this._sendRows()
 }
 
-Cursor.prototype.handleReadyForQuery = function () {
+Cursor.prototype.handleReadyForQuery = function() {
   this._sendRows()
   this.state = 'done'
   this.emit('end', this._result)
 }
 
-Cursor.prototype.handleEmptyQuery = function () {
+Cursor.prototype.handleEmptyQuery = function() {
   this.connection.sync()
 }
 
-Cursor.prototype.handleError = function (msg) {
+Cursor.prototype.handleError = function(msg) {
   this.connection.removeListener('noData', this._ifNoData)
   this.connection.removeListener('rowDescription', this._rowDescription)
   this.state = 'error'
@@ -159,7 +159,7 @@ Cursor.prototype.handleError = function (msg) {
   this.connection.sync()
 }
 
-Cursor.prototype._getRows = function (rows, cb) {
+Cursor.prototype._getRows = function(rows, cb) {
   this.state = 'busy'
   this._cb = cb
   this._rows = []
@@ -173,7 +173,7 @@ Cursor.prototype._getRows = function (rows, cb) {
 
 // users really shouldn't be calling 'end' here and terminating a connection to postgres
 // via the low level connection.end api
-Cursor.prototype.end = util.deprecate(function (cb) {
+Cursor.prototype.end = util.deprecate(function(cb) {
   if (this.state !== 'initialized') {
     this.connection.sync()
   }
@@ -181,7 +181,7 @@ Cursor.prototype.end = util.deprecate(function (cb) {
   this.connection.end()
 }, 'Cursor.end is deprecated. Call end on the client itself to end a connection to the database.')
 
-Cursor.prototype.close = function (cb) {
+Cursor.prototype.close = function(cb) {
   if (!this.connection || this.state === 'done') {
     if (cb) {
       return setImmediate(cb)
@@ -192,13 +192,13 @@ Cursor.prototype.close = function (cb) {
   this._closePortal()
   this.state = 'done'
   if (cb) {
-    this.connection.once('readyForQuery', function () {
+    this.connection.once('readyForQuery', function() {
       cb()
     })
   }
 }
 
-Cursor.prototype.read = function (rows, cb) {
+Cursor.prototype.read = function(rows, cb) {
   if (this.state === 'idle') {
     return this._getRows(rows, cb)
   }

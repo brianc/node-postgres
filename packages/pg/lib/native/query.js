@@ -11,7 +11,7 @@ var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var utils = require('../utils')
 
-var NativeQuery = (module.exports = function (config, values, callback) {
+var NativeQuery = (module.exports = function(config, values, callback) {
   EventEmitter.call(this)
   config = utils.normalizeQueryConfig(config, values, callback)
   this.text = config.text
@@ -29,7 +29,7 @@ var NativeQuery = (module.exports = function (config, values, callback) {
   this._emitRowEvents = false
   this.on(
     'newListener',
-    function (event) {
+    function(event) {
       if (event === 'row') this._emitRowEvents = true
     }.bind(this)
   )
@@ -53,7 +53,7 @@ var errorFieldMap = {
   sourceFunction: 'routine',
 }
 
-NativeQuery.prototype.handleError = function (err) {
+NativeQuery.prototype.handleError = function(err) {
   // copy pq error fields into the error object
   var fields = this.native.pq.resultErrorFields()
   if (fields) {
@@ -70,18 +70,18 @@ NativeQuery.prototype.handleError = function (err) {
   this.state = 'error'
 }
 
-NativeQuery.prototype.then = function (onSuccess, onFailure) {
+NativeQuery.prototype.then = function(onSuccess, onFailure) {
   return this._getPromise().then(onSuccess, onFailure)
 }
 
-NativeQuery.prototype.catch = function (callback) {
+NativeQuery.prototype.catch = function(callback) {
   return this._getPromise().catch(callback)
 }
 
-NativeQuery.prototype._getPromise = function () {
+NativeQuery.prototype._getPromise = function() {
   if (this._promise) return this._promise
   this._promise = new Promise(
-    function (resolve, reject) {
+    function(resolve, reject) {
       this._once('end', resolve)
       this._once('error', reject)
     }.bind(this)
@@ -89,15 +89,15 @@ NativeQuery.prototype._getPromise = function () {
   return this._promise
 }
 
-NativeQuery.prototype.submit = function (client) {
+NativeQuery.prototype.submit = function(client) {
   this.state = 'running'
   var self = this
   this.native = client.native
   client.native.arrayMode = this._arrayMode
 
-  var after = function (err, rows, results) {
+  var after = function(err, rows, results) {
     client.native.arrayMode = false
-    setImmediate(function () {
+    setImmediate(function() {
       self.emit('_done')
     })
 
@@ -115,7 +115,7 @@ NativeQuery.prototype.submit = function (client) {
           })
         })
       } else {
-        rows.forEach(function (row) {
+        rows.forEach(function(row) {
           self.emit('row', row, results)
         })
       }
@@ -154,7 +154,7 @@ NativeQuery.prototype.submit = function (client) {
       return client.native.execute(this.name, values, after)
     }
     // plan the named query the first time, then execute it
-    return client.native.prepare(this.name, this.text, values.length, function (err) {
+    return client.native.prepare(this.name, this.text, values.length, function(err) {
       if (err) return after(err)
       client.namedQueries[self.name] = self.text
       return self.native.execute(self.name, values, after)

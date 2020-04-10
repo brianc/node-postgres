@@ -5,8 +5,8 @@ var pguser = process.env['PGUSER'] || process.env.USER
 var pgdatabase = process.env['PGDATABASE'] || process.env.USER
 var pgport = process.env['PGPORT'] || 5432
 
-test('client settings', function () {
-  test('defaults', function () {
+test('client settings', function() {
+  test('defaults', function() {
     var client = new Client()
     assert.equal(client.user, pguser)
     assert.equal(client.database, pgdatabase)
@@ -14,7 +14,7 @@ test('client settings', function () {
     assert.equal(client.ssl, false)
   })
 
-  test('custom', function () {
+  test('custom', function() {
     var user = 'brian'
     var database = 'pgjstest'
     var password = 'boom'
@@ -33,7 +33,7 @@ test('client settings', function () {
     assert.equal(client.ssl, true)
   })
 
-  test('custom ssl default on', function () {
+  test('custom ssl default on', function() {
     var old = process.env.PGSSLMODE
     process.env.PGSSLMODE = 'prefer'
 
@@ -43,7 +43,7 @@ test('client settings', function () {
     assert.equal(client.ssl, true)
   })
 
-  test('custom ssl force off', function () {
+  test('custom ssl force off', function() {
     var old = process.env.PGSSLMODE
     process.env.PGSSLMODE = 'prefer'
 
@@ -56,8 +56,8 @@ test('client settings', function () {
   })
 })
 
-test('initializing from a config string', function () {
-  test('uses connectionString property', function () {
+test('initializing from a config string', function() {
+  test('uses connectionString property', function() {
     var client = new Client({
       connectionString: 'postgres://brian:pass@host1:333/databasename',
     })
@@ -68,7 +68,7 @@ test('initializing from a config string', function () {
     assert.equal(client.database, 'databasename')
   })
 
-  test('uses the correct values from the config string', function () {
+  test('uses the correct values from the config string', function() {
     var client = new Client('postgres://brian:pass@host1:333/databasename')
     assert.equal(client.user, 'brian')
     assert.equal(client.password, 'pass')
@@ -77,7 +77,7 @@ test('initializing from a config string', function () {
     assert.equal(client.database, 'databasename')
   })
 
-  test('uses the correct values from the config string with space in password', function () {
+  test('uses the correct values from the config string with space in password', function() {
     var client = new Client('postgres://brian:pass word@host1:333/databasename')
     assert.equal(client.user, 'brian')
     assert.equal(client.password, 'pass word')
@@ -86,7 +86,7 @@ test('initializing from a config string', function () {
     assert.equal(client.database, 'databasename')
   })
 
-  test('when not including all values the defaults are used', function () {
+  test('when not including all values the defaults are used', function() {
     var client = new Client('postgres://host1')
     assert.equal(client.user, process.env['PGUSER'] || process.env.USER)
     assert.equal(client.password, process.env['PGPASSWORD'] || null)
@@ -95,7 +95,7 @@ test('initializing from a config string', function () {
     assert.equal(client.database, process.env['PGDATABASE'] || process.env.USER)
   })
 
-  test('when not including all values the environment variables are used', function () {
+  test('when not including all values the environment variables are used', function() {
     var envUserDefined = process.env['PGUSER'] !== undefined
     var envPasswordDefined = process.env['PGPASSWORD'] !== undefined
     var envDBDefined = process.env['PGDATABASE'] !== undefined
@@ -153,11 +153,11 @@ test('initializing from a config string', function () {
   })
 })
 
-test('calls connect correctly on connection', function () {
+test('calls connect correctly on connection', function() {
   var client = new Client('/tmp')
   var usedPort = ''
   var usedHost = ''
-  client.connection.connect = function (port, host) {
+  client.connection.connect = function(port, host) {
     usedPort = port
     usedHost = host
   }

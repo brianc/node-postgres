@@ -1,32 +1,32 @@
 'use strict'
-global.BufferList = function () {
+global.BufferList = function() {
   this.buffers = []
 }
 var p = BufferList.prototype
 
-p.add = function (buffer, front) {
+p.add = function(buffer, front) {
   this.buffers[front ? 'unshift' : 'push'](buffer)
   return this
 }
 
-p.addInt16 = function (val, front) {
+p.addInt16 = function(val, front) {
   return this.add(Buffer.from([val >>> 8, val >>> 0]), front)
 }
 
-p.getByteLength = function (initial) {
-  return this.buffers.reduce(function (previous, current) {
+p.getByteLength = function(initial) {
+  return this.buffers.reduce(function(previous, current) {
     return previous + current.length
   }, initial || 0)
 }
 
-p.addInt32 = function (val, first) {
+p.addInt32 = function(val, first) {
   return this.add(
     Buffer.from([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, (val >>> 0) & 0xff]),
     first
   )
 }
 
-p.addCString = function (val, front) {
+p.addCString = function(val, front) {
   var len = Buffer.byteLength(val)
   var buffer = Buffer.alloc(len + 1)
   buffer.write(val)
@@ -34,18 +34,18 @@ p.addCString = function (val, front) {
   return this.add(buffer, front)
 }
 
-p.addString = function (val, front) {
+p.addString = function(val, front) {
   var len = Buffer.byteLength(val)
   var buffer = Buffer.alloc(len)
   buffer.write(val)
   return this.add(buffer, front)
 }
 
-p.addChar = function (char, first) {
+p.addChar = function(char, first) {
   return this.add(Buffer.from(char, 'utf8'), first)
 }
 
-p.join = function (appendLength, char) {
+p.join = function(appendLength, char) {
   var length = this.getByteLength()
   if (appendLength) {
     this.addInt32(length + 4, true)
@@ -57,14 +57,14 @@ p.join = function (appendLength, char) {
   }
   var result = Buffer.alloc(length)
   var index = 0
-  this.buffers.forEach(function (buffer) {
+  this.buffers.forEach(function(buffer) {
     buffer.copy(result, index, 0)
     index += buffer.length
   })
   return result
 }
 
-BufferList.concat = function () {
+BufferList.concat = function() {
   var total = new BufferList()
   for (var i = 0; i < arguments.length; i++) {
     total.add(arguments[i])

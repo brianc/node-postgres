@@ -2,7 +2,7 @@
 require(__dirname + '/test-helper')
 var Connection = require(__dirname + '/../../../lib/connection')
 var buffers = require(__dirname + '/../../test-buffers')
-var PARSE = function (buffer) {
+var PARSE = function(buffer) {
   return new Parser(buffer).parse()
 }
 
@@ -15,7 +15,7 @@ var parseCompleteBuffer = buffers.parseComplete()
 var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
 
-var addRow = function (bufferList, name, offset) {
+var addRow = function(bufferList, name, offset) {
   return bufferList
     .addCString(name) // field name
     .addInt32(offset++) // table id
@@ -112,20 +112,20 @@ var expectedTwoRowMessage = {
   fieldCount: 2,
 }
 
-var testForMessage = function (buffer, expectedMessage) {
+var testForMessage = function(buffer, expectedMessage) {
   var lastMessage = {}
-  test('recieves and parses ' + expectedMessage.name, function () {
+  test('recieves and parses ' + expectedMessage.name, function() {
     var stream = new MemoryStream()
     var client = new Connection({
       stream: stream,
     })
     client.connect()
 
-    client.on('message', function (msg) {
+    client.on('message', function(msg) {
       lastMessage = msg
     })
 
-    client.on(expectedMessage.name, function () {
+    client.on(expectedMessage.name, function() {
       client.removeAllListeners(expectedMessage.name)
     })
 
@@ -171,16 +171,16 @@ var expectedNotificationResponseMessage = {
   payload: 'boom',
 }
 
-test('Connection', function () {
+test('Connection', function() {
   testForMessage(authOkBuffer, expectedAuthenticationOkayMessage)
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage)
   var msgMD5 = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
-  test('md5 has right salt', function () {
+  test('md5 has right salt', function() {
     assert.equalBuffers(msgMD5.salt, Buffer.from([1, 2, 3, 4]))
   })
 
   var msgSASL = testForMessage(SASLBuffer, expectedSASLMessage)
-  test('SASL has the right mechanisms', function () {
+  test('SASL has the right mechanisms', function() {
     assert.deepStrictEqual(msgSASL.mechanisms, ['SCRAM-SHA-256'])
   })
   testForMessage(SASLContinueBuffer, expectedSASLContinueMessage)
@@ -191,25 +191,25 @@ test('Connection', function () {
   testForMessage(readyForQueryBuffer, expectedReadyForQueryMessage)
   testForMessage(commandCompleteBuffer, expectedCommandCompleteMessage)
   testForMessage(notificationResponseBuffer, expectedNotificationResponseMessage)
-  test('empty row message', function () {
+  test('empty row message', function() {
     var message = testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage)
-    test('has no fields', function () {
+    test('has no fields', function() {
       assert.equal(message.fields.length, 0)
     })
   })
 
-  test('no data message', function () {
+  test('no data message', function() {
     testForMessage(Buffer.from([0x6e, 0, 0, 0, 4]), {
       name: 'noData',
     })
   })
 
-  test('one row message', function () {
+  test('one row message', function() {
     var message = testForMessage(oneRowDescBuff, expectedOneRowMessage)
-    test('has one field', function () {
+    test('has one field', function() {
       assert.equal(message.fields.length, 1)
     })
-    test('has correct field info', function () {
+    test('has correct field info', function() {
       assert.same(message.fields[0], {
         name: 'id',
         tableID: 1,
@@ -222,12 +222,12 @@ test('Connection', function () {
     })
   })
 
-  test('two row message', function () {
+  test('two row message', function() {
     var message = testForMessage(twoRowBuf, expectedTwoRowMessage)
-    test('has two fields', function () {
+    test('has two fields', function() {
       assert.equal(message.fields.length, 2)
     })
-    test('has correct first field', function () {
+    test('has correct first field', function() {
       assert.same(message.fields[0], {
         name: 'bang',
         tableID: 1,
@@ -238,7 +238,7 @@ test('Connection', function () {
         format: 'text',
       })
     })
-    test('has correct second field', function () {
+    test('has correct second field', function() {
       assert.same(message.fields[1], {
         name: 'whoah',
         tableID: 10,
@@ -251,33 +251,33 @@ test('Connection', function () {
     })
   })
 
-  test('parsing rows', function () {
-    test('parsing empty row', function () {
+  test('parsing rows', function() {
+    test('parsing empty row', function() {
       var message = testForMessage(emptyRowFieldBuf, {
         name: 'dataRow',
         fieldCount: 0,
       })
-      test('has 0 fields', function () {
+      test('has 0 fields', function() {
         assert.equal(message.fields.length, 0)
       })
     })
 
-    test('parsing data row with fields', function () {
+    test('parsing data row with fields', function() {
       var message = testForMessage(oneFieldBuf, {
         name: 'dataRow',
         fieldCount: 1,
       })
-      test('has 1 field', function () {
+      test('has 1 field', function() {
         assert.equal(message.fields.length, 1)
       })
 
-      test('field is correct', function () {
+      test('field is correct', function() {
         assert.equal(message.fields[0], 'test')
       })
     })
   })
 
-  test('notice message', function () {
+  test('notice message', function() {
     // this uses the same logic as error message
     var buff = buffers.notice([{ type: 'C', value: 'code' }])
     testForMessage(buff, {
@@ -286,14 +286,14 @@ test('Connection', function () {
     })
   })
 
-  test('error messages', function () {
-    test('with no fields', function () {
+  test('error messages', function() {
+    test('with no fields', function() {
       var msg = testForMessage(buffers.error(), {
         name: 'error',
       })
     })
 
-    test('with all the fields', function () {
+    test('with all the fields', function() {
       var buffer = buffers.error([
         {
           type: 'S',
@@ -367,25 +367,25 @@ test('Connection', function () {
     })
   })
 
-  test('parses parse complete command', function () {
+  test('parses parse complete command', function() {
     testForMessage(parseCompleteBuffer, {
       name: 'parseComplete',
     })
   })
 
-  test('parses bind complete command', function () {
+  test('parses bind complete command', function() {
     testForMessage(bindCompleteBuffer, {
       name: 'bindComplete',
     })
   })
 
-  test('parses portal suspended message', function () {
+  test('parses portal suspended message', function() {
     testForMessage(portalSuspendedBuffer, {
       name: 'portalSuspended',
     })
   })
 
-  test('parses replication start message', function () {
+  test('parses replication start message', function() {
     testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
       name: 'replicationStart',
       length: 4,
@@ -396,7 +396,7 @@ test('Connection', function () {
 // since the data message on a stream can randomly divide the incomming
 // tcp packets anywhere, we need to make sure we can parse every single
 // split on a tcp message
-test('split buffer, single message parsing', function () {
+test('split buffer, single message parsing', function() {
   var fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
   var stream = new MemoryStream()
   stream.readyState = 'open'
@@ -405,11 +405,11 @@ test('split buffer, single message parsing', function () {
   })
   client.connect()
   var message = null
-  client.on('message', function (msg) {
+  client.on('message', function(msg) {
     message = msg
   })
 
-  test('parses when full buffer comes in', function () {
+  test('parses when full buffer comes in', function() {
     stream.emit('data', fullBuffer)
     assert.lengthIs(message.fields, 5)
     assert.equal(message.fields[0], null)
@@ -419,7 +419,7 @@ test('split buffer, single message parsing', function () {
     assert.equal(message.fields[4], '!')
   })
 
-  var testMessageRecievedAfterSpiltAt = function (split) {
+  var testMessageRecievedAfterSpiltAt = function(split) {
     var firstBuffer = Buffer.alloc(fullBuffer.length - split)
     var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
     fullBuffer.copy(firstBuffer, 0, 0)
@@ -434,22 +434,22 @@ test('split buffer, single message parsing', function () {
     assert.equal(message.fields[4], '!')
   }
 
-  test('parses when split in the middle', function () {
+  test('parses when split in the middle', function() {
     testMessageRecievedAfterSpiltAt(6)
   })
 
-  test('parses when split at end', function () {
+  test('parses when split at end', function() {
     testMessageRecievedAfterSpiltAt(2)
   })
 
-  test('parses when split at beginning', function () {
+  test('parses when split at beginning', function() {
     testMessageRecievedAfterSpiltAt(fullBuffer.length - 2)
     testMessageRecievedAfterSpiltAt(fullBuffer.length - 1)
     testMessageRecievedAfterSpiltAt(fullBuffer.length - 5)
   })
 })
 
-test('split buffer, multiple message parsing', function () {
+test('split buffer, multiple message parsing', function() {
   var dataRowBuffer = buffers.dataRow(['!'])
   var readyForQueryBuffer = buffers.readyForQuery()
   var fullBuffer = Buffer.alloc(dataRowBuffer.length + readyForQueryBuffer.length)
@@ -462,11 +462,11 @@ test('split buffer, multiple message parsing', function () {
     stream: stream,
   })
   client.connect()
-  client.on('message', function (msg) {
+  client.on('message', function(msg) {
     messages.push(msg)
   })
 
-  var verifyMessages = function () {
+  var verifyMessages = function() {
     assert.lengthIs(messages, 2)
     assert.same(messages[0], {
       name: 'dataRow',
@@ -479,11 +479,11 @@ test('split buffer, multiple message parsing', function () {
     messages = []
   }
   // sanity check
-  test('recieves both messages when packet is not split', function () {
+  test('recieves both messages when packet is not split', function() {
     stream.emit('data', fullBuffer)
     verifyMessages()
   })
-  var splitAndVerifyTwoMessages = function (split) {
+  var splitAndVerifyTwoMessages = function(split) {
     var firstBuffer = Buffer.alloc(fullBuffer.length - split)
     var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
     fullBuffer.copy(firstBuffer, 0, 0)
@@ -492,17 +492,17 @@ test('split buffer, multiple message parsing', function () {
     stream.emit('data', secondBuffer)
   }
 
-  test('recieves both messages when packet is split', function () {
-    test('in the middle', function () {
+  test('recieves both messages when packet is split', function() {
+    test('in the middle', function() {
       splitAndVerifyTwoMessages(11)
     })
-    test('at the front', function () {
+    test('at the front', function() {
       splitAndVerifyTwoMessages(fullBuffer.length - 1)
       splitAndVerifyTwoMessages(fullBuffer.length - 4)
       splitAndVerifyTwoMessages(fullBuffer.length - 6)
     })
 
-    test('at the end', function () {
+    test('at the end', function() {
       splitAndVerifyTwoMessages(8)
       splitAndVerifyTwoMessages(1)
     })

@@ -8,7 +8,7 @@ const suite = new helper.Suite('multiple result sets')
 
 suite.test(
   'two select results work',
-  co.wrap(function* () {
+  co.wrap(function*() {
     const client = new helper.Client()
     yield client.connect()
 
@@ -27,7 +27,7 @@ suite.test(
 
 suite.test(
   'multiple selects work',
-  co.wrap(function* () {
+  co.wrap(function*() {
     const client = new helper.Client()
     yield client.connect()
 
@@ -57,7 +57,7 @@ suite.test(
 
 suite.test(
   'mixed queries and statements',
-  co.wrap(function* () {
+  co.wrap(function*() {
     const client = new helper.Client()
     yield client.connect()
 

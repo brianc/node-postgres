@@ -19,7 +19,7 @@ describe('pool ending', () => {
 
   it(
     'ends with clients',
-    co.wrap(function* () {
+    co.wrap(function*() {
       const pool = new Pool()
       const res = yield pool.query('SELECT $1::text as name', ['brianc'])
       expect(res.rows[0].name).to.equal('brianc')
@@ -29,7 +29,7 @@ describe('pool ending', () => {
 
   it(
     'allows client to finish',
-    co.wrap(function* () {
+    co.wrap(function*() {
       const pool = new Pool()
       const query = pool.query('SELECT $1::text as name', ['brianc'])
       yield pool.end()

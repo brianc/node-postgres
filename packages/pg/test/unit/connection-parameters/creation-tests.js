@@ -9,13 +9,13 @@ for (var key in process.env) {
   delete process.env[key]
 }
 
-test('ConnectionParameters construction', function () {
+test('ConnectionParameters construction', function() {
   assert.ok(new ConnectionParameters(), 'with null config')
   assert.ok(new ConnectionParameters({ user: 'asdf' }), 'with config object')
   assert.ok(new ConnectionParameters('postgres://localhost/postgres'), 'with connection string')
 })
 
-var compare = function (actual, expected, type) {
+var compare = function(actual, expected, type) {
   const expectedDatabase = expected.database === undefined ? expected.user : expected.database
 
   assert.equal(actual.user, expected.user, type + ' user')
@@ -32,13 +32,13 @@ var compare = function (actual, expected, type) {
   )
 }
 
-test('ConnectionParameters initializing from defaults', function () {
+test('ConnectionParameters initializing from defaults', function() {
   var subject = new ConnectionParameters()
   compare(subject, defaults, 'defaults')
   assert.ok(subject.isDomainSocket === false)
 })
 
-test('ConnectionParameters initializing from defaults with connectionString set', function () {
+test('ConnectionParameters initializing from defaults with connectionString set', function() {
   var config = {
     user: 'brians-are-the-best',
     database: 'scoobysnacks',
@@ -59,7 +59,7 @@ test('ConnectionParameters initializing from defaults with connectionString set'
   compare(subject, config, 'defaults-connectionString')
 })
 
-test('ConnectionParameters initializing from config', function () {
+test('ConnectionParameters initializing from config', function() {
   var config = {
     user: 'brian',
     database: 'home',
@@ -79,7 +79,7 @@ test('ConnectionParameters initializing from config', function () {
   assert.ok(subject.isDomainSocket === false)
 })
 
-test('ConnectionParameters initializing from config and config.connectionString', function () {
+test('ConnectionParameters initializing from config and config.connectionString', function() {
   var subject1 = new ConnectionParameters({
     connectionString: 'postgres://test@host/db',
   })
@@ -101,31 +101,31 @@ test('ConnectionParameters initializing from config and config.connectionString'
   assert.equal(subject4.ssl, true)
 })
 
-test('escape spaces if present', function () {
+test('escape spaces if present', function() {
   var subject = new ConnectionParameters('postgres://localhost/post gres')
   assert.equal(subject.database, 'post gres')
 })
 
-test('do not double escape spaces', function () {
+test('do not double escape spaces', function() {
   var subject = new ConnectionParameters('postgres://localhost/post%20gres')
   assert.equal(subject.database, 'post gres')
 })
 
-test('initializing with unix domain socket', function () {
+test('initializing with unix domain socket', function() {
   var subject = new ConnectionParameters('/var/run/')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/var/run/')
   assert.equal(subject.database, defaults.user)
 })
 
-test('initializing with unix domain socket and a specific database, the simple way', function () {
+test('initializing with unix domain socket and a specific database, the simple way', function() {
   var subject = new ConnectionParameters('/var/run/ mydb')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/var/run/')
   assert.equal(subject.database, 'mydb')
 })
 
-test('initializing with unix domain socket, the health way', function () {
+test('initializing with unix domain socket, the health way', function() {
   var subject = new ConnectionParameters('socket:/some path/?db=my[db]&encoding=utf8')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/some path/')
@@ -133,7 +133,7 @@ test('initializing with unix domain socket, the health way', function () {
   assert.equal(subject.client_encoding, 'utf8')
 })
 
-test('initializing with unix domain socket, the escaped health way', function () {
+test('initializing with unix domain socket, the escaped health way', function() {
   var subject = new ConnectionParameters('socket:/some%20path/?db=my%2Bdb&encoding=utf8')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/some path/')
@@ -141,12 +141,12 @@ test('initializing with unix domain socket, the escaped health way', function ()
   assert.equal(subject.client_encoding, 'utf8')
 })
 
-test('libpq connection string building', function () {
-  var checkForPart = function (array, part) {
+test('libpq connection string building', function() {
+  var checkForPart = function(array, part) {
     assert.ok(array.indexOf(part) > -1, array.join(' ') + ' did not contain ' + part)
   }
 
-  test('builds simple string', function () {
+  test('builds simple string', function() {
     var config = {
       user: 'brian',
       password: 'xyz',
@@ -156,7 +156,7 @@ test('libpq connection string building', function () {
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
-      assert.calls(function (err, constring) {
+      assert.calls(function(err, constring) {
         assert(!err)
         var parts = constring.split(' ')
         checkForPart(parts, "user='brian'")
@@ -168,7 +168,7 @@ test('libpq connection string building', function () {
     )
   })
 
-  test('builds dns string', function () {
+  test('builds dns string', function() {
     var config = {
       user: 'brian',
       password: 'asdf',
@@ -177,7 +177,7 @@ test('libpq connection string building', function () {
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
-      assert.calls(function (err, constring) {
+      assert.calls(function(err, constring) {
         assert(!err)
         var parts = constring.split(' ')
         checkForPart(parts, "user='brian'")
@@ -186,7 +186,7 @@ test('libpq connection string building', function () {
     )
   })
 
-  test('error when dns fails', function () {
+  test('error when dns fails', function() {
     var config = {
       user: 'brian',
       password: 'asf',
@@ -195,14 +195,14 @@ test('libpq connection string building', function () {
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
-      assert.calls(function (err, constring) {
+      assert.calls(function(err, constring) {
         assert.ok(err)
         assert.isNull(constring)
       })
     )
   })
 
-  test('connecting to unix domain socket', function () {
+  test('connecting to unix domain socket', function() {
     var config = {
       user: 'brian',
       password: 'asf',
@@ -211,7 +211,7 @@ test('libpq connection string building', function () {
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
-      assert.calls(function (err, constring) {
+      assert.calls(function(err, constring) {
         assert(!err)
         var parts = constring.split(' ')
         checkForPart(parts, "user='brian'")
@@ -220,7 +220,7 @@ test('libpq connection string building', function () {
     )
   })
 
-  test('config contains quotes and backslashes', function () {
+  test('config contains quotes and backslashes', function() {
     var config = {
       user: 'not\\brian',
       password: "bad'chars",
@@ -229,7 +229,7 @@ test('libpq connection string building', function () {
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
-      assert.calls(function (err, constring) {
+      assert.calls(function(err, constring) {
         assert(!err)
         var parts = constring.split(' ')
         checkForPart(parts, "user='not\\\\brian'")
@@ -238,13 +238,13 @@ test('libpq connection string building', function () {
     )
   })
 
-  test('encoding can be specified by config', function () {
+  test('encoding can be specified by config', function() {
     var config = {
       client_encoding: 'utf-8',
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
-      assert.calls(function (err, constring) {
+      assert.calls(function(err, constring) {
         assert(!err)
         var parts = constring.split(' ')
         checkForPart(parts, "client_encoding='utf-8'")
@@ -252,7 +252,7 @@ test('libpq connection string building', function () {
     )
   })
 
-  test('password contains  < and/or >  characters', function () {
+  test('password contains  < and/or >  characters', function() {
     return false
     var sourceConfig = {
       user: 'brian',
@@ -276,7 +276,7 @@ test('libpq connection string building', function () {
     assert.equal(subject.password, sourceConfig.password)
   })
 
-  test('username or password contains weird characters', function () {
+  test('username or password contains weird characters', function() {
     var defaults = require('../../../lib/defaults')
     defaults.ssl = true
     var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
@@ -287,7 +287,7 @@ test('libpq connection string building', function () {
     assert.equal(subject.ssl, true)
   })
 
-  test('url is properly encoded', function () {
+  test('url is properly encoded', function() {
     var encoded = 'pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
     var subject = new ConnectionParameters(encoded)
     assert.equal(subject.user, 'bi%na%%ry ')
@@ -296,7 +296,7 @@ test('libpq connection string building', function () {
     assert.equal(subject.database, ' u%20rl')
   })
 
-  test('ssl is set on client', function () {
+  test('ssl is set on client', function() {
     var Client = require('../../../lib/client')
     var defaults = require('../../../lib/defaults')
     defaults.ssl = true
@@ -304,7 +304,7 @@ test('libpq connection string building', function () {
     assert(c.ssl, 'Client should have ssl enabled via defaults')
   })
 
-  test('ssl is set on client', function () {
+  test('ssl is set on client', function() {
     var sourceConfig = {
       user: 'brian',
       password: 'hello<ther>e',
@@ -324,7 +324,7 @@ test('libpq connection string building', function () {
     defaults.ssl = true
     var c = new ConnectionParameters(sourceConfig)
     c.getLibpqConnectionString(
-      assert.calls(function (err, pgCString) {
+      assert.calls(function(err, pgCString) {
         assert(!err)
         assert.equal(
           pgCString.indexOf("sslrootcert='/path/root.crt'") !== -1,

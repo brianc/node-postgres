@@ -12,7 +12,7 @@ var types = require('pg-types')
 // result object returned from query
 // in the 'end' event and also
 // passed as second argument to provided callback
-var Result = function (rowMode, types) {
+var Result = function(rowMode, types) {
   this.command = null
   this.rowCount = null
   this.oid = null
@@ -30,7 +30,7 @@ var Result = function (rowMode, types) {
 var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
 
 // adds a command complete message
-Result.prototype.addCommandComplete = function (msg) {
+Result.prototype.addCommandComplete = function(msg) {
   var match
   if (msg.text) {
     // pure javascript
@@ -52,7 +52,7 @@ Result.prototype.addCommandComplete = function (msg) {
   }
 }
 
-Result.prototype._parseRowAsArray = function (rowData) {
+Result.prototype._parseRowAsArray = function(rowData) {
   var row = new Array(rowData.length)
   for (var i = 0, len = rowData.length; i < len; i++) {
     var rawValue = rowData[i]
@@ -65,7 +65,7 @@ Result.prototype._parseRowAsArray = function (rowData) {
   return row
 }
 
-Result.prototype.parseRow = function (rowData) {
+Result.prototype.parseRow = function(rowData) {
   var row = {}
   for (var i = 0, len = rowData.length; i < len; i++) {
     var rawValue = rowData[i]
@@ -79,11 +79,11 @@ Result.prototype.parseRow = function (rowData) {
   return row
 }
 
-Result.prototype.addRow = function (row) {
+Result.prototype.addRow = function(row) {
   this.rows.push(row)
 }
 
-Result.prototype.addFields = function (fieldDescriptions) {
+Result.prototype.addFields = function(fieldDescriptions) {
   // clears field definitions
   // multiple query statements in 1 action can result in multiple sets
   // of rowDescriptions...eg: 'select NOW(); select 1::int;'

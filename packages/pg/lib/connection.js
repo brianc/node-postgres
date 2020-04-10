@@ -16,7 +16,7 @@ var Reader = require('packet-reader')
 
 var TEXT_MODE = 0
 var BINARY_MODE = 1
-var Connection = function (config) {
+var Connection = function(config) {
   EventEmitter.call(this)
   config = config || {}
   this.stream = config.stream || new net.Socket()
@@ -38,7 +38,7 @@ var Connection = function (config) {
     lengthPadding: -4,
   })
   var self = this
-  this.on('newListener', function (eventName) {
+  this.on('newListener', function(eventName) {
     if (eventName === 'message') {
       self._emitMessage = true
     }
@@ -47,7 +47,7 @@ var Connection = function (config) {
 
 util.inherits(Connection, EventEmitter)
 
-Connection.prototype.connect = function (port, host) {
+Connection.prototype.connect = function(port, host) {
   var self = this
 
   if (this.stream.readyState === 'closed') {
@@ -56,14 +56,14 @@ Connection.prototype.connect = function (port, host) {
     this.emit('connect')
   }
 
-  this.stream.on('connect', function () {
+  this.stream.on('connect', function() {
     if (self._keepAlive) {
       self.stream.setKeepAlive(true, self._keepAliveInitialDelayMillis)
     }
     self.emit('connect')
   })
 
-  const reportStreamError = function (error) {
+  const reportStreamError = function(error) {
     // errors about disconnections should be ignored during disconnect
     if (self._ending && (error.code === 'ECONNRESET' || error.code === 'EPIPE')) {
       return
@@ -72,7 +72,7 @@ Connection.prototype.connect = function (port, host) {
   }
   this.stream.on('error', reportStreamError)
 
-  this.stream.on('close', function () {
+  this.stream.on('close', function() {
     self.emit('end')
   })
 
@@ -80,7 +80,7 @@ Connection.prototype.connect = function (port, host) {
     return this.attachListeners(this.stream)
   }
 
-  this.stream.once('data', function (buffer) {
+  this.stream.once('data', function(buffer) {
     var responseCode = buffer.toString('utf8')
     switch (responseCode) {
       case 'S': // Server supports SSL connections, continue with a secure connection
@@ -110,9 +110,9 @@ Connection.prototype.connect = function (port, host) {
   })
 }
 
-Connection.prototype.attachListeners = function (stream) {
+Connection.prototype.attachListeners = function(stream) {
   var self = this
-  stream.on('data', function (buff) {
+  stream.on('data', function(buff) {
     self._reader.addChunk(buff)
     var packet = self._reader.read()
     while (packet) {
@@ -125,24 +125,30 @@ Connection.prototype.attachListeners = function (stream) {
       packet = self._reader.read()
     }
   })
-  stream.on('end', function () {
+  stream.on('end', function() {
     self.emit('end')
   })
 }
 
-Connection.prototype.requestSsl = function () {
-  var bodyBuffer = this.writer.addInt16(0x04d2).addInt16(0x162f).flush()
+Connection.prototype.requestSsl = function() {
+  var bodyBuffer = this.writer
+    .addInt16(0x04d2)
+    .addInt16(0x162f)
+    .flush()
 
   var length = bodyBuffer.length + 4
 
-  var buffer = new Writer().addInt32(length).add(bodyBuffer).join()
+  var buffer = new Writer()
+    .addInt32(length)
+    .add(bodyBuffer)
+    .join()
   this.stream.write(buffer)
 }
 
-Connection.prototype.startup = function (config) {
+Connection.prototype.startup = function(config) {
   var writer = this.writer.addInt16(3).addInt16(0)
 
-  Object.keys(config).forEach(function (key) {
+  Object.keys(config).forEach(function(key) {
     var val = config[key]
     writer.addCString(key).addCString(val)
   })
@@ -154,39 +160,53 @@ Connection.prototype.startup = function (config) {
 
   var length = bodyBuffer.length + 4
 
-  var buffer = new Writer().addInt32(length).add(bodyBuffer).join()
+  var buffer = new Writer()
+    .addInt32(length)
+    .add(bodyBuffer)
+    .join()
   this.stream.write(buffer)
 }
 
-Connection.prototype.cancel = function (processID, secretKey) {
-  var bodyBuffer = this.writer.addInt16(1234).addInt16(5678).addInt32(processID).addInt32(secretKey).flush()
+Connection.prototype.cancel = function(processID, secretKey) {
+  var bodyBuffer = this.writer
+    .addInt16(1234)
+    .addInt16(5678)
+    .addInt32(processID)
+    .addInt32(secretKey)
+    .flush()
 
   var length = bodyBuffer.length + 4
 
-  var buffer = new Writer().addInt32(length).add(bodyBuffer).join()
+  var buffer = new Writer()
+    .addInt32(length)
+    .add(bodyBuffer)
+    .join()
   this.stream.write(buffer)
 }
 
-Connection.prototype.password = function (password) {
+Connection.prototype.password = function(password) {
   // 0x70 = 'p'
   this._send(0x70, this.writer.addCString(password))
 }
 
-Connection.prototype.sendSASLInitialResponseMessage = function (mechanism, initialResponse) {
+Connection.prototype.sendSASLInitialResponseMessage = function(mechanism, initialResponse) {
   // 0x70 = 'p'
-  this.writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
+  this.writer
+    .addCString(mechanism)
+    .addInt32(Buffer.byteLength(initialResponse))
+    .addString(initialResponse)
 
   this._send(0x70)
 }
 
-Connection.prototype.sendSCRAMClientFinalMessage = function (additionalData) {
+Connection.prototype.sendSCRAMClientFinalMessage = function(additionalData) {
   // 0x70 = 'p'
   this.writer.addString(additionalData)
 
   this._send(0x70)
 }
 
-Connection.prototype._send = function (code, more) {
+Connection.prototype._send = function(code, more) {
   if (!this.stream.writable) {
     return false
   }
@@ -197,14 +217,14 @@ Connection.prototype._send = function (code, more) {
   }
 }
 
-Connection.prototype.query = function (text) {
+Connection.prototype.query = function(text) {
   // 0x51 = Q
   this.stream.write(this.writer.addCString(text).flush(0x51))
 }
 
 // send parse message
 // "more" === true to buffer the message until flush() is called
-Connection.prototype.parse = function (query, more) {
+Connection.prototype.parse = function(query, more) {
   // expect something like this:
   // { name: 'queryName',
   //   text: 'select * from blah',
@@ -236,7 +256,7 @@ Connection.prototype.parse = function (query, more) {
 
 // send bind message
 // "more" === true to buffer the message until flush() is called
-Connection.prototype.bind = function (config, more) {
+Connection.prototype.bind = function(config, more) {
   // normalize config
   config = config || {}
   config.portal = config.portal || ''
@@ -283,7 +303,7 @@ Connection.prototype.bind = function (config, more) {
 
 // send execute message
 // "more" === true to buffer the message until flush() is called
-Connection.prototype.execute = function (config, more) {
+Connection.prototype.execute = function(config, more) {
   config = config || {}
   config.portal = config.portal || ''
   config.rows = config.rows || ''
@@ -295,13 +315,13 @@ Connection.prototype.execute = function (config, more) {
 
 var emptyBuffer = Buffer.alloc(0)
 
-Connection.prototype.flush = function () {
+Connection.prototype.flush = function() {
   // 0x48 = 'H'
   this.writer.add(emptyBuffer)
   this._send(0x48)
 }
 
-Connection.prototype.sync = function () {
+Connection.prototype.sync = function() {
   // clear out any pending data in the writer
   this.writer.flush(0)
 
@@ -312,7 +332,7 @@ Connection.prototype.sync = function () {
 
 const END_BUFFER = Buffer.from([0x58, 0x00, 0x00, 0x00, 0x04])
 
-Connection.prototype.end = function () {
+Connection.prototype.end = function() {
   // 0x58 = 'X'
   this.writer.add(emptyBuffer)
   this._ending = true
@@ -325,36 +345,36 @@ Connection.prototype.end = function () {
   })
 }
 
-Connection.prototype.close = function (msg, more) {
+Connection.prototype.close = function(msg, more) {
   this.writer.addCString(msg.type + (msg.name || ''))
   this._send(0x43, more)
 }
 
-Connection.prototype.describe = function (msg, more) {
+Connection.prototype.describe = function(msg, more) {
   this.writer.addCString(msg.type + (msg.name || ''))
   this._send(0x44, more)
 }
 
-Connection.prototype.sendCopyFromChunk = function (chunk) {
+Connection.prototype.sendCopyFromChunk = function(chunk) {
   this.stream.write(this.writer.add(chunk).flush(0x64))
 }
 
-Connection.prototype.endCopyFrom = function () {
+Connection.prototype.endCopyFrom = function() {
   this.stream.write(this.writer.add(emptyBuffer).flush(0x63))
 }
 
-Connection.prototype.sendCopyFail = function (msg) {
+Connection.prototype.sendCopyFail = function(msg) {
   // this.stream.write(this.writer.add(emptyBuffer).flush(0x66));
   this.writer.addCString(msg)
   this._send(0x66)
 }
 
-var Message = function (name, length) {
+var Message = function(name, length) {
   this.name = name
   this.length = length
 }
 
-Connection.prototype.parseMessage = function (buffer) {
+Connection.prototype.parseMessage = function(buffer) {
   this.offset = 0
   var length = buffer.length + 4
   switch (this._reader.header) {
@@ -423,7 +443,7 @@ Connection.prototype.parseMessage = function (buffer) {
   }
 }
 
-Connection.prototype.parseR = function (buffer, length) {
+Connection.prototype.parseR = function(buffer, length) {
   var code = this.parseInt32(buffer)
 
   var msg = new Message('authenticationOk', length)
@@ -474,27 +494,27 @@ Connection.prototype.parseR = function (buffer, length) {
   throw new Error('Unknown authenticationOk message type' + util.inspect(msg))
 }
 
-Connection.prototype.parseS = function (buffer, length) {
+Connection.prototype.parseS = function(buffer, length) {
   var msg = new Message('parameterStatus', length)
   msg.parameterName = this.parseCString(buffer)
   msg.parameterValue = this.parseCString(buffer)
   return msg
 }
 
-Connection.prototype.parseK = function (buffer, length) {
+Connection.prototype.parseK = function(buffer, length) {
   var msg = new Message('backendKeyData', length)
   msg.processID = this.parseInt32(buffer)
   msg.secretKey = this.parseInt32(buffer)
   return msg
 }
 
-Connection.prototype.parseC = function (buffer, length) {
+Connection.prototype.parseC = function(buffer, length) {
   var msg = new Message('commandComplete', length)
   msg.text = this.parseCString(buffer)
   return msg
 }
 
-Connection.prototype.parseZ = function (buffer, length) {
+Connection.prototype.parseZ = function(buffer, length) {
   var msg = new Message('readyForQuery', length)
   msg.name = 'readyForQuery'
   msg.status = this.readString(buffer, 1)
@@ -502,7 +522,7 @@ Connection.prototype.parseZ = function (buffer, length) {
 }
 
 var ROW_DESCRIPTION = 'rowDescription'
-Connection.prototype.parseT = function (buffer, length) {
+Connection.prototype.parseT = function(buffer, length) {
   var msg = new Message(ROW_DESCRIPTION, length)
   msg.fieldCount = this.parseInt16(buffer)
   var fields = []
@@ -513,7 +533,7 @@ Connection.prototype.parseT = function (buffer, length) {
   return msg
 }
 
-var Field = function () {
+var Field = function() {
   this.name = null
   this.tableID = null
   this.columnID = null
@@ -525,7 +545,7 @@ var Field = function () {
 
 var FORMAT_TEXT = 'text'
 var FORMAT_BINARY = 'binary'
-Connection.prototype.parseField = function (buffer) {
+Connection.prototype.parseField = function(buffer) {
   var field = new Field()
   field.name = this.parseCString(buffer)
   field.tableID = this.parseInt32(buffer)
@@ -544,7 +564,7 @@ Connection.prototype.parseField = function (buffer) {
 }
 
 var DATA_ROW = 'dataRow'
-var DataRowMessage = function (length, fieldCount) {
+var DataRowMessage = function(length, fieldCount) {
   this.name = DATA_ROW
   this.length = length
   this.fieldCount = fieldCount
@@ -552,7 +572,7 @@ var DataRowMessage = function (length, fieldCount) {
 }
 
 // extremely hot-path code
-Connection.prototype.parseD = function (buffer, length) {
+Connection.prototype.parseD = function(buffer, length) {
   var fieldCount = this.parseInt16(buffer)
   var msg = new DataRowMessage(length, fieldCount)
   for (var i = 0; i < fieldCount; i++) {
@@ -562,7 +582,7 @@ Connection.prototype.parseD = function (buffer, length) {
 }
 
 // extremely hot-path code
-Connection.prototype._readValue = function (buffer) {
+Connection.prototype._readValue = function(buffer) {
   var length = this.parseInt32(buffer)
   if (length === -1) return null
   if (this._mode === TEXT_MODE) {
@@ -572,7 +592,7 @@ Connection.prototype._readValue = function (buffer) {
 }
 
 // parses error
-Connection.prototype.parseE = function (buffer, length, isNotice) {
+Connection.prototype.parseE = function(buffer, length, isNotice) {
   var fields = {}
   var fieldType = this.readString(buffer, 1)
   while (fieldType !== '\0') {
@@ -607,13 +627,13 @@ Connection.prototype.parseE = function (buffer, length, isNotice) {
 }
 
 // same thing, different name
-Connection.prototype.parseN = function (buffer, length) {
+Connection.prototype.parseN = function(buffer, length) {
   var msg = this.parseE(buffer, length, true)
   msg.name = 'notice'
   return msg
 }
 
-Connection.prototype.parseA = function (buffer, length) {
+Connection.prototype.parseA = function(buffer, length) {
   var msg = new Message('notification', length)
   msg.processId = this.parseInt32(buffer)
   msg.channel = this.parseCString(buffer)
@@ -621,17 +641,17 @@ Connection.prototype.parseA = function (buffer, length) {
   return msg
 }
 
-Connection.prototype.parseG = function (buffer, length) {
+Connection.prototype.parseG = function(buffer, length) {
   var msg = new Message('copyInResponse', length)
   return this.parseGH(buffer, msg)
 }
 
-Connection.prototype.parseH = function (buffer, length) {
+Connection.prototype.parseH = function(buffer, length) {
   var msg = new Message('copyOutResponse', length)
   return this.parseGH(buffer, msg)
 }
 
-Connection.prototype.parseGH = function (buffer, msg) {
+Connection.prototype.parseGH = function(buffer, msg) {
   var isBinary = buffer[this.offset] !== 0
   this.offset++
   msg.binary = isBinary
@@ -643,33 +663,33 @@ Connection.prototype.parseGH = function (buffer, msg) {
   return msg
 }
 
-Connection.prototype.parsed = function (buffer, length) {
+Connection.prototype.parsed = function(buffer, length) {
   var msg = new Message('copyData', length)
   msg.chunk = this.readBytes(buffer, msg.length - 4)
   return msg
 }
 
-Connection.prototype.parseInt32 = function (buffer) {
+Connection.prototype.parseInt32 = function(buffer) {
   var value = buffer.readInt32BE(this.offset)
   this.offset += 4
   return value
 }
 
-Connection.prototype.parseInt16 = function (buffer) {
+Connection.prototype.parseInt16 = function(buffer) {
   var value = buffer.readInt16BE(this.offset)
   this.offset += 2
   return value
 }
 
-Connection.prototype.readString = function (buffer, length) {
+Connection.prototype.readString = function(buffer, length) {
   return buffer.toString(this.encoding, this.offset, (this.offset += length))
 }
 
-Connection.prototype.readBytes = function (buffer, length) {
+Connection.prototype.readBytes = function(buffer, length) {
   return buffer.slice(this.offset, (this.offset += length))
 }
 
-Connection.prototype.parseCString = function (buffer) {
+Connection.prototype.parseCString = function(buffer) {
   var start = this.offset
   var end = buffer.indexOf(0, start)
   this.offset = end + 1

@@ -17,7 +17,7 @@ const { parse, serialize } = require('../../pg-protocol/dist')
 // TODO(bmc) support binary mode here
 // var BINARY_MODE = 1
 console.log('***using faster connection***')
-var Connection = function (config) {
+var Connection = function(config) {
   EventEmitter.call(this)
   config = config || {}
   this.stream = config.stream || new net.Socket()
@@ -30,7 +30,7 @@ var Connection = function (config) {
   this._ending = false
   this._emitMessage = false
   var self = this
-  this.on('newListener', function (eventName) {
+  this.on('newListener', function(eventName) {
     if (eventName === 'message') {
       self._emitMessage = true
     }
@@ -39,7 +39,7 @@ var Connection = function (config) {
 
 util.inherits(Connection, EventEmitter)
 
-Connection.prototype.connect = function (port, host) {
+Connection.prototype.connect = function(port, host) {
   var self = this
 
   if (this.stream.readyState === 'closed') {
@@ -48,14 +48,14 @@ Connection.prototype.connect = function (port, host) {
     this.emit('connect')
   }
 
-  this.stream.on('connect', function () {
+  this.stream.on('connect', function() {
     if (self._keepAlive) {
       self.stream.setKeepAlive(true, self._keepAliveInitialDelayMillis)
     }
     self.emit('connect')
   })
 
-  const reportStreamError = function (error) {
+  const reportStreamError = function(error) {
     // errors about disconnections should be ignored during disconnect
     if (self._ending && (error.code === 'ECONNRESET' || error.code === 'EPIPE')) {
       return
@@ -64,7 +64,7 @@ Connection.prototype.connect = function (port, host) {
   }
   this.stream.on('error', reportStreamError)
 
-  this.stream.on('close', function () {
+  this.stream.on('close', function() {
     self.emit('end')
   })
 
@@ -72,7 +72,7 @@ Connection.prototype.connect = function (port, host) {
     return this.attachListeners(this.stream)
   }
 
-  this.stream.once('data', function (buffer) {
+  this.stream.once('data', function(buffer) {
     var responseCode = buffer.toString('utf8')
     switch (responseCode) {
       case 'S': // Server supports SSL connections, continue with a secure connection
@@ -103,7 +103,7 @@ Connection.prototype.connect = function (port, host) {
   })
 }
 
-Connection.prototype.attachListeners = function (stream) {
+Connection.prototype.attachListeners = function(stream) {
   stream.on('end', () => {
     this.emit('end')
   })
@@ -116,67 +116,67 @@ Connection.prototype.attachListeners = function (stream) {
   })
 }
 
-Connection.prototype.requestSsl = function () {
+Connection.prototype.requestSsl = function() {
   this.stream.write(serialize.requestSsl())
 }
 
-Connection.prototype.startup = function (config) {
+Connection.prototype.startup = function(config) {
   this.stream.write(serialize.startup(config))
 }
 
-Connection.prototype.cancel = function (processID, secretKey) {
+Connection.prototype.cancel = function(processID, secretKey) {
   this._send(serialize.cancel(processID, secretKey))
 }
 
-Connection.prototype.password = function (password) {
+Connection.prototype.password = function(password) {
   this._send(serialize.password(password))
 }
 
-Connection.prototype.sendSASLInitialResponseMessage = function (mechanism, initialResponse) {
+Connection.prototype.sendSASLInitialResponseMessage = function(mechanism, initialResponse) {
   this._send(serialize.sendSASLInitialResponseMessage(mechanism, initialResponse))
 }
 
-Connection.prototype.sendSCRAMClientFinalMessage = function (additionalData) {
+Connection.prototype.sendSCRAMClientFinalMessage = function(additionalData) {
   this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
 }
 
-Connection.prototype._send = function (buffer) {
+Connection.prototype._send = function(buffer) {
   if (!this.stream.writable) {
     return false
   }
   return this.stream.write(buffer)
 }
 
-Connection.prototype.query = function (text) {
+Connection.prototype.query = function(text) {
   this._send(serialize.query(text))
 }
 
 // send parse message
-Connection.prototype.parse = function (query) {
+Connection.prototype.parse = function(query) {
   this._send(serialize.parse(query))
 }
 
 // send bind message
 // "more" === true to buffer the message until flush() is called
-Connection.prototype.bind = function (config) {
+Connection.prototype.bind = function(config) {
   this._send(serialize.bind(config))
 }
 
 // send execute message
 // "more" === true to buffer the message until flush() is called
-Connection.prototype.execute = function (config) {
+Connection.prototype.execute = function(config) {
   this._send(serialize.execute(config))
 }
 
 const flushBuffer = serialize.flush()
-Connection.prototype.flush = function () {
+Connection.prototype.flush = function() {
   if (this.stream.writable) {
     this.stream.write(flushBuffer)
   }
 }
 
 const syncBuffer = serialize.sync()
-Connection.prototype.sync = function () {
+Connection.prototype.sync = function() {
   this._ending = true
   this._send(syncBuffer)
   this._send(flushBuffer)
@@ -184,7 +184,7 @@ Connection.prototype.sync = function () {
 
 const endBuffer = serialize.end()
 
-Connection.prototype.end = function () {
+Connection.prototype.end = function() {
   // 0x58 = 'X'
   this._ending = true
   if (!this.stream.writable) {
@@ -196,23 +196,23 @@ Connection.prototype.end = function () {
   })
 }
 
-Connection.prototype.close = function (msg) {
+Connection.prototype.close = function(msg) {
   this._send(serialize.close(msg))
 }
 
-Connection.prototype.describe = function (msg) {
+Connection.prototype.describe = function(msg) {
   this._send(serialize.describe(msg))
 }
 
-Connection.prototype.sendCopyFromChunk = function (chunk) {
+Connection.prototype.sendCopyFromChunk = function(chunk) {
   this._send(serialize.copyData(chunk))
 }
 
-Connection.prototype.endCopyFrom = function () {
+Connection.prototype.endCopyFrom = function() {
   this._send(serialize.copyDone())
 }
 
-Connection.prototype.sendCopyFail = function (msg) {
+Connection.prototype.sendCopyFail = function(msg) {
   this._send(serialize.copyFail(msg))
 }
 

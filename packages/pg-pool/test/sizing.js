@@ -10,7 +10,7 @@ const Pool = require('../')
 describe('pool size of 1', () => {
   it(
     'can create a single client and use it once',
-    co.wrap(function* () {
+    co.wrap(function*() {
       const pool = new Pool({ max: 1 })
       expect(pool.waitingCount).to.equal(0)
       const client = yield pool.connect()
@@ -23,7 +23,7 @@ describe('pool size of 1', () => {
 
   it(
     'can create a single client and use it multiple times',
-    co.wrap(function* () {
+    co.wrap(function*() {
       const pool = new Pool({ max: 1 })
       expect(pool.waitingCount).to.equal(0)
       const client = yield pool.connect()
@@ -39,7 +39,7 @@ describe('pool size of 1', () => {
 
   it(
     'can only send 1 query at a time',
-    co.wrap(function* () {
+    co.wrap(function*() {
       const pool = new Pool({ max: 1 })
 
       // the query text column name changed in PostgreSQL 9.2

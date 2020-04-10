@@ -15,7 +15,7 @@ function TypeOverrides(userTypes) {
   this.binary = {}
 }
 
-TypeOverrides.prototype.getOverrides = function (format) {
+TypeOverrides.prototype.getOverrides = function(format) {
   switch (format) {
     case 'text':
       return this.text
@@ -26,7 +26,7 @@ TypeOverrides.prototype.getOverrides = function (format) {
   }
 }
 
-TypeOverrides.prototype.setTypeParser = function (oid, format, parseFn) {
+TypeOverrides.prototype.setTypeParser = function(oid, format, parseFn) {
   if (typeof format === 'function') {
     parseFn = format
     format = 'text'
@@ -34,7 +34,7 @@ TypeOverrides.prototype.setTypeParser = function (oid, format, parseFn) {
   this.getOverrides(format)[oid] = parseFn
 }
 
-TypeOverrides.prototype.getTypeParser = function (oid, format) {
+TypeOverrides.prototype.getTypeParser = function(oid, format) {
   format = format || 'text'
   return this.getOverrides(format)[oid] || this._types.getTypeParser(oid, format)
 }

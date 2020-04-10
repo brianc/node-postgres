@@ -21,7 +21,7 @@ const nativePool = new native.Pool()
 
 const suite = new helper.Suite()
 suite.test('js pool returns js client', (cb) => {
-  jsPool.connect(function (err, client, done) {
+  jsPool.connect(function(err, client, done) {
     assert(client instanceof JsClient)
     done()
     jsPool.end(cb)
@@ -29,7 +29,7 @@ suite.test('js pool returns js client', (cb) => {
 })
 
 suite.test('native pool returns native client', (cb) => {
-  nativePool.connect(function (err, client, done) {
+  nativePool.connect(function(err, client, done) {
     assert(client instanceof NativeClient)
     done()
     nativePool.end(cb)

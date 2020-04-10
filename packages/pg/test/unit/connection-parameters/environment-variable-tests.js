@@ -11,7 +11,7 @@ for (var key in process.env) {
   delete process.env[key]
 }
 
-test('ConnectionParameters initialized from environment variables', function (t) {
+test('ConnectionParameters initialized from environment variables', function(t) {
   process.env['PGHOST'] = 'local'
   process.env['PGUSER'] = 'bmc2'
   process.env['PGPORT'] = 7890
@@ -26,7 +26,7 @@ test('ConnectionParameters initialized from environment variables', function (t)
   assert.equal(subject.password, 'open', 'env password')
 })
 
-test('ConnectionParameters initialized from mix', function (t) {
+test('ConnectionParameters initialized from mix', function(t) {
   delete process.env['PGPASSWORD']
   delete process.env['PGDATABASE']
   var subject = new ConnectionParameters({
@@ -45,7 +45,7 @@ for (var key in process.env) {
   delete process.env[key]
 }
 
-test('connection string parsing', function (t) {
+test('connection string parsing', function(t) {
   var string = 'postgres://brian:pw@boom:381/lala'
   var subject = new ConnectionParameters(string)
   assert.equal(subject.host, 'boom', 'string host')
@@ -55,7 +55,7 @@ test('connection string parsing', function (t) {
   assert.equal(subject.database, 'lala', 'string database')
 })
 
-test('connection string parsing - ssl', function (t) {
+test('connection string parsing - ssl', function(t) {
   var string = 'postgres://brian:pw@boom:381/lala?ssl=true'
   var subject = new ConnectionParameters(string)
   assert.equal(subject.ssl, true, 'ssl')
@@ -82,18 +82,18 @@ for (var key in process.env) {
   delete process.env[key]
 }
 
-test('ssl is false by default', function () {
+test('ssl is false by default', function() {
   var subject = new ConnectionParameters()
   assert.equal(subject.ssl, false)
 })
 
-var testVal = function (mode, expected) {
+var testVal = function(mode, expected) {
   // clear process.env
   for (var key in process.env) {
     delete process.env[key]
   }
   process.env.PGSSLMODE = mode
-  test('ssl is ' + expected + ' when $PGSSLMODE=' + mode, function () {
+  test('ssl is ' + expected + ' when $PGSSLMODE=' + mode, function() {
     var subject = new ConnectionParameters()
     assert.equal(subject.ssl, expected)
   })

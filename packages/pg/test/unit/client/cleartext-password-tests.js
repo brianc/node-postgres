@@ -7,12 +7,12 @@ const createClient = require('./test-helper').createClient
  * code-being-tested works behind the scenes.
  */
 
-test('cleartext password authentication', function () {
+test('cleartext password authentication', function() {
   var client = createClient()
   client.password = '!'
   client.connection.stream.packets = []
   client.connection.emit('authenticationCleartextPassword')
-  test('responds with password', function () {
+  test('responds with password', function() {
     var packets = client.connection.stream.packets
     assert.lengthIs(packets, 1)
     var packet = packets[0]

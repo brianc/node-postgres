@@ -13,7 +13,7 @@ suite.test('custom type parser in client config', (done) => {
   client.connect().then(() => {
     client.query(
       'SELECT NOW() as val',
-      assert.success(function (res) {
+      assert.success(function(res) {
         assert.equal(res.rows[0].val, 'okay!')
         client.end().then(done)
       })
@@ -32,7 +32,7 @@ if (!helper.args.native) {
           text: 'SELECT NOW() as val',
           types: customTypes,
         },
-        assert.success(function (res) {
+        assert.success(function(res) {
           assert.equal(res.rows[0].val, 'okay!')
           client.end().then(done)
         })

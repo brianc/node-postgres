@@ -7,7 +7,7 @@ const suite = new helper.Suite()
 
 var typeParserError = new Error('TEST: Throw in type parsers')
 
-types.setTypeParser('special oid that will throw', function () {
+types.setTypeParser('special oid that will throw', function() {
   throw typeParserError
 })
 
@@ -31,20 +31,20 @@ const emitFakeEvents = (con) => {
   })
 }
 
-suite.test('emits error', function (done) {
+suite.test('emits error', function(done) {
   var handled
   var client = helper.client()
   var con = client.connection
   var query = client.query(new Query('whatever'))
   emitFakeEvents(con)
 
-  assert.emits(query, 'error', function (err) {
+  assert.emits(query, 'error', function(err) {
     assert.equal(err, typeParserError)
     done()
   })
 })
 
-suite.test('calls callback with error', function (done) {
+suite.test('calls callback with error', function(done) {
   var handled
 
   var callbackCalled = 0
@@ -52,13 +52,13 @@ suite.test('calls callback with error', function (done) {
   var client = helper.client()
   var con = client.connection
   emitFakeEvents(con)
-  var query = client.query('whatever', function (err) {
+  var query = client.query('whatever', function(err) {
     assert.equal(err, typeParserError)
     done()
   })
 })
 
-suite.test('rejects promise with error', function (done) {
+suite.test('rejects promise with error', function(done) {
   var client = helper.client()
   var con = client.connection
   emitFakeEvents(con)

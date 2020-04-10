@@ -8,20 +8,20 @@ const it = require('mocha').it
 
 const Pool = require('../')
 
-describe('pool error handling', function () {
-  it('Should complete these queries without dying', function (done) {
+describe('pool error handling', function() {
+  it('Should complete these queries without dying', function(done) {
     const pool = new Pool()
     let errors = 0
     let shouldGet = 0
     function runErrorQuery() {
       shouldGet++
-      return new Promise(function (resolve, reject) {
+      return new Promise(function(resolve, reject) {
         pool
           .query("SELECT 'asd'+1 ")
-          .then(function (res) {
+          .then(function(res) {
             reject(res) // this should always error
           })
-          .catch(function (err) {
+          .catch(function(err) {
             errors++
             resolve(err)
           })
@@ -31,7 +31,7 @@ describe('pool error handling', function () {
     for (let i = 0; i < 5; i++) {
       ps.push(runErrorQuery())
     }
-    Promise.all(ps).then(function () {
+    Promise.all(ps).then(function() {
       expect(shouldGet).to.eql(errors)
       pool.end(done)
     })
@@ -40,7 +40,7 @@ describe('pool error handling', function () {
   describe('calling release more than once', () => {
     it(
       'should throw each time',
-      co.wrap(function* () {
+      co.wrap(function*() {
         const pool = new Pool()
         const client = yield pool.connect()
         client.release()
@@ -50,10 +50,10 @@ describe('pool error handling', function () {
       })
     )
 
-    it('should throw each time with callbacks', function (done) {
+    it('should throw each time with callbacks', function(done) {
       const pool = new Pool()
 
-      pool.connect(function (err, client, clientDone) {
+      pool.connect(function(err, client, clientDone) {
         expect(err).not.to.be.an(Error)
         clientDone()
 
@@ -66,7 +66,7 @@ describe('pool error handling', function () {
   })
 
   describe('calling connect after end', () => {
-    it('should return an error', function* () {
+    it('should return an error', function*() {
       const pool = new Pool()
       const res = yield pool.query('SELECT $1::text as name', ['hi'])
       expect(res.rows[0].name).to.equal('hi')
@@ -113,7 +113,7 @@ describe('pool error handling', function () {
   describe('error from idle client', () => {
     it(
       'removes client from pool',
-      co.wrap(function* () {
+      co.wrap(function*() {
         const pool = new Pool()
         const client = yield pool.connect()
         expect(pool.totalCount).to.equal(1)
@@ -148,7 +148,7 @@ describe('pool error handling', function () {
   describe('error from in-use client', () => {
     it(
       'keeps the client in the pool',
-      co.wrap(function* () {
+      co.wrap(function*() {
         const pool = new Pool()
         const client = yield pool.connect()
         expect(pool.totalCount).to.equal(1)
@@ -195,7 +195,7 @@ describe('pool error handling', function () {
   describe('pool with lots of errors', () => {
     it(
       'continues to work and provide new clients',
-      co.wrap(function* () {
+      co.wrap(function*() {
         const pool = new Pool({ max: 1 })
         const errors = []
         for (var i = 0; i < 20; i++) {
