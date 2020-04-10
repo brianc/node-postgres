@@ -17,18 +17,24 @@ describe('pool ending', () => {
     return new Pool().end()
   })
 
-  it('ends with clients', co.wrap(function * () {
-    const pool = new Pool()
-    const res = yield pool.query('SELECT $1::text as name', ['brianc'])
-    expect(res.rows[0].name).to.equal('brianc')
-    return pool.end()
-  }))
+  it(
+    'ends with clients',
+    co.wrap(function* () {
+      const pool = new Pool()
+      const res = yield pool.query('SELECT $1::text as name', ['brianc'])
+      expect(res.rows[0].name).to.equal('brianc')
+      return pool.end()
+    })
+  )
 
-  it('allows client to finish', co.wrap(function * () {
-    const pool = new Pool()
-    const query = pool.query('SELECT $1::text as name', ['brianc'])
-    yield pool.end()
-    const res = yield query
-    expect(res.rows[0].name).to.equal('brianc')
-  }))
+  it(
+    'allows client to finish',
+    co.wrap(function* () {
+      const pool = new Pool()
+      const query = pool.query('SELECT $1::text as name', ['brianc'])
+      yield pool.end()
+      const res = yield query
+      expect(res.rows[0].name).to.equal('brianc')
+    })
+  )
 })

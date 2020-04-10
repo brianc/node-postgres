@@ -15,11 +15,13 @@ suite.test('can access results when no rows are returned', function (done) {
   pool.connect(
     assert.success(function (client, release) {
       const q = new pg.Query('select $1::text as val limit 0', ['hi'])
-      var query = client.query(q, assert.success(function (result) {
-        checkResult(result)
-        release()
-        pool.end(done)
-      })
+      var query = client.query(
+        q,
+        assert.success(function (result) {
+          checkResult(result)
+          release()
+          pool.end(done)
+        })
       )
 
       assert.emits(query, 'end', checkResult)

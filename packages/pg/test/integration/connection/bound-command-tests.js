@@ -5,7 +5,7 @@ var helper = require(__dirname + '/test-helper')
 test('flushing once', function () {
   helper.connect(function (con) {
     con.parse({
-      text: 'select * from ids'
+      text: 'select * from ids',
     })
 
     con.bind()
@@ -50,7 +50,7 @@ test('sending many flushes', function () {
     })
 
     con.parse({
-      text: 'select * from ids order by id'
+      text: 'select * from ids order by id',
     })
 
     con.flush()

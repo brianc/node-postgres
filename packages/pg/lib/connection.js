@@ -35,7 +35,7 @@ var Connection = function (config) {
   this._emitMessage = false
   this._reader = new Reader({
     headerSize: 1,
-    lengthPadding: -4
+    lengthPadding: -4,
   })
   var self = this
   this.on('newListener', function (eventName) {
@@ -88,14 +88,18 @@ Connection.prototype.connect = function (port, host) {
       case 'N': // Server does not support SSL connections
         self.stream.end()
         return self.emit('error', new Error('The server does not support SSL connections'))
-      default: // Any other response byte, including 'E' (ErrorResponse) indicating a server error
+      default:
+        // Any other response byte, including 'E' (ErrorResponse) indicating a server error
         self.stream.end()
         return self.emit('error', new Error('There was an error establishing an SSL connection'))
     }
     var tls = require('tls')
-    const options = Object.assign({
-      socket: self.stream
-    }, self.ssl)
+    const options = Object.assign(
+      {
+        socket: self.stream,
+      },
+      self.ssl
+    )
     if (net.isIP(host) === 0) {
       options.servername = host
     }
@@ -127,23 +131,16 @@ Connection.prototype.attachListeners = function (stream) {
 }
 
 Connection.prototype.requestSsl = function () {
-  var bodyBuffer = this.writer
-    .addInt16(0x04D2)
-    .addInt16(0x162F).flush()
+  var bodyBuffer = this.writer.addInt16(0x04d2).addInt16(0x162f).flush()
 
   var length = bodyBuffer.length + 4
 
-  var buffer = new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .join()
+  var buffer = new Writer().addInt32(length).add(bodyBuffer).join()
   this.stream.write(buffer)
 }
 
 Connection.prototype.startup = function (config) {
-  var writer = this.writer
-    .addInt16(3)
-    .addInt16(0)
+  var writer = this.writer.addInt16(3).addInt16(0)
 
   Object.keys(config).forEach(function (key) {
     var val = config[key]
@@ -157,27 +154,16 @@ Connection.prototype.startup = function (config) {
 
   var length = bodyBuffer.length + 4
 
-  var buffer = new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .join()
+  var buffer = new Writer().addInt32(length).add(bodyBuffer).join()
   this.stream.write(buffer)
 }
 
 Connection.prototype.cancel = function (processID, secretKey) {
-  var bodyBuffer = this.writer
-    .addInt16(1234)
-    .addInt16(5678)
-    .addInt32(processID)
-    .addInt32(secretKey)
-    .flush()
+  var bodyBuffer = this.writer.addInt16(1234).addInt16(5678).addInt32(processID).addInt32(secretKey).flush()
 
   var length = bodyBuffer.length + 4
 
-  var buffer = new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .join()
+  var buffer = new Writer().addInt32(length).add(bodyBuffer).join()
   this.stream.write(buffer)
 }
 
@@ -188,18 +174,14 @@ Connection.prototype.password = function (password) {
 
 Connection.prototype.sendSASLInitialResponseMessage = function (mechanism, initialResponse) {
   // 0x70 = 'p'
-  this.writer
-    .addCString(mechanism)
-    .addInt32(Buffer.byteLength(initialResponse))
-    .addString(initialResponse)
+  this.writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
 
   this._send(0x70)
 }
 
 Connection.prototype.sendSCRAMClientFinalMessage = function (additionalData) {
   // 0x70 = 'p'
-  this.writer
-    .addString(additionalData)
+  this.writer.addString(additionalData)
 
   this._send(0x70)
 }
@@ -263,13 +245,17 @@ Connection.prototype.bind = function (config, more) {
   var values = config.values || []
   var len = values.length
   var useBinary = false
-  for (var j = 0; j < len; j++) { useBinary |= values[j] instanceof Buffer }
-  var buffer = this.writer
-    .addCString(config.portal)
-    .addCString(config.statement)
-  if (!useBinary) { buffer.addInt16(0) } else {
+  for (var j = 0; j < len; j++) {
+    useBinary |= values[j] instanceof Buffer
+  }
+  var buffer = this.writer.addCString(config.portal).addCString(config.statement)
+  if (!useBinary) {
+    buffer.addInt16(0)
+  } else {
     buffer.addInt16(len)
-    for (j = 0; j < len; j++) { buffer.addInt16(values[j] instanceof Buffer) }
+    for (j = 0; j < len; j++) {
+      buffer.addInt16(values[j] instanceof Buffer)
+    }
   }
   buffer.addInt16(len)
   for (var i = 0; i < len; i++) {
@@ -301,9 +287,7 @@ Connection.prototype.execute = function (config, more) {
   config = config || {}
   config.portal = config.portal || ''
   config.rows = config.rows || ''
-  this.writer
-    .addCString(config.portal)
-    .addInt32(config.rows)
+  this.writer.addCString(config.portal).addInt32(config.rows)
 
   // 0x45 = 'E'
   this._send(0x45, more)

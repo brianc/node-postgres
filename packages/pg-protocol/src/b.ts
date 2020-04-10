@@ -1,4 +1,4 @@
-// file for microbenchmarking 
+// file for microbenchmarking
 
 import { Writer } from './buffer-writer'
 import { serialize } from './index'
@@ -15,10 +15,10 @@ const buffer = Buffer.from([33, 33, 33, 33, 33, 33, 33, 0])
 const run = () => {
   if (count > LOOPS) {
     console.log(Date.now() - start)
-    return;
+    return
   }
   count++
-  for(let i = 0; i < LOOPS; i++) {
+  for (let i = 0; i < LOOPS; i++) {
     reader.setBuffer(0, buffer)
     reader.cstring()
   }

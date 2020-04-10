@@ -16,12 +16,15 @@ describe('pool error handling', function () {
     function runErrorQuery() {
       shouldGet++
       return new Promise(function (resolve, reject) {
-        pool.query("SELECT 'asd'+1 ").then(function (res) {
-          reject(res) // this should always error
-        }).catch(function (err) {
-          errors++
-          resolve(err)
-        })
+        pool
+          .query("SELECT 'asd'+1 ")
+          .then(function (res) {
+            reject(res) // this should always error
+          })
+          .catch(function (err) {
+            errors++
+            resolve(err)
+          })
       })
     }
     const ps = []
@@ -35,14 +38,17 @@ describe('pool error handling', function () {
   })
 
   describe('calling release more than once', () => {
-    it('should throw each time', co.wrap(function* () {
-      const pool = new Pool()
-      const client = yield pool.connect()
-      client.release()
-      expect(() => client.release()).to.throwError()
-      expect(() => client.release()).to.throwError()
-      return yield pool.end()
-    }))
+    it(
+      'should throw each time',
+      co.wrap(function* () {
+        const pool = new Pool()
+        const client = yield pool.connect()
+        client.release()
+        expect(() => client.release()).to.throwError()
+        expect(() => client.release()).to.throwError()
+        return yield pool.end()
+      })
+    )
 
     it('should throw each time with callbacks', function (done) {
       const pool = new Pool()
@@ -75,17 +81,16 @@ describe('pool error handling', function () {
     it('rejects all additional promises', (done) => {
       const pool = new Pool()
       const promises = []
-      pool.end()
-        .then(() => {
-          const squash = promise => promise.catch(e => 'okay!')
-          promises.push(squash(pool.connect()))
-          promises.push(squash(pool.query('SELECT NOW()')))
-          promises.push(squash(pool.end()))
-          Promise.all(promises).then(res => {
-            expect(res).to.eql(['okay!', 'okay!', 'okay!'])
-            done()
-          })
+      pool.end().then(() => {
+        const squash = (promise) => promise.catch((e) => 'okay!')
+        promises.push(squash(pool.connect()))
+        promises.push(squash(pool.query('SELECT NOW()')))
+        promises.push(squash(pool.end()))
+        Promise.all(promises).then((res) => {
+          expect(res).to.eql(['okay!', 'okay!', 'okay!'])
+          done()
         })
+      })
     })
 
     it('returns an error on all additional callbacks', (done) => {
@@ -106,68 +111,74 @@ describe('pool error handling', function () {
   })
 
   describe('error from idle client', () => {
-    it('removes client from pool', co.wrap(function* () {
-      const pool = new Pool()
-      const client = yield pool.connect()
-      expect(pool.totalCount).to.equal(1)
-      expect(pool.waitingCount).to.equal(0)
-      expect(pool.idleCount).to.equal(0)
-      client.release()
-      yield new Promise((resolve, reject) => {
-        process.nextTick(() => {
-          let poolError
-          pool.once('error', (err) => {
-            poolError = err
+    it(
+      'removes client from pool',
+      co.wrap(function* () {
+        const pool = new Pool()
+        const client = yield pool.connect()
+        expect(pool.totalCount).to.equal(1)
+        expect(pool.waitingCount).to.equal(0)
+        expect(pool.idleCount).to.equal(0)
+        client.release()
+        yield new Promise((resolve, reject) => {
+          process.nextTick(() => {
+            let poolError
+            pool.once('error', (err) => {
+              poolError = err
+            })
+
+            let clientError
+            client.once('error', (err) => {
+              clientError = err
+            })
+
+            client.emit('error', new Error('expected'))
+
+            expect(clientError.message).to.equal('expected')
+            expect(poolError.message).to.equal('expected')
+            expect(pool.idleCount).to.equal(0)
+            expect(pool.totalCount).to.equal(0)
+            pool.end().then(resolve, reject)
           })
-
-          let clientError
-          client.once('error', (err) => {
-            clientError = err
-          })
-
-          client.emit('error', new Error('expected'))
-
-          expect(clientError.message).to.equal('expected')
-          expect(poolError.message).to.equal('expected')
-          expect(pool.idleCount).to.equal(0)
-          expect(pool.totalCount).to.equal(0)
-          pool.end().then(resolve, reject)
         })
       })
-    }))
+    )
   })
 
   describe('error from in-use client', () => {
-    it('keeps the client in the pool', co.wrap(function* () {
-      const pool = new Pool()
-      const client = yield pool.connect()
-      expect(pool.totalCount).to.equal(1)
-      expect(pool.waitingCount).to.equal(0)
-      expect(pool.idleCount).to.equal(0)
+    it(
+      'keeps the client in the pool',
+      co.wrap(function* () {
+        const pool = new Pool()
+        const client = yield pool.connect()
+        expect(pool.totalCount).to.equal(1)
+        expect(pool.waitingCount).to.equal(0)
+        expect(pool.idleCount).to.equal(0)
 
-      yield new Promise((resolve, reject) => {
-        process.nextTick(() => {
-          let poolError
-          pool.once('error', (err) => {
-            poolError = err
+        yield new Promise((resolve, reject) => {
+          process.nextTick(() => {
+            let poolError
+            pool.once('error', (err) => {
+              poolError = err
+            })
+
+            let clientError
+            client.once('error', (err) => {
+              clientError = err
+            })
+
+            client.emit('error', new Error('expected'))
+
+            expect(clientError.message).to.equal('expected')
+            expect(poolError).not.to.be.ok()
+            expect(pool.idleCount).to.equal(0)
+            expect(pool.totalCount).to.equal(1)
+            client.release()
+            pool.end().then(resolve, reject)
           })
-
-          let clientError
-          client.once('error', (err) => {
-            clientError = err
-          })
-
-          client.emit('error', new Error('expected'))
-
-          expect(clientError.message).to.equal('expected')
-          expect(poolError).not.to.be.ok()
-          expect(pool.idleCount).to.equal(0)
-          expect(pool.totalCount).to.equal(1)
-          client.release()
-          pool.end().then(resolve, reject)
         })
       })
-    }))
+    )
   })
 
   describe('passing a function to pool.query', () => {
@@ -182,30 +193,35 @@ describe('pool error handling', function () {
   })
 
   describe('pool with lots of errors', () => {
-    it('continues to work and provide new clients', co.wrap(function* () {
-      const pool = new Pool({ max: 1 })
-      const errors = []
-      for (var i = 0; i < 20; i++) {
-        try {
-          yield pool.query('invalid sql')
-        } catch (err) {
-          errors.push(err)
+    it(
+      'continues to work and provide new clients',
+      co.wrap(function* () {
+        const pool = new Pool({ max: 1 })
+        const errors = []
+        for (var i = 0; i < 20; i++) {
+          try {
+            yield pool.query('invalid sql')
+          } catch (err) {
+            errors.push(err)
+          }
         }
-      }
-      expect(errors).to.have.length(20)
-      expect(pool.idleCount).to.equal(0)
-      expect(pool.query).to.be.a(Function)
-      const res = yield pool.query('SELECT $1::text as name', ['brianc'])
-      expect(res.rows).to.have.length(1)
-      expect(res.rows[0].name).to.equal('brianc')
-      return pool.end()
-    }))
+        expect(errors).to.have.length(20)
+        expect(pool.idleCount).to.equal(0)
+        expect(pool.query).to.be.a(Function)
+        const res = yield pool.query('SELECT $1::text as name', ['brianc'])
+        expect(res.rows).to.have.length(1)
+        expect(res.rows[0].name).to.equal('brianc')
+        return pool.end()
+      })
+    )
   })
 
   it('should continue with queued items after a connection failure', (done) => {
-    const closeServer = net.createServer((socket) => {
-      socket.destroy()
-    }).unref()
+    const closeServer = net
+      .createServer((socket) => {
+        socket.destroy()
+      })
+      .unref()
 
     closeServer.listen(() => {
       const pool = new Pool({ max: 1, port: closeServer.address().port, host: 'localhost' })

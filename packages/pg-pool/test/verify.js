@@ -12,7 +12,7 @@ describe('verify', () => {
       verify: (client, cb) => {
         client.release()
         cb(new Error('nope'))
-      }
+      },
     })
 
     pool.connect((err, client) => {

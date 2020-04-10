@@ -11,10 +11,8 @@ const crypto = require('crypto')
 
 const defaults = require('./defaults')
 
-function escapeElement (elementRepresentation) {
-  var escaped = elementRepresentation
-    .replace(/\\/g, '\\\\')
-    .replace(/"/g, '\\"')
+function escapeElement(elementRepresentation) {
+  var escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
   return '"' + escaped + '"'
 }
@@ -22,7 +20,7 @@ function escapeElement (elementRepresentation) {
 // convert a JS array to a postgres array literal
 // uses comma separator so won't work for types like box that use
 // a different array separator.
-function arrayString (val) {
+function arrayString(val) {
   var result = '{'
   for (var i = 0; i < val.length; i++) {
     if (i > 0) {
@@ -76,7 +74,7 @@ var prepareValue = function (val, seen) {
   return val.toString()
 }
 
-function prepareObject (val, seen) {
+function prepareObject(val, seen) {
   if (val && typeof val.toPostgres === 'function') {
     seen = seen || []
     if (seen.indexOf(val) !== -1) {
@@ -89,48 +87,66 @@ function prepareObject (val, seen) {
   return JSON.stringify(val)
 }
 
-function pad (number, digits) {
+function pad(number, digits) {
   number = '' + number
-  while (number.length < digits) { number = '0' + number }
+  while (number.length < digits) {
+    number = '0' + number
+  }
   return number
 }
 
-function dateToString (date) {
+function dateToString(date) {
   var offset = -date.getTimezoneOffset()
 
   var year = date.getFullYear()
   var isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
-  var ret = pad(year, 4) + '-' +
-    pad(date.getMonth() + 1, 2) + '-' +
-    pad(date.getDate(), 2) + 'T' +
-    pad(date.getHours(), 2) + ':' +
-    pad(date.getMinutes(), 2) + ':' +
-    pad(date.getSeconds(), 2) + '.' +
+  var ret =
+    pad(year, 4) +
+    '-' +
+    pad(date.getMonth() + 1, 2) +
+    '-' +
+    pad(date.getDate(), 2) +
+    'T' +
+    pad(date.getHours(), 2) +
+    ':' +
+    pad(date.getMinutes(), 2) +
+    ':' +
+    pad(date.getSeconds(), 2) +
+    '.' +
     pad(date.getMilliseconds(), 3)
 
   if (offset < 0) {
     ret += '-'
     offset *= -1
-  } else { ret += '+' }
+  } else {
+    ret += '+'
+  }
 
   ret += pad(Math.floor(offset / 60), 2) + ':' + pad(offset % 60, 2)
   if (isBCYear) ret += ' BC'
   return ret
 }
 
-function dateToStringUTC (date) {
+function dateToStringUTC(date) {
   var year = date.getUTCFullYear()
   var isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
-  var ret = pad(year, 4) + '-' +
-    pad(date.getUTCMonth() + 1, 2) + '-' +
-    pad(date.getUTCDate(), 2) + 'T' +
-    pad(date.getUTCHours(), 2) + ':' +
-    pad(date.getUTCMinutes(), 2) + ':' +
-    pad(date.getUTCSeconds(), 2) + '.' +
+  var ret =
+    pad(year, 4) +
+    '-' +
+    pad(date.getUTCMonth() + 1, 2) +
+    '-' +
+    pad(date.getUTCDate(), 2) +
+    'T' +
+    pad(date.getUTCHours(), 2) +
+    ':' +
+    pad(date.getUTCMinutes(), 2) +
+    ':' +
+    pad(date.getUTCSeconds(), 2) +
+    '.' +
     pad(date.getUTCMilliseconds(), 3)
 
   ret += '+00:00'
@@ -138,9 +154,9 @@ function dateToStringUTC (date) {
   return ret
 }
 
-function normalizeQueryConfig (config, values, callback) {
+function normalizeQueryConfig(config, values, callback) {
   // can take in strings or config objects
-  config = (typeof (config) === 'string') ? { text: config } : config
+  config = typeof config === 'string' ? { text: config } : config
   if (values) {
     if (typeof values === 'function') {
       config.callback = values
@@ -166,12 +182,12 @@ const postgresMd5PasswordHash = function (user, password, salt) {
 }
 
 module.exports = {
-  prepareValue: function prepareValueWrapper (value) {
+  prepareValue: function prepareValueWrapper(value) {
     // this ensures that extra arguments do not get passed into prepareValue
     // by accident, eg: from calling values.map(utils.prepareValue)
     return prepareValue(value)
   },
   normalizeQueryConfig,
   postgresMd5PasswordHash,
-  md5
+  md5,
 }

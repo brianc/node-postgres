@@ -6,18 +6,22 @@ describe('serializer', () => {
   it('builds startup message', function () {
     const actual = serialize.startup({
       user: 'brian',
-      database: 'bang'
+      database: 'bang',
     })
-    assert.deepEqual(actual, new BufferList()
-      .addInt16(3)
-      .addInt16(0)
-      .addCString('user')
-      .addCString('brian')
-      .addCString('database')
-      .addCString('bang')
-      .addCString('client_encoding')
-      .addCString("'utf-8'")
-      .addCString('').join(true))
+    assert.deepEqual(
+      actual,
+      new BufferList()
+        .addInt16(3)
+        .addInt16(0)
+        .addCString('user')
+        .addCString('brian')
+        .addCString('database')
+        .addCString('bang')
+        .addCString('client_encoding')
+        .addCString("'utf-8'")
+        .addCString('')
+        .join(true)
+    )
   })
 
   it('builds password message', function () {
@@ -28,7 +32,7 @@ describe('serializer', () => {
   it('builds request ssl message', function () {
     const actual = serialize.requestSsl()
     const expected = new BufferList().addInt32(80877103).join(true)
-    assert.deepEqual(actual, expected);
+    assert.deepEqual(actual, expected)
   })
 
   it('builds SASLInitialResponseMessage message', function () {
@@ -36,12 +40,10 @@ describe('serializer', () => {
     assert.deepEqual(actual, new BufferList().addCString('mech').addInt32(4).addString('data').join(true, 'p'))
   })
 
-
   it('builds SCRAMClientFinalMessage message', function () {
     const actual = serialize.sendSCRAMClientFinalMessage('data')
     assert.deepEqual(actual, new BufferList().addString('data').join(true, 'p'))
   })
-
 
   it('builds query message', function () {
     var txt = 'select * from boom'
@@ -49,15 +51,10 @@ describe('serializer', () => {
     assert.deepEqual(actual, new BufferList().addCString(txt).join(true, 'Q'))
   })
 
-
   describe('parse message', () => {
-
     it('builds parse message', function () {
       const actual = serialize.parse({ text: '!' })
-      var expected = new BufferList()
-        .addCString('')
-        .addCString('!')
-        .addInt16(0).join(true, 'P')
+      var expected = new BufferList().addCString('').addCString('!').addInt16(0).join(true, 'P')
       assert.deepEqual(actual, expected)
     })
 
@@ -65,12 +62,9 @@ describe('serializer', () => {
       const actual = serialize.parse({
         name: 'boom',
         text: 'select * from boom',
-        types: []
+        types: [],
       })
-      var expected = new BufferList()
-        .addCString('boom')
-        .addCString('select * from boom')
-        .addInt16(0).join(true, 'P')
+      var expected = new BufferList().addCString('boom').addCString('select * from boom').addInt16(0).join(true, 'P')
       assert.deepEqual(actual, expected)
     })
 
@@ -78,7 +72,7 @@ describe('serializer', () => {
       const actual = serialize.parse({
         name: 'force',
         text: 'select * from bang where name = $1',
-        types: [1, 2, 3, 4]
+        types: [1, 2, 3, 4],
       })
       var expected = new BufferList()
         .addCString('force')
@@ -87,12 +81,11 @@ describe('serializer', () => {
         .addInt32(1)
         .addInt32(2)
         .addInt32(3)
-        .addInt32(4).join(true, 'P')
+        .addInt32(4)
+        .join(true, 'P')
       assert.deepEqual(actual, expected)
     })
-
   })
-
 
   describe('bind messages', function () {
     it('with no values', function () {
@@ -112,10 +105,10 @@ describe('serializer', () => {
       const actual = serialize.bind({
         portal: 'bang',
         statement: 'woo',
-        values: ['1', 'hi', null, 'zing']
+        values: ['1', 'hi', null, 'zing'],
       })
       var expectedBuffer = new BufferList()
-        .addCString('bang')  // portal name
+        .addCString('bang') // portal name
         .addCString('woo') // statement name
         .addInt16(0)
         .addInt16(4)
@@ -136,16 +129,16 @@ describe('serializer', () => {
     const actual = serialize.bind({
       portal: 'bang',
       statement: 'woo',
-      values: ['1', 'hi', null, Buffer.from('zing', 'utf8')]
+      values: ['1', 'hi', null, Buffer.from('zing', 'utf8')],
     })
     var expectedBuffer = new BufferList()
-      .addCString('bang')  // portal name
+      .addCString('bang') // portal name
       .addCString('woo') // statement name
-      .addInt16(4)// value count
-      .addInt16(0)// string
-      .addInt16(0)// string
-      .addInt16(0)// string
-      .addInt16(1)// binary
+      .addInt16(4) // value count
+      .addInt16(0) // string
+      .addInt16(0) // string
+      .addInt16(0) // string
+      .addInt16(1) // binary
       .addInt16(4)
       .addInt32(1)
       .add(Buffer.from('1'))
@@ -162,22 +155,16 @@ describe('serializer', () => {
   describe('builds execute message', function () {
     it('for unamed portal with no row limit', function () {
       const actual = serialize.execute()
-      var expectedBuffer = new BufferList()
-        .addCString('')
-        .addInt32(0)
-        .join(true, 'E')
+      var expectedBuffer = new BufferList().addCString('').addInt32(0).join(true, 'E')
       assert.deepEqual(actual, expectedBuffer)
     })
 
     it('for named portal with row limit', function () {
       const actual = serialize.execute({
         portal: 'my favorite portal',
-        rows: 100
+        rows: 100,
       })
-      var expectedBuffer = new BufferList()
-        .addCString('my favorite portal')
-        .addInt32(100)
-        .join(true, 'E')
+      var expectedBuffer = new BufferList().addCString('my favorite portal').addInt32(100).join(true, 'E')
       assert.deepEqual(actual, expectedBuffer)
     })
   })
@@ -231,7 +218,7 @@ describe('serializer', () => {
   describe('copy messages', function () {
     it('builds copyFromChunk', () => {
       const actual = serialize.copyData(Buffer.from([1, 2, 3]))
-      const expected = new BufferList().add(Buffer.from([1, 2,3 ])).join(true, 'd')
+      const expected = new BufferList().add(Buffer.from([1, 2, 3])).join(true, 'd')
       assert.deepEqual(actual, expected)
     })
 

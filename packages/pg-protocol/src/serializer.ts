@@ -13,7 +13,7 @@ const enum code {
   describe = 0x44,
   copyFromChunk = 0x64,
   copyDone = 0x63,
-  copyFail = 0x66
+  copyFail = 0x66,
 }
 
 const writer = new Writer()
@@ -32,15 +32,12 @@ const startup = (opts: Record<string, string>): Buffer => {
 
   var length = bodyBuffer.length + 4
 
-  return new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .flush()
+  return new Writer().addInt32(length).add(bodyBuffer).flush()
 }
 
 const requestSsl = (): Buffer => {
   const response = Buffer.allocUnsafe(8)
-  response.writeInt32BE(8, 0);
+  response.writeInt32BE(8, 0)
   response.writeInt32BE(80877103, 4)
   return response
 }
@@ -51,10 +48,7 @@ const password = (password: string): Buffer => {
 
 const sendSASLInitialResponseMessage = function (mechanism: string, initialResponse: string): Buffer {
   // 0x70 = 'p'
-  writer
-    .addCString(mechanism)
-    .addInt32(Buffer.byteLength(initialResponse))
-    .addString(initialResponse)
+  writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
 
   return writer.flush(code.startup)
 }
@@ -68,9 +62,9 @@ const query = (text: string): Buffer => {
 }
 
 type ParseOpts = {
-  name?: string;
-  types?: number[];
-  text: string;
+  name?: string
+  types?: number[]
+  text: string
 }
 
 const emptyArray: any[] = []
@@ -108,10 +102,10 @@ const parse = (query: ParseOpts): Buffer => {
 }
 
 type BindOpts = {
-  portal?: string;
-  binary?: boolean;
-  statement?: string;
-  values?: any[];
+  portal?: string
+  binary?: boolean
+  statement?: string
+  values?: any[]
 }
 
 const bind = (config: BindOpts = {}): Buffer => {
@@ -128,9 +122,7 @@ const bind = (config: BindOpts = {}): Buffer => {
     useBinary = useBinary || values[j] instanceof Buffer
   }
 
-  var buffer = writer
-    .addCString(portal)
-    .addCString(statement)
+  var buffer = writer.addCString(portal).addCString(statement)
   if (!useBinary) {
     buffer.addInt16(0)
   } else {
@@ -163,16 +155,16 @@ const bind = (config: BindOpts = {}): Buffer => {
 }
 
 type ExecOpts = {
-  portal?: string;
-  rows?: number;
+  portal?: string
+  rows?: number
 }
 
 const emptyExecute = Buffer.from([code.execute, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00])
 
 const execute = (config?: ExecOpts): Buffer => {
   // this is the happy path for most queries
-  if (!config || !config.portal && !config.rows) {
-    return emptyExecute;
+  if (!config || (!config.portal && !config.rows)) {
+    return emptyExecute
   }
 
   const portal = config.portal || ''
@@ -185,9 +177,9 @@ const execute = (config?: ExecOpts): Buffer => {
   buff[0] = code.execute
   buff.writeInt32BE(len, 1)
   buff.write(portal, 5, 'utf-8')
-  buff[portalLength + 5] = 0; // null terminate portal cString
+  buff[portalLength + 5] = 0 // null terminate portal cString
   buff.writeUInt32BE(rows, buff.length - 4)
-  return buff;
+  return buff
 }
 
 const cancel = (processID: number, secretKey: number): Buffer => {
@@ -197,12 +189,12 @@ const cancel = (processID: number, secretKey: number): Buffer => {
   buffer.writeInt16BE(5678, 6)
   buffer.writeInt32BE(processID, 8)
   buffer.writeInt32BE(secretKey, 12)
-  return buffer;
+  return buffer
 }
 
 type PortalOpts = {
-  type: 'S' | 'P',
-  name?: string;
+  type: 'S' | 'P'
+  name?: string
 }
 
 const cstringMessage = (code: code, string: string): Buffer => {
@@ -221,11 +213,11 @@ const emptyDescribePortal = writer.addCString('P').flush(code.describe)
 const emptyDescribeStatement = writer.addCString('S').flush(code.describe)
 
 const describe = (msg: PortalOpts): Buffer => {
-  return msg.name ? 
-    cstringMessage(code.describe,`${msg.type}${msg.name || ''}`) : 
-    msg.type === 'P' ? 
-      emptyDescribePortal : 
-      emptyDescribeStatement;
+  return msg.name
+    ? cstringMessage(code.describe, `${msg.type}${msg.name || ''}`)
+    : msg.type === 'P'
+    ? emptyDescribePortal
+    : emptyDescribeStatement
 }
 
 const close = (msg: PortalOpts): Buffer => {
@@ -238,7 +230,7 @@ const copyData = (chunk: Buffer): Buffer => {
 }
 
 const copyFail = (message: string): Buffer => {
-  return cstringMessage(code.copyFail, message);
+  return cstringMessage(code.copyFail, message)
 }
 
 const codeOnlyBuffer = (code: code): Buffer => Buffer.from([code, 0x00, 0x00, 0x00, 0x04])
@@ -266,7 +258,7 @@ const serialize = {
   copyData,
   copyDone: () => copyDoneBuffer,
   copyFail,
-  cancel
+  cancel,
 }
 
 export { serialize }

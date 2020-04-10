@@ -15,7 +15,8 @@ var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
 
 var addRow = function (bufferList: BufferList, name: string, offset: number) {
-  return bufferList.addCString(name) // field name
+  return bufferList
+    .addCString(name) // field name
     .addInt32(offset++) // table id
     .addInt16(offset++) // attribute of column number
     .addInt32(offset++) // objectId of field's data type
@@ -31,24 +32,25 @@ var row1 = {
   dataTypeID: 3,
   dataTypeSize: 4,
   typeModifier: 5,
-  formatCode: 0
+  formatCode: 0,
 }
 var oneRowDescBuff = buffers.rowDescription([row1])
 row1.name = 'bang'
 
-var twoRowBuf = buffers.rowDescription([row1, {
-  name: 'whoah',
-  tableID: 10,
-  attributeNumber: 11,
-  dataTypeID: 12,
-  dataTypeSize: 13,
-  typeModifier: 14,
-  formatCode: 0
-}])
+var twoRowBuf = buffers.rowDescription([
+  row1,
+  {
+    name: 'whoah',
+    tableID: 10,
+    attributeNumber: 11,
+    dataTypeID: 12,
+    dataTypeSize: 13,
+    typeModifier: 14,
+    formatCode: 0,
+  },
+])
 
-var emptyRowFieldBuf = new BufferList()
-  .addInt16(0)
-  .join(true, 'D')
+var emptyRowFieldBuf = new BufferList().addInt16(0).join(true, 'D')
 
 var emptyRowFieldBuf = buffers.dataRow([])
 
@@ -62,32 +64,32 @@ var oneFieldBuf = buffers.dataRow(['test'])
 
 var expectedAuthenticationOkayMessage = {
   name: 'authenticationOk',
-  length: 8
+  length: 8,
 }
 
 var expectedParameterStatusMessage = {
   name: 'parameterStatus',
   parameterName: 'client_encoding',
   parameterValue: 'UTF8',
-  length: 25
+  length: 25,
 }
 
 var expectedBackendKeyDataMessage = {
   name: 'backendKeyData',
   processID: 1,
-  secretKey: 2
+  secretKey: 2,
 }
 
 var expectedReadyForQueryMessage = {
   name: 'readyForQuery',
   length: 5,
-  status: 'I'
+  status: 'I',
 }
 
 var expectedCommandCompleteMessage = {
   name: 'commandComplete',
   length: 13,
-  text: 'SELECT 3'
+  text: 'SELECT 3',
 }
 var emptyRowDescriptionBuffer = new BufferList()
   .addInt16(0) // number of fields
@@ -103,45 +105,49 @@ var expectedOneRowMessage = {
   name: 'rowDescription',
   length: 27,
   fieldCount: 1,
-  fields: [{
-    name: 'id',
-    tableID: 1,
-    columnID: 2,
-    dataTypeID: 3,
-    dataTypeSize: 4,
-    dataTypeModifier: 5,
-    format: 'text'
-  }]
+  fields: [
+    {
+      name: 'id',
+      tableID: 1,
+      columnID: 2,
+      dataTypeID: 3,
+      dataTypeSize: 4,
+      dataTypeModifier: 5,
+      format: 'text',
+    },
+  ],
 }
 
 var expectedTwoRowMessage = {
   name: 'rowDescription',
   length: 53,
   fieldCount: 2,
-  fields: [{
-    name: 'bang',
-    tableID: 1,
-    columnID: 2,
-    dataTypeID: 3,
-    dataTypeSize: 4,
-    dataTypeModifier: 5,
-    format: 'text'
-  },
-  {
-    name: 'whoah',
-    tableID: 10,
-    columnID: 11,
-    dataTypeID: 12,
-    dataTypeSize: 13,
-    dataTypeModifier: 14,
-    format: 'text'
-  }]
+  fields: [
+    {
+      name: 'bang',
+      tableID: 1,
+      columnID: 2,
+      dataTypeID: 3,
+      dataTypeSize: 4,
+      dataTypeModifier: 5,
+      format: 'text',
+    },
+    {
+      name: 'whoah',
+      tableID: 10,
+      columnID: 11,
+      dataTypeID: 12,
+      dataTypeSize: 13,
+      dataTypeModifier: 14,
+      format: 'text',
+    },
+  ],
 }
 
 var testForMessage = function (buffer: Buffer, expectedMessage: any) {
   it('recieves and parses ' + expectedMessage.name, async () => {
     const messages = await parseBuffers([buffer])
-    const [lastMessage] = messages;
+    const [lastMessage] = messages
 
     for (const key in expectedMessage) {
       assert.deepEqual((lastMessage as any)[key], expectedMessage[key])
@@ -156,17 +162,17 @@ var SASLContinueBuffer = buffers.authenticationSASLContinue()
 var SASLFinalBuffer = buffers.authenticationSASLFinal()
 
 var expectedPlainPasswordMessage = {
-  name: 'authenticationCleartextPassword'
+  name: 'authenticationCleartextPassword',
 }
 
 var expectedMD5PasswordMessage = {
   name: 'authenticationMD5Password',
-  salt: Buffer.from([1, 2, 3, 4])
+  salt: Buffer.from([1, 2, 3, 4]),
 }
 
 var expectedSASLMessage = {
   name: 'authenticationSASL',
-  mechanisms: ['SCRAM-SHA-256']
+  mechanisms: ['SCRAM-SHA-256'],
 }
 
 var expectedSASLContinueMessage = {
@@ -184,15 +190,13 @@ var expectedNotificationResponseMessage = {
   name: 'notification',
   processId: 4,
   channel: 'hi',
-  payload: 'boom'
+  payload: 'boom',
 }
 
-
-
 const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
-  const stream = new PassThrough();
+  const stream = new PassThrough()
   for (const buffer of buffers) {
-    stream.write(buffer);
+    stream.write(buffer)
   }
   stream.end()
   const msgs: BackendMessage[] = []
@@ -219,7 +223,7 @@ describe('PgPacketStream', function () {
   })
 
   testForMessage(Buffer.from([0x6e, 0, 0, 0, 4]), {
-    name: 'noData'
+    name: 'noData',
   })
 
   describe('rowDescription messages', function () {
@@ -232,7 +236,7 @@ describe('PgPacketStream', function () {
     describe('parsing empty row', function () {
       testForMessage(emptyRowFieldBuf, {
         name: 'dataRow',
-        fieldCount: 0
+        fieldCount: 0,
       })
     })
 
@@ -240,7 +244,7 @@ describe('PgPacketStream', function () {
       testForMessage(oneFieldBuf, {
         name: 'dataRow',
         fieldCount: 1,
-        fields: ['test']
+        fields: ['test'],
       })
     })
   })
@@ -250,55 +254,69 @@ describe('PgPacketStream', function () {
     var buff = buffers.notice([{ type: 'C', value: 'code' }])
     testForMessage(buff, {
       name: 'notice',
-      code: 'code'
+      code: 'code',
     })
   })
 
   testForMessage(buffers.error([]), {
-    name: 'error'
+    name: 'error',
   })
 
   describe('with all the fields', function () {
-    var buffer = buffers.error([{
-      type: 'S',
-      value: 'ERROR'
-    }, {
-      type: 'C',
-      value: 'code'
-    }, {
-      type: 'M',
-      value: 'message'
-    }, {
-      type: 'D',
-      value: 'details'
-    }, {
-      type: 'H',
-      value: 'hint'
-    }, {
-      type: 'P',
-      value: '100'
-    }, {
-      type: 'p',
-      value: '101'
-    }, {
-      type: 'q',
-      value: 'query'
-    }, {
-      type: 'W',
-      value: 'where'
-    }, {
-      type: 'F',
-      value: 'file'
-    }, {
-      type: 'L',
-      value: 'line'
-    }, {
-      type: 'R',
-      value: 'routine'
-    }, {
-      type: 'Z', // ignored
-      value: 'alsdkf'
-    }])
+    var buffer = buffers.error([
+      {
+        type: 'S',
+        value: 'ERROR',
+      },
+      {
+        type: 'C',
+        value: 'code',
+      },
+      {
+        type: 'M',
+        value: 'message',
+      },
+      {
+        type: 'D',
+        value: 'details',
+      },
+      {
+        type: 'H',
+        value: 'hint',
+      },
+      {
+        type: 'P',
+        value: '100',
+      },
+      {
+        type: 'p',
+        value: '101',
+      },
+      {
+        type: 'q',
+        value: 'query',
+      },
+      {
+        type: 'W',
+        value: 'where',
+      },
+      {
+        type: 'F',
+        value: 'file',
+      },
+      {
+        type: 'L',
+        value: 'line',
+      },
+      {
+        type: 'R',
+        value: 'routine',
+      },
+      {
+        type: 'Z', // ignored
+        value: 'alsdkf',
+      },
+    ])
 
     testForMessage(buffer, {
       name: 'error',
@@ -313,36 +331,36 @@ describe('PgPacketStream', function () {
       where: 'where',
       file: 'file',
       line: 'line',
-      routine: 'routine'
+      routine: 'routine',
     })
   })
 
   testForMessage(parseCompleteBuffer, {
-    name: 'parseComplete'
+    name: 'parseComplete',
   })
 
   testForMessage(bindCompleteBuffer, {
-    name: 'bindComplete'
+    name: 'bindComplete',
   })
 
   testForMessage(bindCompleteBuffer, {
-    name: 'bindComplete'
+    name: 'bindComplete',
   })
 
   testForMessage(buffers.closeComplete(), {
-    name: 'closeComplete'
+    name: 'closeComplete',
   })
 
   describe('parses portal suspended message', function () {
     testForMessage(portalSuspendedBuffer, {
-      name: 'portalSuspended'
+      name: 'portalSuspended',
     })
   })
 
   describe('parses replication start message', function () {
     testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
       name: 'replicationStart',
-      length: 4
+      length: 4,
     })
   })
 
@@ -351,28 +369,28 @@ describe('PgPacketStream', function () {
       name: 'copyInResponse',
       length: 7,
       binary: false,
-      columnTypes: []
+      columnTypes: [],
     })
 
     testForMessage(buffers.copyIn(2), {
       name: 'copyInResponse',
       length: 11,
       binary: false,
-      columnTypes: [0, 1]
+      columnTypes: [0, 1],
     })
 
     testForMessage(buffers.copyOut(0), {
       name: 'copyOutResponse',
       length: 7,
       binary: false,
-      columnTypes: []
+      columnTypes: [],
     })
 
     testForMessage(buffers.copyOut(3), {
       name: 'copyOutResponse',
       length: 13,
       binary: false,
-      columnTypes: [0, 1, 2]
+      columnTypes: [0, 1, 2],
     })
 
     testForMessage(buffers.copyDone(), {
@@ -383,10 +401,9 @@ describe('PgPacketStream', function () {
     testForMessage(buffers.copyData(Buffer.from([5, 6, 7])), {
       name: 'copyData',
       length: 7,
-      chunk: Buffer.from([5, 6, 7])
+      chunk: Buffer.from([5, 6, 7]),
     })
   })
-
 
   // since the data message on a stream can randomly divide the incomming
   // tcp packets anywhere, we need to make sure we can parse every single
@@ -395,7 +412,7 @@ describe('PgPacketStream', function () {
     var fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
 
     it('parses when full buffer comes in', async function () {
-      const messages = await parseBuffers([fullBuffer]);
+      const messages = await parseBuffers([fullBuffer])
       const message = messages[0] as any
       assert.equal(message.fields.length, 5)
       assert.equal(message.fields[0], null)
@@ -410,7 +427,7 @@ describe('PgPacketStream', function () {
       var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
       fullBuffer.copy(secondBuffer, 0, firstBuffer.length)
-      const messages = await parseBuffers([fullBuffer]);
+      const messages = await parseBuffers([fullBuffer])
       const message = messages[0] as any
       assert.equal(message.fields.length, 5)
       assert.equal(message.fields[0], null)
@@ -448,13 +465,13 @@ describe('PgPacketStream', function () {
         name: 'dataRow',
         fieldCount: 1,
         length: 11,
-        fields: ['!']
+        fields: ['!'],
       })
       assert.equal(messages[0].fields[0], '!')
       assert.deepEqual(messages[1], {
         name: 'readyForQuery',
         length: 5,
-        status: 'I'
+        status: 'I',
       })
     }
     // sanity check
@@ -480,17 +497,13 @@ describe('PgPacketStream', function () {
         return Promise.all([
           splitAndVerifyTwoMessages(fullBuffer.length - 1),
           splitAndVerifyTwoMessages(fullBuffer.length - 4),
-          splitAndVerifyTwoMessages(fullBuffer.length - 6)
+          splitAndVerifyTwoMessages(fullBuffer.length - 6),
         ])
       })
 
       it('at the end', function () {
-        return Promise.all([
-          splitAndVerifyTwoMessages(8),
-          splitAndVerifyTwoMessages(1)
-        ])
+        return Promise.all([splitAndVerifyTwoMessages(8), splitAndVerifyTwoMessages(1)])
       })
     })
   })
-
 })

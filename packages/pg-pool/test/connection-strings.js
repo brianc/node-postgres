@@ -15,10 +15,10 @@ describe('Connection strings', function () {
           connect: function (cb) {
             cb(new Error('testing'))
           },
-          on: function () { }
+          on: function () {},
         }
       },
-      connectionString: connectionString
+      connectionString: connectionString,
     })
 
     pool.connect(function (err, client) {
@@ -27,4 +27,3 @@ describe('Connection strings', function () {
     })
   })
 })
-

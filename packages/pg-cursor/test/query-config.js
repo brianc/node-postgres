@@ -4,7 +4,7 @@ const Cursor = require('../')
 const pg = require('pg')
 
 describe('query config passed to result', () => {
-  it('passes rowMode to result', done => {
+  it('passes rowMode to result', (done) => {
     const client = new pg.Client()
     client.connect()
     const text = 'SELECT generate_series as num FROM generate_series(0, 5)'
@@ -17,12 +17,12 @@ describe('query config passed to result', () => {
     })
   })
 
-  it('passes types to result', done => {
+  it('passes types to result', (done) => {
     const client = new pg.Client()
     client.connect()
     const text = 'SELECT generate_series as num FROM generate_series(0, 2)'
     const types = {
-      getTypeParser: () => () => 'foo'
+      getTypeParser: () => () => 'foo',
     }
     const cursor = client.query(new Cursor(text, null, { types }))
     cursor.read(10, (err, rows) => {

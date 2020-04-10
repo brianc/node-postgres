@@ -9,7 +9,7 @@
 
 var types = require('pg-types')
 
-function TypeOverrides (userTypes) {
+function TypeOverrides(userTypes) {
   this._types = userTypes || types
   this.text = {}
   this.binary = {}
@@ -17,9 +17,12 @@ function TypeOverrides (userTypes) {
 
 TypeOverrides.prototype.getOverrides = function (format) {
   switch (format) {
-    case 'text': return this.text
-    case 'binary': return this.binary
-    default: return {}
+    case 'text':
+      return this.text
+    case 'binary':
+      return this.binary
+    default:
+      return {}
   }
 }
 

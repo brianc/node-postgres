@@ -14,7 +14,7 @@ var Pool = require('pg-pool')
 
 const poolFactory = (Client) => {
   return class BoundPool extends Pool {
-    constructor (options) {
+    constructor(options) {
       super(options, Client)
     }
   }
@@ -54,10 +54,10 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
 
       // overwrite module.exports.native so that getter is never called again
       Object.defineProperty(module.exports, 'native', {
-        value: native
+        value: native,
       })
 
       return native
-    }
+    },
   })
 }

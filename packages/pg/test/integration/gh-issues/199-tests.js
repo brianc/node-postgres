@@ -5,7 +5,8 @@ var client = helper.client()
 client.query('CREATE TEMP TABLE arrtest (n integer, s varchar)')
 client.query("INSERT INTO arrtest VALUES (4, 'foo'), (5, 'bar'), (6, 'baz');")
 
-var qText = "SELECT \
+var qText =
+  "SELECT \
 ARRAY[1, 2, 3] AS b,\
 ARRAY['xx', 'yy', 'zz'] AS c,\
 ARRAY(SELECT n FROM arrtest) AS d,\

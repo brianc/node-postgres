@@ -10,7 +10,7 @@ p.add = function (buffer, front) {
 }
 
 p.addInt16 = function (val, front) {
-  return this.add(Buffer.from([(val >>> 8), (val >>> 0)]), front)
+  return this.add(Buffer.from([val >>> 8, val >>> 0]), front)
 }
 
 p.getByteLength = function (initial) {
@@ -20,12 +20,10 @@ p.getByteLength = function (initial) {
 }
 
 p.addInt32 = function (val, first) {
-  return this.add(Buffer.from([
-    (val >>> 24 & 0xFF),
-    (val >>> 16 & 0xFF),
-    (val >>> 8 & 0xFF),
-    (val >>> 0 & 0xFF)
-  ]), first)
+  return this.add(
+    Buffer.from([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, (val >>> 0) & 0xff]),
+    first
+  )
 }
 
 p.addCString = function (val, front) {

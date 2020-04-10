@@ -1,7 +1,7 @@
 'use strict'
 const crypto = require('crypto')
 
-function startSession (mechanisms) {
+function startSession(mechanisms) {
   if (mechanisms.indexOf('SCRAM-SHA-256') === -1) {
     throw new Error('SASL: Only mechanism SCRAM-SHA-256 is currently supported')
   }
@@ -12,11 +12,11 @@ function startSession (mechanisms) {
     mechanism: 'SCRAM-SHA-256',
     clientNonce,
     response: 'n,,n=*,r=' + clientNonce,
-    message: 'SASLInitialResponse'
+    message: 'SASLInitialResponse',
   }
 }
 
-function continueSession (session, password, serverData) {
+function continueSession(session, password, serverData) {
   if (session.message !== 'SASLInitialResponse') {
     throw new Error('SASL: Last message was not SASLInitialResponse')
   }
@@ -53,42 +53,46 @@ function continueSession (session, password, serverData) {
   session.response = clientFinalMessageWithoutProof + ',p=' + clientProof
 }
 
-function finalizeSession (session, serverData) {
+function finalizeSession(session, serverData) {
   if (session.message !== 'SASLResponse') {
     throw new Error('SASL: Last message was not SASLResponse')
   }
 
   var serverSignature
 
-  String(serverData).split(',').forEach(function (part) {
-    switch (part[0]) {
-      case 'v':
-        serverSignature = part.substr(2)
-        break
-    }
-  })
+  String(serverData)
+    .split(',')
+    .forEach(function (part) {
+      switch (part[0]) {
+        case 'v':
+          serverSignature = part.substr(2)
+          break
+      }
+    })
 
   if (serverSignature !== session.serverSignature) {
     throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature does not match')
   }
 }
 
-function extractVariablesFromFirstServerMessage (data) {
+function extractVariablesFromFirstServerMessage(data) {
   var nonce, salt, iteration
 
-  String(data).split(',').forEach(function (part) {
-    switch (part[0]) {
-      case 'r':
-        nonce = part.substr(2)
-        break
-      case 's':
-        salt = part.substr(2)
-        break
-      case 'i':
-        iteration = parseInt(part.substr(2), 10)
-        break
-    }
-  })
+  String(data)
+    .split(',')
+    .forEach(function (part) {
+      switch (part[0]) {
+        case 'r':
+          nonce = part.substr(2)
+          break
+        case 's':
+          salt = part.substr(2)
+          break
+        case 'i':
+          iteration = parseInt(part.substr(2), 10)
+          break
+      }
+    })
 
   if (!nonce) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: nonce missing')
@@ -105,11 +109,11 @@ function extractVariablesFromFirstServerMessage (data) {
   return {
     nonce,
     salt,
-    iteration
+    iteration,
   }
 }
 
-function xorBuffers (a, b) {
+function xorBuffers(a, b) {
   if (!Buffer.isBuffer(a)) a = Buffer.from(a)
   if (!Buffer.isBuffer(b)) b = Buffer.from(b)
   var res = []
@@ -125,11 +129,11 @@ function xorBuffers (a, b) {
   return Buffer.from(res)
 }
 
-function createHMAC (key, msg) {
+function createHMAC(key, msg) {
   return crypto.createHmac('sha256', key).update(msg).digest()
 }
 
-function Hi (password, saltBytes, iterations) {
+function Hi(password, saltBytes, iterations) {
   var ui1 = createHMAC(password, Buffer.concat([saltBytes, Buffer.from([0, 0, 0, 1])]))
   var ui = ui1
   for (var i = 0; i < iterations - 1; i++) {
@@ -143,5 +147,5 @@ function Hi (password, saltBytes, iterations) {
 module.exports = {
   startSession,
   continueSession,
-  finalizeSession
+  finalizeSession,
 }

@@ -9,14 +9,20 @@ helper('concat', function (client) {
   it('concats correctly', function (done) {
     var stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
     var query = client.query(stream)
-    query.pipe(through(function (row) {
-      this.push(row.num)
-    })).pipe(concat(function (result) {
-      var total = result.reduce(function (prev, cur) {
-        return prev + cur
-      })
-      assert.equal(total, 20100)
-    }))
+    query
+      .pipe(
+        through(function (row) {
+          this.push(row.num)
+        })
+      )
+      .pipe(
+        concat(function (result) {
+          var total = result.reduce(function (prev, cur) {
+            return prev + cur
+          })
+          assert.equal(total, 20100)
+        })
+      )
     stream.on('end', done)
   })
 })

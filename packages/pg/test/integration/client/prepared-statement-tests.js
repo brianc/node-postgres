@@ -12,11 +12,13 @@ var suite = new helper.Suite()
   var parseCount = 0
 
   suite.test('first named prepared statement', function (done) {
-    var query = client.query(new Query({
-      text: 'select name from person where age <= $1 and name LIKE $2',
-      values: [20, 'Bri%'],
-      name: queryName
-    }))
+    var query = client.query(
+      new Query({
+        text: 'select name from person where age <= $1 and name LIKE $2',
+        values: [20, 'Bri%'],
+        name: queryName,
+      })
+    )
 
     assert.emits(query, 'row', function (row) {
       assert.equal(row.name, 'Brian')
@@ -26,11 +28,13 @@ var suite = new helper.Suite()
   })
 
   suite.test('second named prepared statement with same name & text', function (done) {
-    var cachedQuery = client.query(new Query({
-      text: 'select name from person where age <= $1 and name LIKE $2',
-      name: queryName,
-      values: [10, 'A%']
-    }))
+    var cachedQuery = client.query(
+      new Query({
+        text: 'select name from person where age <= $1 and name LIKE $2',
+        name: queryName,
+        values: [10, 'A%'],
+      })
+    )
 
     assert.emits(cachedQuery, 'row', function (row) {
       assert.equal(row.name, 'Aaron')
@@ -40,10 +44,12 @@ var suite = new helper.Suite()
   })
 
   suite.test('with same name, but without query text', function (done) {
-    var q = client.query(new Query({
-      name: queryName,
-      values: [30, '%n%']
-    }))
+    var q = client.query(
+      new Query({
+        name: queryName,
+        values: [30, '%n%'],
+      })
+    )
 
     assert.emits(q, 'row', function (row) {
       assert.equal(row.name, 'Aaron')
@@ -58,17 +64,22 @@ var suite = new helper.Suite()
   })
 
   suite.test('with same name, but with different text', function (done) {
-    client.query(new Query({
-      text: 'select name from person where age >= $1 and name LIKE $2',
-      name: queryName,
-      values: [30, '%n%']
-    }), assert.calls(err => {
-      assert.equal(err.message, `Prepared statements must be unique - '${queryName}' was used for a different statement`)
-      done()
-    }))
+    client.query(
+      new Query({
+        text: 'select name from person where age >= $1 and name LIKE $2',
+        name: queryName,
+        values: [30, '%n%'],
+      }),
+      assert.calls((err) => {
+        assert.equal(
+          err.message,
+          `Prepared statements must be unique - '${queryName}' was used for a different statement`
+        )
+        done()
+      })
+    )
   })
 })()
-
 ;(function () {
   var statementName = 'differ'
   var statement1 = 'select count(*)::int4 as count from person'
@@ -78,22 +89,27 @@ var suite = new helper.Suite()
   var client2 = helper.client()
 
   suite.test('client 1 execution', function (done) {
-    var query = client1.query({
-      name: statementName,
-      text: statement1
-    }, (err, res) => {
-      assert(!err)
-      assert.equal(res.rows[0].count, 26)
-      done()
-    })
+    var query = client1.query(
+      {
+        name: statementName,
+        text: statement1,
+      },
+      (err, res) => {
+        assert(!err)
+        assert.equal(res.rows[0].count, 26)
+        done()
+      }
+    )
   })
 
   suite.test('client 2 execution', function (done) {
-    var query = client2.query(new Query({
-      name: statementName,
-      text: statement2,
-      values: [11]
-    }))
+    var query = client2.query(
+      new Query({
+        name: statementName,
+        text: statement2,
+        values: [11],
+      })
+    )
 
     assert.emits(query, 'row', function (row) {
       assert.equal(row.count, 1)
@@ -108,7 +124,6 @@ var suite = new helper.Suite()
     return client1.end().then(() => client2.end())
   })
 })()
-
 ;(function () {
   var client = helper.client()
   client.query('CREATE TEMP TABLE zoom(name varchar(100));')
@@ -131,21 +146,31 @@ var suite = new helper.Suite()
   }
 
   suite.test('with small row count', function (done) {
-    var query = client.query(new Query({
-      name: 'get names',
-      text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
-      rows: 1
-    }, done))
+    var query = client.query(
+      new Query(
+        {
+          name: 'get names',
+          text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
+          rows: 1,
+        },
+        done
+      )
+    )
 
     checkForResults(query)
   })
 
   suite.test('with large row count', function (done) {
-    var query = client.query(new Query({
-      name: 'get names',
-      text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
-      rows: 1000
-    }, done))
+    var query = client.query(
+      new Query(
+        {
+          name: 'get names',
+          text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
+          rows: 1000,
+        },
+        done
+      )
+    )
     checkForResults(query)
   })
 

@@ -1,18 +1,16 @@
 'use strict'
 const EventEmitter = require('events').EventEmitter
 
-const NOOP = function () { }
+const NOOP = function () {}
 
 const removeWhere = (list, predicate) => {
   const i = list.findIndex(predicate)
 
-  return i === -1
-    ? undefined
-    : list.splice(i, 1)[0]
+  return i === -1 ? undefined : list.splice(i, 1)[0]
 }
 
 class IdleItem {
-  constructor (client, idleListener, timeoutId) {
+  constructor(client, idleListener, timeoutId) {
     this.client = client
     this.idleListener = idleListener
     this.timeoutId = timeoutId
@@ -20,16 +18,16 @@ class IdleItem {
 }
 
 class PendingItem {
-  constructor (callback) {
+  constructor(callback) {
     this.callback = callback
   }
 }
 
-function throwOnDoubleRelease () {
+function throwOnDoubleRelease() {
   throw new Error('Release called on client which has already been released to the pool.')
 }
 
-function promisify (Promise, callback) {
+function promisify(Promise, callback) {
   if (callback) {
     return { callback: callback, result: undefined }
   }
@@ -45,8 +43,8 @@ function promisify (Promise, callback) {
   return { callback: cb, result: result }
 }
 
-function makeIdleListener (pool, client) {
-  return function idleListener (err) {
+function makeIdleListener(pool, client) {
+  return function idleListener(err) {
     err.client = client
 
     client.removeListener('error', idleListener)
@@ -61,7 +59,7 @@ function makeIdleListener (pool, client) {
 }
 
 class Pool extends EventEmitter {
-  constructor (options, Client) {
+  constructor(options, Client) {
     super()
     this.options = Object.assign({}, options)
 
@@ -72,13 +70,13 @@ class Pool extends EventEmitter {
         configurable: true,
         enumerable: false,
         writable: true,
-        value: options.password
+        value: options.password,
       })
     }
 
     this.options.max = this.options.max || this.options.poolSize || 10
     this.options.maxUses = this.options.maxUses || Infinity
-    this.log = this.options.log || function () { }
+    this.log = this.options.log || function () {}
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
 
@@ -94,11 +92,11 @@ class Pool extends EventEmitter {
     this.ended = false
   }
 
-  _isFull () {
+  _isFull() {
     return this._clients.length >= this.options.max
   }
 
-  _pulseQueue () {
+  _pulseQueue() {
     this.log('pulse queue')
     if (this.ended) {
       this.log('pulse queue ended')
@@ -107,7 +105,7 @@ class Pool extends EventEmitter {
     if (this.ending) {
       this.log('pulse queue on ending')
       if (this._idle.length) {
-        this._idle.slice().map(item => {
+        this._idle.slice().map((item) => {
           this._remove(item.client)
         })
       }
@@ -141,22 +139,19 @@ class Pool extends EventEmitter {
     throw new Error('unexpected condition')
   }
 
-  _remove (client) {
-    const removed = removeWhere(
-      this._idle,
-      item => item.client === client
-    )
+  _remove(client) {
+    const removed = removeWhere(this._idle, (item) => item.client === client)
 
     if (removed !== undefined) {
       clearTimeout(removed.timeoutId)
     }
 
-    this._clients = this._clients.filter(c => c !== client)
+    this._clients = this._clients.filter((c) => c !== client)
     client.end()
     this.emit('remove', client)
   }
 
-  connect (cb) {
+  connect(cb) {
     if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
       return cb ? cb(err) : this.Promise.reject(err)
@@ -202,7 +197,7 @@ class Pool extends EventEmitter {
     return result
   }
 
-  newClient (pendingItem) {
+  newClient(pendingItem) {
     const client = new this.Client(this.options)
     this._clients.push(client)
     const idleListener = makeIdleListener(this, client)
@@ -230,7 +225,7 @@ class Pool extends EventEmitter {
       if (err) {
         this.log('client failed to connect', err)
         // remove the dead client from our list of clients
-        this._clients = this._clients.filter(c => c !== client)
+        this._clients = this._clients.filter((c) => c !== client)
         if (timeoutHit) {
           err.message = 'Connection terminated due to connection timeout'
         }
@@ -250,7 +245,7 @@ class Pool extends EventEmitter {
   }
 
   // acquire a client for a pending work item
-  _acquireClient (client, pendingItem, idleListener, isNew) {
+  _acquireClient(client, pendingItem, idleListener, isNew) {
     if (isNew) {
       this.emit('connect', client)
     }
@@ -294,7 +289,7 @@ class Pool extends EventEmitter {
 
   // release a client back to the poll, include an error
   // to remove it from the pool
-  _release (client, idleListener, err) {
+  _release(client, idleListener, err) {
     client.on('error', idleListener)
 
     client._poolUseCount = (client._poolUseCount || 0) + 1
@@ -322,7 +317,7 @@ class Pool extends EventEmitter {
     this._pulseQueue()
   }
 
-  query (text, values, cb) {
+  query(text, values, cb) {
     // guard clause against passing a function as the first parameter
     if (typeof text === 'function') {
       const response = promisify(this.Promise, text)
@@ -375,7 +370,7 @@ class Pool extends EventEmitter {
     return response.result
   }
 
-  end (cb) {
+  end(cb) {
     this.log('ending')
     if (this.ending) {
       const err = new Error('Called end on pool more than once')
@@ -388,15 +383,15 @@ class Pool extends EventEmitter {
     return promised.result
   }
 
-  get waitingCount () {
+  get waitingCount() {
     return this._pendingQueue.length
   }
 
-  get idleCount () {
+  get idleCount() {
     return this._idle.length
   }
 
-  get totalCount () {
+  get totalCount() {
     return this._clients.length
   }
 }

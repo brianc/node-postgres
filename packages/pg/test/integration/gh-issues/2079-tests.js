@@ -1,5 +1,4 @@
-
-"use strict"
+'use strict'
 var helper = require('./../test-helper')
 var assert = require('assert')
 
@@ -7,7 +6,7 @@ const suite = new helper.Suite()
 
 // makes a backend server that responds with a non 'S' ssl response buffer
 let makeTerminatingBackend = (byte) => {
-  const { createServer }  = require('net')
+  const { createServer } = require('net')
 
   const server = createServer((socket) => {
     // attach a listener so the socket can drain
@@ -42,7 +41,6 @@ suite.test('SSL connection error allows event loop to exit', (done) => {
   })
 })
 
-
 suite.test('Non "S" response code allows event loop to exit', (done) => {
   const port = makeTerminatingBackend('X')
   const client = new helper.pg.Client({ ssl: 'require', port })
@@ -53,4 +51,3 @@ suite.test('Non "S" response code allows event loop to exit', (done) => {
     done()
   })
 })
-

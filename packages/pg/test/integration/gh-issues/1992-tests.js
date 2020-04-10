@@ -1,5 +1,4 @@
-
-"use strict"
+'use strict'
 const helper = require('./../test-helper')
 const assert = require('assert')
 

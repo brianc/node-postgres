@@ -3,13 +3,12 @@ var helper = require(__dirname + '/test-helper')
 var Connection = require(__dirname + '/../../../lib/connection')
 
 test('drain', function () {
-  var con = new Connection({stream: 'NO'})
-  var client = new Client({connection: con})
+  var con = new Connection({ stream: 'NO' })
+  var client = new Client({ connection: con })
   con.connect = function () {
     con.emit('connect')
   }
-  con.query = function () {
-  }
+  con.query = function () {}
   client.connect()
 
   var raisedDrain = false
