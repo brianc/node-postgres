@@ -9,9 +9,7 @@
   ],
   "ignorePatterns": [
     "node_modules",
-    "packages/pg",
-    "packages/pg-protocol/dist/**/*",
-    "packages/pg-pool"
+    "packages/pg-protocol/dist/**/*"
   ],
   "parserOptions": {
     "ecmaVersion": 2017,

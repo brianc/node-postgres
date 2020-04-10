@@ -25,7 +25,7 @@ suite.test('default values are used in new clients', function () {
     ssl: false,
     application_name: undefined,
     fallback_application_name: undefined,
-    parseInputDatesAsUTC: false
+    parseInputDatesAsUTC: false,
   })
 
   var client = new pg.Client()
@@ -33,7 +33,7 @@ suite.test('default values are used in new clients', function () {
     user: process.env.USER,
     database: process.env.USER,
     password: null,
-    port: 5432
+    port: 5432,
   })
 })
 
@@ -50,7 +50,7 @@ suite.test('modified values are passed to created clients', function () {
     password: 'zap',
     database: 'pow',
     port: 1234,
-    host: 'blam'
+    host: 'blam',
   })
 })
 

@@ -6,7 +6,7 @@ var utils = require(__dirname + '/../../../lib/utils')
 var connect = function (callback) {
   var username = helper.args.user
   var database = helper.args.database
-  var con = new Connection({stream: new net.Stream()})
+  var con = new Connection({ stream: new net.Stream() })
   con.on('error', function (error) {
     console.log(error)
     throw new Error('Connection error')
@@ -15,13 +15,13 @@ var connect = function (callback) {
   con.once('connect', function () {
     con.startup({
       user: username,
-      database: database
+      database: database,
     })
     con.once('authenticationCleartextPassword', function () {
       con.password(helper.args.password)
     })
     con.once('authenticationMD5Password', function (msg) {
-      con.password(utils.postgresMd5PasswordHash(helper.args.user, helper.args.password, msg.salt));
+      con.password(utils.postgresMd5PasswordHash(helper.args.user, helper.args.password, msg.salt))
     })
     con.once('readyForQuery', function () {
       con.query('create temp table ids(id integer)')
@@ -36,5 +36,5 @@ var connect = function (callback) {
 }
 
 module.exports = {
-  connect: connect
+  connect: connect,
 }

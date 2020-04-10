@@ -31,7 +31,7 @@ test('ConnectionParameters initialized from mix', function (t) {
   delete process.env['PGDATABASE']
   var subject = new ConnectionParameters({
     user: 'testing',
-    database: 'zugzug'
+    database: 'zugzug',
   })
   assert.equal(subject.host, 'local', 'env host')
   assert.equal(subject.user, 'testing', 'config user')

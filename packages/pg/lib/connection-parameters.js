@@ -22,9 +22,7 @@ var val = function (key, config, envVar) {
     envVar = process.env[envVar]
   }
 
-  return config[key] ||
-    envVar ||
-    defaults[key]
+  return config[key] || envVar || defaults[key]
 }
 
 var useSsl = function () {
@@ -66,7 +64,7 @@ var ConnectionParameters = function (config) {
     configurable: true,
     enumerable: false,
     writable: true,
-    value: val('password', config)
+    value: val('password', config),
   })
 
   this.binary = val('binary', config)
@@ -74,7 +72,7 @@ var ConnectionParameters = function (config) {
   this.client_encoding = val('client_encoding', config)
   this.replication = val('replication', config)
   // a domain socket begins with '/'
-  this.isDomainSocket = (!(this.host || '').indexOf('/'))
+  this.isDomainSocket = !(this.host || '').indexOf('/')
 
   this.application_name = val('application_name', config, 'PGAPPNAME')
   this.fallback_application_name = val('fallback_application_name', config, false)

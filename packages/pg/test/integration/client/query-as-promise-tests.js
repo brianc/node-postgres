@@ -13,22 +13,21 @@ const suite = new helper.Suite()
 suite.test('promise API', (cb) => {
   const pool = new pg.Pool()
   pool.connect().then((client) => {
-    client.query('SELECT $1::text as name', ['foo'])
+    client
+      .query('SELECT $1::text as name', ['foo'])
       .then(function (result) {
         assert.equal(result.rows[0].name, 'foo')
         return client
       })
       .then(function (client) {
-        client.query('ALKJSDF')
-          .catch(function (e) {
-            assert(e instanceof Error)
-            client.query('SELECT 1 as num')
-              .then(function (result) {
-                assert.equal(result.rows[0].num, 1)
-                client.release()
-                pool.end(cb)
-              })
+        client.query('ALKJSDF').catch(function (e) {
+          assert(e instanceof Error)
+          client.query('SELECT 1 as num').then(function (result) {
+            assert.equal(result.rows[0].num, 1)
+            client.release()
+            pool.end(cb)
           })
+        })
       })
   })
 })
@@ -52,4 +51,4 @@ suite.test('promise API with configurable promise type', (cb) => {
         throw error
       })
     })
-});
+})

@@ -22,7 +22,11 @@ test('simple query interface', function () {
         columnCount++
       }
       if ('length' in row) {
-        assert.lengthIs(row, columnCount, 'Iterating through the columns gives a different length from calling .length.')
+        assert.lengthIs(
+          row,
+          columnCount,
+          'Iterating through the columns gives a different length from calling .length.'
+        )
       }
     })
   })
@@ -65,7 +69,7 @@ test('prepared statements do not mutate params', function () {
 
 test('multiple simple queries', function () {
   var client = helper.client()
-  client.query({ text: "create temp table bang(id serial, name varchar(5));insert into bang(name) VALUES('boom');"})
+  client.query({ text: "create temp table bang(id serial, name varchar(5));insert into bang(name) VALUES('boom');" })
   client.query("insert into bang(name) VALUES ('yes');")
   var query = client.query(new Query('select name from bang'))
   assert.emits(query, 'row', function (row) {
@@ -79,9 +83,11 @@ test('multiple simple queries', function () {
 
 test('multiple select statements', function () {
   var client = helper.client()
-  client.query('create temp table boom(age integer); insert into boom(age) values(1); insert into boom(age) values(2); insert into boom(age) values(3)')
-  client.query({text: "create temp table bang(name varchar(5)); insert into bang(name) values('zoom');"})
-  var result = client.query(new Query({text: 'select age from boom where age < 2; select name from bang'}))
+  client.query(
+    'create temp table boom(age integer); insert into boom(age) values(1); insert into boom(age) values(2); insert into boom(age) values(3)'
+  )
+  client.query({ text: "create temp table bang(name varchar(5)); insert into bang(name) values('zoom');" })
+  var result = client.query(new Query({ text: 'select age from boom where age < 2; select name from bang' }))
   assert.emits(result, 'row', function (row) {
     assert.strictEqual(row['age'], 1)
     assert.emits(result, 'row', function (row) {

@@ -42,14 +42,22 @@ class Query extends EventEmitter {
 
   requiresPreparation() {
     // named queries must always be prepared
-    if (this.name) { return true }
+    if (this.name) {
+      return true
+    }
     // always prepare if there are max number of rows expected per
     // portal execution
-    if (this.rows) { return true }
+    if (this.rows) {
+      return true
+    }
     // don't prepare empty text queries
-    if (!this.text) { return false }
+    if (!this.text) {
+      return false
+    }
     // prepare if there are values
-    if (!this.values) { return false }
+    if (!this.values) {
+      return false
+    }
     return this.values.length > 0
   }
 
@@ -168,10 +176,13 @@ class Query extends EventEmitter {
   }
 
   _getRows(connection, rows) {
-    connection.execute({
-      portal: this.portal,
-      rows: rows
-    }, true)
+    connection.execute(
+      {
+        portal: this.portal,
+        rows: rows,
+      },
+      true
+    )
     connection.flush()
   }
 
@@ -181,11 +192,14 @@ class Query extends EventEmitter {
     this.isPreparedStatement = true
     // TODO refactor this poor encapsulation
     if (!this.hasBeenParsed(connection)) {
-      connection.parse({
-        text: this.text,
-        name: this.name,
-        types: this.types
-      }, true)
+      connection.parse(
+        {
+          text: this.text,
+          name: this.name,
+          types: this.types,
+        },
+        true
+      )
     }
 
     if (this.values) {
@@ -198,17 +212,23 @@ class Query extends EventEmitter {
     }
 
     // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
-    connection.bind({
-      portal: this.portal,
-      statement: this.name,
-      values: this.values,
-      binary: this.binary
-    }, true)
+    connection.bind(
+      {
+        portal: this.portal,
+        statement: this.name,
+        values: this.values,
+        binary: this.binary,
+      },
+      true
+    )
 
-    connection.describe({
-      type: 'P',
-      name: this.portal || ''
-    }, true)
+    connection.describe(
+      {
+        type: 'P',
+        name: this.portal || '',
+      },
+      true
+    )
 
     this._getRows(connection, this.rows)
   }

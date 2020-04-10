@@ -38,8 +38,7 @@ con.describe = function (arg) {
 }
 
 var syncCalled = false
-con.flush = function () {
-}
+con.flush = function () {}
 con.sync = function () {
   syncCalled = true
   process.nextTick(function () {
@@ -51,10 +50,12 @@ test('bound command', function () {
   test('simple, unnamed bound command', function () {
     assert.ok(client.connection.emit('readyForQuery'))
 
-    var query = client.query(new Query({
-      text: 'select * from X where name = $1',
-      values: ['hi']
-    }))
+    var query = client.query(
+      new Query({
+        text: 'select * from X where name = $1',
+        values: ['hi'],
+      })
+    )
 
     assert.emits(query, 'end', function () {
       test('parse argument', function () {
@@ -122,8 +123,7 @@ portalCon.describe = function (arg) {
   })
 }
 
-portalCon.flush = function () {
-}
+portalCon.flush = function () {}
 portalCon.sync = function () {
   process.nextTick(function () {
     portalCon.emit('readyForQuery')
@@ -133,11 +133,13 @@ portalCon.sync = function () {
 test('prepared statement with explicit portal', function () {
   assert.ok(portalClient.connection.emit('readyForQuery'))
 
-  var query = portalClient.query(new Query({
-    text: 'select * from X where name = $1',
-    portal: 'myportal',
-    values: ['hi']
-  }))
+  var query = portalClient.query(
+    new Query({
+      text: 'select * from X where name = $1',
+      portal: 'myportal',
+      values: ['hi'],
+    })
+  )
 
   assert.emits(query, 'end', function () {
     test('bind argument', function () {

@@ -1,17 +1,17 @@
-var pg = require('pg');
+var pg = require('pg')
 module.exports = function (name, cb) {
   describe(name, function () {
-    var client = new pg.Client();
+    var client = new pg.Client()
 
     before(function (done) {
-      client.connect(done);
-    });
+      client.connect(done)
+    })
 
-    cb(client);
+    cb(client)
 
     after(function (done) {
-      client.end();
-      client.on('end', done);
-    });
-  });
-};
+      client.end()
+      client.on('end', done)
+    })
+  })
+}

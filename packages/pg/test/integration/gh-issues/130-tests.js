@@ -18,8 +18,11 @@ pool.connect(function (err, client, done) {
     if (helper.args.host) psql = psql + ' -h ' + helper.args.host
     if (helper.args.port) psql = psql + ' -p ' + helper.args.port
     if (helper.args.user) psql = psql + ' -U ' + helper.args.user
-    exec(psql + ' -c "select pg_terminate_backend(' + pid + ')" template1', assert.calls(function (error, stdout, stderr) {
-      assert.ifError(error)
-    }))
+    exec(
+      psql + ' -c "select pg_terminate_backend(' + pid + ')" template1',
+      assert.calls(function (error, stdout, stderr) {
+        assert.ifError(error)
+      })
+    )
   })
 })

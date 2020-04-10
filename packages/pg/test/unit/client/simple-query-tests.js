@@ -77,9 +77,11 @@ test('executing query', function () {
 
     test('handles rowDescription message', function () {
       var handled = con.emit('rowDescription', {
-        fields: [{
-          name: 'boom'
-        }]
+        fields: [
+          {
+            name: 'boom',
+          },
+        ],
       })
       assert.ok(handled, 'should have handlded rowDescription')
     })
@@ -104,7 +106,7 @@ test('executing query', function () {
     // when multiple queries are in a simple command
     test('handles command complete messages', function () {
       con.emit('commandComplete', {
-        text: 'INSERT 31 1'
+        text: 'INSERT 31 1',
       })
     })
 
@@ -113,9 +115,9 @@ test('executing query', function () {
       assert.emits(query, 'end', function (msg) {
         // TODO do we want to check the complete messages?
       })
-      con.emit('readyForQuery');
+      con.emit('readyForQuery')
       // this would never actually happen
-      ['dataRow', 'rowDescription', 'commandComplete'].forEach(function (msg) {
+      ;['dataRow', 'rowDescription', 'commandComplete'].forEach(function (msg) {
         assert.equal(con.emit(msg), false, "Should no longer be picking up '" + msg + "' messages")
       })
     })
@@ -128,7 +130,11 @@ test('executing query', function () {
       try {
         client.query(null, undefined)
       } catch (error) {
-        assert.equal(error.message, 'Client was passed a null or undefined query', 'Should have thrown an Error for null queries')
+        assert.equal(
+          error.message,
+          'Client was passed a null or undefined query',
+          'Should have thrown an Error for null queries'
+        )
       }
     })
 
@@ -136,7 +142,11 @@ test('executing query', function () {
       try {
         client.query()
       } catch (error) {
-        assert.equal(error.message, 'Client was passed a null or undefined query', 'Should have thrown an Error for null queries')
+        assert.equal(
+          error.message,
+          'Client was passed a null or undefined query',
+          'Should have thrown an Error for null queries'
+        )
       }
     })
   })

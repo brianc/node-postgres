@@ -70,7 +70,7 @@ module.exports = {
 
   keepalives: 1,
 
-  keepalives_idle: 0
+  keepalives_idle: 0,
 }
 
 var pgTypes = require('pg-types')

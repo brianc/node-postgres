@@ -15,11 +15,14 @@ helper.client = function (cb) {
 }
 
 helper.versionGTE = function (client, testVersion, callback) {
-  client.query('SHOW server_version_num', assert.calls(function (err, result) {
-    if (err) return callback(err)
-    var version = parseInt(result.rows[0].server_version_num, 10)
-    return callback(null, version >= testVersion)
-  }))
+  client.query(
+    'SHOW server_version_num',
+    assert.calls(function (err, result) {
+      if (err) return callback(err)
+      var version = parseInt(result.rows[0].server_version_num, 10)
+      return callback(null, version >= testVersion)
+    })
+  )
 }
 
 // export parent helper stuffs

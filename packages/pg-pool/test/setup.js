@@ -1,5 +1,5 @@
-const crash = reason => {
-  process.on(reason, err => {
+const crash = (reason) => {
+  process.on(reason, (err) => {
     console.error(reason, err.stack)
     process.exit(-1)
   })
