@@ -32,18 +32,11 @@
     "async": "0.9.0",
     "bluebird": "3.5.2",
     "co": "4.6.0",
-    "eslint": "^6.0.1",
-    "eslint-config-standard": "^13.0.1",
-    "eslint-plugin-import": "^2.18.1",
-    "eslint-plugin-node": "^9.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
     "pg-copy-streams": "0.3.0"
   },
   "minNativeVersion": "2.0.0",
   "scripts": {
-    "test": "make test-all",
-    "lint": "make lint"
+    "test": "make test-all"
   },
   "files": [
     "lib",
