@@ -11,7 +11,7 @@ for (var key in process.env) {
   if (!key.indexOf('PG')) delete process.env[key]
 }
 
-suite.test('default values are used in new clients', function() {
+suite.test('default values are used in new clients', function () {
   assert.same(pg.defaults, {
     user: process.env.USER,
     database: undefined,
@@ -37,7 +37,7 @@ suite.test('default values are used in new clients', function() {
   })
 })
 
-suite.test('modified values are passed to created clients', function() {
+suite.test('modified values are passed to created clients', function () {
   pg.defaults.user = 'boom'
   pg.defaults.password = 'zap'
   pg.defaults.database = 'pow'

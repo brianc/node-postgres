@@ -6,7 +6,7 @@ var native = helper.args.native
 var pool = new pg.Pool()
 
 pool.connect(
-  assert.calls(function(err, client, done) {
+  assert.calls(function (err, client, done) {
     if (native) {
       assert(client.native)
     } else {

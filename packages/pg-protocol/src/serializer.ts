@@ -32,10 +32,7 @@ const startup = (opts: Record<string, string>): Buffer => {
 
   var length = bodyBuffer.length + 4
 
-  return new Writer()
-    .addInt32(length)
-    .add(bodyBuffer)
-    .flush()
+  return new Writer().addInt32(length).add(bodyBuffer).flush()
 }
 
 const requestSsl = (): Buffer => {
@@ -49,17 +46,14 @@ const password = (password: string): Buffer => {
   return writer.addCString(password).flush(code.startup)
 }
 
-const sendSASLInitialResponseMessage = function(mechanism: string, initialResponse: string): Buffer {
+const sendSASLInitialResponseMessage = function (mechanism: string, initialResponse: string): Buffer {
   // 0x70 = 'p'
-  writer
-    .addCString(mechanism)
-    .addInt32(Buffer.byteLength(initialResponse))
-    .addString(initialResponse)
+  writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
 
   return writer.flush(code.startup)
 }
 
-const sendSCRAMClientFinalMessage = function(additionalData: string): Buffer {
+const sendSCRAMClientFinalMessage = function (additionalData: string): Buffer {
   return writer.addString(additionalData).flush(code.startup)
 }
 

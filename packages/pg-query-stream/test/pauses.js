@@ -4,8 +4,8 @@ var JSONStream = require('JSONStream')
 
 var QueryStream = require('../')
 
-require('./helper')('pauses', function(client) {
-  it('pauses', function(done) {
+require('./helper')('pauses', function (client) {
+  it('pauses', function (done) {
     this.timeout(5000)
     var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [200], { batchSize: 2, highWaterMark: 2 })
     var query = client.query(stream)
@@ -14,7 +14,7 @@ require('./helper')('pauses', function(client) {
       .pipe(JSONStream.stringify())
       .pipe(pauser)
       .pipe(
-        concat(function(json) {
+        concat(function (json) {
           JSON.parse(json)
           done()
         })

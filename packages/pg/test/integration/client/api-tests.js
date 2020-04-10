@@ -4,10 +4,10 @@ var pg = helper.pg
 
 var suite = new helper.Suite()
 
-suite.test('null and undefined are both inserted as NULL', function(done) {
+suite.test('null and undefined are both inserted as NULL', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, release) {
+    assert.calls(function (err, client, release) {
       assert(!err)
       client.query('CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
       client.query('INSERT INTO my_nulls(a,b,c,d,e,f) VALUES ($1,$2,$3,$4,$5,$6)', [
@@ -20,7 +20,7 @@ suite.test('null and undefined are both inserted as NULL', function(done) {
       ])
       client.query(
         'SELECT * FROM my_nulls',
-        assert.calls(function(err, result) {
+        assert.calls(function (err, result) {
           console.log(err)
           assert.ifError(err)
           assert.equal(result.rows.length, 1)
@@ -41,7 +41,7 @@ suite.test('null and undefined are both inserted as NULL', function(done) {
 suite.test('pool callback behavior', (done) => {
   // test weird callback behavior with node-pool
   const pool = new pg.Pool()
-  pool.connect(function(err) {
+  pool.connect(function (err) {
     assert(!err)
     arguments[1].emit('drain')
     arguments[2]()
@@ -54,7 +54,7 @@ suite.test('query timeout', (cb) => {
   pool.connect().then((client) => {
     client.query(
       'SELECT pg_sleep(2)',
-      assert.calls(function(err, result) {
+      assert.calls(function (err, result) {
         assert(err)
         assert(err.message === 'Query read timeout')
         client.release()
@@ -69,14 +69,14 @@ suite.test('query recover from timeout', (cb) => {
   pool.connect().then((client) => {
     client.query(
       'SELECT pg_sleep(20)',
-      assert.calls(function(err, result) {
+      assert.calls(function (err, result) {
         assert(err)
         assert(err.message === 'Query read timeout')
         client.release(err)
         pool.connect().then((client) => {
           client.query(
             'SELECT 1',
-            assert.calls(function(err, result) {
+            assert.calls(function (err, result) {
               assert(!err)
               client.release(err)
               pool.end(cb)
@@ -93,7 +93,7 @@ suite.test('query no timeout', (cb) => {
   pool.connect().then((client) => {
     client.query(
       'SELECT pg_sleep(1)',
-      assert.calls(function(err, result) {
+      assert.calls(function (err, result) {
         assert(!err)
         client.release()
         pool.end(cb)
@@ -135,21 +135,21 @@ suite.test('callback API', (done) => {
   })
 })
 
-suite.test('executing nested queries', function(done) {
+suite.test('executing nested queries', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, release) {
+    assert.calls(function (err, client, release) {
       assert(!err)
       client.query(
         'select now as now from NOW()',
-        assert.calls(function(err, result) {
+        assert.calls(function (err, result) {
           assert.equal(new Date().getYear(), result.rows[0].now.getYear())
           client.query(
             'select now as now_again FROM NOW()',
-            assert.calls(function() {
+            assert.calls(function () {
               client.query(
                 'select * FROM NOW()',
-                assert.calls(function() {
+                assert.calls(function () {
                   assert.ok('all queries hit')
                   release()
                   pool.end(done)
@@ -163,25 +163,25 @@ suite.test('executing nested queries', function(done) {
   )
 })
 
-suite.test('raises error if cannot connect', function() {
+suite.test('raises error if cannot connect', function () {
   var connectionString = 'pg://sfalsdkf:asdf@localhost/ieieie'
   const pool = new pg.Pool({ connectionString: connectionString })
   pool.connect(
-    assert.calls(function(err, client, done) {
+    assert.calls(function (err, client, done) {
       assert.ok(err, 'should have raised an error')
       done()
     })
   )
 })
 
-suite.test('query errors are handled and do not bubble if callback is provided', function(done) {
+suite.test('query errors are handled and do not bubble if callback is provided', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, release) {
+    assert.calls(function (err, client, release) {
       assert(!err)
       client.query(
         'SELECT OISDJF FROM LEIWLISEJLSE',
-        assert.calls(function(err, result) {
+        assert.calls(function (err, result) {
           assert.ok(err)
           release()
           pool.end(done)
@@ -191,10 +191,10 @@ suite.test('query errors are handled and do not bubble if callback is provided',
   )
 })
 
-suite.test('callback is fired once and only once', function(done) {
+suite.test('callback is fired once and only once', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, release) {
+    assert.calls(function (err, client, release) {
       assert(!err)
       client.query('CREATE TEMP TABLE boom(name varchar(10))')
       var callCount = 0
@@ -204,7 +204,7 @@ suite.test('callback is fired once and only once', function(done) {
           "INSERT INTO boom(name) VALUES('boom')",
           "INSERT INTO boom(name) VALUES('zoom')",
         ].join(';'),
-        function(err, callback) {
+        function (err, callback) {
           assert.equal(callCount++, 0, 'Call count should be 0.  More means this callback fired more than once.')
           release()
           pool.end(done)
@@ -214,17 +214,17 @@ suite.test('callback is fired once and only once', function(done) {
   )
 })
 
-suite.test('can provide callback and config object', function(done) {
+suite.test('can provide callback and config object', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, release) {
+    assert.calls(function (err, client, release) {
       assert(!err)
       client.query(
         {
           name: 'boom',
           text: 'select NOW()',
         },
-        assert.calls(function(err, result) {
+        assert.calls(function (err, result) {
           assert(!err)
           assert.equal(result.rows[0].now.getYear(), new Date().getYear())
           release()
@@ -235,10 +235,10 @@ suite.test('can provide callback and config object', function(done) {
   )
 })
 
-suite.test('can provide callback and config and parameters', function(done) {
+suite.test('can provide callback and config and parameters', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, release) {
+    assert.calls(function (err, client, release) {
       assert(!err)
       var config = {
         text: 'select $1::text as val',
@@ -246,7 +246,7 @@ suite.test('can provide callback and config and parameters', function(done) {
       client.query(
         config,
         ['hi'],
-        assert.calls(function(err, result) {
+        assert.calls(function (err, result) {
           assert(!err)
           assert.equal(result.rows.length, 1)
           assert.equal(result.rows[0].val, 'hi')

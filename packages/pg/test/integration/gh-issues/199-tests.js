@@ -12,7 +12,7 @@ ARRAY['xx', 'yy', 'zz'] AS c,\
 ARRAY(SELECT n FROM arrtest) AS d,\
 ARRAY(SELECT s FROM arrtest) AS e;"
 
-client.query(qText, function(err, result) {
+client.query(qText, function (err, result) {
   if (err) throw err
   var row = result.rows[0]
   for (var key in row) {

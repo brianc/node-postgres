@@ -6,16 +6,16 @@ var copyFrom = require('pg-copy-streams').from
 if (helper.args.native) return
 
 const pool = new helper.pg.Pool()
-pool.connect(function(err, client, done) {
+pool.connect(function (err, client, done) {
   if (err) throw err
 
   var c = 'CREATE TEMP TABLE employee (id integer, fname varchar(400), lname varchar(400))'
 
-  client.query(c, function(err) {
+  client.query(c, function (err) {
     if (err) throw err
 
     var stream = client.query(copyFrom('COPY employee FROM STDIN'))
-    stream.on('end', function() {
+    stream.on('end', function () {
       done()
       setTimeout(() => {
         pool.end()

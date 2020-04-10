@@ -4,10 +4,10 @@ var pg = helper.pg
 
 var suite = new helper.Suite()
 
-suite.test('parsing array decimal results', function(done) {
+suite.test('parsing array decimal results', function (done) {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, release) {
+    assert.calls(function (err, client, release) {
       assert(!err)
       client.query('CREATE TEMP TABLE why(names text[], numbors integer[], decimals double precision[])')
       client
@@ -19,7 +19,7 @@ suite.test('parsing array decimal results', function(done) {
         .on('error', console.log)
       client.query(
         'SELECT decimals FROM why',
-        assert.success(function(result) {
+        assert.success(function (result) {
           assert.lengthIs(result.rows[0].decimals, 3)
           assert.equal(result.rows[0].decimals[0], 0.1)
           assert.equal(result.rows[0].decimals[1], 0.05)

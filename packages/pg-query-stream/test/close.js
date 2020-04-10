@@ -7,37 +7,37 @@ var helper = require('./helper')
 if (process.version.startsWith('v8.')) {
   console.error('warning! node less than 10lts stream closing semantics may not behave properly')
 } else {
-  helper('close', function(client) {
-    it('emits close', function(done) {
+  helper('close', function (client) {
+    it('emits close', function (done) {
       var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [3], { batchSize: 2, highWaterMark: 2 })
       var query = client.query(stream)
-      query.pipe(concat(function() {}))
+      query.pipe(concat(function () {}))
       query.on('close', done)
     })
   })
 
-  helper('early close', function(client) {
-    it('can be closed early', function(done) {
+  helper('early close', function (client) {
+    it('can be closed early', function (done) {
       var stream = new QueryStream('SELECT * FROM generate_series(0, $1) num', [20000], {
         batchSize: 2,
         highWaterMark: 2,
       })
       var query = client.query(stream)
       var readCount = 0
-      query.on('readable', function() {
+      query.on('readable', function () {
         readCount++
         query.read()
       })
-      query.once('readable', function() {
+      query.once('readable', function () {
         query.destroy()
       })
-      query.on('close', function() {
+      query.on('close', function () {
         assert(readCount < 10, 'should not have read more than 10 rows')
         done()
       })
     })
 
-    it('can destroy stream while reading', function(done) {
+    it('can destroy stream while reading', function (done) {
       var stream = new QueryStream('SELECT * FROM generate_series(0, 100), pg_sleep(1)')
       client.query(stream)
       stream.on('data', () => done(new Error('stream should not have returned rows')))
@@ -47,7 +47,7 @@ if (process.version.startsWith('v8.')) {
       }, 100)
     })
 
-    it('emits an error when calling destroy with an error', function(done) {
+    it('emits an error when calling destroy with an error', function (done) {
       var stream = new QueryStream('SELECT * FROM generate_series(0, 100), pg_sleep(1)')
       client.query(stream)
       stream.on('data', () => done(new Error('stream should not have returned rows')))
@@ -62,7 +62,7 @@ if (process.version.startsWith('v8.')) {
       }, 100)
     })
 
-    it('can destroy stream while reading an error', function(done) {
+    it('can destroy stream while reading an error', function (done) {
       var stream = new QueryStream('SELECT * from  pg_sleep(1), basdfasdf;')
       client.query(stream)
       stream.on('data', () => done(new Error('stream should not have returned rows')))
@@ -73,7 +73,7 @@ if (process.version.startsWith('v8.')) {
       })
     })
 
-    it('does not crash when destroying the stream immediately after calling read', function(done) {
+    it('does not crash when destroying the stream immediately after calling read', function (done) {
       var stream = new QueryStream('SELECT * from generate_series(0, 100), pg_sleep(1);')
       client.query(stream)
       stream.on('data', () => done(new Error('stream should not have returned rows')))
@@ -81,7 +81,7 @@ if (process.version.startsWith('v8.')) {
       stream.on('close', done)
     })
 
-    it('does not crash when destroying the stream before its submitted', function(done) {
+    it('does not crash when destroying the stream before its submitted', function (done) {
       var stream = new QueryStream('SELECT * from generate_series(0, 100), pg_sleep(1);')
       stream.on('data', () => done(new Error('stream should not have returned rows')))
       stream.destroy()

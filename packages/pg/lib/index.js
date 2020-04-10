@@ -20,7 +20,7 @@ const poolFactory = (Client) => {
   }
 }
 
-var PG = function(clientConstructor) {
+var PG = function (clientConstructor) {
   this.defaults = defaults
   this.Client = clientConstructor
   this.Query = this.Client.Query

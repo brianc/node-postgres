@@ -31,16 +31,16 @@ function poolQueryPromise(pool, readRowCount) {
   })
 }
 
-describe('pool', function() {
-  beforeEach(function() {
+describe('pool', function () {
+  beforeEach(function () {
     this.pool = new pg.Pool({ max: 1 })
   })
 
-  afterEach(function() {
+  afterEach(function () {
     this.pool.end()
   })
 
-  it('closes cursor early, single pool query', function(done) {
+  it('closes cursor early, single pool query', function (done) {
     poolQueryPromise(this.pool, 25)
       .then(() => done())
       .catch((err) => {
@@ -49,7 +49,7 @@ describe('pool', function() {
       })
   })
 
-  it('closes cursor early, saturated pool', function(done) {
+  it('closes cursor early, saturated pool', function (done) {
     const promises = []
     for (let i = 0; i < 10; i++) {
       promises.push(poolQueryPromise(this.pool, 25))
@@ -62,7 +62,7 @@ describe('pool', function() {
       })
   })
 
-  it('closes exhausted cursor, single pool query', function(done) {
+  it('closes exhausted cursor, single pool query', function (done) {
     poolQueryPromise(this.pool, 100)
       .then(() => done())
       .catch((err) => {
@@ -71,7 +71,7 @@ describe('pool', function() {
       })
   })
 
-  it('closes exhausted cursor, saturated pool', function(done) {
+  it('closes exhausted cursor, saturated pool', function (done) {
     const promises = []
     for (let i = 0; i < 10; i++) {
       promises.push(poolQueryPromise(this.pool, 100))
@@ -84,16 +84,16 @@ describe('pool', function() {
       })
   })
 
-  it('can close multiple times on a pool', async function() {
+  it('can close multiple times on a pool', async function () {
     const pool = new pg.Pool({ max: 1 })
     const run = async () => {
       const cursor = new Cursor(text)
       const client = await pool.connect()
       client.query(cursor)
       await new Promise((resolve) => {
-        cursor.read(25, function(err) {
+        cursor.read(25, function (err) {
           assert.ifError(err)
-          cursor.close(function(err) {
+          cursor.close(function (err) {
             assert.ifError(err)
             client.release()
             resolve()

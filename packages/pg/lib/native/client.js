@@ -22,7 +22,7 @@ assert(semver.gte(Native.version, pkg.minNativeVersion), msg)
 
 var NativeQuery = require('./query')
 
-var Client = (module.exports = function(config) {
+var Client = (module.exports = function (config) {
   EventEmitter.call(this)
   config = config || {}
 
@@ -64,7 +64,7 @@ Client.Query = NativeQuery
 
 util.inherits(Client, EventEmitter)
 
-Client.prototype._errorAllQueries = function(err) {
+Client.prototype._errorAllQueries = function (err) {
   const enqueueError = (query) => {
     process.nextTick(() => {
       query.native = this.native
@@ -84,7 +84,7 @@ Client.prototype._errorAllQueries = function(err) {
 // connect to the backend
 // pass an optional callback to be called once connected
 // or with an error if there was a connection error
-Client.prototype._connect = function(cb) {
+Client.prototype._connect = function (cb) {
   var self = this
 
   if (this._connecting) {
@@ -94,9 +94,9 @@ Client.prototype._connect = function(cb) {
 
   this._connecting = true
 
-  this.connectionParameters.getLibpqConnectionString(function(err, conString) {
+  this.connectionParameters.getLibpqConnectionString(function (err, conString) {
     if (err) return cb(err)
-    self.native.connect(conString, function(err) {
+    self.native.connect(conString, function (err) {
       if (err) {
         self.native.end()
         return cb(err)
@@ -106,13 +106,13 @@ Client.prototype._connect = function(cb) {
       self._connected = true
 
       // handle connection errors from the native layer
-      self.native.on('error', function(err) {
+      self.native.on('error', function (err) {
         self._queryable = false
         self._errorAllQueries(err)
         self.emit('error', err)
       })
 
-      self.native.on('notification', function(msg) {
+      self.native.on('notification', function (msg) {
         self.emit('notification', {
           channel: msg.relname,
           payload: msg.extra,
@@ -128,7 +128,7 @@ Client.prototype._connect = function(cb) {
   })
 }
 
-Client.prototype.connect = function(callback) {
+Client.prototype.connect = function (callback) {
   if (callback) {
     this._connect(callback)
     return
@@ -155,7 +155,7 @@ Client.prototype.connect = function(callback) {
 //    optional string name to name & cache the query plan
 //    optional string rowMode = 'array' for an array of results
 //  }
-Client.prototype.query = function(config, values, callback) {
+Client.prototype.query = function (config, values, callback) {
   var query
   var result
   var readTimeout
@@ -237,7 +237,7 @@ Client.prototype.query = function(config, values, callback) {
 }
 
 // disconnect from the backend server
-Client.prototype.end = function(cb) {
+Client.prototype.end = function (cb) {
   var self = this
 
   this._ending = true
@@ -247,11 +247,11 @@ Client.prototype.end = function(cb) {
   }
   var result
   if (!cb) {
-    result = new this._Promise(function(resolve, reject) {
+    result = new this._Promise(function (resolve, reject) {
       cb = (err) => (err ? reject(err) : resolve())
     })
   }
-  this.native.end(function() {
+  this.native.end(function () {
     self._errorAllQueries(new Error('Connection terminated'))
 
     process.nextTick(() => {
@@ -262,11 +262,11 @@ Client.prototype.end = function(cb) {
   return result
 }
 
-Client.prototype._hasActiveQuery = function() {
+Client.prototype._hasActiveQuery = function () {
   return this._activeQuery && this._activeQuery.state !== 'error' && this._activeQuery.state !== 'end'
 }
 
-Client.prototype._pulseQueryQueue = function(initialConnection) {
+Client.prototype._pulseQueryQueue = function (initialConnection) {
   if (!this._connected) {
     return
   }
@@ -283,24 +283,24 @@ Client.prototype._pulseQueryQueue = function(initialConnection) {
   this._activeQuery = query
   query.submit(this)
   var self = this
-  query.once('_done', function() {
+  query.once('_done', function () {
     self._pulseQueryQueue()
   })
 }
 
 // attempt to cancel an in-progress query
-Client.prototype.cancel = function(query) {
+Client.prototype.cancel = function (query) {
   if (this._activeQuery === query) {
-    this.native.cancel(function() {})
+    this.native.cancel(function () {})
   } else if (this._queryQueue.indexOf(query) !== -1) {
     this._queryQueue.splice(this._queryQueue.indexOf(query), 1)
   }
 }
 
-Client.prototype.setTypeParser = function(oid, format, parseFn) {
+Client.prototype.setTypeParser = function (oid, format, parseFn) {
   return this._types.setTypeParser(oid, format, parseFn)
 }
 
-Client.prototype.getTypeParser = function(oid, format) {
+Client.prototype.getTypeParser = function (oid, format) {
   return this._types.getTypeParser(oid, format)
 }

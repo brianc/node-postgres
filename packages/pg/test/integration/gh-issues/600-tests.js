@@ -45,9 +45,9 @@ function endTransaction(callback) {
 function doTransaction(callback) {
   // The transaction runs startTransaction, then all queries, then endTransaction,
   // no matter if there has been an error in a query in the middle.
-  startTransaction(function() {
-    insertDataFoo(function() {
-      insertDataBar(function() {
+  startTransaction(function () {
+    insertDataFoo(function () {
+      insertDataBar(function () {
         endTransaction(callback)
       })
     })
@@ -56,17 +56,17 @@ function doTransaction(callback) {
 
 var steps = [createTableFoo, createTableBar, doTransaction, insertDataBar]
 
-suite.test('test if query fails', function(done) {
+suite.test('test if query fails', function (done) {
   async.series(
     steps,
-    assert.success(function() {
+    assert.success(function () {
       db.end()
       done()
     })
   )
 })
 
-suite.test('test if prepare works but bind fails', function(done) {
+suite.test('test if prepare works but bind fails', function (done) {
   var client = helper.client()
   var q = {
     text: 'SELECT $1::int as name',
@@ -75,11 +75,11 @@ suite.test('test if prepare works but bind fails', function(done) {
   }
   client.query(
     q,
-    assert.calls(function(err, res) {
+    assert.calls(function (err, res) {
       q.values = [1]
       client.query(
         q,
-        assert.calls(function(err, res) {
+        assert.calls(function (err, res) {
           assert.ifError(err)
           client.end()
           done()

@@ -5,7 +5,7 @@ var Client = helper.Client
 
 var conInfo = helper.config
 
-var checkResult = function(result) {
+var checkResult = function (result) {
   assert(result.fields)
   assert.equal(result.fields.length, 3)
   var fields = result.fields
@@ -17,14 +17,14 @@ var checkResult = function(result) {
   assert.equal(fields[2].dataTypeID, 25)
 }
 
-test('row descriptions on result object', function() {
+test('row descriptions on result object', function () {
   var client = new Client(conInfo)
   client.connect(
-    assert.success(function() {
+    assert.success(function () {
       client.query(
         'SELECT NOW() as now, 1::int as num, $1::text as texty',
         ['hello'],
-        assert.success(function(result) {
+        assert.success(function (result) {
           checkResult(result)
           client.end()
         })
@@ -33,14 +33,14 @@ test('row descriptions on result object', function() {
   )
 })
 
-test('row description on no rows', function() {
+test('row description on no rows', function () {
   var client = new Client(conInfo)
   client.connect(
-    assert.success(function() {
+    assert.success(function () {
       client.query(
         'SELECT NOW() as now, 1::int as num, $1::text as texty LIMIT 0',
         ['hello'],
-        assert.success(function(result) {
+        assert.success(function (result) {
           checkResult(result)
           client.end()
         })

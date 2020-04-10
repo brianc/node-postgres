@@ -11,7 +11,7 @@ export default class BufferList {
   }
 
   public getByteLength(initial?: number) {
-    return this.buffers.reduce(function(previous, current) {
+    return this.buffers.reduce(function (previous, current) {
       return previous + current.length
     }, initial || 0)
   }
@@ -58,7 +58,7 @@ export default class BufferList {
     }
     var result = Buffer.alloc(length)
     var index = 0
-    this.buffers.forEach(function(buffer) {
+    this.buffers.forEach(function (buffer) {
       buffer.copy(result, index, 0)
       index += buffer.length
     })

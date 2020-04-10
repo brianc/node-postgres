@@ -2,7 +2,7 @@
 var helper = require('./test-helper')
 const suite = new helper.Suite()
 
-suite.test('noData message handling', function() {
+suite.test('noData message handling', function () {
   var client = helper.client()
 
   var q = client.query({
@@ -16,7 +16,7 @@ suite.test('noData message handling', function() {
       text: 'insert into boom(size) values($1)',
       values: [100],
     },
-    function(err, result) {
+    function (err, result) {
       if (err) {
         console.log(err)
         throw err

@@ -32,10 +32,7 @@ function continueSession(session, password, serverData) {
   var saltedPassword = Hi(password, saltBytes, sv.iteration)
 
   var clientKey = createHMAC(saltedPassword, 'Client Key')
-  var storedKey = crypto
-    .createHash('sha256')
-    .update(clientKey)
-    .digest()
+  var storedKey = crypto.createHash('sha256').update(clientKey).digest()
 
   var clientFirstMessageBare = 'n=*,r=' + session.clientNonce
   var serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
@@ -65,7 +62,7 @@ function finalizeSession(session, serverData) {
 
   String(serverData)
     .split(',')
-    .forEach(function(part) {
+    .forEach(function (part) {
       switch (part[0]) {
         case 'v':
           serverSignature = part.substr(2)
@@ -83,7 +80,7 @@ function extractVariablesFromFirstServerMessage(data) {
 
   String(data)
     .split(',')
-    .forEach(function(part) {
+    .forEach(function (part) {
       switch (part[0]) {
         case 'r':
           nonce = part.substr(2)
@@ -133,10 +130,7 @@ function xorBuffers(a, b) {
 }
 
 function createHMAC(key, msg) {
-  return crypto
-    .createHmac('sha256', key)
-    .update(msg)
-    .digest()
+  return crypto.createHmac('sha256', key).update(msg).digest()
 }
 
 function Hi(password, saltBytes, iterations) {

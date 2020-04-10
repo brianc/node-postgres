@@ -10,7 +10,7 @@ const Pool = require('../')
 describe('maxUses', () => {
   it(
     'can create a single client and use it once',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const pool = new Pool({ maxUses: 2 })
       expect(pool.waitingCount).to.equal(0)
       const client = yield pool.connect()
@@ -23,7 +23,7 @@ describe('maxUses', () => {
 
   it(
     'getting a connection a second time returns the same connection and releasing it also closes it',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const pool = new Pool({ maxUses: 2 })
       expect(pool.waitingCount).to.equal(0)
       const client = yield pool.connect()
@@ -39,7 +39,7 @@ describe('maxUses', () => {
 
   it(
     'getting a connection a third time returns a new connection',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const pool = new Pool({ maxUses: 2 })
       expect(pool.waitingCount).to.equal(0)
       const client = yield pool.connect()
@@ -56,7 +56,7 @@ describe('maxUses', () => {
 
   it(
     'getting a connection from a pending request gets a fresh client when the released candidate is expended',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const pool = new Pool({ max: 1, maxUses: 2 })
       expect(pool.waitingCount).to.equal(0)
       const client1 = yield pool.connect()
@@ -83,9 +83,9 @@ describe('maxUses', () => {
 
   it(
     'logs when removing an expended client',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const messages = []
-      const log = function(msg) {
+      const log = function (msg) {
         messages.push(msg)
       }
       const pool = new Pool({ maxUses: 1, log })

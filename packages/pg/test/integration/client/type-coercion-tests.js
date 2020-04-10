@@ -4,21 +4,21 @@ var pg = helper.pg
 var sink
 const suite = new helper.Suite()
 
-var testForTypeCoercion = function(type) {
+var testForTypeCoercion = function (type) {
   const pool = new pg.Pool()
   suite.test(`test type coercion ${type.name}`, (cb) => {
-    pool.connect(function(err, client, done) {
+    pool.connect(function (err, client, done) {
       assert(!err)
       client.query(
         'create temp table test_type(col ' + type.name + ')',
-        assert.calls(function(err, result) {
+        assert.calls(function (err, result) {
           assert(!err)
 
-          type.values.forEach(function(val) {
+          type.values.forEach(function (val) {
             var insertQuery = client.query(
               'insert into test_type(col) VALUES($1)',
               [val],
-              assert.calls(function(err, result) {
+              assert.calls(function (err, result) {
                 assert(!err)
               })
             )
@@ -30,7 +30,7 @@ var testForTypeCoercion = function(type) {
               })
             )
 
-            query.on('error', function(err) {
+            query.on('error', function (err) {
               console.log(err)
               throw err
             })
@@ -38,7 +38,7 @@ var testForTypeCoercion = function(type) {
             assert.emits(
               query,
               'row',
-              function(row) {
+              function (row) {
                 var expected = val + ' (' + typeof val + ')'
                 var returned = row.col + ' (' + typeof row.col + ')'
                 assert.strictEqual(row.col, val, 'expected ' + type.name + ' of ' + expected + ' but got ' + returned)
@@ -49,7 +49,7 @@ var testForTypeCoercion = function(type) {
             client.query('delete from test_type')
           })
 
-          client.query('drop table test_type', function() {
+          client.query('drop table test_type', function () {
             done()
             pool.end(cb)
           })
@@ -131,18 +131,18 @@ var types = [
 
 // ignore some tests in binary mode
 if (helper.config.binary) {
-  types = types.filter(function(type) {
+  types = types.filter(function (type) {
     return !(type.name in { real: 1, timetz: 1, time: 1, numeric: 1, bigint: 1 })
   })
 }
 
 var valueCount = 0
 
-types.forEach(function(type) {
+types.forEach(function (type) {
   testForTypeCoercion(type)
 })
 
-suite.test('timestampz round trip', function(cb) {
+suite.test('timestampz round trip', function (cb) {
   var now = new Date()
   var client = helper.client()
   client.query('create temp table date_tests(name varchar(10), tstz timestamptz(3))')
@@ -159,7 +159,7 @@ suite.test('timestampz round trip', function(cb) {
     })
   )
 
-  assert.emits(result, 'row', function(row) {
+  assert.emits(result, 'row', function (row) {
     var date = row.tstz
     assert.equal(date.getYear(), now.getYear())
     assert.equal(date.getMonth(), now.getMonth())
@@ -178,16 +178,16 @@ suite.test('timestampz round trip', function(cb) {
 suite.test('selecting nulls', (cb) => {
   const pool = new pg.Pool()
   pool.connect(
-    assert.calls(function(err, client, done) {
+    assert.calls(function (err, client, done) {
       assert.ifError(err)
       client.query(
         'select null as res;',
-        assert.calls(function(err, res) {
+        assert.calls(function (err, res) {
           assert(!err)
           assert.strictEqual(res.rows[0].res, null)
         })
       )
-      client.query('select 7 <> $1 as res;', [null], function(err, res) {
+      client.query('select 7 <> $1 as res;', [null], function (err, res) {
         assert(!err)
         assert.strictEqual(res.rows[0].res, null)
         done()
@@ -197,7 +197,7 @@ suite.test('selecting nulls', (cb) => {
   )
 })
 
-suite.test('date range extremes', function(done) {
+suite.test('date range extremes', function (done) {
   var client = helper.client()
 
   // Set the server timeszone to the same as used for the test,
@@ -206,7 +206,7 @@ suite.test('date range extremes', function(done) {
   // in the case of "275760-09-13 00:00:00 GMT" the timevalue overflows.
   client.query(
     'SET TIMEZONE TO GMT',
-    assert.success(function(res) {
+    assert.success(function (res) {
       // PostgreSQL supports date range of 4713 BCE to 294276 CE
       //   http://www.postgresql.org/docs/9.2/static/datatype-datetime.html
       // ECMAScript supports date range of Apr 20 271821 BCE to Sep 13 275760 CE
@@ -214,7 +214,7 @@ suite.test('date range extremes', function(done) {
       client.query(
         'SELECT $1::TIMESTAMPTZ as when',
         ['275760-09-13 00:00:00 GMT'],
-        assert.success(function(res) {
+        assert.success(function (res) {
           assert.equal(res.rows[0].when.getFullYear(), 275760)
         })
       )
@@ -222,7 +222,7 @@ suite.test('date range extremes', function(done) {
       client.query(
         'SELECT $1::TIMESTAMPTZ as when',
         ['4713-12-31 12:31:59 BC GMT'],
-        assert.success(function(res) {
+        assert.success(function (res) {
           assert.equal(res.rows[0].when.getFullYear(), -4712)
         })
       )
@@ -230,7 +230,7 @@ suite.test('date range extremes', function(done) {
       client.query(
         'SELECT $1::TIMESTAMPTZ as when',
         ['275760-09-13 00:00:00 -15:00'],
-        assert.success(function(res) {
+        assert.success(function (res) {
           assert(isNaN(res.rows[0].when.getTime()))
         })
       )

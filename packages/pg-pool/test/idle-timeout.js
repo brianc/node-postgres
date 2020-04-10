@@ -22,7 +22,7 @@ describe('idle timeout', () => {
 
   it(
     'times out and removes clients when others are also removed',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const pool = new Pool({ idleTimeoutMillis: 10 })
       const clientA = yield pool.connect()
       const clientB = yield pool.connect()
@@ -49,7 +49,7 @@ describe('idle timeout', () => {
 
   it(
     'can remove idle clients and recreate them',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const pool = new Pool({ idleTimeoutMillis: 1 })
       const results = []
       for (var i = 0; i < 20; i++) {
@@ -67,7 +67,7 @@ describe('idle timeout', () => {
 
   it(
     'does not time out clients which are used',
-    co.wrap(function*() {
+    co.wrap(function* () {
       const pool = new Pool({ idleTimeoutMillis: 1 })
       const results = []
       for (var i = 0; i < 20; i++) {

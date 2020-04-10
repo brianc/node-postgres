@@ -79,7 +79,7 @@ var parseBigInteger = pgTypes.getTypeParser(20, 'text')
 var parseBigIntegerArray = pgTypes.getTypeParser(1016, 'text')
 
 // parse int8 so you can get your count values as actual numbers
-module.exports.__defineSetter__('parseInt8', function(val) {
+module.exports.__defineSetter__('parseInt8', function (val) {
   pgTypes.setTypeParser(20, 'text', val ? pgTypes.getTypeParser(23, 'text') : parseBigInteger)
   pgTypes.setTypeParser(1016, 'text', val ? pgTypes.getTypeParser(1007, 'text') : parseBigIntegerArray)
 })

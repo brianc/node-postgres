@@ -3,11 +3,11 @@ require('./test-helper')
 
 var sasl = require('../../../lib/sasl')
 
-test('sasl/scram', function() {
-  test('startSession', function() {
-    test('fails when mechanisms does not include SCRAM-SHA-256', function() {
+test('sasl/scram', function () {
+  test('startSession', function () {
+    test('fails when mechanisms does not include SCRAM-SHA-256', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.startSession([])
         },
         {
@@ -16,7 +16,7 @@ test('sasl/scram', function() {
       )
     })
 
-    test('returns expected session data', function() {
+    test('returns expected session data', function () {
       const session = sasl.startSession(['SCRAM-SHA-256'])
 
       assert.equal(session.mechanism, 'SCRAM-SHA-256')
@@ -26,7 +26,7 @@ test('sasl/scram', function() {
       assert(session.response.match(/^n,,n=\*,r=.{24}/))
     })
 
-    test('creates random nonces', function() {
+    test('creates random nonces', function () {
       const session1 = sasl.startSession(['SCRAM-SHA-256'])
       const session2 = sasl.startSession(['SCRAM-SHA-256'])
 
@@ -34,10 +34,10 @@ test('sasl/scram', function() {
     })
   })
 
-  test('continueSession', function() {
-    test('fails when last session message was not SASLInitialResponse', function() {
+  test('continueSession', function () {
+    test('fails when last session message was not SASLInitialResponse', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.continueSession({})
         },
         {
@@ -46,9 +46,9 @@ test('sasl/scram', function() {
       )
     })
 
-    test('fails when nonce is missing in server message', function() {
+    test('fails when nonce is missing in server message', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.continueSession(
             {
               message: 'SASLInitialResponse',
@@ -62,9 +62,9 @@ test('sasl/scram', function() {
       )
     })
 
-    test('fails when salt is missing in server message', function() {
+    test('fails when salt is missing in server message', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.continueSession(
             {
               message: 'SASLInitialResponse',
@@ -78,9 +78,9 @@ test('sasl/scram', function() {
       )
     })
 
-    test('fails when iteration is missing in server message', function() {
+    test('fails when iteration is missing in server message', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.continueSession(
             {
               message: 'SASLInitialResponse',
@@ -94,9 +94,9 @@ test('sasl/scram', function() {
       )
     })
 
-    test('fails when server nonce does not start with client nonce', function() {
+    test('fails when server nonce does not start with client nonce', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.continueSession(
             {
               message: 'SASLInitialResponse',
@@ -111,7 +111,7 @@ test('sasl/scram', function() {
       )
     })
 
-    test('sets expected session data', function() {
+    test('sets expected session data', function () {
       const session = {
         message: 'SASLInitialResponse',
         clientNonce: 'a',
@@ -126,10 +126,10 @@ test('sasl/scram', function() {
     })
   })
 
-  test('continueSession', function() {
-    test('fails when last session message was not SASLResponse', function() {
+  test('continueSession', function () {
+    test('fails when last session message was not SASLResponse', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.finalizeSession({})
         },
         {
@@ -138,9 +138,9 @@ test('sasl/scram', function() {
       )
     })
 
-    test('fails when server signature does not match', function() {
+    test('fails when server signature does not match', function () {
       assert.throws(
-        function() {
+        function () {
           sasl.finalizeSession(
             {
               message: 'SASLResponse',
@@ -155,7 +155,7 @@ test('sasl/scram', function() {
       )
     })
 
-    test('does not fail when eveything is ok', function() {
+    test('does not fail when eveything is ok', function () {
       sasl.finalizeSession(
         {
           message: 'SASLResponse',
