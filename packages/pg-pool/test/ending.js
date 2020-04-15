@@ -50,10 +50,9 @@ describe('pool ending', () => {
 
   it('drop pending queries', async () => {
     const pool = new Pool({ poolSize: 10 })
-    const queries = {}
     let completed = 0
     for (let x = 1; x <= 20; x++) {
-       queries[x] = pool.query('SELECT $1::text as name', ['brianc' + x]).then(() => completed++)
+       pool.query('SELECT $1::text as name', ['brianc' + x]).then(() => completed++)
     }
     await pool.end(true)
     expect(completed).to.equal(9)
