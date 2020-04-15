@@ -38,14 +38,24 @@ describe('pool ending', () => {
     })
   )
 
-  it(
-    'force finish',
-    co.wrap(function* () {
-      const pool = new Pool()
-      const query = pool.query('SELECT $1::text as name', ['brianc'])
-      yield pool.end(true)
-      const res = yield query
-      expect(res.rows[0].name).to.equal('brianc')
-    })
-  )
+  it('finish pending queries ', async () => {
+    const pool = new Pool({ poolSize:10 })
+    const queries = {}
+    for (let x=1; x<=20; x++) {
+       queries[x] = pool.query('SELECT $1::text as name', ['brianc'+x])
+    }
+    pool.end(false)
+    expect((await queries[20]).rows[0].name).to.equal('brianc20')
+  })
+
+  it('drop pending queries ', async () => {
+    const pool = new Pool({ poolSize:10 })
+    const queries = {}
+    let completed = 0
+    for (let x=1; x<=20; x++) {
+       queries[x] = pool.query('SELECT $1::text as name', ['brianc'+x]).then(() => completed++)
+    }
+    await pool.end(true)
+    expect(completed).to.equal(9)
+  })
 })
