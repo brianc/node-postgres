@@ -40,19 +40,19 @@ describe('pool ending', () => {
 
   it('finish pending queries', async () => {
     const pool = new Pool({ poolSize: 10 })
-    const queries = {}
+    let completed = 0
     for (let x = 1; x <= 20; x++) {
-       queries[x] = pool.query('SELECT $1::text as name', ['brianc' + x])
+       pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
     }
-    pool.end(false)
-    expect((await queries[20]).rows[0].name).to.equal('brianc20')
+    await pool.end(false)
+    expect(completed).to.equal(19)
   })
 
   it('drop pending queries', async () => {
     const pool = new Pool({ poolSize: 10 })
     let completed = 0
     for (let x = 1; x <= 20; x++) {
-       pool.query('SELECT $1::text as name', ['brianc' + x]).then(() => completed++)
+       pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
     }
     await pool.end(true)
     expect(completed).to.equal(9)
