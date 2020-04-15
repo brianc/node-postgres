@@ -37,4 +37,15 @@ describe('pool ending', () => {
       expect(res.rows[0].name).to.equal('brianc')
     })
   )
+
+  it(
+    'force finish',
+    co.wrap(function* () {
+      const pool = new Pool()
+      const query = pool.query('SELECT $1::text as name', ['brianc'])
+      yield pool.end(true)
+      const res = yield query
+      expect(res.rows[0].name).to.equal('brianc')
+    })
+  )
 })
