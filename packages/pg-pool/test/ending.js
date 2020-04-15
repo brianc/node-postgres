@@ -44,7 +44,7 @@ describe('pool ending', () => {
     for (let x = 1; x <= 20; x++) {
        pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
     }
-    await pool.end(false)
+    await pool.end()
     expect(completed).to.equal(19)
   })
 
