@@ -16,29 +16,34 @@ Server.prototype.start = function (cb) {
   // it responds with our specified response immediatley after receiving every buffer
   // this is sufficient into convincing the client its connectet to a valid backend
   // if we respond with a readyForQuery message
-  this.server = net.createServer(function (socket) {
-    this.socket = socket
-    if (this.response) {
-      this.socket.on('data', function (data) {
-        // deny request for SSL
-        if (data.length == 8) {
-          this.socket.write(Buffer.from('N', 'utf8'))
-        // consider all authentication requests as good
-        } else if (!data[0]) {
-          this.socket.write(buffers.authenticationOk())
-        // respond with our canned response
-        } else {
-          this.socket.write(this.response)
-        }
-      }.bind(this))
-    }
-  }.bind(this))
+  this.server = net.createServer(
+    function (socket) {
+      this.socket = socket
+      if (this.response) {
+        this.socket.on(
+          'data',
+          function (data) {
+            // deny request for SSL
+            if (data.length == 8) {
+              this.socket.write(Buffer.from('N', 'utf8'))
+              // consider all authentication requests as good
+            } else if (!data[0]) {
+              this.socket.write(buffers.authenticationOk())
+              // respond with our canned response
+            } else {
+              this.socket.write(this.response)
+            }
+          }.bind(this)
+        )
+      }
+    }.bind(this)
+  )
 
   var port = 54321
 
   var options = {
     host: 'localhost',
-    port: port
+    port: port,
   }
   this.server.listen(options.port, options.host, function () {
     cb(options)
@@ -58,12 +63,11 @@ var testServer = function (server, cb) {
   server.start(function (options) {
     // connect a client to it
     var client = new helper.Client(options)
-    client.connect()
-      .catch((err) => {
-        assert(err instanceof Error)
-        clearTimeout(timeoutId)
-        server.close(cb)
-      })
+    client.connect().catch((err) => {
+      assert(err instanceof Error)
+      clearTimeout(timeoutId)
+      server.close(cb)
+    })
 
     server.server.on('connection', () => {
       // after 50 milliseconds, drop the client

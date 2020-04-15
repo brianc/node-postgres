@@ -16,7 +16,8 @@ var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
 
 var addRow = function (bufferList, name, offset) {
-  return bufferList.addCString(name) // field name
+  return bufferList
+    .addCString(name) // field name
     .addInt32(offset++) // table id
     .addInt16(offset++) // attribute of column number
     .addInt32(offset++) // objectId of field's data type
@@ -32,24 +33,25 @@ var row1 = {
   dataTypeID: 3,
   dataTypeSize: 4,
   typeModifier: 5,
-  formatCode: 0
+  formatCode: 0,
 }
 var oneRowDescBuff = new buffers.rowDescription([row1])
 row1.name = 'bang'
 
-var twoRowBuf = new buffers.rowDescription([row1, {
-  name: 'whoah',
-  tableID: 10,
-  attributeNumber: 11,
-  dataTypeID: 12,
-  dataTypeSize: 13,
-  typeModifier: 14,
-  formatCode: 0
-}])
+var twoRowBuf = new buffers.rowDescription([
+  row1,
+  {
+    name: 'whoah',
+    tableID: 10,
+    attributeNumber: 11,
+    dataTypeID: 12,
+    dataTypeSize: 13,
+    typeModifier: 14,
+    formatCode: 0,
+  },
+])
 
-var emptyRowFieldBuf = new BufferList()
-  .addInt16(0)
-  .join(true, 'D')
+var emptyRowFieldBuf = new BufferList().addInt16(0).join(true, 'D')
 
 var emptyRowFieldBuf = buffers.dataRow()
 
@@ -63,31 +65,31 @@ var oneFieldBuf = buffers.dataRow(['test'])
 
 var expectedAuthenticationOkayMessage = {
   name: 'authenticationOk',
-  length: 8
+  length: 8,
 }
 
 var expectedParameterStatusMessage = {
   name: 'parameterStatus',
   parameterName: 'client_encoding',
   parameterValue: 'UTF8',
-  length: 25
+  length: 25,
 }
 
 var expectedBackendKeyDataMessage = {
   name: 'backendKeyData',
   processID: 1,
-  secretKey: 2
+  secretKey: 2,
 }
 
 var expectedReadyForQueryMessage = {
   name: 'readyForQuery',
   length: 5,
-  status: 'I'
+  status: 'I',
 }
 
 var expectedCommandCompleteMessage = {
   length: 13,
-  text: 'SELECT 3'
+  text: 'SELECT 3',
 }
 var emptyRowDescriptionBuffer = new BufferList()
   .addInt16(0) // number of fields
@@ -96,18 +98,18 @@ var emptyRowDescriptionBuffer = new BufferList()
 var expectedEmptyRowDescriptionMessage = {
   name: 'rowDescription',
   length: 6,
-  fieldCount: 0
+  fieldCount: 0,
 }
 var expectedOneRowMessage = {
   name: 'rowDescription',
   length: 27,
-  fieldCount: 1
+  fieldCount: 1,
 }
 
 var expectedTwoRowMessage = {
   name: 'rowDescription',
   length: 53,
-  fieldCount: 2
+  fieldCount: 2,
 }
 
 var testForMessage = function (buffer, expectedMessage) {
@@ -115,7 +117,7 @@ var testForMessage = function (buffer, expectedMessage) {
   test('recieves and parses ' + expectedMessage.name, function () {
     var stream = new MemoryStream()
     var client = new Connection({
-      stream: stream
+      stream: stream,
     })
     client.connect()
 
@@ -140,11 +142,11 @@ var SASLContinueBuffer = buffers.authenticationSASLContinue()
 var SASLFinalBuffer = buffers.authenticationSASLFinal()
 
 var expectedPlainPasswordMessage = {
-  name: 'authenticationCleartextPassword'
+  name: 'authenticationCleartextPassword',
 }
 
 var expectedMD5PasswordMessage = {
-  name: 'authenticationMD5Password'
+  name: 'authenticationMD5Password',
 }
 
 var expectedSASLMessage = {
@@ -166,7 +168,7 @@ var expectedNotificationResponseMessage = {
   name: 'notification',
   processId: 4,
   channel: 'hi',
-  payload: 'boom'
+  payload: 'boom',
 }
 
 test('Connection', function () {
@@ -198,7 +200,7 @@ test('Connection', function () {
 
   test('no data message', function () {
     testForMessage(Buffer.from([0x6e, 0, 0, 0, 4]), {
-      name: 'noData'
+      name: 'noData',
     })
   })
 
@@ -215,7 +217,7 @@ test('Connection', function () {
         dataTypeID: 3,
         dataTypeSize: 4,
         dataTypeModifier: 5,
-        format: 'text'
+        format: 'text',
       })
     })
   })
@@ -233,7 +235,7 @@ test('Connection', function () {
         dataTypeID: 3,
         dataTypeSize: 4,
         dataTypeModifier: 5,
-        format: 'text'
+        format: 'text',
       })
     })
     test('has correct second field', function () {
@@ -244,7 +246,7 @@ test('Connection', function () {
         dataTypeID: 12,
         dataTypeSize: 13,
         dataTypeModifier: 14,
-        format: 'text'
+        format: 'text',
       })
     })
   })
@@ -253,7 +255,7 @@ test('Connection', function () {
     test('parsing empty row', function () {
       var message = testForMessage(emptyRowFieldBuf, {
         name: 'dataRow',
-        fieldCount: 0
+        fieldCount: 0,
       })
       test('has 0 fields', function () {
         assert.equal(message.fields.length, 0)
@@ -263,7 +265,7 @@ test('Connection', function () {
     test('parsing data row with fields', function () {
       var message = testForMessage(oneFieldBuf, {
         name: 'dataRow',
-        fieldCount: 1
+        fieldCount: 1,
       })
       test('has 1 field', function () {
         assert.equal(message.fields.length, 1)
@@ -277,61 +279,75 @@ test('Connection', function () {
 
   test('notice message', function () {
     // this uses the same logic as error message
-    var buff = buffers.notice([{type: 'C', value: 'code'}])
+    var buff = buffers.notice([{ type: 'C', value: 'code' }])
     testForMessage(buff, {
       name: 'notice',
-      code: 'code'
+      code: 'code',
     })
   })
 
   test('error messages', function () {
     test('with no fields', function () {
       var msg = testForMessage(buffers.error(), {
-        name: 'error'
+        name: 'error',
       })
     })
 
     test('with all the fields', function () {
-      var buffer = buffers.error([{
-        type: 'S',
-        value: 'ERROR'
-      }, {
-        type: 'C',
-        value: 'code'
-      }, {
-        type: 'M',
-        value: 'message'
-      }, {
-        type: 'D',
-        value: 'details'
-      }, {
-        type: 'H',
-        value: 'hint'
-      }, {
-        type: 'P',
-        value: '100'
-      }, {
-        type: 'p',
-        value: '101'
-      }, {
-        type: 'q',
-        value: 'query'
-      }, {
-        type: 'W',
-        value: 'where'
-      }, {
-        type: 'F',
-        value: 'file'
-      }, {
-        type: 'L',
-        value: 'line'
-      }, {
-        type: 'R',
-        value: 'routine'
-      }, {
-        type: 'Z', // ignored
-        value: 'alsdkf'
-      }])
+      var buffer = buffers.error([
+        {
+          type: 'S',
+          value: 'ERROR',
+        },
+        {
+          type: 'C',
+          value: 'code',
+        },
+        {
+          type: 'M',
+          value: 'message',
+        },
+        {
+          type: 'D',
+          value: 'details',
+        },
+        {
+          type: 'H',
+          value: 'hint',
+        },
+        {
+          type: 'P',
+          value: '100',
+        },
+        {
+          type: 'p',
+          value: '101',
+        },
+        {
+          type: 'q',
+          value: 'query',
+        },
+        {
+          type: 'W',
+          value: 'where',
+        },
+        {
+          type: 'F',
+          value: 'file',
+        },
+        {
+          type: 'L',
+          value: 'line',
+        },
+        {
+          type: 'R',
+          value: 'routine',
+        },
+        {
+          type: 'Z', // ignored
+          value: 'alsdkf',
+        },
+      ])
 
       testForMessage(buffer, {
         name: 'error',
@@ -346,33 +362,33 @@ test('Connection', function () {
         where: 'where',
         file: 'file',
         line: 'line',
-        routine: 'routine'
+        routine: 'routine',
       })
     })
   })
 
   test('parses parse complete command', function () {
     testForMessage(parseCompleteBuffer, {
-      name: 'parseComplete'
+      name: 'parseComplete',
     })
   })
 
   test('parses bind complete command', function () {
     testForMessage(bindCompleteBuffer, {
-      name: 'bindComplete'
+      name: 'bindComplete',
     })
   })
 
   test('parses portal suspended message', function () {
     testForMessage(portalSuspendedBuffer, {
-      name: 'portalSuspended'
+      name: 'portalSuspended',
     })
   })
 
   test('parses replication start message', function () {
     testForMessage(Buffer.from([0x57, 0x00, 0x00, 0x00, 0x04]), {
       name: 'replicationStart',
-      length: 4
+      length: 4,
     })
   })
 })
@@ -385,7 +401,7 @@ test('split buffer, single message parsing', function () {
   var stream = new MemoryStream()
   stream.readyState = 'open'
   var client = new Connection({
-    stream: stream
+    stream: stream,
   })
   client.connect()
   var message = null
@@ -443,7 +459,7 @@ test('split buffer, multiple message parsing', function () {
   var messages = []
   var stream = new MemoryStream()
   var client = new Connection({
-    stream: stream
+    stream: stream,
   })
   client.connect()
   client.on('message', function (msg) {
@@ -454,11 +470,11 @@ test('split buffer, multiple message parsing', function () {
     assert.lengthIs(messages, 2)
     assert.same(messages[0], {
       name: 'dataRow',
-      fieldCount: 1
+      fieldCount: 1,
     })
     assert.equal(messages[0].fields[0], '!')
     assert.same(messages[1], {
-      name: 'readyForQuery'
+      name: 'readyForQuery',
     })
     messages = []
   }

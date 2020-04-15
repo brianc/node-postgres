@@ -1,7 +1,5 @@
 export default class BufferList {
-  constructor(public buffers: Buffer[] = []) {
-
-  }
+  constructor(public buffers: Buffer[] = []) {}
 
   public add(buffer: Buffer, front?: boolean) {
     this.buffers[front ? 'unshift' : 'push'](buffer)
@@ -9,7 +7,7 @@ export default class BufferList {
   }
 
   public addInt16(val: number, front?: boolean) {
-    return this.add(Buffer.from([(val >>> 8), (val >>> 0)]), front)
+    return this.add(Buffer.from([val >>> 8, val >>> 0]), front)
   }
 
   public getByteLength(initial?: number) {
@@ -19,12 +17,10 @@ export default class BufferList {
   }
 
   public addInt32(val: number, first?: boolean) {
-    return this.add(Buffer.from([
-      (val >>> 24 & 0xFF),
-      (val >>> 16 & 0xFF),
-      (val >>> 8 & 0xFF),
-      (val >>> 0 & 0xFF)
-    ]), first)
+    return this.add(
+      Buffer.from([(val >>> 24) & 0xff, (val >>> 16) & 0xff, (val >>> 8) & 0xff, (val >>> 0) & 0xff]),
+      first
+    )
   }
 
   public addCString(val: string, front?: boolean) {

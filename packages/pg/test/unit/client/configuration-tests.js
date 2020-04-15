@@ -23,7 +23,7 @@ test('client settings', function () {
       database: database,
       port: 321,
       password: password,
-      ssl: true
+      ssl: true,
     })
 
     assert.equal(client.user, user)
@@ -48,7 +48,7 @@ test('client settings', function () {
     process.env.PGSSLMODE = 'prefer'
 
     var client = new Client({
-      ssl: false
+      ssl: false,
     })
     process.env.PGSSLMODE = old
 
@@ -59,7 +59,7 @@ test('client settings', function () {
 test('initializing from a config string', function () {
   test('uses connectionString property', function () {
     var client = new Client({
-      connectionString: 'postgres://brian:pass@host1:333/databasename'
+      connectionString: 'postgres://brian:pass@host1:333/databasename',
     })
     assert.equal(client.user, 'brian')
     assert.equal(client.password, 'pass')

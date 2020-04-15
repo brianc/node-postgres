@@ -44,7 +44,7 @@ Cursor.prototype.submit = function (connection) {
 
   con.parse(
     {
-      text: this.text
+      text: this.text,
     },
     true
   )
@@ -52,7 +52,7 @@ Cursor.prototype.submit = function (connection) {
   con.bind(
     {
       portal: this._portal,
-      values: this.values
+      values: this.values,
     },
     true
   )
@@ -60,7 +60,7 @@ Cursor.prototype.submit = function (connection) {
   con.describe(
     {
       type: 'P',
-      name: this._portal // AWS Redshift requires a portal name
+      name: this._portal, // AWS Redshift requires a portal name
     },
     true
   )
@@ -165,7 +165,7 @@ Cursor.prototype._getRows = function (rows, cb) {
   this._rows = []
   const msg = {
     portal: this._portal,
-    rows: rows
+    rows: rows,
   }
   this.connection.execute(msg, true)
   this.connection.flush()

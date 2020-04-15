@@ -1,14 +1,15 @@
 {
   "plugins": [
-    "node"
+    "prettier"
   ],
+  "parser": "@typescript-eslint/parser",
   "extends": [
-    "standard",
-    "eslint:recommended",
-    "plugin:node/recommended"
+    "plugin:prettier/recommended",
+    "prettier/@typescript-eslint"
   ],
   "ignorePatterns": [
-    "**/*.ts"
+    "node_modules",
+    "packages/pg-protocol/dist/**/*"
   ],
   "parserOptions": {
     "ecmaVersion": 2017,
@@ -18,17 +19,5 @@
     "node": true,
     "es6": true,
     "mocha": true
-  },
-  "rules": {
-    "space-before-function-paren": "off",
-    "node/no-unsupported-features/es-syntax": "off",
-    "node/no-unpublished-require": [
-      "error",
-      {
-        "allowModules": [
-          "pg"
-        ]
-      }
-    ]
   }
 }

@@ -24,7 +24,7 @@ test('multiple results', function () {
     })
     assert.emits(q, 'end', function () {
       test('query with config', function () {
-        var q2 = client.query(new Query({text: 'SELECT 1 as num'}))
+        var q2 = client.query(new Query({ text: 'SELECT 1 as num' }))
         assert.emits(q2, 'row', function (row) {
           assert.strictEqual(row.num, 1)
           assert.emits(q2, 'end', function () {
@@ -50,10 +50,12 @@ test('parameterized queries', function () {
 
   test('with object config for query', function () {
     var client = setupClient()
-    var q = client.query(new Query({
-      text: 'SELECT name FROM boom WHERE name = $1',
-      values: ['Brian']
-    }))
+    var q = client.query(
+      new Query({
+        text: 'SELECT name FROM boom WHERE name = $1',
+        values: ['Brian'],
+      })
+    )
     assert.emits(q, 'row', function (row) {
       assert.equal(row.name, 'Brian')
     })
@@ -64,7 +66,9 @@ test('parameterized queries', function () {
 
   test('multiple parameters', function () {
     var client = setupClient()
-    var q = client.query(new Query('SELECT name FROM boom WHERE name = $1 or name = $2 ORDER BY name COLLATE "C"', ['Aaron', 'Brian']))
+    var q = client.query(
+      new Query('SELECT name FROM boom WHERE name = $1 or name = $2 ORDER BY name COLLATE "C"', ['Aaron', 'Brian'])
+    )
     assert.emits(q, 'row', function (row) {
       assert.equal(row.name, 'Aaron')
       assert.emits(q, 'row', function (row) {

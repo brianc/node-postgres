@@ -31,13 +31,13 @@ describe('events', function () {
           process.nextTick(() => {
             cb(new Error('bad news'))
           })
-        }
-      })
+        },
+      }),
     })
     pool.on('connect', function () {
       throw new Error('should never get here')
     })
-    return pool.connect().catch(e => expect(e.message).to.equal('bad news'))
+    return pool.connect().catch((e) => expect(e.message).to.equal('bad news'))
   })
 
   it('emits acquire every time a client is acquired', function (done) {
@@ -77,7 +77,7 @@ describe('events', function () {
   })
 })
 
-function mockClient (methods) {
+function mockClient(methods) {
   return function () {
     const client = new EventEmitter()
     Object.assign(client, methods)

@@ -3,7 +3,7 @@ require(__dirname + '/test-helper')
 var Connection = require(__dirname + '/../../../lib/connection')
 test('connection can take existing stream', function () {
   var stream = new MemoryStream()
-  var con = new Connection({stream: stream})
+  var con = new Connection({ stream: stream })
   assert.equal(con.stream, stream)
 })
 
@@ -21,7 +21,7 @@ test('using closed stream', function () {
 
   var stream = makeStream()
 
-  var con = new Connection({stream: stream})
+  var con = new Connection({ stream: stream })
 
   con.connect(1234, 'bang')
 
@@ -72,7 +72,7 @@ test('using opened stream', function () {
   stream.connect = function () {
     assert.ok(false, 'Should not call open')
   }
-  var con = new Connection({stream: stream})
+  var con = new Connection({ stream: stream })
   test('does not call open', function () {
     var hit = false
     con.once('connect', function () {

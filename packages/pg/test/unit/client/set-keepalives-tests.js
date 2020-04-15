@@ -5,8 +5,8 @@ const helper = require('./test-helper')
 
 const suite = new helper.Suite()
 
-suite.test('setting keep alive', done => {
-  const server = net.createServer(c => {
+suite.test('setting keep alive', (done) => {
+  const server = net.createServer((c) => {
     c.destroy()
     server.close()
   })
@@ -24,7 +24,7 @@ suite.test('setting keep alive', done => {
       port: 7777,
       keepAlive: true,
       keepAliveInitialDelayMillis: 10000,
-      stream
+      stream,
     })
 
     client.connect().catch(() => {})

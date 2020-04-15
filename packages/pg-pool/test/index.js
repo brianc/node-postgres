@@ -167,13 +167,11 @@ describe('pool', function () {
 
     it('executes a query directly', () => {
       const pool = new Pool()
-      return pool
-        .query('SELECT $1::text as name', ['hi'])
-        .then(res => {
-          expect(res.rows).to.have.length(1)
-          expect(res.rows[0].name).to.equal('hi')
-          return pool.end()
-        })
+      return pool.query('SELECT $1::text as name', ['hi']).then((res) => {
+        expect(res.rows).to.have.length(1)
+        expect(res.rows[0].name).to.equal('hi')
+        return pool.end()
+      })
     })
 
     it('properly pools clients', function () {
@@ -210,10 +208,9 @@ describe('pool', function () {
 
       const errors = []
       const promises = _.times(30, () => {
-        return pool.query('SELECT asldkfjasldkf')
-          .catch(function (e) {
-            errors.push(e)
-          })
+        return pool.query('SELECT asldkfjasldkf').catch(function (e) {
+          errors.push(e)
+        })
       })
       return Promise.all(promises).then(() => {
         expect(errors).to.have.length(30)

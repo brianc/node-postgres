@@ -7,25 +7,17 @@
  * README.md file in the root directory of this source tree.
  */
 
-var util = require('util')
 var Client = require('./client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 var Pool = require('pg-pool')
-const checkConstructor = require('./compat/check-constructor')
 
 const poolFactory = (Client) => {
-  var BoundPool = function (options) {
-    // eslint-disable-next-line no-eval
-    checkConstructor('pg.Pool', 'PG-POOL-NEW', () => eval('new.target'))
-
-    var config = Object.assign({ Client: Client }, options)
-    return new Pool(config)
+  return class BoundPool extends Pool {
+    constructor(options) {
+      super(options, Client)
+    }
   }
-
-  util.inherits(BoundPool, Pool)
-
-  return BoundPool
 }
 
 var PG = function (clientConstructor) {
@@ -44,20 +36,28 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
   module.exports = new PG(Client)
 
   // lazy require native module...the native module may not have installed
-  module.exports.__defineGetter__('native', function () {
-    delete module.exports.native
-    var native = null
-    try {
-      native = new PG(require('./native'))
-    } catch (err) {
-      if (err.code !== 'MODULE_NOT_FOUND') {
-        throw err
+  Object.defineProperty(module.exports, 'native', {
+    configurable: true,
+    enumerable: false,
+    get() {
+      var native = null
+      try {
+        native = new PG(require('./native'))
+      } catch (err) {
+        if (err.code !== 'MODULE_NOT_FOUND') {
+          throw err
+        }
+        /* eslint-disable no-console */
+        console.error(err.message)
+        /* eslint-enable no-console */
       }
-      /* eslint-disable no-console */
-      console.error(err.message)
-      /* eslint-enable no-console */
-    }
-    module.exports.native = native
-    return native
+
+      // overwrite module.exports.native so that getter is never called again
+      Object.defineProperty(module.exports, 'native', {
+        value: native,
+      })
+
+      return native
+    },
   })
 }

@@ -11,7 +11,7 @@ types.setTypeParser('special oid that will throw', function () {
   throw typeParserError
 })
 
-const emitFakeEvents = con => {
+const emitFakeEvents = (con) => {
   setImmediate(() => {
     con.emit('readyForQuery')
 
@@ -19,9 +19,9 @@ const emitFakeEvents = con => {
       fields: [
         {
           name: 'boom',
-          dataTypeID: 'special oid that will throw'
-        }
-      ]
+          dataTypeID: 'special oid that will throw',
+        },
+      ],
     })
 
     con.emit('dataRow', { fields: ['hi'] })
@@ -62,7 +62,7 @@ suite.test('rejects promise with error', function (done) {
   var client = helper.client()
   var con = client.connection
   emitFakeEvents(con)
-  client.query('whatever').catch(err => {
+  client.query('whatever').catch((err) => {
     assert.equal(err, typeParserError)
     done()
   })

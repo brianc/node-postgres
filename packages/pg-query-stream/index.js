@@ -3,7 +3,7 @@ const Cursor = require('pg-cursor')
 
 class PgQueryStream extends Readable {
   constructor(text, values, config = {}) {
-    const { batchSize, highWaterMark = 100 } = config;
+    const { batchSize, highWaterMark = 100 } = config
     // https://nodejs.org/api/stream.html#stream_new_stream_readable_options
     super({ objectMode: true, emitClose: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
     this.cursor = new Cursor(text, values, config)
