@@ -38,23 +38,23 @@ describe('pool ending', () => {
     })
   )
 
-  it('finish pending queries by default with pool.end()', async () => {
-    const pool = new Pool({ poolSize: 10 })
+  it('pool.end() - finish pending queries by default', async () => {
+    const pool = new Pool({ poolSize: 10 }) // pool size 10
     let completed = 0
-    for (let x = 1; x <= 20; x++) {
+    for (let x = 1; x <= 20; x++) { // queue up 20 queries
        pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
     }
-    await pool.end()
-    expect(completed).to.equal(19)
+    await pool.end() // pool.end()
+    expect(completed).to.equal(19) // all 20 queries finish
   })
 
-  it('drop pending queries with pool.end(true)', async () => {
-    const pool = new Pool({ poolSize: 10 })
+  it('pool.end(true) - drop pending queries', async () => {
+    const pool = new Pool({ poolSize: 10 }) // pool size 10
     let completed = 0
-    for (let x = 1; x <= 20; x++) {
+    for (let x = 1; x <= 20; x++) { // queue up 20 queries
        pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
     }
-    await pool.end(true)
-    expect(completed).to.equal(9)
+    await pool.end(true) // pool.end(true)
+    expect(completed).to.equal(9) // only the 10 active queries finish, 10 pending queries get dropped
   })
 })
