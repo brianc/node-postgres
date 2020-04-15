@@ -372,7 +372,10 @@ class Pool extends EventEmitter {
   }
 
   end(force, cb) {
-    if (typeof force === 'function') { cb = force; force = false }
+    if (typeof force === 'function') {
+      cb = force
+      force = false
+    }
     this.log('ending')
     if (this.ending) {
       const err = new Error('Called end on pool more than once')
