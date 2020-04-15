@@ -38,7 +38,7 @@ describe('pool ending', () => {
     })
   )
 
-  it('finish pending queries', async () => {
+  it('finish pending queries by default with pool.end()', async () => {
     const pool = new Pool({ poolSize: 10 })
     let completed = 0
     for (let x = 1; x <= 20; x++) {
@@ -48,7 +48,7 @@ describe('pool ending', () => {
     expect(completed).to.equal(19)
   })
 
-  it('drop pending queries', async () => {
+  it('drop pending queries with pool.end(true)', async () => {
     const pool = new Pool({ poolSize: 10 })
     let completed = 0
     for (let x = 1; x <= 20; x++) {
