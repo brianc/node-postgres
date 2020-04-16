@@ -6,6 +6,7 @@ node-postgres is made possible by the helpful contributors from the community as
 - [Third Iron](https://thirdiron.com/)
 - [Timescale](https://timescale.com)
 - [Nafundi](https://nafundi.com)
+- [CrateDB](https://crate.io/)
 
 # Supporters
 

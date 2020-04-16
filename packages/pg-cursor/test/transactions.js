@@ -23,7 +23,7 @@ describe('transactions', () => {
     await client.query('begin')
     await client.query('CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)')
     const cursor = client.query(new Cursor('SELECT * FROM foobar'))
-    await new Promise(resolve => cursor.close(resolve))
+    await new Promise((resolve) => cursor.close(resolve))
     await client.query('ALTER TABLE foobar ADD COLUMN name TEXT')
     await client.end()
   })
@@ -35,7 +35,7 @@ describe('transactions', () => {
     // create a cursor that has no data response
     const createText = 'CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)'
     const cursor = client.query(new Cursor(createText))
-    const err = await new Promise(resolve => cursor.read(100, resolve))
+    const err = await new Promise((resolve) => cursor.read(100, resolve))
     assert.ifError(err)
     await client.query('ALTER TABLE foobar ADD COLUMN name TEXT')
     await client.end()

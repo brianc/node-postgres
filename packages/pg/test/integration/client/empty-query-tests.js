@@ -7,7 +7,7 @@ suite.test('empty query message handling', function (done) {
   assert.emits(client, 'drain', function () {
     client.end(done)
   })
-  client.query({text: ''})
+  client.query({ text: '' })
 })
 
 suite.test('callback supported', function (done) {

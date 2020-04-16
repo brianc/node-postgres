@@ -50,11 +50,21 @@ When you open an issue please provide:
 
 You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that's your thing. I try to always announce noteworthy changes & developments with node-postgres on Twitter.
 
-### Sponsorship :star:
+## Sponsorship :two_hearts:
 
-[If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable please consider supporting](https://github.com/sponsors/brianc) its development.
+node-postgres's continued development has been made possible in part by generous finanical support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md) and these featured sponsors:
 
-Also, you can view a historical list of all [previous and existing sponsors](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
+<div align="center">
+<a href="https://www.timescale.com" target="_blank">
+  <img height="80" src="https://node-postgres.com/timescale.svg" />
+</a>
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAABCAQAAAB0m0auAAAADElEQVR42mNkIBIAAABSAAI2VLqiAAAAAElFTkSuQmCC" />
+<a href="https://crate.io" target="_blank">
+  <img height="80" src="https://node-postgres.com/crate-io.png" />
+</a>
+</div>
+
+If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable [please consider supporting](https://github.com/sponsors/brianc) its development.
 
 ## Contributing
 
@@ -65,7 +75,15 @@ I will __happily__ accept your pull request if it:
 - looks reasonable
 - does not break backwards compatibility
 
-If your change involves breaking backwards compatibility please please point that out in the pull request & we can discuss & plan when and how to release it and what type of documentation or communicate it will require.
+If your change involves breaking backwards compatibility please please point that out in the pull request & we can discuss & plan when and how to release it and what type of documentation or communication it will require.
+
+### Setting up for local development
+
+1. Clone the repo
+2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+3. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
+4. Ensure you have the proper environment variables configured for connecting to the instance
+5. Run `yarn test` to run all the tests
 
 ## Troubleshooting and FAQ
 

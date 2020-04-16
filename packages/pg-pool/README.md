@@ -34,6 +34,7 @@ var pool2 = new Pool({
   max: 20, // set pool max size to 20
   idleTimeoutMillis: 1000, // close idle clients after 1 second
   connectionTimeoutMillis: 1000, // return an error after 1 second if connection could not be established
+  maxUses: 7500, // close (and replace) a connection after it has been used 7500 times (see below for discussion)
 })
 
 //you can supply a custom client constructor
@@ -329,6 +330,31 @@ var bluebirdPool = new Pool({
 ```
 
 __please note:__ in node `<=0.12.x` the pool will throw if you do not provide a promise constructor in one of the two ways mentioned above.  In node `>=4.0.0` the pool will use the native promise implementation by default; however, the two methods above still allow you to "bring your own."
+
+## maxUses and read-replica autoscaling (e.g. AWS Aurora)
+
+The maxUses config option can help an application instance rebalance load against a replica set that has been auto-scaled after the connection pool is already full of healthy connections.
+
+The mechanism here is that a connection is considered "expended" after it has been acquired and released `maxUses` number of times.  Depending on the load on your system, this means there will be an approximate time in which any given connection will live, thus creating a window for rebalancing.
+
+Imagine a scenario where you have 10 app instances providing an API running against a replica cluster of 3 that are accessed via a round-robin DNS entry.  Each instance runs a connection pool size of 20.  With an ambient load of 50 requests per second, the connection pool will likely fill up in a few minutes with healthy connections.
+
+If you have weekly bursts of traffic which peak at 1,000 requests per second, you might want to grow your replicas to 10 during this period.  Without setting `maxUses`, the new replicas will not be adopted by the app servers without an intervention -- namely, restarting each in turn in order to build up new connection pools that are balanced against all the replicas.  Adding additional app server instances will help to some extent because they will adopt all the replicas in an even way, but the initial app servers will continue to focus additional load on the original replicas.
+
+This is where the `maxUses` configuration option comes into play.  Setting `maxUses` to 7500 will ensure that over a period of 30 minutes or so the new replicas will be adopted as the pre-existing connections are closed and replaced with new ones, thus creating a window for eventual balance.
+
+You'll want to test based on your own scenarios, but one way to make a first guess at `maxUses` is to identify an acceptable window for rebalancing and then solve for the value:
+
+```
+maxUses = rebalanceWindowSeconds * totalRequestsPerSecond / numAppInstances / poolSize
+```
+
+In the example above, assuming we acquire and release 1 connection per request and we are aiming for a 30 minute rebalancing window:
+
+```
+maxUses = rebalanceWindowSeconds * totalRequestsPerSecond / numAppInstances / poolSize
+   7200 =        1800            *          1000          /        10       /    25
+```
 
 ## tests
 

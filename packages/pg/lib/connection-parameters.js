@@ -22,9 +22,7 @@ var val = function (key, config, envVar) {
     envVar = process.env[envVar]
   }
 
-  return config[key] ||
-    envVar ||
-    defaults[key]
+  return config[key] || envVar || defaults[key]
 }
 
 var useSsl = function () {
@@ -52,15 +50,29 @@ var ConnectionParameters = function (config) {
 
   this.user = val('user', config)
   this.database = val('database', config)
+
+  if (this.database === undefined) {
+    this.database = this.user
+  }
+
   this.port = parseInt(val('port', config), 10)
   this.host = val('host', config)
-  this.password = val('password', config)
+
+  // "hiding" the password so it doesn't show up in stack traces
+  // or if the client is console.logged
+  Object.defineProperty(this, 'password', {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: val('password', config),
+  })
+
   this.binary = val('binary', config)
   this.ssl = typeof config.ssl === 'undefined' ? useSsl() : config.ssl
   this.client_encoding = val('client_encoding', config)
   this.replication = val('replication', config)
   // a domain socket begins with '/'
-  this.isDomainSocket = (!(this.host || '').indexOf('/'))
+  this.isDomainSocket = !(this.host || '').indexOf('/')
 
   this.application_name = val('application_name', config, 'PGAPPNAME')
   this.fallback_application_name = val('fallback_application_name', config, false)

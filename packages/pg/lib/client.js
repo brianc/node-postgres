@@ -30,7 +30,16 @@ var Client = function (config) {
   this.database = this.connectionParameters.database
   this.port = this.connectionParameters.port
   this.host = this.connectionParameters.host
-  this.password = this.connectionParameters.password
+
+  // "hiding" the password so it doesn't show up in stack traces
+  // or if the client is console.logged
+  Object.defineProperty(this, 'password', {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: this.connectionParameters.password,
+  })
+
   this.replication = this.connectionParameters.replication
 
   var c = config || {}
@@ -43,13 +52,15 @@ var Client = function (config) {
   this._connectionError = false
   this._queryable = true
 
-  this.connection = c.connection || new Connection({
-    stream: c.stream,
-    ssl: this.connectionParameters.ssl,
-    keepAlive: c.keepAlive || false,
-    keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
-    encoding: this.connectionParameters.client_encoding || 'utf8'
-  })
+  this.connection =
+    c.connection ||
+    new Connection({
+      stream: c.stream,
+      ssl: this.connectionParameters.ssl,
+      keepAlive: c.keepAlive || false,
+      keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
+      encoding: this.connectionParameters.client_encoding || 'utf8',
+    })
   this.queryQueue = []
   this.binary = c.binary || defaults.binary
   this.processID = null
@@ -118,9 +129,10 @@ Client.prototype._connect = function (callback) {
   function checkPgPass(cb) {
     return function (msg) {
       if (typeof self.password === 'function') {
-        self._Promise.resolve()
+        self._Promise
+          .resolve()
           .then(() => self.password())
-          .then(pass => {
+          .then((pass) => {
             if (pass !== undefined) {
               if (typeof pass !== 'string') {
                 con.emit('error', new TypeError('Password must be a string'))
@@ -131,7 +143,8 @@ Client.prototype._connect = function (callback) {
               self.connectionParameters.password = self.password = null
             }
             cb(msg)
-          }).catch(err => {
+          })
+          .catch((err) => {
             con.emit('error', err)
           })
       } else if (self.password !== null) {
@@ -148,22 +161,31 @@ Client.prototype._connect = function (callback) {
   }
 
   // password request handling
-  con.on('authenticationCleartextPassword', checkPgPass(function () {
-    con.password(self.password)
-  }))
+  con.on(
+    'authenticationCleartextPassword',
+    checkPgPass(function () {
+      con.password(self.password)
+    })
+  )
 
   // password request handling
-  con.on('authenticationMD5Password', checkPgPass(function (msg) {
-    con.password(utils.postgresMd5PasswordHash(self.user, self.password, msg.salt))
-  }))
+  con.on(
+    'authenticationMD5Password',
+    checkPgPass(function (msg) {
+      con.password(utils.postgresMd5PasswordHash(self.user, self.password, msg.salt))
+    })
+  )
 
   // password request handling (SASL)
   var saslSession
-  con.on('authenticationSASL', checkPgPass(function (msg) {
-    saslSession = sasl.startSession(msg.mechanisms)
+  con.on(
+    'authenticationSASL',
+    checkPgPass(function (msg) {
+      saslSession = sasl.startSession(msg.mechanisms)
 
-    con.sendSASLInitialResponseMessage(saslSession.mechanism, saslSession.response)
-  }))
+      con.sendSASLInitialResponseMessage(saslSession.mechanism, saslSession.response)
+    })
+  )
 
   // password request handling (SASL)
   con.on('authenticationSASLContinue', function (msg) {
@@ -250,9 +272,7 @@ Client.prototype._connect = function (callback) {
   })
 
   con.once('end', () => {
-    const error = this._ending
-      ? new Error('Connection terminated')
-      : new Error('Connection terminated unexpectedly')
+    const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
 
     clearTimeout(connectionTimeoutHandle)
     this._errorAllQueries(error)
@@ -358,7 +378,7 @@ Client.prototype.getStartupConf = function () {
 
   var data = {
     user: params.user,
-    database: params.database
+    database: params.database,
   }
 
   var appName = params.application_name || params.fallback_application_name
@@ -413,11 +433,11 @@ Client.prototype.escapeIdentifier = function (str) {
 // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
 Client.prototype.escapeLiteral = function (str) {
   var hasBackslash = false
-  var escaped = '\''
+  var escaped = "'"
 
   for (var i = 0; i < str.length; i++) {
     var c = str[i]
-    if (c === '\'') {
+    if (c === "'") {
       escaped += c + c
     } else if (c === '\\') {
       escaped += c + c
@@ -427,7 +447,7 @@ Client.prototype.escapeLiteral = function (str) {
     }
   }
 
-  escaped += '\''
+  escaped += "'"
 
   if (hasBackslash === true) {
     escaped = ' E' + escaped
@@ -479,7 +499,7 @@ Client.prototype.query = function (config, values, callback) {
     query = new Query(config, values, callback)
     if (!query.callback) {
       result = new this._Promise((resolve, reject) => {
-        query.callback = (err, res) => err ? reject(err) : resolve(res)
+        query.callback = (err, res) => (err ? reject(err) : resolve(res))
       })
     }
   }
@@ -498,7 +518,7 @@ Client.prototype.query = function (config, values, callback) {
 
       // we already returned an error,
       // just do nothing if query completes
-      query.callback = () => { }
+      query.callback = () => {}
 
       // Remove from queue
       var index = this.queryQueue.indexOf(query)
@@ -544,6 +564,15 @@ Client.prototype.query = function (config, values, callback) {
 
 Client.prototype.end = function (cb) {
   this._ending = true
+
+  // if we have never connected, then end is a noop, callback immediately
+  if (this.connection.stream.readyState === 'closed') {
+    if (cb) {
+      cb()
+    } else {
+      return this._Promise.resolve()
+    }
+  }
 
   if (this.activeQuery || !this._queryable) {
     // if we have an active query we need to force a disconnect

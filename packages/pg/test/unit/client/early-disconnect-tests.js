@@ -11,7 +11,9 @@ var server = net.createServer(function (c) {
 
 server.listen(7777, function () {
   var client = new pg.Client('postgres://localhost:7777')
-  client.connect(assert.calls(function (err) {
-    assert(err)
-  }))
+  client.connect(
+    assert.calls(function (err) {
+      assert(err)
+    })
+  )
 })

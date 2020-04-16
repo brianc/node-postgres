@@ -11,7 +11,7 @@ var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var utils = require('../utils')
 
-var NativeQuery = module.exports = function (config, values, callback) {
+var NativeQuery = (module.exports = function (config, values, callback) {
   EventEmitter.call(this)
   config = utils.normalizeQueryConfig(config, values, callback)
   this.text = config.text
@@ -27,27 +27,30 @@ var NativeQuery = module.exports = function (config, values, callback) {
   // this has almost no meaning because libpq
   // reads all rows into memory befor returning any
   this._emitRowEvents = false
-  this.on('newListener', function (event) {
-    if (event === 'row') this._emitRowEvents = true
-  }.bind(this))
-}
+  this.on(
+    'newListener',
+    function (event) {
+      if (event === 'row') this._emitRowEvents = true
+    }.bind(this)
+  )
+})
 
 util.inherits(NativeQuery, EventEmitter)
 
 var errorFieldMap = {
   /* eslint-disable quote-props */
-  'sqlState': 'code',
-  'statementPosition': 'position',
-  'messagePrimary': 'message',
-  'context': 'where',
-  'schemaName': 'schema',
-  'tableName': 'table',
-  'columnName': 'column',
-  'dataTypeName': 'dataType',
-  'constraintName': 'constraint',
-  'sourceFile': 'file',
-  'sourceLine': 'line',
-  'sourceFunction': 'routine'
+  sqlState: 'code',
+  statementPosition: 'position',
+  messagePrimary: 'message',
+  context: 'where',
+  schemaName: 'schema',
+  tableName: 'table',
+  columnName: 'column',
+  dataTypeName: 'dataType',
+  constraintName: 'constraint',
+  sourceFile: 'file',
+  sourceLine: 'line',
+  sourceFunction: 'routine',
 }
 
 NativeQuery.prototype.handleError = function (err) {
@@ -77,10 +80,12 @@ NativeQuery.prototype.catch = function (callback) {
 
 NativeQuery.prototype._getPromise = function () {
   if (this._promise) return this._promise
-  this._promise = new Promise(function (resolve, reject) {
-    this._once('end', resolve)
-    this._once('error', reject)
-  }.bind(this))
+  this._promise = new Promise(
+    function (resolve, reject) {
+      this._once('end', resolve)
+      this._once('error', reject)
+    }.bind(this)
+  )
   return this._promise
 }
 
@@ -105,7 +110,7 @@ NativeQuery.prototype.submit = function (client) {
     if (self._emitRowEvents) {
       if (results.length > 1) {
         rows.forEach((rowOfRows, i) => {
-          rowOfRows.forEach(row => {
+          rowOfRows.forEach((row) => {
             self.emit('row', row, results[i])
           })
         })

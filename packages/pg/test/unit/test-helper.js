@@ -15,29 +15,29 @@ var p = MemoryStream.prototype
 
 p.write = function (packet, cb) {
   this.packets.push(packet)
-  if(cb){
-    cb();
+  if (cb) {
+    cb()
   }
 }
 
-p.end = function() {
-  p.closed = true;
+p.end = function () {
+  p.closed = true
 }
 
 p.setKeepAlive = function () {}
-p.closed = false;
+p.closed = false
 p.writable = true
 
 const createClient = function () {
   var stream = new MemoryStream()
   stream.readyState = 'open'
   var client = new Client({
-    connection: new Connection({stream: stream})
+    connection: new Connection({ stream: stream }),
   })
   client.connect()
   return client
 }
 
 module.exports = Object.assign({}, helper, {
-  createClient: createClient
+  createClient: createClient,
 })

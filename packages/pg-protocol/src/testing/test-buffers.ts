@@ -3,21 +3,15 @@ import BufferList from './buffer-list'
 
 const buffers = {
   readyForQuery: function () {
-    return new BufferList()
-      .add(Buffer.from('I'))
-      .join(true, 'Z')
+    return new BufferList().add(Buffer.from('I')).join(true, 'Z')
   },
 
   authenticationOk: function () {
-    return new BufferList()
-      .addInt32(0)
-      .join(true, 'R')
+    return new BufferList().addInt32(0).join(true, 'R')
   },
 
   authenticationCleartextPassword: function () {
-    return new BufferList()
-      .addInt32(3)
-      .join(true, 'R')
+    return new BufferList().addInt32(3).join(true, 'R')
   },
 
   authenticationMD5Password: function () {
@@ -28,45 +22,27 @@ const buffers = {
   },
 
   authenticationSASL: function () {
-    return new BufferList()
-      .addInt32(10)
-      .addCString('SCRAM-SHA-256')
-      .addCString('')
-      .join(true, 'R')
+    return new BufferList().addInt32(10).addCString('SCRAM-SHA-256').addCString('').join(true, 'R')
   },
 
   authenticationSASLContinue: function () {
-    return new BufferList()
-      .addInt32(11)
-      .addString('data')
-      .join(true, 'R')
+    return new BufferList().addInt32(11).addString('data').join(true, 'R')
   },
 
   authenticationSASLFinal: function () {
-    return new BufferList()
-      .addInt32(12)
-      .addString('data')
-      .join(true, 'R')
+    return new BufferList().addInt32(12).addString('data').join(true, 'R')
   },
 
   parameterStatus: function (name: string, value: string) {
-    return new BufferList()
-      .addCString(name)
-      .addCString(value)
-      .join(true, 'S')
+    return new BufferList().addCString(name).addCString(value).join(true, 'S')
   },
 
   backendKeyData: function (processID: number, secretKey: number) {
-    return new BufferList()
-      .addInt32(processID)
-      .addInt32(secretKey)
-      .join(true, 'K')
+    return new BufferList().addInt32(processID).addInt32(secretKey).join(true, 'K')
   },
 
   commandComplete: function (string: string) {
-    return new BufferList()
-      .addCString(string)
-      .join(true, 'C')
+    return new BufferList().addCString(string).join(true, 'C')
   },
 
   rowDescription: function (fields: any[]) {
@@ -74,7 +50,8 @@ const buffers = {
     var buf = new BufferList()
     buf.addInt16(fields.length)
     fields.forEach(function (field) {
-      buf.addCString(field.name)
+      buf
+        .addCString(field.name)
         .addInt32(field.tableID || 0)
         .addInt16(field.attributeNumber || 0)
         .addInt32(field.dataTypeID || 0)
@@ -116,7 +93,7 @@ const buffers = {
       buf.addChar(field.type)
       buf.addCString(field.value)
     })
-    return buf.add(Buffer.from([0]))// terminator
+    return buf.add(Buffer.from([0])) // terminator
   },
 
   parseComplete: function () {
@@ -128,11 +105,7 @@ const buffers = {
   },
 
   notification: function (id: number, channel: string, payload: string) {
-    return new BufferList()
-      .addInt32(id)
-      .addCString(channel)
-      .addCString(payload)
-      .join(true, 'A')
+    return new BufferList().addInt32(id).addCString(channel).addCString(payload).join(true, 'A')
   },
 
   emptyQuery: function () {
@@ -152,9 +125,9 @@ const buffers = {
       // text mode
       .addByte(0)
       // column count
-      .addInt16(cols);
+      .addInt16(cols)
     for (let i = 0; i < cols; i++) {
-      list.addInt16(i);
+      list.addInt16(i)
     }
     return list.join(true, 'G')
   },
@@ -164,20 +137,20 @@ const buffers = {
       // text mode
       .addByte(0)
       // column count
-      .addInt16(cols);
+      .addInt16(cols)
     for (let i = 0; i < cols; i++) {
-      list.addInt16(i);
+      list.addInt16(i)
     }
     return list.join(true, 'H')
   },
 
   copyData: function (bytes: Buffer) {
-    return new BufferList().add(bytes).join(true, 'd');
+    return new BufferList().add(bytes).join(true, 'd')
   },
 
   copyDone: function () {
     return new BufferList().join(true, 'c')
-  }
+  },
 }
 
 export default buffers

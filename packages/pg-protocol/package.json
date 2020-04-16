@@ -1,6 +1,7 @@
 {
-  "name": "pg-packet-stream",
-  "version": "1.1.0",
+  "name": "pg-protocol",
+  "version": "1.2.1",
+  "description": "The postgres client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -16,7 +17,9 @@
   },
   "scripts": {
     "test": "mocha dist/**/*.test.js",
-    "prepublish": "tsc",
-    "pretest": "tsc"
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "prepublish": "yarn build",
+    "pretest": "yarn build"
   }
 }

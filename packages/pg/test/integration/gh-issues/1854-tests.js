@@ -1,4 +1,4 @@
-"use strict"
+'use strict'
 var helper = require('./../test-helper')
 
 const suite = new helper.Suite()
@@ -10,17 +10,17 @@ suite.test('Parameter serialization errors should not cause query to hang', (don
   }
   const client = new helper.pg.Client()
   const expectedErr = new Error('Serialization error')
-  client.connect()
+  client
+    .connect()
     .then(() => {
       const obj = {
         toPostgres: function () {
           throw expectedErr
-        }
+        },
       }
-      return client.query('SELECT $1::text', [obj])
-        .then(() => {
-          throw new Error('Expected a serialization error to be thrown but no error was thrown')
-        })
+      return client.query('SELECT $1::text', [obj]).then(() => {
+        throw new Error('Expected a serialization error to be thrown but no error was thrown')
+      })
     })
     .catch((err) => {
       client.end(() => {})

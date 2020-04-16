@@ -4,21 +4,15 @@ require(__dirname + '/test-helper')
 
 var buffers = {}
 buffers.readyForQuery = function () {
-  return new BufferList()
-    .add(Buffer.from('I'))
-    .join(true, 'Z')
+  return new BufferList().add(Buffer.from('I')).join(true, 'Z')
 }
 
 buffers.authenticationOk = function () {
-  return new BufferList()
-    .addInt32(0)
-    .join(true, 'R')
+  return new BufferList().addInt32(0).join(true, 'R')
 }
 
 buffers.authenticationCleartextPassword = function () {
-  return new BufferList()
-    .addInt32(3)
-    .join(true, 'R')
+  return new BufferList().addInt32(3).join(true, 'R')
 }
 
 buffers.authenticationMD5Password = function () {
@@ -29,45 +23,27 @@ buffers.authenticationMD5Password = function () {
 }
 
 buffers.authenticationSASL = function () {
-  return new BufferList()
-    .addInt32(10)
-    .addCString('SCRAM-SHA-256')
-    .addCString('')
-    .join(true, 'R')
+  return new BufferList().addInt32(10).addCString('SCRAM-SHA-256').addCString('').join(true, 'R')
 }
 
 buffers.authenticationSASLContinue = function () {
-  return new BufferList()
-    .addInt32(11)
-    .addString('data')
-    .join(true, 'R')
+  return new BufferList().addInt32(11).addString('data').join(true, 'R')
 }
 
 buffers.authenticationSASLFinal = function () {
-  return new BufferList()
-    .addInt32(12)
-    .addString('data')
-    .join(true, 'R')
+  return new BufferList().addInt32(12).addString('data').join(true, 'R')
 }
 
 buffers.parameterStatus = function (name, value) {
-  return new BufferList()
-    .addCString(name)
-    .addCString(value)
-    .join(true, 'S')
+  return new BufferList().addCString(name).addCString(value).join(true, 'S')
 }
 
 buffers.backendKeyData = function (processID, secretKey) {
-  return new BufferList()
-    .addInt32(processID)
-    .addInt32(secretKey)
-    .join(true, 'K')
+  return new BufferList().addInt32(processID).addInt32(secretKey).join(true, 'K')
 }
 
 buffers.commandComplete = function (string) {
-  return new BufferList()
-    .addCString(string)
-    .join(true, 'C')
+  return new BufferList().addCString(string).join(true, 'C')
 }
 
 buffers.rowDescription = function (fields) {
@@ -75,7 +51,8 @@ buffers.rowDescription = function (fields) {
   var buf = new BufferList()
   buf.addInt16(fields.length)
   fields.forEach(function (field) {
-    buf.addCString(field.name)
+    buf
+      .addCString(field.name)
       .addInt32(field.tableID || 0)
       .addInt16(field.attributeNumber || 0)
       .addInt32(field.dataTypeID || 0)
@@ -117,7 +94,7 @@ var errorOrNotice = function (fields) {
     buf.addChar(field.type)
     buf.addCString(field.value)
   })
-  return buf.add(Buffer.from([0]))// terminator
+  return buf.add(Buffer.from([0])) // terminator
 }
 
 buffers.parseComplete = function () {
@@ -129,11 +106,7 @@ buffers.bindComplete = function () {
 }
 
 buffers.notification = function (id, channel, payload) {
-  return new BufferList()
-    .addInt32(id)
-    .addCString(channel)
-    .addCString(payload)
-    .join(true, 'A')
+  return new BufferList().addInt32(id).addCString(channel).addCString(payload).join(true, 'A')
 }
 
 buffers.emptyQuery = function () {

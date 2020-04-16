@@ -22,7 +22,7 @@ assert(semver.gte(Native.version, pkg.minNativeVersion), msg)
 
 var NativeQuery = require('./query')
 
-var Client = module.exports = function (config) {
+var Client = (module.exports = function (config) {
   EventEmitter.call(this)
   config = config || {}
 
@@ -30,7 +30,7 @@ var Client = module.exports = function (config) {
   this._types = new TypeOverrides(config.types)
 
   this.native = new Native({
-    types: this._types
+    types: this._types,
   })
 
   this._queryQueue = []
@@ -41,16 +41,24 @@ var Client = module.exports = function (config) {
 
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
-  var cp = this.connectionParameters = new ConnectionParameters(config)
+  var cp = (this.connectionParameters = new ConnectionParameters(config))
   this.user = cp.user
-  this.password = cp.password
+
+  // "hiding" the password so it doesn't show up in stack traces
+  // or if the client is console.logged
+  Object.defineProperty(this, 'password', {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: cp.password,
+  })
   this.database = cp.database
   this.host = cp.host
   this.port = cp.port
 
   // a hash to hold named queries
   this.namedQueries = {}
-}
+})
 
 Client.Query = NativeQuery
 
@@ -107,7 +115,7 @@ Client.prototype._connect = function (cb) {
       self.native.on('notification', function (msg) {
         self.emit('notification', {
           channel: msg.relname,
-          payload: msg.extra
+          payload: msg.extra,
         })
       })
 
@@ -172,7 +180,7 @@ Client.prototype.query = function (config, values, callback) {
         resolveOut = resolve
         rejectOut = reject
       })
-      query.callback = (err, res) => err ? rejectOut(err) : resolveOut(res)
+      query.callback = (err, res) => (err ? rejectOut(err) : resolveOut(res))
     }
   }
 
@@ -240,7 +248,7 @@ Client.prototype.end = function (cb) {
   var result
   if (!cb) {
     result = new this._Promise(function (resolve, reject) {
-      cb = (err) => err ? reject(err) : resolve()
+      cb = (err) => (err ? reject(err) : resolve())
     })
   }
   this.native.end(function () {

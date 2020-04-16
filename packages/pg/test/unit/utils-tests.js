@@ -29,7 +29,7 @@ test('EventEmitter.once', function (t) {
 
 test('normalizing query configs', function () {
   var config
-  var callback = function () { }
+  var callback = function () {}
 
   config = utils.normalizeQueryConfig({ text: 'TEXT' })
   assert.same(config, { text: 'TEXT' })
@@ -162,7 +162,7 @@ test('prepareValue: objects with simple toPostgres prepared properly', function 
   var customType = {
     toPostgres: function () {
       return 'zomgcustom!'
-    }
+    },
   }
   var out = utils.prepareValue(customType)
   assert.strictEqual(out, 'zomgcustom!')
@@ -180,7 +180,7 @@ test('prepareValue: objects with complex toPostgres prepared properly', function
   var customType = {
     toPostgres: function () {
       return [1, 2]
-    }
+    },
   }
   var out = utils.prepareValue(customType)
   assert.strictEqual(out, '{"1","2"}')
@@ -188,11 +188,19 @@ test('prepareValue: objects with complex toPostgres prepared properly', function
 
 test('prepareValue: objects with toPostgres receive prepareValue', function () {
   var customRange = {
-    lower: { toPostgres: function () { return 5 } },
-    upper: { toPostgres: function () { return 10 } },
+    lower: {
+      toPostgres: function () {
+        return 5
+      },
+    },
+    upper: {
+      toPostgres: function () {
+        return 10
+      },
+    },
     toPostgres: function (prepare) {
       return '[' + prepare(this.lower) + ',' + prepare(this.upper) + ']'
-    }
+    },
   }
   var out = utils.prepareValue(customRange)
   assert.strictEqual(out, '[5,10]')
@@ -202,8 +210,12 @@ test('prepareValue: objects with circular toPostgres rejected', function () {
   var buf = Buffer.from('zomgcustom!')
   var customType = {
     toPostgres: function () {
-      return { toPostgres: function () { return customType } }
-    }
+      return {
+        toPostgres: function () {
+          return customType
+        },
+      }
+    },
   }
 
   // can't use `assert.throws` since we need to distinguish circular reference
@@ -221,7 +233,7 @@ test('prepareValue: can safely be used to map an array of values including those
   var customType = {
     toPostgres: function () {
       return 'zomgcustom!'
-    }
+    },
   }
   var values = [1, 'test', customType]
   var out = values.map(utils.prepareValue)

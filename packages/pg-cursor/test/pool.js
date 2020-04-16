@@ -5,7 +5,7 @@ const pg = require('pg')
 
 const text = 'SELECT generate_series as num FROM generate_series(0, 50)'
 
-function poolQueryPromise (pool, readRowCount) {
+function poolQueryPromise(pool, readRowCount) {
   return new Promise((resolve, reject) => {
     pool.connect((err, client, done) => {
       if (err) {
@@ -13,12 +13,12 @@ function poolQueryPromise (pool, readRowCount) {
         return reject(err)
       }
       const cursor = client.query(new Cursor(text))
-      cursor.read(readRowCount, err => {
+      cursor.read(readRowCount, (err) => {
         if (err) {
           done(err)
           return reject(err)
         }
-        cursor.close(err => {
+        cursor.close((err) => {
           if (err) {
             done(err)
             return reject(err)
@@ -43,7 +43,7 @@ describe('pool', function () {
   it('closes cursor early, single pool query', function (done) {
     poolQueryPromise(this.pool, 25)
       .then(() => done())
-      .catch(err => {
+      .catch((err) => {
         assert.ifError(err)
         done()
       })
@@ -56,7 +56,7 @@ describe('pool', function () {
     }
     Promise.all(promises)
       .then(() => done())
-      .catch(err => {
+      .catch((err) => {
         assert.ifError(err)
         done()
       })
@@ -65,7 +65,7 @@ describe('pool', function () {
   it('closes exhausted cursor, single pool query', function (done) {
     poolQueryPromise(this.pool, 100)
       .then(() => done())
-      .catch(err => {
+      .catch((err) => {
         assert.ifError(err)
         done()
       })
@@ -78,7 +78,7 @@ describe('pool', function () {
     }
     Promise.all(promises)
       .then(() => done())
-      .catch(err => {
+      .catch((err) => {
         assert.ifError(err)
         done()
       })
@@ -90,7 +90,7 @@ describe('pool', function () {
       const cursor = new Cursor(text)
       const client = await pool.connect()
       client.query(cursor)
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         cursor.read(25, function (err) {
           assert.ifError(err)
           cursor.close(function (err) {

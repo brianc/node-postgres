@@ -2,10 +2,13 @@ language: node_js
 dist: bionic
 
 before_script: |
+  yarn build
   node packages/pg/script/create-test-tables.js postgresql:///
 
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
+  # test w/ new faster parsing code
+  - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PG_FAST_CONNECTION=true
 
 node_js:
   - lts/dubnium
@@ -30,6 +33,7 @@ matrix:
           -e '/^host/ s/trust$/md5/' \
           /etc/postgresql/10/main/pg_hba.conf
         sudo -u postgres psql -c "ALTER ROLE postgres PASSWORD 'test-password'; SELECT pg_reload_conf()"
+        yarn build
         node packages/pg/script/create-test-tables.js postgresql:///
 
     - node_js: lts/carbon
