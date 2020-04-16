@@ -45,7 +45,7 @@ describe('pool ending', () => {
        pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
     }
     await pool.end() // pool.end()
-    expect(completed).to.equal(19) // all 20 queries finish
+    expect(completed).to.equal(19) // all 20 queries finish (only 19 here because bug #2163 the last query callback hasn't run yet)
   })
 
   it('pool.end(true) - drop pending queries', async () => {
@@ -55,6 +55,6 @@ describe('pool ending', () => {
        pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
     }
     await pool.end(true) // pool.end(true)
-    expect(completed).to.equal(9) // only the 10 active queries finish, 10 pending queries get dropped
+    expect(completed).to.equal(9) // 10 active queries finish, 10 pending queries get dropped (only 9 here because bug #2163 the last query callback hasn't run yet)
   })
 })
