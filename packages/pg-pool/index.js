@@ -372,6 +372,7 @@ class Pool extends EventEmitter {
     return response.result
   }
 
+  // force (Boolean) and cb (Function) are optional
   end(force, cb) {
     if (typeof force === 'function') {
       cb = force
