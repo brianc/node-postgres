@@ -374,7 +374,7 @@ class Pool extends EventEmitter {
 
   // force (Boolean) and cb (Function) are optional
   end(force, cb) {
-    if (typeof force === 'function') {
+    if (typeof force == 'function') {
       cb = force
       force = false
     }
