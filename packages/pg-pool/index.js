@@ -103,6 +103,7 @@ class Pool extends EventEmitter {
       this.log('pulse queue ended')
       return
     }
+    // remove clients from pool if pool is ending and there are no pending queries or if force is enabled
     if (this.ending && (this.force || !this._pendingQueue.length)) {
       this.log('pulse queue on ending')
       if (this._idle.length) {
