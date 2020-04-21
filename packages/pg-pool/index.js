@@ -252,16 +252,7 @@ class Pool extends EventEmitter {
 
     this.emit('acquire', client)
 
-    let released = false
-
-    client.release = (err) => {
-      if (released) {
-        throwOnDoubleRelease()
-      }
-
-      released = true
-      this._release(client, idleListener, err)
-    }
+    client.release = this._releaseOnce(client, idleListener)
 
     client.removeListener('error', idleListener)
 
@@ -284,6 +275,20 @@ class Pool extends EventEmitter {
       } else {
         client.release()
       }
+    }
+  }
+
+  // returns a function that wraps _release and throws if called more than once
+  _releaseOnce(client, idleListener) {
+    let released = false
+
+    return (err) => {
+      if (released) {
+        throwOnDoubleRelease()
+      }
+
+      released = true
+      this._release(client, idleListener, err)
     }
   }
 
