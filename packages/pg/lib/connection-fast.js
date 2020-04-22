@@ -42,13 +42,10 @@ util.inherits(Connection, EventEmitter)
 Connection.prototype.connect = function (port, host) {
   var self = this
 
-  if (this.stream.readyState === 'closed') {
-    this.stream.connect(port, host)
-  } else if (this.stream.readyState === 'open') {
-    this.emit('connect')
-  }
+  this._connecting = true
+  this.stream.connect(port, host)
 
-  this.stream.on('connect', function () {
+  this.stream.once('connect', function () {
     if (self._keepAlive) {
       self.stream.setKeepAlive(true, self._keepAliveInitialDelayMillis)
     }
@@ -187,7 +184,7 @@ const endBuffer = serialize.end()
 Connection.prototype.end = function () {
   // 0x58 = 'X'
   this._ending = true
-  if (!this.stream.writable) {
+  if (!this._connecting || !this.stream.writable) {
     this.stream.end()
     return
   }

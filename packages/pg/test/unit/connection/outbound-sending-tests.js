@@ -5,6 +5,7 @@ var stream = new MemoryStream()
 var con = new Connection({
   stream: stream,
 })
+con._connecting = true
 
 assert.received = function (stream, buffer) {
   assert.lengthIs(stream.packets, 1)

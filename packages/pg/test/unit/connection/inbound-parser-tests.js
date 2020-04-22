@@ -399,7 +399,6 @@ test('Connection', function () {
 test('split buffer, single message parsing', function () {
   var fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
   var stream = new MemoryStream()
-  stream.readyState = 'open'
   var client = new Connection({
     stream: stream,
   })
