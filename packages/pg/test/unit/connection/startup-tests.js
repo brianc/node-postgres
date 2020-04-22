@@ -7,10 +7,9 @@ test('connection can take existing stream', function () {
   assert.equal(con.stream, stream)
 })
 
-test('using closed stream', function () {
+test('using any stream', function () {
   var makeStream = function () {
     var stream = new MemoryStream()
-    stream.readyState = 'closed'
     stream.connect = function (port, host) {
       this.connectCalled = true
       this.port = port
@@ -63,22 +62,5 @@ test('using closed stream', function () {
     setTimeout(function () {
       assert.equal(res, true)
     })
-  })
-})
-
-test('using opened stream', function () {
-  var stream = new MemoryStream()
-  stream.readyState = 'open'
-  stream.connect = function () {
-    assert.ok(false, 'Should not call open')
-  }
-  var con = new Connection({ stream: stream })
-  test('does not call open', function () {
-    var hit = false
-    con.once('connect', function () {
-      hit = true
-    })
-    con.connect()
-    assert.ok(hit)
   })
 })

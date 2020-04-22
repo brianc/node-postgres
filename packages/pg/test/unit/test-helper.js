@@ -13,6 +13,10 @@ helper.sys.inherits(MemoryStream, EventEmitter)
 
 var p = MemoryStream.prototype
 
+p.connect = function () {
+  // NOOP
+}
+
 p.write = function (packet, cb) {
   this.packets.push(packet)
   if (cb) {
@@ -30,7 +34,6 @@ p.writable = true
 
 const createClient = function () {
   var stream = new MemoryStream()
-  stream.readyState = 'open'
   var client = new Client({
     connection: new Connection({ stream: stream }),
   })

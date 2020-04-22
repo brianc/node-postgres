@@ -5,6 +5,9 @@ var Client = require(__dirname + '/../../../lib/client')
 
 test('emits end when not in query', function () {
   var stream = new (require('events').EventEmitter)()
+  stream.connect = function () {
+    // NOOP
+  }
   stream.write = function () {
     // NOOP
   }
