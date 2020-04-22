@@ -144,7 +144,7 @@ Connection.prototype.startup = function (config) {
     writer.addCString(key).addCString(val)
   })
 
-  writer.addCString('client_encoding').addCString("'utf-8'")
+  writer.addCString('client_encoding').addCString('UTF8')
 
   var bodyBuffer = writer.addCString('').flush()
   // this message is sent without a code

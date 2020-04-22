@@ -25,7 +25,7 @@ const startup = (opts: Record<string, string>): Buffer => {
     writer.addCString(key).addCString(opts[key])
   }
 
-  writer.addCString('client_encoding').addCString("'utf-8'")
+  writer.addCString('client_encoding').addCString('UTF8')
 
   var bodyBuffer = writer.addCString('').flush()
   // this message is sent without a code
