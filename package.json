@@ -13,7 +13,7 @@
     "test": "yarn lint && yarn lerna exec yarn test",
     "build": "yarn lerna exec --scope pg-protocol yarn build",
     "pretest": "yarn build",
-    "lint": "!([[ -e node_modules/.bin/prettier ]]) || eslint '*/**/*.{js,ts,tsx}'"
+    "lint": "if [ -x ./node_modules/.bin/eslint ]; then eslint '*/**/*.{js,ts,tsx}'; fi;"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.27.0",
