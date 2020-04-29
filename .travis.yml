@@ -17,6 +17,7 @@ node_js:
   # if 13.8 still has this problem when it comes down I'll talk to the node team about the change
   # in the mean time...peg to 13.6 
   - 13.6
+  - 14
 
 addons:
   postgresql: "10"

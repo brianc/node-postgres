@@ -566,7 +566,7 @@ Client.prototype.end = function (cb) {
   this._ending = true
 
   // if we have never connected, then end is a noop, callback immediately
-  if (this.connection.stream.readyState === 'closed') {
+  if (!this.connection._connecting) {
     if (cb) {
       cb()
     } else {
