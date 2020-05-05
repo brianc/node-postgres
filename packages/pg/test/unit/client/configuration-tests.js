@@ -1,5 +1,6 @@
 'use strict'
 require(__dirname + '/test-helper')
+var assert = require('assert')
 
 var pguser = process.env['PGUSER'] || process.env.USER
 var pgdatabase = process.env['PGDATABASE'] || process.env.USER
@@ -41,6 +42,11 @@ test('client settings', function () {
     process.env.PGSSLMODE = old
 
     assert.equal(client.ssl, true)
+  })
+
+  test('ssl no-verify', function () {
+    var client = new Client({ ssl: 'no-verify' })
+    assert.deepStrictEqual(client.ssl, { rejectUnauthorized: false })
   })
 
   test('custom ssl force off', function () {
