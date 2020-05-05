@@ -11,8 +11,7 @@ var net = require('net')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 
-// eslint-disable-next-line
-const { parse, serialize } = require('../../pg-protocol/dist')
+const { parse, serialize } = require('pg-protocol/dist')
 
 // TODO(bmc) support binary mode here
 // var BINARY_MODE = 1
