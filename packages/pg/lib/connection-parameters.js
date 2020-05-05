@@ -25,8 +25,15 @@ var val = function (key, config, envVar) {
   return config[key] || envVar || defaults[key]
 }
 
-var useSsl = function () {
-  switch (process.env.PGSSLMODE) {
+var useSsl = function (modeFromConfig) {
+  // if the ssl parameter passed to config is not a string, just return it
+  // directly (it will be passed directly to tls.connect)
+  if (modeFromConfig !== undefined && typeof modeFromConfig !== 'string') {
+    return modeFromConfig
+  }
+  const mode = modeFromConfig || process.env.PGSSLMODE
+
+  switch (mode) {
     case 'disable':
       return false
     case 'prefer':
@@ -70,7 +77,8 @@ var ConnectionParameters = function (config) {
   })
 
   this.binary = val('binary', config)
-  this.ssl = typeof config.ssl === 'undefined' ? useSsl() : config.ssl
+  // this.ssl = typeof config.ssl === 'undefined' ? useSsl() : config.ssl
+  this.ssl = useSsl(config.ssl)
   this.client_encoding = val('client_encoding', config)
   this.replication = val('replication', config)
   // a domain socket begins with '/'
