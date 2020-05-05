@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-pg-cursor.git"
+    "url": "git://github.com/brianc/node-postgres.git"
   },
   "author": "Brian M. Carlson",
   "license": "MIT",
