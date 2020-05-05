@@ -11,11 +11,9 @@ var net = require('net')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 
-// eslint-disable-next-line
-const { parse, serialize } = require('../../pg-protocol/dist')
+const { parse, serialize } = require('pg-protocol')
 
-// TODO(bmc) support binary mode here
-// var BINARY_MODE = 1
+// TODO(bmc) support binary mode at some point
 console.log('***using faster connection***')
 var Connection = function (config) {
   EventEmitter.call(this)
