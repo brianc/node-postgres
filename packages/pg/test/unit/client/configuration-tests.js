@@ -44,11 +44,6 @@ test('client settings', function () {
     assert.equal(client.ssl, true)
   })
 
-  test('ssl no-verify', function () {
-    var client = new Client({ ssl: 'no-verify' })
-    assert.deepStrictEqual(client.ssl, { rejectUnauthorized: false })
-  })
-
   test('custom ssl force off', function () {
     var old = process.env.PGSSLMODE
     process.env.PGSSLMODE = 'prefer'
