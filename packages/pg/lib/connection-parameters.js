@@ -25,7 +25,7 @@ var val = function (key, config, envVar) {
   return config[key] || envVar || defaults[key]
 }
 
-var useSsl = function () {
+var readSSLConfigFromEnvironment = function () {
   switch (process.env.PGSSLMODE) {
     case 'disable':
       return false
@@ -34,6 +34,8 @@ var useSsl = function () {
     case 'verify-ca':
     case 'verify-full':
       return true
+    case 'no-verify':
+      return { rejectUnauthorized: false }
   }
   return defaults.ssl
 }
@@ -68,7 +70,14 @@ var ConnectionParameters = function (config) {
   })
 
   this.binary = val('binary', config)
-  this.ssl = typeof config.ssl === 'undefined' ? useSsl() : config.ssl
+
+  this.ssl = typeof config.ssl === 'undefined' ? readSSLConfigFromEnvironment() : config.ssl
+
+  // support passing in ssl=no-verify via connection string
+  if (this.ssl === 'no-verify') {
+    this.ssl = { rejectUnauthorized: false }
+  }
+
   this.client_encoding = val('client_encoding', config)
   this.replication = val('replication', config)
   // a domain socket begins with '/'
