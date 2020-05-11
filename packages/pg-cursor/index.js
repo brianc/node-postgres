@@ -135,7 +135,7 @@ Cursor.prototype.handlePortalSuspended = function () {
 
 Cursor.prototype.handleReadyForQuery = function () {
   this._sendRows()
-  this._closePortal()
+  this.state = 'done'
   this.emit('end', this._result)
 }
 
