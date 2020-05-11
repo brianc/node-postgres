@@ -82,6 +82,12 @@ Cursor.prototype._shiftQueue = function () {
 }
 
 Cursor.prototype._closePortal = function () {
+  // This method might get called twice in case handleCommandComplete is
+  // triggered after the user called stream.destroy().
+  if (this.state === 'done') return
+
+  this.state = 'done'
+
   // because we opened a named portal to stream results
   // we need to close the same named portal.  Leaving a named portal
   // open can lock tables for modification if inside a transaction.
@@ -120,9 +126,6 @@ Cursor.prototype._sendRows = function () {
 
 Cursor.prototype.handleCommandComplete = function (msg) {
   this._result.addCommandComplete(msg)
-  // The cursor might have been .close()'d right before this listener gets
-  // called. Let's not close the portal twice.
-  if (this.state === 'done') return
   this._closePortal()
 }
 
@@ -132,7 +135,7 @@ Cursor.prototype.handlePortalSuspended = function () {
 
 Cursor.prototype.handleReadyForQuery = function () {
   this._sendRows()
-  this.state = 'done'
+  this._closePortal()
   this.emit('end', this._result)
 }
 
@@ -193,7 +196,6 @@ Cursor.prototype.close = function (cb) {
     }
   }
   this._closePortal()
-  this.state = 'done'
   if (cb) {
     this.connection.once('readyForQuery', function () {
       cb()
