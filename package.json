@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "yarn lint && yarn lerna exec yarn test",
+    "test": "yarn lerna exec --scope pg-cursor yarn test",
     "build": "yarn lerna exec --scope pg-protocol yarn build",
     "pretest": "yarn build",
     "lint": "if [ -x ./node_modules/.bin/prettier ]; then eslint '*/**/*.{js,ts,tsx}'; fi;"

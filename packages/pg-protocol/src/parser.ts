@@ -86,11 +86,13 @@ export class Parser {
   }
 
   public parse(buffer: Buffer, callback: MessageCallback) {
+    const start = Date.now()
     let combinedBuffer = buffer
     if (this.remainingBuffer.byteLength) {
       combinedBuffer = Buffer.allocUnsafe(this.remainingBuffer.byteLength + buffer.byteLength)
       this.remainingBuffer.copy(combinedBuffer)
       buffer.copy(combinedBuffer, this.remainingBuffer.byteLength)
+      console.log('combine', combinedBuffer.byteLength)
     }
     let offset = 0
     while (offset + HEADER_LENGTH <= combinedBuffer.byteLength) {
@@ -116,6 +118,7 @@ export class Parser {
     } else {
       this.remainingBuffer = combinedBuffer.slice(offset)
     }
+    console.log('parsed in', Date.now() - start)
   }
 
   private handlePacket(offset: number, code: number, length: number, bytes: Buffer): BackendMessage {
