@@ -1,6 +1,6 @@
 'use strict'
-var helper = require(__dirname + '/test-helper')
-var Connection = require(__dirname + '/../../../lib/connection')
+var helper = require('./test-helper')
+var Connection = require('../../../lib/connection')
 var net = require('net')
 
 const suite = new helper.Suite()

@@ -1,5 +1,5 @@
 'use strict'
-var helper = require(__dirname + '/../test-helper')
+var helper = require('../test-helper')
 var exec = require('child_process').exec
 
 helper.pg.defaults.poolIdleTimeout = 1000

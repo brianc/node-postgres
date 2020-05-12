@@ -1,8 +1,8 @@
 'use strict'
 var net = require('net')
-var helper = require(__dirname + '/../test-helper')
-var Connection = require(__dirname + '/../../../lib/connection')
-var utils = require(__dirname + '/../../../lib/utils')
+var helper = require('../test-helper')
+var Connection = require('../../../lib/connection')
+var utils = require('../../../lib/utils')
 var connect = function (callback) {
   var username = helper.args.user
   var database = helper.args.database

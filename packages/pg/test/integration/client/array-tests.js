@@ -1,5 +1,5 @@
 'use strict'
-var helper = require(__dirname + '/test-helper')
+var helper = require('./test-helper')
 var pg = helper.pg
 
 var suite = new helper.Suite()

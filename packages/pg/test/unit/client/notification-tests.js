@@ -1,5 +1,5 @@
 'use strict'
-var helper = require(__dirname + '/test-helper')
+var helper = require('./test-helper')
 
 test('passes connection notification', function () {
   var client = helper.client()

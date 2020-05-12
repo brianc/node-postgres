@@ -1,5 +1,5 @@
 'use strict'
-var helper = require(__dirname + '/test-helper')
+var helper = require('./test-helper')
 
 var testForTag = function (tagText, callback) {
   test('includes command tag data for tag ' + tagText, function () {

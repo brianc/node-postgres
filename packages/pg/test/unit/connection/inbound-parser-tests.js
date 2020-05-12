@@ -1,7 +1,7 @@
 'use strict'
-require(__dirname + '/test-helper')
-var Connection = require(__dirname + '/../../../lib/connection')
-var buffers = require(__dirname + '/../../test-buffers')
+require('./test-helper')
+var Connection = require('../../../lib/connection')
+var buffers = require('../../test-buffers')
 var PARSE = function (buffer) {
   return new Parser(buffer).parse()
 }

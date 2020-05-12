@@ -1,5 +1,5 @@
 'use strict'
-require(__dirname + '/test-helper')
+require('./test-helper')
 // http://developer.postgresql.org/pgdocs/postgres/protocol-message-formats.html
 
 var buffers = {}

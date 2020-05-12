@@ -1,5 +1,5 @@
 'use strict'
-var ConnectionParameters = require(__dirname + '/../lib/connection-parameters')
+var ConnectionParameters = require('../lib/connection-parameters')
 var config = new ConnectionParameters(process.argv[2])
 
 for (var i = 0; i < process.argv.length; i++) {
