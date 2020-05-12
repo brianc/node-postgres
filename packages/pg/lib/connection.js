@@ -39,6 +39,7 @@ Connection.prototype.connect = function (port, host) {
   var self = this
 
   this._connecting = true
+  this.stream.setNoDelay(true)
   this.stream.connect(port, host)
 
   this.stream.once('connect', function () {
