@@ -155,3 +155,56 @@ test('prepared statement with explicit portal', function () {
     })
   })
 })
+
+var describeClient = helper.client()
+var describeCon = describeClient.connection
+describeCon.parse = function (arg) {
+  process.nextTick(function () {
+    describeCon.emit('parseComplete')
+  })
+}
+var describeDescribeArg = null
+describeCon.describe = function (arg) {
+  describeDescribeArg = arg
+}
+
+var describeFlushCalled = false
+describeCon.flush = function () {
+  describeFlushCalled = true
+  process.nextTick(function () {
+    describeCon.emit('paramDescription', { params: [] })
+    describeCon.emit('rowDescription', { fields: [] })
+  })
+}
+
+var describeSyncCalled = false
+describeCon.sync = function () {
+  process.nextTick(function () {
+    describeSyncCalled = true
+    describeCon.emit('readyForQuery')
+  })
+}
+
+test('describe prepared statement', function () {
+  assert.ok(describeClient.connection.emit('readyForQuery'))
+
+  var query = describeClient.query(
+    new Query({
+      text: 'select * from X where name = $1',
+      describe: true,
+    })
+  )
+
+  assert.emits(query, 'end', function () {
+    test('describe argument', function () {
+      assert.equal(describeDescribeArg.type, 'S')
+      assert.equal(describeDescribeArg.name, undefined)
+    })
+    test('flush called', function () {
+      assert.ok(describeFlushCalled)
+    })
+    test('sync called', function () {
+      assert.ok(describeSyncCalled)
+    })
+  })
+})

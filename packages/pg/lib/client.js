@@ -332,6 +332,11 @@ Client.prototype._attachListeners = function (con) {
     self.activeQuery.handleDataRow(msg)
   })
 
+  // delegate paramDescription to active query
+  con.on('paramDescription', function (msg) {
+    self.activeQuery.handleParamDescription(msg, con)
+  })
+
   // delegate portalSuspended to active query
   // eslint-disable-next-line no-unused-vars
   con.on('portalSuspended', function (msg) {

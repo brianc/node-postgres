@@ -18,6 +18,7 @@ var Result = function (rowMode, types) {
   this.oid = null
   this.rows = []
   this.fields = []
+  this.params = []
   this._parsers = undefined
   this._types = types
   this.RowCtor = null
@@ -99,6 +100,16 @@ Result.prototype.addFields = function (fieldDescriptions) {
     } else {
       this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
     }
+  }
+}
+
+Result.prototype.addParams = function (paramDescriptions) {
+  if (this.params.length) {
+    this.params = []
+  }
+  for (var i = 0; i < paramDescriptions.length; i++) {
+    var desc = paramDescriptions[i]
+    this.params.push(desc)
   }
 }
 

@@ -403,6 +403,9 @@ Connection.prototype.parseMessage = function (buffer) {
     case 0x73: // s
       return new Message('portalSuspended', length)
 
+    case 0x74: // t
+      return this.parset(buffer, length)
+
     case 0x47: // G
       return this.parseG(buffer, length)
 
@@ -538,6 +541,17 @@ Connection.prototype.parseField = function (buffer) {
     field.format = FORMAT_BINARY
   }
   return field
+}
+
+Connection.prototype.parset = function (buffer, length) {
+  var msg = new Message('paramDescription', length)
+  msg.paramCount = this.parseInt16(buffer)
+  var params = []
+  for (var i = 0; i < msg.paramCount; i++) {
+    params.push(this.parseInt32(buffer))
+  }
+  msg.params = params
+  return msg
 }
 
 var DATA_ROW = 'dataRow'
