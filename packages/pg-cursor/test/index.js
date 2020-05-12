@@ -89,7 +89,9 @@ describe('cursor', function () {
     const cursor = this.pgCursor(text, values)
     let count = 0
     const read = function () {
+      let start = Date.now()
       cursor.read(100, function (err, rows) {
+        console.log('read in', Date.now() - start)
         if (err) return done(err)
         if (!rows.length) {
           assert.strictEqual(count, 100001)
