@@ -91,6 +91,7 @@ export class Parser {
       combinedBuffer = Buffer.allocUnsafe(this.remainingBuffer.byteLength + buffer.byteLength)
       this.remainingBuffer.copy(combinedBuffer)
       buffer.copy(combinedBuffer, this.remainingBuffer.byteLength)
+      console.log('byteLength', buffer.byteLength)
     }
     let offset = 0
     while (offset + HEADER_LENGTH <= combinedBuffer.byteLength) {
