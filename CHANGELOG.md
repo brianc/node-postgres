@@ -4,6 +4,18 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@8.2.0
+
+- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster. This is the first work to land in an on-going performance improvment initiative I'm working on. Stay tuned as things are set to get much faster still! :rocket:
+
+### pg-cursor@2.2.0
+
+- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster.
+
+### pg-query-stream@3.1.0
+
+- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster.
+
 ### pg@8.1.0
 
 - Switch to using [monorepo](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string) version of `pg-connection-string`. This includes better support for SSL argument parsing from connection strings and ensures continuity of support.
