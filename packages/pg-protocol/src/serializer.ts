@@ -198,7 +198,7 @@ type PortalOpts = {
   name?: string
 }
 
-const cstringMessage = (code: code, string: string, encoding: TextEncoding): Buffer => {
+const cstringMessage = (code: code, string: string, encoding: TextEncoding = 'utf8'): Buffer => {
   const stringLen = Buffer.byteLength(string)
   const len = 4 + stringLen + 1
   // one extra bit for code
