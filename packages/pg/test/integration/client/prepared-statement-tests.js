@@ -37,7 +37,7 @@ var suite = new helper.Suite()
     )
 
     assert.emits(cachedQuery, 'row', function (row) {
-      assert.equal(row.name, 'Aaron')
+      assert.equal(row.name, 'Antônio')
     })
 
     cachedQuery.on('end', () => done())
@@ -52,7 +52,7 @@ var suite = new helper.Suite()
     )
 
     assert.emits(q, 'row', function (row) {
-      assert.equal(row.name, 'Aaron')
+      assert.equal(row.name, 'Antônio')
 
       // test second row is emitted as well
       assert.emits(q, 'row', function (row) {

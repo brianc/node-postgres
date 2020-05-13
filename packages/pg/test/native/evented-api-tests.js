@@ -7,7 +7,7 @@ var setupClient = function () {
   var client = new Client(helper.config)
   client.connect()
   client.query('CREATE TEMP TABLE boom(name varchar(10), age integer)')
-  client.query("INSERT INTO boom(name, age) VALUES('Aaron', 26)")
+  client.query("INSERT INTO boom(name, age) VALUES('Antônio', 26)")
   client.query("INSERT INTO boom(name, age) VALUES('Brian', 28)")
   return client
 }
@@ -17,7 +17,7 @@ test('multiple results', function () {
     var client = setupClient()
     var q = client.query(new Query('SELECT name FROM BOOM'))
     assert.emits(q, 'row', function (row) {
-      assert.equal(row.name, 'Aaron')
+      assert.equal(row.name, 'Antônio')
       assert.emits(q, 'row', function (row) {
         assert.equal(row.name, 'Brian')
       })
@@ -39,9 +39,9 @@ test('multiple results', function () {
 test('parameterized queries', function () {
   test('with a single string param', function () {
     var client = setupClient()
-    var q = client.query(new Query('SELECT * FROM boom WHERE name = $1', ['Aaron']))
+    var q = client.query(new Query('SELECT * FROM boom WHERE name = $1', ['Antônio']))
     assert.emits(q, 'row', function (row) {
-      assert.equal(row.name, 'Aaron')
+      assert.equal(row.name, 'Antônio')
     })
     assert.emits(q, 'end', function () {
       client.end()
@@ -67,10 +67,10 @@ test('parameterized queries', function () {
   test('multiple parameters', function () {
     var client = setupClient()
     var q = client.query(
-      new Query('SELECT name FROM boom WHERE name = $1 or name = $2 ORDER BY name COLLATE "C"', ['Aaron', 'Brian'])
+      new Query('SELECT name FROM boom WHERE name = $1 or name = $2 ORDER BY name COLLATE "C"', ['Antônio', 'Brian'])
     )
     assert.emits(q, 'row', function (row) {
-      assert.equal(row.name, 'Aaron')
+      assert.equal(row.name, 'Antônio')
       assert.emits(q, 'row', function (row) {
         assert.equal(row.name, 'Brian')
         assert.emits(q, 'end', function () {

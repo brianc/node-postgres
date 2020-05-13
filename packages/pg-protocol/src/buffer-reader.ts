@@ -1,12 +1,11 @@
+import { TextEncoding } from './text-encoding'
+
 const emptyBuffer = Buffer.allocUnsafe(0)
 
 export class BufferReader {
   private buffer: Buffer = emptyBuffer
 
-  // TODO(bmc): support non-utf8 encoding?
-  private encoding: string = 'utf-8'
-
-  constructor(private offset: number = 0) {}
+  constructor(private encoding: TextEncoding = 'utf8', private offset: number = 0) {}
 
   public setBuffer(offset: number, buffer: Buffer): void {
     this.offset = offset

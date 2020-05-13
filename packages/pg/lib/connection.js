@@ -26,6 +26,7 @@ var Connection = function (config) {
   this._ending = false
   this._emitMessage = false
   var self = this
+  this.encoding = config.encoding || 'utf8'
   this.on('newListener', function (eventName) {
     if (eventName === 'message') {
       self._emitMessage = true
@@ -101,13 +102,17 @@ Connection.prototype.attachListeners = function (stream) {
   stream.on('end', () => {
     this.emit('end')
   })
-  parse(stream, (msg) => {
-    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
-    if (this._emitMessage) {
-      this.emit('message', msg)
-    }
-    this.emit(eventName, msg)
-  })
+  parse(
+    stream,
+    (msg) => {
+      var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+      if (this._emitMessage) {
+        this.emit('message', msg)
+      }
+      this.emit(eventName, msg)
+    },
+    this.encoding
+  )
 }
 
 Connection.prototype.requestSsl = function () {
@@ -115,7 +120,7 @@ Connection.prototype.requestSsl = function () {
 }
 
 Connection.prototype.startup = function (config) {
-  this.stream.write(serialize.startup(config))
+  this.stream.write(serialize.startup(config, this.encoding))
 }
 
 Connection.prototype.cancel = function (processID, secretKey) {
@@ -142,18 +147,18 @@ Connection.prototype._send = function (buffer) {
 }
 
 Connection.prototype.query = function (text) {
-  this._send(serialize.query(text))
+  this._send(serialize.query(text, this.encoding))
 }
 
 // send parse message
 Connection.prototype.parse = function (query) {
-  this._send(serialize.parse(query))
+  this._send(serialize.parse(query, this.encoding))
 }
 
 // send bind message
 // "more" === true to buffer the message until flush() is called
 Connection.prototype.bind = function (config) {
-  this._send(serialize.bind(config))
+  this._send(serialize.bind(config, this.encoding))
 }
 
 // send execute message
@@ -191,11 +196,11 @@ Connection.prototype.end = function () {
 }
 
 Connection.prototype.close = function (msg) {
-  this._send(serialize.close(msg))
+  this._send(serialize.close(msg, this.encoding))
 }
 
 Connection.prototype.describe = function (msg) {
-  this._send(serialize.describe(msg))
+  this._send(serialize.describe(msg, this.encoding))
 }
 
 Connection.prototype.sendCopyFromChunk = function (chunk) {
@@ -207,7 +212,7 @@ Connection.prototype.endCopyFrom = function () {
 }
 
 Connection.prototype.sendCopyFail = function (msg) {
-  this._send(serialize.copyFail(msg))
+  this._send(serialize.copyFail(msg, this.encoding))
 }
 
 module.exports = Connection

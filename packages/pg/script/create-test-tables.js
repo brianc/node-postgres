@@ -3,7 +3,7 @@ var args = require('../test/cli')
 var pg = require('../lib')
 
 var people = [
-  { name: 'Aaron', age: 10 },
+  { name: 'Antônio', age: 10 },
   { name: 'Brian', age: 20 },
   { name: 'Chris', age: 30 },
   { name: 'David', age: 40 },
@@ -28,7 +28,7 @@ var people = [
   { name: 'Wanda', age: 230 },
   { name: 'Xavier', age: 240 },
   { name: 'Yoyo', age: 250 },
-  { name: 'Zanzabar', age: 260 },
+  { name: 'Zélia', age: 260 },
 ]
 
 var con = new pg.Client({
@@ -37,6 +37,7 @@ var con = new pg.Client({
   user: args.user,
   password: args.password,
   database: args.database,
+  client_encoding: args.client_encoding,
 })
 
 con.connect((err) => {

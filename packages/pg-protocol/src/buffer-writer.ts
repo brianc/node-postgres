@@ -1,3 +1,5 @@
+import { TextEncoding } from './text-encoding'
+
 //binary data writer tuned for encoding binary specific to the postgres binary protocol
 
 export class Writer {
@@ -36,13 +38,13 @@ export class Writer {
     return this
   }
 
-  public addCString(string: string): Writer {
+  public addCString(string: string, encoding: TextEncoding = 'utf8'): Writer {
     if (!string) {
       this.ensure(1)
     } else {
-      var len = Buffer.byteLength(string)
+      var len = Buffer.byteLength(string, encoding)
       this.ensure(len + 1) // +1 for null terminator
-      this.buffer.write(string, this.offset, 'utf-8')
+      this.buffer.write(string, this.offset, encoding)
       this.offset += len
     }
 
@@ -50,10 +52,10 @@ export class Writer {
     return this
   }
 
-  public addString(string: string = ''): Writer {
-    var len = Buffer.byteLength(string)
+  public addString(string: string = '', encoding: TextEncoding = 'utf8'): Writer {
+    var len = Buffer.byteLength(string, encoding)
     this.ensure(len)
-    this.buffer.write(string, this.offset)
+    this.buffer.write(string, this.offset, encoding)
     this.offset += len
     return this
   }
