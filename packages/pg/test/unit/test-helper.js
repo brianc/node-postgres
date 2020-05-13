@@ -17,6 +17,8 @@ p.connect = function () {
   // NOOP
 }
 
+p.setNoDelay = () => {}
+
 p.write = function (packet, cb) {
   this.packets.push(packet)
   if (cb) {

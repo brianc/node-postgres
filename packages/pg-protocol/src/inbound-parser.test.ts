@@ -210,7 +210,20 @@ describe('PgPacketStream', function () {
   testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
   testForMessage(SASLBuffer, expectedSASLMessage)
   testForMessage(SASLContinueBuffer, expectedSASLContinueMessage)
+
+  // this exercises a found bug in the parser:
+  // https://github.com/brianc/node-postgres/pull/2210#issuecomment-627626084
+  // and adds a test which is deterministic, rather than relying on network packet chunking
+  const extendedSASLContinueBuffer = Buffer.concat([SASLContinueBuffer, Buffer.from([1, 2, 3, 4])])
+  testForMessage(extendedSASLContinueBuffer, expectedSASLContinueMessage)
+
   testForMessage(SASLFinalBuffer, expectedSASLFinalMessage)
+
+  // this exercises a found bug in the parser:
+  // https://github.com/brianc/node-postgres/pull/2210#issuecomment-627626084
+  // and adds a test which is deterministic, rather than relying on network packet chunking
+  const extendedSASLFinalBuffer = Buffer.concat([SASLFinalBuffer, Buffer.from([1, 2, 4, 5])])
+  testForMessage(extendedSASLFinalBuffer, expectedSASLFinalMessage)
 
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage)
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)
