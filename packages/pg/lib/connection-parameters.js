@@ -70,6 +70,7 @@ var ConnectionParameters = function (config) {
   })
 
   this.binary = val('binary', config)
+  this.options = val('options', config)
 
   this.ssl = typeof config.ssl === 'undefined' ? readSSLConfigFromEnvironment() : config.ssl
 
@@ -126,6 +127,7 @@ ConnectionParameters.prototype.getLibpqConnectionString = function (cb) {
   add(params, this, 'application_name')
   add(params, this, 'fallback_application_name')
   add(params, this, 'connect_timeout')
+  add(params, this, 'options')
 
   var ssl = typeof this.ssl === 'object' ? this.ssl : this.ssl ? { sslmode: this.ssl } : {}
   add(params, ssl, 'sslmode')

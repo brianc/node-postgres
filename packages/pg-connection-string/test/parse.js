@@ -188,10 +188,10 @@ describe('parse', function () {
     subject.fallback_application_name.should.equal('TheAppFallback')
   })
 
-  it('configuration parameter fallback_application_name', function () {
-    var connectionString = 'pg:///?fallback_application_name=TheAppFallback'
+  it('configuration parameter options', function () {
+    var connectionString = 'pg:///?options=-c geqo=off'
     var subject = parse(connectionString)
-    subject.fallback_application_name.should.equal('TheAppFallback')
+    subject.options.should.equal('-c geqo=off')
   })
 
   it('configuration parameter ssl=true', function () {
