@@ -4,6 +4,27 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@8.2.0
+
+- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster. This is the first work to land in an on-going performance improvment initiative I'm working on. Stay tuned as things are set to get much faster still! :rocket:
+
+### pg-cursor@2.2.0
+
+- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster.
+
+### pg-query-stream@3.1.0
+
+- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster.
+
+### pg@8.1.0
+
+- Switch to using [monorepo](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string) version of `pg-connection-string`. This includes better support for SSL argument parsing from connection strings and ensures continuity of support.
+- Add `&ssl=no-verify` option to connection string and `PGSSLMODE=no-verify` environment variable support for the pure JS driver. This is equivalent of passing `{ ssl: { rejectUnauthorize: false } }` to the client/pool constructor. The advantage of having support in connection strings and environment variables is it can be "externally" configured via environment variables and CLI arguments much more easily, and should remove the need to directly edit any application code for [the SSL default changes in 8.0](https://node-postgres.com/announcements#2020-02-25). This should make using `pg@8.x` significantly less difficult on environments like Heroku for example.
+
+### pg-pool@3.2.0
+
+- Same changes to `pg` impact `pg-pool` as they both use the same connection parameter and connection string parsing code for configuring SSL.
+
 ### pg-pool@3.1.0
 
 - Add [maxUses](https://github.com/brianc/node-postgres/pull/2157) config option.
@@ -12,8 +33,8 @@ We do not include break-fix version release in this file.
 
 #### note: for detailed release notes please [check here](https://node-postgres.com/announcements#2020-02-25)
 
-- Remove versions of node older than `6 lts` from the test matrix.  `pg>=8.0` may still work on older versions but it is no longer officially supported.
-- Change default behavior when not specifying `rejectUnauthorized` with the SSL connection parameters.  Previously we defaulted to `rejectUnauthorized: false` when it was not specifically included.  We now default to `rejectUnauthorized: true.`  Manually specify `{ ssl: { rejectUnauthorized: false } }` for old behavior.
+- Remove versions of node older than `6 lts` from the test matrix. `pg>=8.0` may still work on older versions but it is no longer officially supported.
+- Change default behavior when not specifying `rejectUnauthorized` with the SSL connection parameters. Previously we defaulted to `rejectUnauthorized: false` when it was not specifically included. We now default to `rejectUnauthorized: true.` Manually specify `{ ssl: { rejectUnauthorized: false } }` for old behavior.
 - Change [default database](https://github.com/brianc/node-postgres/pull/1679) when not specified to use the `user` config option if available. Previously `process.env.USER` was used.
 - Change `pg.Pool` and `pg.Query` to [be](https://github.com/brianc/node-postgres/pull/2126) an [es6 class](https://github.com/brianc/node-postgres/pull/2063).
 - Make `pg.native` non enumerable.
@@ -27,16 +48,17 @@ We do not include break-fix version release in this file.
 
 ### pg-query-stream@3.0.0
 
-- [Rewrote stream internals](https://github.com/brianc/node-postgres/pull/2051) to better conform to node stream semantics.  This should make pg-query-stream much better at respecting [highWaterMark](https://nodejs.org/api/stream.html#stream_new_stream_readable_options) and getting rid of some edge case bugs when using pg-query-stream as an async iterator.  Due to the size and nature of this change (effectively a full re-write) it's safest to bump the semver major here, though almost all tests remain untouched and still passing, which brings us to a breaking change to the API....
-- Changed `stream.close` to `stream.destroy` which is the [official](https://nodejs.org/api/stream.html#stream_readable_destroy_error) way to terminate a readable stream.  This is a __breaking change__ if you rely on the `stream.close` method on pg-query-stream...though should be just a find/replace type operation to upgrade as the semantics remain very similar (not exactly the same, since internals are rewritten, but more in line with how streams are "supposed" to behave).
-- Unified the `config.batchSize` and `config.highWaterMark` to both do the same thing: control how many rows are buffered in memory.  The `ReadableStream` will manage exactly how many rows are requested from the cursor at a time.  This should give better out of the box performance and help with efficient async iteration.
+- [Rewrote stream internals](https://github.com/brianc/node-postgres/pull/2051) to better conform to node stream semantics. This should make pg-query-stream much better at respecting [highWaterMark](https://nodejs.org/api/stream.html#stream_new_stream_readable_options) and getting rid of some edge case bugs when using pg-query-stream as an async iterator. Due to the size and nature of this change (effectively a full re-write) it's safest to bump the semver major here, though almost all tests remain untouched and still passing, which brings us to a breaking change to the API....
+- Changed `stream.close` to `stream.destroy` which is the [official](https://nodejs.org/api/stream.html#stream_readable_destroy_error) way to terminate a readable stream. This is a **breaking change** if you rely on the `stream.close` method on pg-query-stream...though should be just a find/replace type operation to upgrade as the semantics remain very similar (not exactly the same, since internals are rewritten, but more in line with how streams are "supposed" to behave).
+- Unified the `config.batchSize` and `config.highWaterMark` to both do the same thing: control how many rows are buffered in memory. The `ReadableStream` will manage exactly how many rows are requested from the cursor at a time. This should give better out of the box performance and help with efficient async iteration.
 
 ### pg@7.17.0
 
 - Add support for `idle_in_transaction_session_timeout` [option](https://github.com/brianc/node-postgres/pull/2049).
 
 ### 7.16.0
-- Add optional, opt-in behavior to test new, [faster query pipeline](https://github.com/brianc/node-postgres/pull/2044).  This is experimental, and not documented yet.  The pipeline changes will grow significantly after the 8.0 release.
+
+- Add optional, opt-in behavior to test new, [faster query pipeline](https://github.com/brianc/node-postgres/pull/2044). This is experimental, and not documented yet. The pipeline changes will grow significantly after the 8.0 release.
 
 ### 7.15.0
 
@@ -161,7 +183,7 @@ Promise support & other goodness lives now in [pg-pool](https://github.com/brian
 - Included support for tcp keep alive. Enable it as follows:
 
 ```js
-var client = new Client({ keepAlive: true });
+var client = new Client({ keepAlive: true })
 ```
 
 This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
@@ -173,12 +195,12 @@ This should help with backends incorrectly considering idle clients to be dead a
 Example:
 
 ```js
-var client = new Client();
-client.connect();
-client.query("SELECT $1::text as name", ["brianc"]).then(function(res) {
-  console.log("hello from", res.rows[0]);
-  client.end();
-});
+var client = new Client()
+client.connect()
+client.query('SELECT $1::text as name', ['brianc']).then(function (res) {
+  console.log('hello from', res.rows[0])
+  client.end()
+})
 ```
 
 ### v5.0.0

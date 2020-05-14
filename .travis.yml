@@ -7,27 +7,25 @@ before_script: |
 
 env:
   - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
-  # test w/ new faster parsing code
-  - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PG_FAST_CONNECTION=true
 
 node_js:
   - lts/dubnium
   - lts/erbium
   # node 13.7 seems to have changed behavior of async iterators exiting early on streams
   # if 13.8 still has this problem when it comes down I'll talk to the node team about the change
-  # in the mean time...peg to 13.6 
+  # in the mean time...peg to 13.6
   - 13.6
   - 14
 
 addons:
-  postgresql: "10"
+  postgresql: '10'
 
 matrix:
   include:
     # Run tests/paths that require password authentication
     - node_js: lts/erbium
       env:
-        - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=test-password
+        - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=test-password SCRAM_TEST_PGUSER=scram_test SCRAM_TEST_PGPASSWORD=test4scram
       before_script: |
         sudo -u postgres sed -i \
           -e '/^local/ s/trust$/peer/' \
@@ -36,28 +34,31 @@ matrix:
         sudo -u postgres psql -c "ALTER ROLE postgres PASSWORD 'test-password'; SELECT pg_reload_conf()"
         yarn build
         node packages/pg/script/create-test-tables.js postgresql:///
+        sudo -u postgres -- psql \
+          -c "SET password_encryption = 'scram-sha-256'" \
+          -c "CREATE ROLE scram_test login password 'test4scram'"
 
     - node_js: lts/carbon
       addons:
-        postgresql: "9.5"
+        postgresql: '9.5'
       dist: precise
 
     # different PostgreSQL versions on Node LTS
     - node_js: lts/erbium
       addons:
-        postgresql: "9.3"
+        postgresql: '9.3'
     - node_js: lts/erbium
       addons:
-        postgresql: "9.4"
+        postgresql: '9.4'
     - node_js: lts/erbium
       addons:
-        postgresql: "9.5"
+        postgresql: '9.5'
     - node_js: lts/erbium
       addons:
-        postgresql: "9.6"
+        postgresql: '9.6'
 
     # PostgreSQL 9.2 only works on precise
     - node_js: lts/carbon
       addons:
-        postgresql: "9.2"
+        postgresql: '9.2'
       dist: precise

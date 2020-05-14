@@ -296,11 +296,11 @@ export class Parser {
         break
       case 11: // AuthenticationSASLContinue
         message.name = MessageName.authenticationSASLContinue
-        message.data = this.reader.string(length - 4)
+        message.data = this.reader.string(length - 8)
         break
       case 12: // AuthenticationSASLFinal
         message.name = MessageName.authenticationSASLFinal
-        message.data = this.reader.string(length - 4)
+        message.data = this.reader.string(length - 8)
         break
       default:
         throw new Error('Unknown authenticationOk message type ' + code)

@@ -7,6 +7,7 @@ node-postgres is made possible by the helpful contributors from the community as
 - [Timescale](https://timescale.com)
 - [Nafundi](https://nafundi.com)
 - [CrateDB](https://crate.io/)
+- [BitMEX](https://www.bitmex.com/app/trade/XBTUSD)
 
 # Supporters
 

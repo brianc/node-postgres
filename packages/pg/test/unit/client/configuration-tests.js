@@ -1,5 +1,6 @@
 'use strict'
 require(__dirname + '/test-helper')
+var assert = require('assert')
 
 var pguser = process.env['PGUSER'] || process.env.USER
 var pgdatabase = process.env['PGDATABASE'] || process.env.USER
