@@ -172,8 +172,8 @@ Connection.prototype.flush = function () {
 const syncBuffer = serialize.sync()
 Connection.prototype.sync = function () {
   this._ending = true
-  this._send(syncBuffer)
   this._send(flushBuffer)
+  this._send(syncBuffer)
 }
 
 const endBuffer = serialize.end()
