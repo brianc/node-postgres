@@ -18,7 +18,7 @@ describe('serializer', () => {
         .addCString('database')
         .addCString('bang')
         .addCString('client_encoding')
-        .addCString("'utf-8'")
+        .addCString('UTF8')
         .addCString('')
         .join(true)
     )
