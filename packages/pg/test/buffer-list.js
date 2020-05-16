@@ -1,5 +1,6 @@
 'use strict'
-global.BufferList = function () {
+
+const BufferList = function () {
   this.buffers = []
 }
 var p = BufferList.prototype

@@ -3,7 +3,6 @@
 global.assert = require('assert')
 var sys = require('util')
 
-var BufferList = require('./buffer-list')
 const Suite = require('./suite')
 const args = require('./cli')
 

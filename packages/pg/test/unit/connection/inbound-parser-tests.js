@@ -1,5 +1,6 @@
 'use strict'
 require('./test-helper')
+const BufferList = require('../../buffer-list')
 var Connection = require('../../../lib/connection')
 var buffers = require('../../test-buffers')
 var PARSE = function (buffer) {
