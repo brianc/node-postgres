@@ -1,14 +1,11 @@
 'use strict'
 // make assert a global...
 global.assert = require('assert')
-var EventEmitter = require('events').EventEmitter
 var sys = require('util')
 
 var BufferList = require('./buffer-list')
 const Suite = require('./suite')
 const args = require('./cli')
-
-var Connection = require('./../lib/connection')
 
 global.Client = require('./../lib').Client
 
