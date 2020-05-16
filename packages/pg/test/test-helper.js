@@ -197,8 +197,6 @@ process.on('uncaughtException', function (err) {
   process.exit(255)
 })
 
-var count = 0
-
 var Sink = function (expected, timeout, callback) {
   var defaultTimeout = 5000
   if (typeof timeout === 'function') {
