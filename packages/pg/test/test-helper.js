@@ -171,12 +171,6 @@ assert.isNull = function (item, message) {
   assert.ok(item === null, message)
 }
 
-const getMode = () => {
-  if (args.native) return 'native'
-  if (args.binary) return 'binary'
-  return ''
-}
-
 global.test = function (name, action) {
   test.testCount++
   test[name] = action
