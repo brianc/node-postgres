@@ -1,5 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
+const BufferList = require('../../buffer-list')
 var utils = require('../../../lib/utils')
 
 test('md5 authentication', function () {

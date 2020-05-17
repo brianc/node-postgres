@@ -1,6 +1,6 @@
 'use strict'
-var helper = require(__dirname + '/../test-helper')
-var Client = require(__dirname + '/../../lib/native')
+var helper = require('../test-helper')
+var Client = require('../../lib/native')
 var Query = Client.Query
 
 test('many rows', function () {

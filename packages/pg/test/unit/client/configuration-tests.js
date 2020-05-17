@@ -1,5 +1,5 @@
 'use strict'
-require(__dirname + '/test-helper')
+require('./test-helper')
 var assert = require('assert')
 
 var pguser = process.env['PGUSER'] || process.env.USER

@@ -1,5 +1,5 @@
 'use strict'
-var helper = require(__dirname + '/../test-helper')
+var helper = require('../test-helper')
 var pg = helper.pg
 
 new helper.Suite().test('support for complex column names', function () {

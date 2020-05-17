@@ -1,8 +1,8 @@
 'use strict'
-var helper = require(__dirname + '/../test-helper')
+var helper = require('../test-helper')
 var assert = require('assert')
-var ConnectionParameters = require(__dirname + '/../../../lib/connection-parameters')
-var defaults = require(__dirname + '/../../../lib').defaults
+var ConnectionParameters = require('../../../lib/connection-parameters')
+var defaults = require('../../../lib').defaults
 
 // clear process.env
 for (var key in process.env) {

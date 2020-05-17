@@ -1,6 +1,6 @@
 'use strict'
 var bluebird = require('bluebird')
-var helper = require(__dirname + '/../test-helper')
+var helper = require('../test-helper')
 var pg = helper.pg
 
 process.on('unhandledRejection', function (e) {

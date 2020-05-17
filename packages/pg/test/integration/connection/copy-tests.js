@@ -1,5 +1,5 @@
 'use strict'
-var helper = require(__dirname + '/test-helper')
+var helper = require('./test-helper')
 var assert = require('assert')
 
 test('COPY FROM events check', function () {

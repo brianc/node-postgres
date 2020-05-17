@@ -71,7 +71,7 @@ suite.test('application_name has precedence over fallback_application_name', fun
 
 suite.test('application_name from connection string', function (done) {
   var appName = 'my app'
-  var conParams = require(__dirname + '/../../../lib/connection-parameters')
+  var conParams = require('../../../lib/connection-parameters')
   var conf
   if (process.argv[2]) {
     conf = new conParams(process.argv[2] + '?application_name=' + appName)

@@ -1,14 +1,10 @@
 'use strict'
 // make assert a global...
 global.assert = require('assert')
-var EventEmitter = require('events').EventEmitter
 var sys = require('util')
 
-var BufferList = require('./buffer-list')
 const Suite = require('./suite')
 const args = require('./cli')
-
-var Connection = require('./../lib/connection')
 
 global.Client = require('./../lib').Client
 
@@ -171,12 +167,6 @@ assert.isNull = function (item, message) {
   assert.ok(item === null, message)
 }
 
-const getMode = () => {
-  if (args.native) return 'native'
-  if (args.binary) return 'binary'
-  return ''
-}
-
 global.test = function (name, action) {
   test.testCount++
   test[name] = action
@@ -202,8 +192,6 @@ process.on('uncaughtException', function (err) {
   // causes xargs to abort right away
   process.exit(255)
 })
-
-var count = 0
 
 var Sink = function (expected, timeout, callback) {
   var defaultTimeout = 5000
