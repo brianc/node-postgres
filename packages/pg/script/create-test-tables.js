@@ -1,6 +1,6 @@
 'use strict'
-var args = require(__dirname + '/../test/cli')
-var pg = require(__dirname + '/../lib')
+var args = require('../test/cli')
+var pg = require('../lib')
 
 var people = [
   { name: 'Aaron', age: 10 },

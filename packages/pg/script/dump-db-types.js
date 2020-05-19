@@ -1,6 +1,6 @@
 'use strict'
-var pg = require(__dirname + '/../lib')
-var args = require(__dirname + '/../test/cli')
+var pg = require('../lib')
+var args = require('../test/cli')
 
 var queries = ['select CURRENT_TIMESTAMP', "select interval '1 day' + interval '1 hour'", "select TIMESTAMP 'today'"]
 
