@@ -47,7 +47,7 @@ var Client = (module.exports = function (config) {
   let encoding
   try {
     encoding = parseEncoding(cp.client_encoding)
-  } catch {} // The default error message lists both LATIN1 and UTF8
+  } catch (e) {} // The default error message lists both LATIN1 and UTF8
   if (encoding !== 'utf8') {
     throw new RangeError(`invalid encoding "${cp.client_encoding}". Only "UTF8" encoding can be used with pg-native.`)
   }
