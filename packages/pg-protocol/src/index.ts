@@ -1,16 +1,15 @@
-import { BackendMessage } from './messages'
 import { serialize } from './serializer'
 import { Parser, MessageCallback } from './parser'
-import { TextEncoding } from './text-encoding'
+import { TextEncoding, parseEncoding } from './text-encoding'
 
 export function parse(
   stream: NodeJS.ReadableStream,
   callback: MessageCallback,
-  encoding: TextEncoding = 'utf8'
+  defaultEncoding = TextEncoding.UTF8
 ): Promise<void> {
-  const parser = new Parser(encoding)
+  const parser = new Parser(undefined, defaultEncoding)
   stream.on('data', (buffer: Buffer) => parser.parse(buffer, callback))
   return new Promise((resolve) => stream.on('end', () => resolve()))
 }
 
-export { serialize }
+export { serialize, parseEncoding }

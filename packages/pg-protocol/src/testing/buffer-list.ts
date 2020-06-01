@@ -1,3 +1,5 @@
+import { TextEncoding } from '../text-encoding'
+
 export default class BufferList {
   constructor(public buffers: Buffer[] = []) {}
 
@@ -23,18 +25,18 @@ export default class BufferList {
     )
   }
 
-  public addCString(val: string, front?: boolean) {
-    var len = Buffer.byteLength(val)
+  public addCString(val: string, front?: boolean, encoding = TextEncoding.UTF8) {
+    var len = Buffer.byteLength(val, encoding)
     var buffer = Buffer.alloc(len + 1)
-    buffer.write(val)
+    buffer.write(val, encoding)
     buffer[len] = 0
     return this.add(buffer, front)
   }
 
-  public addString(val: string, front?: boolean) {
-    var len = Buffer.byteLength(val)
+  public addString(val: string, front?: boolean, encoding = TextEncoding.UTF8) {
+    var len = Buffer.byteLength(val, encoding)
     var buffer = Buffer.alloc(len)
-    buffer.write(val)
+    buffer.write(val, encoding)
     return this.add(buffer, front)
   }
 

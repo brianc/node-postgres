@@ -5,7 +5,7 @@ const emptyBuffer = Buffer.allocUnsafe(0)
 export class BufferReader {
   private buffer: Buffer = emptyBuffer
 
-  constructor(private encoding: TextEncoding = 'utf8', private offset: number = 0) {}
+  constructor(public encoding: TextEncoding, private offset: number = 0) {}
 
   public setBuffer(offset: number, buffer: Buffer): void {
     this.offset = offset

@@ -11,7 +11,7 @@ var net = require('net')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 
-const { parse, serialize } = require('pg-protocol')
+const { parse, serialize, parseEncoding } = require('pg-protocol')
 
 // TODO(bmc) support binary mode at some point
 var Connection = function (config) {
@@ -26,7 +26,7 @@ var Connection = function (config) {
   this._ending = false
   this._emitMessage = false
   var self = this
-  this.encoding = config.encoding || 'utf8'
+  this.encoding = parseEncoding(config.encoding)
   this.on('newListener', function (eventName) {
     if (eventName === 'message') {
       self._emitMessage = true
@@ -102,17 +102,18 @@ Connection.prototype.attachListeners = function (stream) {
   stream.on('end', () => {
     this.emit('end')
   })
-  parse(
-    stream,
-    (msg) => {
-      var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
-      if (this._emitMessage) {
-        this.emit('message', msg)
+  parse(stream, (msg) => {
+    var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+    if (this._emitMessage) {
+      this.emit('message', msg)
+    }
+    if (eventName === 'parameterStatus') {
+      if (msg.parameterName === 'client_encoding') {
+        this.encoding = parseEncoding(msg.parameterValue)
       }
-      this.emit(eventName, msg)
-    },
-    this.encoding
-  )
+    }
+    this.emit(eventName, msg)
+  })
 }
 
 Connection.prototype.requestSsl = function () {
@@ -120,7 +121,7 @@ Connection.prototype.requestSsl = function () {
 }
 
 Connection.prototype.startup = function (config) {
-  this.stream.write(serialize.startup(config, this.encoding))
+  this.stream.write(serialize.startup(config))
 }
 
 Connection.prototype.cancel = function (processID, secretKey) {
@@ -128,15 +129,15 @@ Connection.prototype.cancel = function (processID, secretKey) {
 }
 
 Connection.prototype.password = function (password) {
-  this._send(serialize.password(password))
+  this._send(serialize.password(password, this.encoding))
 }
 
 Connection.prototype.sendSASLInitialResponseMessage = function (mechanism, initialResponse) {
-  this._send(serialize.sendSASLInitialResponseMessage(mechanism, initialResponse))
+  this._send(serialize.sendSASLInitialResponseMessage(mechanism, initialResponse, this.encoding))
 }
 
 Connection.prototype.sendSCRAMClientFinalMessage = function (additionalData) {
-  this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
+  this._send(serialize.sendSCRAMClientFinalMessage(additionalData, this.encoding))
 }
 
 Connection.prototype._send = function (buffer) {
@@ -164,7 +165,7 @@ Connection.prototype.bind = function (config) {
 // send execute message
 // "more" === true to buffer the message until flush() is called
 Connection.prototype.execute = function (config) {
-  this._send(serialize.execute(config))
+  this._send(serialize.execute(config, this.encoding))
 }
 
 const flushBuffer = serialize.flush()

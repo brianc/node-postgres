@@ -38,7 +38,7 @@ export class Writer {
     return this
   }
 
-  public addCString(string: string, encoding: TextEncoding = 'utf8'): Writer {
+  public addCString(string: string, encoding: TextEncoding): Writer {
     if (!string) {
       this.ensure(1)
     } else {
@@ -52,7 +52,7 @@ export class Writer {
     return this
   }
 
-  public addString(string: string = '', encoding: TextEncoding = 'utf8'): Writer {
+  public addString(string: string = '', encoding: TextEncoding): Writer {
     var len = Buffer.byteLength(string, encoding)
     this.ensure(len)
     this.buffer.write(string, this.offset, encoding)

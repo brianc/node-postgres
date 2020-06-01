@@ -16,6 +16,7 @@ var assert = require('assert')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var ConnectionParameters = require('../connection-parameters')
+const { parseEncoding } = require('pg-protocol')
 
 var msg = 'Version >= ' + pkg.minNativeVersion + ' of pg-native required.'
 assert(semver.gte(Native.version, pkg.minNativeVersion), msg)
@@ -42,6 +43,15 @@ var Client = (module.exports = function (config) {
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
   var cp = (this.connectionParameters = new ConnectionParameters(config))
+
+  let encoding
+  try {
+    encoding = parseEncoding(cp.client_encoding)
+  } catch {} // The default error message lists both LATIN1 and UTF8
+  if (encoding !== 'utf8') {
+    throw new RangeError(`invalid encoding "${cp.client_encoding}". Only "UTF8" encoding can be used with pg-native.`)
+  }
+
   this.user = cp.user
 
   // "hiding" the password so it doesn't show up in stack traces
