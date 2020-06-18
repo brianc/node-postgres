@@ -75,6 +75,8 @@ export type MessageCallback = (msg: BackendMessage) => void
 
 export class Parser {
   private remainingBuffer: Buffer = emptyBuffer
+  private remainingBufferLength: number = 0
+  private remainingBufferOffset: number = 0
   private reader = new BufferReader()
   private mode: Mode
 
@@ -87,13 +89,33 @@ export class Parser {
 
   public parse(buffer: Buffer, callback: MessageCallback) {
     let combinedBuffer = buffer
-    if (this.remainingBuffer.byteLength) {
-      combinedBuffer = Buffer.allocUnsafe(this.remainingBuffer.byteLength + buffer.byteLength)
-      this.remainingBuffer.copy(combinedBuffer)
-      buffer.copy(combinedBuffer, this.remainingBuffer.byteLength)
+    let combinedBufferOffset = 0
+    let combinedBufferLength = buffer.byteLength
+    const newRealLength = this.remainingBufferLength + combinedBufferLength
+    if (this.remainingBufferLength) {
+      const newLength = newRealLength + this.remainingBufferOffset
+      if (newLength > this.remainingBuffer.byteLength) {
+        let newBufferLength = this.remainingBufferLength * 2
+        while (newRealLength >= newBufferLength) {
+          newBufferLength *= 2
+        }
+        const newBuffer = Buffer.allocUnsafe(newBufferLength)
+        this.remainingBuffer.copy(
+          newBuffer,
+          0,
+          this.remainingBufferOffset,
+          this.remainingBufferOffset + this.remainingBufferLength
+        )
+        this.remainingBuffer = newBuffer
+        this.remainingBufferOffset = 0
+      }
+      buffer.copy(this.remainingBuffer, this.remainingBufferOffset + this.remainingBufferLength)
+      combinedBuffer = this.remainingBuffer
+      combinedBufferLength = newRealLength
+      combinedBufferOffset = this.remainingBufferOffset
     }
-    let offset = 0
-    while (offset + HEADER_LENGTH <= combinedBuffer.byteLength) {
+    let offset = combinedBufferOffset
+    while (offset + HEADER_LENGTH <= combinedBufferLength) {
       // code is 1 byte long - it identifies the message type
       const code = combinedBuffer[offset]
 
@@ -102,7 +124,7 @@ export class Parser {
 
       const fullMessageLength = CODE_LENGTH + length
 
-      if (fullMessageLength + offset <= combinedBuffer.byteLength) {
+      if (fullMessageLength + offset <= combinedBufferLength) {
         const message = this.handlePacket(offset + HEADER_LENGTH, code, length, combinedBuffer)
         callback(message)
         offset += fullMessageLength
@@ -111,10 +133,14 @@ export class Parser {
       }
     }
 
-    if (offset === combinedBuffer.byteLength) {
+    if (offset === combinedBufferLength) {
       this.remainingBuffer = emptyBuffer
+      this.remainingBufferLength = 0
+      this.remainingBufferOffset = 0
     } else {
-      this.remainingBuffer = combinedBuffer.slice(offset)
+      this.remainingBuffer = combinedBuffer
+      this.remainingBufferLength = combinedBufferLength - offset
+      this.remainingBufferOffset += offset
     }
   }
 
