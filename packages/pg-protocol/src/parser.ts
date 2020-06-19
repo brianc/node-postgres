@@ -150,14 +150,14 @@ export class Parser {
       this.remainingBufferLength = 0
       this.remainingBufferOffset = 0
     } else {
+      this.remainingBufferLength = fullLength - offset
       if (reuseRemainingBuffer) {
         // Adjust the cursors of remainingBuffer
-        this.remainingBufferLength = combinedBufferLength - offset
-        this.remainingBufferOffset += offset
+        this.remainingBufferOffset = offset
       } else {
-        // To avoid side effects, copy the remaining part of the new buffer to remainingBuffer
-        this.remainingBuffer = combinedBuffer.slice(offset)
-        this.remainingBufferLength = this.remainingBuffer.byteLength
+        // To avoid side effects, copy the remaining part of the new buffer to remainingBuffer with extra space for next buffer
+        this.remainingBuffer = Buffer.allocUnsafe(combinedBufferLength * 2)
+        combinedBuffer.copy(this.remainingBuffer, 0, offset)
         this.remainingBufferOffset = 0
       }
     }
