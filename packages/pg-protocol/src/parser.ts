@@ -96,11 +96,20 @@ export class Parser {
       const newLength = this.remainingBufferLength + combinedBufferLength
       const newFullLength = newLength + this.remainingBufferOffset
       if (newFullLength > this.remainingBuffer.byteLength) {
-        let newBufferLength = this.remainingBuffer.byteLength * 2
-        while (newLength >= newBufferLength) {
-          newBufferLength *= 2
+        // We can't concat the new buffer with the remaining one
+        let newBuffer: Buffer
+        if (newLength <= this.remainingBuffer.byteLength && this.remainingBufferOffset >= this.remainingBufferLength) {
+          // We can move the relevant part to the beginning of the buffer instead of allocating a new buffer
+          newBuffer = this.remainingBuffer
+        } else {
+          // Allocate a new larger buffer
+          let newBufferLength = this.remainingBuffer.byteLength * 2
+          while (newLength >= newBufferLength) {
+            newBufferLength *= 2
+          }
+          newBuffer = Buffer.allocUnsafe(newBufferLength)
         }
-        const newBuffer = Buffer.allocUnsafe(newBufferLength)
+        // Move the remaining buffer to the new one
         this.remainingBuffer.copy(
           newBuffer,
           0,
@@ -110,6 +119,7 @@ export class Parser {
         this.remainingBuffer = newBuffer
         this.remainingBufferOffset = 0
       }
+      // Concat the new buffer with the remaining one
       buffer.copy(this.remainingBuffer, this.remainingBufferOffset + this.remainingBufferLength)
       combinedBuffer = this.remainingBuffer
       combinedBufferLength = this.remainingBufferLength = newLength
@@ -134,16 +144,18 @@ export class Parser {
         break
       }
     }
-
     if (offset === fullLength) {
+      // No more use for the buffer
       this.remainingBuffer = emptyBuffer
       this.remainingBufferLength = 0
       this.remainingBufferOffset = 0
     } else {
       if (reuseRemainingBuffer) {
+        // Adjust the cursors of remainingBuffer
         this.remainingBufferLength = combinedBufferLength - offset
         this.remainingBufferOffset += offset
       } else {
+        // To avoid side effects, copy the remaining part of the new buffer to remainingBuffer
         this.remainingBuffer = combinedBuffer.slice(offset)
         this.remainingBufferLength = this.remainingBuffer.byteLength
         this.remainingBufferOffset = 0
