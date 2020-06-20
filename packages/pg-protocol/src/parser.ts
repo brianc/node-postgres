@@ -73,6 +73,14 @@ const enum MessageCodes {
 
 export type MessageCallback = (msg: BackendMessage) => void
 
+interface CombinedBuffer {
+  combinedBuffer: Buffer
+  combinedBufferOffset: number
+  combinedBufferLength: number
+  combinedBufferFullLength: number
+  reuseRemainingBuffer: boolean
+}
+
 export class Parser {
   private remainingBuffer: Buffer = emptyBuffer
   private remainingBufferLength: number = 0
@@ -88,6 +96,41 @@ export class Parser {
   }
 
   public parse(buffer: Buffer, callback: MessageCallback) {
+    const {
+      combinedBuffer,
+      combinedBufferOffset,
+      combinedBufferLength,
+      reuseRemainingBuffer,
+      combinedBufferFullLength,
+    } = this.mergeBuffer(buffer)
+    let offset = combinedBufferOffset
+    while (offset + HEADER_LENGTH <= combinedBufferFullLength) {
+      // code is 1 byte long - it identifies the message type
+      const code = combinedBuffer[offset]
+
+      // length is 1 Uint32BE - it is the length of the message EXCLUDING the code
+      const length = combinedBuffer.readUInt32BE(offset + CODE_LENGTH)
+
+      const fullMessageLength = CODE_LENGTH + length
+
+      if (fullMessageLength + offset <= combinedBufferFullLength) {
+        const message = this.handlePacket(offset + HEADER_LENGTH, code, length, combinedBuffer)
+        callback(message)
+        offset += fullMessageLength
+      } else {
+        break
+      }
+    }
+    this.consumeBuffer({
+      combinedBuffer,
+      combinedBufferOffset: offset,
+      combinedBufferLength,
+      reuseRemainingBuffer,
+      combinedBufferFullLength,
+    })
+  }
+
+  private mergeBuffer(buffer: Buffer): CombinedBuffer {
     let combinedBuffer = buffer
     let combinedBufferLength = buffer.byteLength
     let combinedBufferOffset = 0
@@ -125,39 +168,37 @@ export class Parser {
       combinedBufferLength = this.remainingBufferLength = newLength
       combinedBufferOffset = this.remainingBufferOffset
     }
-    const fullLength = combinedBufferOffset + combinedBufferLength
-    let offset = combinedBufferOffset
-    while (offset + HEADER_LENGTH <= fullLength) {
-      // code is 1 byte long - it identifies the message type
-      const code = combinedBuffer[offset]
-
-      // length is 1 Uint32BE - it is the length of the message EXCLUDING the code
-      const length = combinedBuffer.readUInt32BE(offset + CODE_LENGTH)
-
-      const fullMessageLength = CODE_LENGTH + length
-
-      if (fullMessageLength + offset <= fullLength) {
-        const message = this.handlePacket(offset + HEADER_LENGTH, code, length, combinedBuffer)
-        callback(message)
-        offset += fullMessageLength
-      } else {
-        break
-      }
+    const combinedBufferFullLength = combinedBufferOffset + combinedBufferLength
+    return {
+      combinedBuffer,
+      combinedBufferOffset,
+      combinedBufferLength,
+      reuseRemainingBuffer,
+      combinedBufferFullLength,
     }
-    if (offset === fullLength) {
+  }
+
+  private consumeBuffer({
+    combinedBufferOffset,
+    combinedBufferFullLength,
+    reuseRemainingBuffer,
+    combinedBuffer,
+    combinedBufferLength,
+  }: CombinedBuffer) {
+    if (combinedBufferOffset === combinedBufferFullLength) {
       // No more use for the buffer
       this.remainingBuffer = emptyBuffer
       this.remainingBufferLength = 0
       this.remainingBufferOffset = 0
     } else {
-      this.remainingBufferLength = fullLength - offset
+      this.remainingBufferLength = combinedBufferFullLength - combinedBufferOffset
       if (reuseRemainingBuffer) {
         // Adjust the cursors of remainingBuffer
-        this.remainingBufferOffset = offset
+        this.remainingBufferOffset = combinedBufferOffset
       } else {
         // To avoid side effects, copy the remaining part of the new buffer to remainingBuffer with extra space for next buffer
         this.remainingBuffer = Buffer.allocUnsafe(combinedBufferLength * 2)
-        combinedBuffer.copy(this.remainingBuffer, 0, offset)
+        combinedBuffer.copy(this.remainingBuffer, 0, combinedBufferOffset)
         this.remainingBufferOffset = 0
       }
     }
