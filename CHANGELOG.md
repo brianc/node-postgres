@@ -19,7 +19,7 @@ We do not include break-fix version release in this file.
 ### pg@8.1.0
 
 - Switch to using [monorepo](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string) version of `pg-connection-string`. This includes better support for SSL argument parsing from connection strings and ensures continuity of support.
-- Add `&ssl=no-verify` option to connection string and `PGSSLMODE=no-verify` environment variable support for the pure JS driver. This is equivalent of passing `{ ssl: { rejectUnauthorize: false } }` to the client/pool constructor. The advantage of having support in connection strings and environment variables is it can be "externally" configured via environment variables and CLI arguments much more easily, and should remove the need to directly edit any application code for [the SSL default changes in 8.0](https://node-postgres.com/announcements#2020-02-25). This should make using `pg@8.x` significantly less difficult on environments like Heroku for example.
+- Add `&ssl=no-verify` option to connection string and `PGSSLMODE=no-verify` environment variable support for the pure JS driver. This is equivalent of passing `{ ssl: { rejectUnauthorized: false } }` to the client/pool constructor. The advantage of having support in connection strings and environment variables is it can be "externally" configured via environment variables and CLI arguments much more easily, and should remove the need to directly edit any application code for [the SSL default changes in 8.0](https://node-postgres.com/announcements#2020-02-25). This should make using `pg@8.x` significantly less difficult on environments like Heroku for example.
 
 ### pg-pool@3.2.0
 
