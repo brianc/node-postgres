@@ -69,7 +69,7 @@ const config = {
 const pool = new Pool(config);
 
 /*
-  Transforms, 'progres://DBuser:secret@DBHost:#####/myDB', into
+  Transforms, 'postgres://DBuser:secret@DBHost:#####/myDB', into
   config = {
     user: 'DBuser',
     password: 'secret',
