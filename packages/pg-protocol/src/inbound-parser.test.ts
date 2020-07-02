@@ -4,6 +4,7 @@ import { parse } from '.'
 import assert from 'assert'
 import { PassThrough } from 'stream'
 import { BackendMessage } from './messages'
+import { TextEncoding } from './text-encoding'
 
 var authOkBuffer = buffers.authenticationOk()
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
@@ -144,9 +145,9 @@ var expectedTwoRowMessage = {
   ],
 }
 
-var testForMessage = function (buffer: Buffer, expectedMessage: any) {
+var testForMessage = function (buffer: Buffer, expectedMessage: any, encoding = TextEncoding.UTF8) {
   it('recieves and parses ' + expectedMessage.name, async () => {
-    const messages = await parseBuffers([buffer])
+    const messages = await parseBuffers([buffer], encoding)
     const [lastMessage] = messages
 
     for (const key in expectedMessage) {
@@ -193,14 +194,14 @@ var expectedNotificationResponseMessage = {
   payload: 'boom',
 }
 
-const parseBuffers = async (buffers: Buffer[]): Promise<BackendMessage[]> => {
+const parseBuffers = async (buffers: Buffer[], encoding = TextEncoding.UTF8): Promise<BackendMessage[]> => {
   const stream = new PassThrough()
   for (const buffer of buffers) {
     stream.write(buffer)
   }
   stream.end()
   const msgs: BackendMessage[] = []
-  await parse(stream, (msg) => msgs.push(msg))
+  await parse(stream, (msg) => msgs.push(msg), encoding)
   return msgs
 }
 
@@ -517,6 +518,67 @@ describe('PgPacketStream', function () {
       it('at the end', function () {
         return Promise.all([splitAndVerifyTwoMessages(8), splitAndVerifyTwoMessages(1)])
       })
+    })
+  })
+
+  describe('character encoding', function () {
+    it('commandComplete', function () {
+      const text = "SELECT 'ËÌÍÎÏÐÑÒÓÔÕÖ×'"
+      const expectedMessage = {
+        name: 'commandComplete',
+        length: 40,
+        text,
+      }
+
+      testForMessage(buffers.commandComplete(text, TextEncoding.UTF8), expectedMessage, TextEncoding.UTF8)
+
+      expectedMessage.length = 27
+      testForMessage(buffers.commandComplete(text, TextEncoding.LATIN1), expectedMessage, TextEncoding.LATIN1)
+    })
+
+    it('rowDescription', function () {
+      const row = {
+        name: 'ËÌÍÎÏÐÑÒÓÔÕÖ×',
+        tableID: 1,
+        attributeNumber: 2,
+        dataTypeID: 3,
+        dataTypeSize: 4,
+        typeModifier: 5,
+        formatCode: 0,
+      }
+
+      const expectedMessage = {
+        name: 'rowDescription',
+        length: 54,
+        fieldCount: 1,
+        fields: [
+          {
+            name: 'ËÌÍÎÏÐÑÒÓÔÕÖ×',
+            tableID: 1,
+            columnID: 2,
+            dataTypeID: 3,
+            dataTypeSize: 4,
+            dataTypeModifier: 5,
+            format: 'text',
+          },
+        ],
+      }
+
+      testForMessage(buffers.rowDescription([row], TextEncoding.UTF8), expectedMessage, TextEncoding.UTF8)
+
+      expectedMessage.length = 41
+      testForMessage(buffers.rowDescription([row], TextEncoding.LATIN1), expectedMessage, TextEncoding.LATIN1)
+    })
+
+    it('dataRow', function () {
+      const fields = ['ËÌÍÎÏÐÑÒÓÔÕÖ×']
+      const expectedMessage = {
+        name: 'dataRow',
+        fieldCount: fields.length,
+        fields,
+      }
+      testForMessage(buffers.dataRow(fields, TextEncoding.UTF8), expectedMessage, TextEncoding.UTF8)
+      testForMessage(buffers.dataRow(fields, TextEncoding.LATIN1), expectedMessage, TextEncoding.LATIN1)
     })
   })
 })

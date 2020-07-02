@@ -27,6 +27,7 @@ import {
 } from './messages'
 import { BufferReader } from './buffer-reader'
 import assert from 'assert'
+import { TextEncoding, parseEncoding } from './text-encoding'
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1
@@ -75,14 +76,16 @@ export type MessageCallback = (msg: BackendMessage) => void
 
 export class Parser {
   private remainingBuffer: Buffer = emptyBuffer
-  private reader = new BufferReader()
+  private reader: BufferReader
   private mode: Mode
 
-  constructor(opts?: StreamOptions) {
+  constructor(opts?: StreamOptions, defaultEncoding = TextEncoding.UTF8) {
     if (opts?.mode === 'binary') {
       throw new Error('Binary mode not supported yet')
     }
     this.mode = opts?.mode || 'text'
+    // The reader.encoding will be overwritten in parseParameterStatusMessage
+    this.reader = new BufferReader(defaultEncoding)
   }
 
   public parse(buffer: Buffer, callback: MessageCallback) {
@@ -248,6 +251,9 @@ export class Parser {
     this.reader.setBuffer(offset, bytes)
     const name = this.reader.cstring()
     const value = this.reader.cstring()
+    if (name === 'client_encoding') {
+      this.reader.encoding = parseEncoding(value)
+    }
     return new ParameterStatusMessage(length, name, value)
   }
 

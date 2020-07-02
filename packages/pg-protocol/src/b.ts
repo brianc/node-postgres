@@ -3,13 +3,14 @@
 import { Writer } from './buffer-writer'
 import { serialize } from './index'
 import { BufferReader } from './buffer-reader'
+import { TextEncoding } from './text-encoding'
 
 const LOOPS = 1000
 let count = 0
 let start = Date.now()
 const writer = new Writer()
 
-const reader = new BufferReader()
+const reader = new BufferReader(TextEncoding.UTF8)
 const buffer = Buffer.from([33, 33, 33, 33, 33, 33, 33, 0])
 
 const run = () => {

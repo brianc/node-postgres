@@ -36,8 +36,8 @@ test('simple query interface', function () {
       assert.lengthIs(rows, 26)
     })
     test('row ordering', function () {
-      assert.equal(rows[0], 'Aaron')
-      assert.equal(rows[25], 'Zanzabar')
+      assert.equal(rows[0], 'Antônio')
+      assert.equal(rows[25], 'Zélia')
     })
   })
 })
@@ -62,8 +62,8 @@ test('prepared statements do not mutate params', function () {
   query.on('end', function (result) {
     assert.lengthIs(rows, 26, 'result returned wrong number of rows')
     assert.lengthIs(rows, result.rowCount)
-    assert.equal(rows[0].name, 'Aaron')
-    assert.equal(rows[25].name, 'Zanzabar')
+    assert.equal(rows[0].name, 'Antônio')
+    assert.equal(rows[25].name, 'Zélia')
   })
 })
 

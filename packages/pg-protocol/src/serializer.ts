@@ -1,4 +1,5 @@
 import { Writer } from './buffer-writer'
+import { TextEncoding, parseEncoding } from './text-encoding'
 
 const enum code {
   startup = 0x70,
@@ -19,15 +20,21 @@ const enum code {
 const writer = new Writer()
 
 const startup = (opts: Record<string, string>): Buffer => {
+  const encoding = parseEncoding(opts.client_encoding)
+
   // protocol version
   writer.addInt16(3).addInt16(0)
+
+  writer.addCString('client_encoding', encoding).addCString(encoding.toUpperCase(), encoding)
+
   for (const key of Object.keys(opts)) {
-    writer.addCString(key).addCString(opts[key])
+    if (key !== 'client_encoding') {
+      writer.addCString(key, encoding).addCString(opts[key], encoding)
+    }
   }
 
-  writer.addCString('client_encoding').addCString('UTF8')
+  var bodyBuffer = writer.addCString('', encoding).flush()
 
-  var bodyBuffer = writer.addCString('').flush()
   // this message is sent without a code
 
   var length = bodyBuffer.length + 4
@@ -42,23 +49,30 @@ const requestSsl = (): Buffer => {
   return response
 }
 
-const password = (password: string): Buffer => {
-  return writer.addCString(password).flush(code.startup)
+const password = (password: string, encoding: TextEncoding): Buffer => {
+  return writer.addCString(password, encoding).flush(code.startup)
 }
 
-const sendSASLInitialResponseMessage = function (mechanism: string, initialResponse: string): Buffer {
+const sendSASLInitialResponseMessage = function (
+  mechanism: string,
+  initialResponse: string,
+  encoding: TextEncoding
+): Buffer {
   // 0x70 = 'p'
-  writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
+  writer
+    .addCString(mechanism, encoding)
+    .addInt32(Buffer.byteLength(initialResponse, encoding))
+    .addString(initialResponse, encoding)
 
   return writer.flush(code.startup)
 }
 
-const sendSCRAMClientFinalMessage = function (additionalData: string): Buffer {
-  return writer.addString(additionalData).flush(code.startup)
+const sendSCRAMClientFinalMessage = function (additionalData: string, encoding: TextEncoding): Buffer {
+  return writer.addString(additionalData, encoding).flush(code.startup)
 }
 
-const query = (text: string): Buffer => {
-  return writer.addCString(text).flush(code.query)
+const query = (text: string, encoding: TextEncoding): Buffer => {
+  return writer.addCString(text, encoding).flush(code.query)
 }
 
 type ParseOpts = {
@@ -69,7 +83,7 @@ type ParseOpts = {
 
 const emptyArray: any[] = []
 
-const parse = (query: ParseOpts): Buffer => {
+const parse = (query: ParseOpts, encoding: TextEncoding): Buffer => {
   // expect something like this:
   // { name: 'queryName',
   //   text: 'select * from blah',
@@ -90,8 +104,8 @@ const parse = (query: ParseOpts): Buffer => {
   var len = types.length
 
   var buffer = writer
-    .addCString(name) // name of query
-    .addCString(query.text) // actual query text
+    .addCString(name, encoding) // name of query
+    .addCString(query.text, encoding) // actual query text
     .addInt16(len)
 
   for (var i = 0; i < len; i++) {
@@ -108,7 +122,7 @@ type BindOpts = {
   values?: any[]
 }
 
-const bind = (config: BindOpts = {}): Buffer => {
+const bind = (config: BindOpts = {}, encoding: TextEncoding): Buffer => {
   // normalize config
   const portal = config.portal || ''
   const statement = config.statement || ''
@@ -122,7 +136,7 @@ const bind = (config: BindOpts = {}): Buffer => {
     useBinary = useBinary || values[j] instanceof Buffer
   }
 
-  var buffer = writer.addCString(portal).addCString(statement)
+  var buffer = writer.addCString(portal, encoding).addCString(statement, encoding)
   if (!useBinary) {
     buffer.addInt16(0)
   } else {
@@ -140,8 +154,8 @@ const bind = (config: BindOpts = {}): Buffer => {
       buffer.addInt32(val.length)
       buffer.add(val)
     } else {
-      buffer.addInt32(Buffer.byteLength(val))
-      buffer.addString(val)
+      buffer.addInt32(Buffer.byteLength(val, encoding))
+      buffer.addString(val, encoding)
     }
   }
 
@@ -161,7 +175,7 @@ type ExecOpts = {
 
 const emptyExecute = Buffer.from([code.execute, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00])
 
-const execute = (config?: ExecOpts): Buffer => {
+const execute = (config: ExecOpts | undefined, encoding: TextEncoding): Buffer => {
   // this is the happy path for most queries
   if (!config || (!config.portal && !config.rows)) {
     return emptyExecute
@@ -170,13 +184,13 @@ const execute = (config?: ExecOpts): Buffer => {
   const portal = config.portal || ''
   const rows = config.rows || 0
 
-  const portalLength = Buffer.byteLength(portal)
+  const portalLength = Buffer.byteLength(portal, encoding)
   const len = 4 + portalLength + 1 + 4
   // one extra bit for code
   const buff = Buffer.allocUnsafe(1 + len)
   buff[0] = code.execute
   buff.writeInt32BE(len, 1)
-  buff.write(portal, 5, 'utf-8')
+  buff.write(portal, 5, encoding)
   buff[portalLength + 5] = 0 // null terminate portal cString
   buff.writeUInt32BE(rows, buff.length - 4)
   return buff
@@ -197,40 +211,40 @@ type PortalOpts = {
   name?: string
 }
 
-const cstringMessage = (code: code, string: string): Buffer => {
-  const stringLen = Buffer.byteLength(string)
+const cstringMessage = (code: code, string: string, encoding: TextEncoding): Buffer => {
+  const stringLen = Buffer.byteLength(string, encoding)
   const len = 4 + stringLen + 1
   // one extra bit for code
   const buffer = Buffer.allocUnsafe(1 + len)
   buffer[0] = code
   buffer.writeInt32BE(len, 1)
-  buffer.write(string, 5, 'utf-8')
+  buffer.write(string, 5, encoding)
   buffer[len] = 0 // null terminate cString
   return buffer
 }
 
-const emptyDescribePortal = writer.addCString('P').flush(code.describe)
-const emptyDescribeStatement = writer.addCString('S').flush(code.describe)
+const emptyDescribePortal = writer.addCString('P', TextEncoding.UTF8).flush(code.describe)
+const emptyDescribeStatement = writer.addCString('S', TextEncoding.UTF8).flush(code.describe)
 
-const describe = (msg: PortalOpts): Buffer => {
+const describe = (msg: PortalOpts, encoding: TextEncoding): Buffer => {
   return msg.name
-    ? cstringMessage(code.describe, `${msg.type}${msg.name || ''}`)
+    ? cstringMessage(code.describe, `${msg.type}${msg.name || ''}`, encoding)
     : msg.type === 'P'
     ? emptyDescribePortal
     : emptyDescribeStatement
 }
 
-const close = (msg: PortalOpts): Buffer => {
+const close = (msg: PortalOpts, encoding: TextEncoding): Buffer => {
   const text = `${msg.type}${msg.name || ''}`
-  return cstringMessage(code.close, text)
+  return cstringMessage(code.close, text, encoding)
 }
 
 const copyData = (chunk: Buffer): Buffer => {
   return writer.add(chunk).flush(code.copyFromChunk)
 }
 
-const copyFail = (message: string): Buffer => {
-  return cstringMessage(code.copyFail, message)
+const copyFail = (message: string, encoding: TextEncoding): Buffer => {
+  return cstringMessage(code.copyFail, message, encoding)
 }
 
 const codeOnlyBuffer = (code: code): Buffer => Buffer.from([code, 0x00, 0x00, 0x00, 0x04])

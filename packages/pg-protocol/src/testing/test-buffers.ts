@@ -1,5 +1,6 @@
 // http://developer.postgresql.org/pgdocs/postgres/protocol-message-formats.html
 import BufferList from './buffer-list'
+import { TextEncoding } from '../text-encoding'
 
 const buffers = {
   readyForQuery: function () {
@@ -41,17 +42,17 @@ const buffers = {
     return new BufferList().addInt32(processID).addInt32(secretKey).join(true, 'K')
   },
 
-  commandComplete: function (string: string) {
-    return new BufferList().addCString(string).join(true, 'C')
+  commandComplete: function (string: string, encoding = TextEncoding.UTF8) {
+    return new BufferList().addCString(string, false, encoding).join(true, 'C')
   },
 
-  rowDescription: function (fields: any[]) {
+  rowDescription: function (fields: any[], encoding = TextEncoding.UTF8) {
     fields = fields || []
     var buf = new BufferList()
     buf.addInt16(fields.length)
     fields.forEach(function (field) {
       buf
-        .addCString(field.name)
+        .addCString(field.name, false, encoding)
         .addInt32(field.tableID || 0)
         .addInt16(field.attributeNumber || 0)
         .addInt32(field.dataTypeID || 0)
@@ -62,7 +63,7 @@ const buffers = {
     return buf.join(true, 'T')
   },
 
-  dataRow: function (columns: any[]) {
+  dataRow: function (columns: any[], encoding = TextEncoding.UTF8) {
     columns = columns || []
     var buf = new BufferList()
     buf.addInt16(columns.length)
@@ -70,7 +71,7 @@ const buffers = {
       if (col == null) {
         buf.addInt32(-1)
       } else {
-        var strBuf = Buffer.from(col, 'utf8')
+        var strBuf = Buffer.from(col, encoding)
         buf.addInt32(strBuf.length)
         buf.add(strBuf)
       }
