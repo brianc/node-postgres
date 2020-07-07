@@ -1,6 +1,6 @@
 {
   "name": "pg-query-stream",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Postgres query result returned as readable stream",
   "main": "index.js",
   "scripts": {
@@ -26,12 +26,12 @@
     "concat-stream": "~1.0.1",
     "eslint-plugin-promise": "^3.5.0",
     "mocha": "^7.1.2",
-    "pg": "^8.2.1",
+    "pg": "^8.2.2",
     "stream-spec": "~0.3.5",
     "stream-tester": "0.0.5",
     "through": "~2.3.4"
   },
   "dependencies": {
-    "pg-cursor": "^2.2.1"
+    "pg-cursor": "^2.2.2"
   }
 }
