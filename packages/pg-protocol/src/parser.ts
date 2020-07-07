@@ -74,7 +74,9 @@ const enum MessageCodes {
 export type MessageCallback = (msg: BackendMessage) => void
 
 export class Parser {
-  private remainingBuffer: Buffer = emptyBuffer
+  private buffer: Buffer = emptyBuffer
+  private bufferLength: number = 0
+  private bufferOffset: number = 0
   private reader = new BufferReader()
   private mode: Mode
 
@@ -86,35 +88,65 @@ export class Parser {
   }
 
   public parse(buffer: Buffer, callback: MessageCallback) {
-    let combinedBuffer = buffer
-    if (this.remainingBuffer.byteLength) {
-      combinedBuffer = Buffer.allocUnsafe(this.remainingBuffer.byteLength + buffer.byteLength)
-      this.remainingBuffer.copy(combinedBuffer)
-      buffer.copy(combinedBuffer, this.remainingBuffer.byteLength)
-    }
-    let offset = 0
-    while (offset + HEADER_LENGTH <= combinedBuffer.byteLength) {
+    this.mergeBuffer(buffer)
+    const bufferFullLength = this.bufferOffset + this.bufferLength
+    let offset = this.bufferOffset
+    while (offset + HEADER_LENGTH <= bufferFullLength) {
       // code is 1 byte long - it identifies the message type
-      const code = combinedBuffer[offset]
-
+      const code = this.buffer[offset]
       // length is 1 Uint32BE - it is the length of the message EXCLUDING the code
-      const length = combinedBuffer.readUInt32BE(offset + CODE_LENGTH)
-
+      const length = this.buffer.readUInt32BE(offset + CODE_LENGTH)
       const fullMessageLength = CODE_LENGTH + length
-
-      if (fullMessageLength + offset <= combinedBuffer.byteLength) {
-        const message = this.handlePacket(offset + HEADER_LENGTH, code, length, combinedBuffer)
+      if (fullMessageLength + offset <= bufferFullLength) {
+        const message = this.handlePacket(offset + HEADER_LENGTH, code, length, this.buffer)
         callback(message)
         offset += fullMessageLength
       } else {
         break
       }
     }
-
-    if (offset === combinedBuffer.byteLength) {
-      this.remainingBuffer = emptyBuffer
+    if (offset === bufferFullLength) {
+      // No more use for the buffer
+      this.buffer = emptyBuffer
+      this.bufferLength = 0
+      this.bufferOffset = 0
     } else {
-      this.remainingBuffer = combinedBuffer.slice(offset)
+      // Adjust the cursors of remainingBuffer
+      this.bufferLength = bufferFullLength - offset
+      this.bufferOffset = offset
+    }
+  }
+
+  private mergeBuffer(buffer: Buffer): void {
+    if (this.bufferLength > 0) {
+      const newLength = this.bufferLength + buffer.byteLength
+      const newFullLength = newLength + this.bufferOffset
+      if (newFullLength > this.buffer.byteLength) {
+        // We can't concat the new buffer with the remaining one
+        let newBuffer: Buffer
+        if (newLength <= this.buffer.byteLength && this.bufferOffset >= this.bufferLength) {
+          // We can move the relevant part to the beginning of the buffer instead of allocating a new buffer
+          newBuffer = this.buffer
+        } else {
+          // Allocate a new larger buffer
+          let newBufferLength = this.buffer.byteLength * 2
+          while (newLength >= newBufferLength) {
+            newBufferLength *= 2
+          }
+          newBuffer = Buffer.allocUnsafe(newBufferLength)
+        }
+        // Move the remaining buffer to the new one
+        this.buffer.copy(newBuffer, 0, this.bufferOffset, this.bufferOffset + this.bufferLength)
+        this.buffer = newBuffer
+        this.bufferOffset = 0
+      }
+      // Concat the new buffer with the remaining one
+      buffer.copy(this.buffer, this.bufferOffset + this.bufferLength)
+      this.bufferLength = newLength
+    } else {
+      this.buffer = buffer
+      this.bufferOffset = 0
+      this.bufferLength = buffer.byteLength
     }
   }
 
