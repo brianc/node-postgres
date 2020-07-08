@@ -188,8 +188,8 @@ describe('parse', function () {
     subject.fallback_application_name.should.equal('TheAppFallback')
   })
 
-  it('configuration parameter options', function () {
-    var connectionString = 'pg:///?options=-c geqo=off'
+  it.only('configuration parameter options', function () {
+    var connectionString = `pg:///?options=${encodeURIComponent('-c geqo=off')}`
     var subject = parse(connectionString)
     subject.options.should.equal('-c geqo=off')
   })

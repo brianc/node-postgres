@@ -20,6 +20,7 @@ function parse(str) {
     / |%[^a-f0-9]|%[a-f0-9][^a-f0-9]/i.test(str) ? encodeURI(str).replace(/\%25(\d\d)/g, '%$1') : str,
     true
   )
+
   var config = result.query
   for (var k in config) {
     if (Array.isArray(config[k])) {
