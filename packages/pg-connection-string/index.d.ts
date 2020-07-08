@@ -11,4 +11,5 @@ export interface ConnectionOptions {
 
   application_name?: string
   fallback_application_name?: string
+  options?: string
 }

@@ -391,6 +391,9 @@ Client.prototype.getStartupConf = function () {
   if (params.idle_in_transaction_session_timeout) {
     data.idle_in_transaction_session_timeout = String(parseInt(params.idle_in_transaction_session_timeout, 10))
   }
+  if (params.options) {
+    data.options = params.options
+  }
 
   return data
 }

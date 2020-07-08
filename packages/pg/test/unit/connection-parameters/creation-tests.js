@@ -25,6 +25,7 @@ var compare = function (actual, expected, type) {
   assert.equal(actual.password, expected.password, type + ' password')
   assert.equal(actual.binary, expected.binary, type + ' binary')
   assert.equal(actual.statement_timeout, expected.statement_timeout, type + ' statement_timeout')
+  assert.equal(actual.options, expected.options, type + ' options')
   assert.equal(
     actual.idle_in_transaction_session_timeout,
     expected.idle_in_transaction_session_timeout,
@@ -48,12 +49,14 @@ test('ConnectionParameters initializing from defaults with connectionString set'
     binary: defaults.binary,
     statement_timeout: false,
     idle_in_transaction_session_timeout: false,
+    options: '-c geqo=off',
   }
 
   var original_value = defaults.connectionString
   // Just changing this here doesn't actually work because it's no longer in scope when viewed inside of
   // of ConnectionParameters() so we have to pass in the defaults explicitly to test it
-  defaults.connectionString = 'postgres://brians-are-the-best:mypassword@foo.bar.net:7777/scoobysnacks'
+  defaults.connectionString =
+    'postgres://brians-are-the-best:mypassword@foo.bar.net:7777/scoobysnacks?options=-c geqo=off'
   var subject = new ConnectionParameters(defaults)
   defaults.connectionString = original_value
   compare(subject, config, 'defaults-connectionString')
@@ -73,6 +76,7 @@ test('ConnectionParameters initializing from config', function () {
     },
     statement_timeout: 15000,
     idle_in_transaction_session_timeout: 15000,
+    options: '-c geqo=off',
   }
   var subject = new ConnectionParameters(config)
   compare(subject, config, 'config')
