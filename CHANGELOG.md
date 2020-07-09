@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@8.3.0
+
+- Support passing a [string of command line options flags](https://github.com/brianc/node-postgres/pull/2216) via the `{ options: string }` field on client/pool config.
+
 ### pg@8.2.0
 
 - Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster. This is the first work to land in an on-going performance improvment initiative I'm working on. Stay tuned as things are set to get much faster still! :rocket:
