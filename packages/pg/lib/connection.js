@@ -77,6 +77,7 @@ class Connection extends EventEmitter {
       var tls = require('tls')
       const options = {
         socket: self.stream,
+        host,
       }
 
       if (self.ssl !== true) {
