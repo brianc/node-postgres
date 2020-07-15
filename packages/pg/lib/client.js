@@ -244,7 +244,7 @@ class Client extends EventEmitter {
     })
   }
 
-  _handleAuthSASL() {
+  _handleAuthSASL(msg) {
     this._checkPgPass(() => {
       this.saslSession = sasl.startSession(msg.mechanisms)
       const con = this.connection
