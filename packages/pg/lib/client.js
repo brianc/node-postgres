@@ -141,10 +141,10 @@ class Client extends EventEmitter {
           if (this._connectionCallback) {
             this._connectionCallback(error)
           } else {
-            this.handleErrorWhileConnected(error)
+            this._handleErrorEvent(error)
           }
         } else if (!this._connectionError) {
-          this.handleErrorWhileConnected(error)
+          this._handleErrorEvent(error)
         }
       }
 
@@ -173,27 +173,27 @@ class Client extends EventEmitter {
 
   _attachListeners(con) {
     // password request handling
-    con.on('authenticationCleartextPassword', this.handleAuthenticationCleartextPassword.bind(this))
+    con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
-    con.on('authenticationMD5Password', this.handleAuthenticationMD5Password.bind(this))
+    con.on('authenticationMD5Password', this._handleAuthMD5Password.bind(this))
     // password request handling (SASL)
-    con.on('authenticationSASL', this.handleAuthenticationSASL.bind(this))
-    con.on('authenticationSASLContinue', this.handleAuthenticationSASLContinue.bind(this))
-    con.on('authenticationSASLFinal', this.handleAuthenticationSASLFinal.bind(this))
-    con.on('backendKeyData', this.handleBackendKeyData.bind(this))
-    con.on('error', this.handleErrorWhileConnecting)
-    con.on('errorMessage', this.handleErrorMessage)
-    con.on('readyForQuery', this.handleReadyForQuery.bind(this))
-    con.on('notice', this.handleNotice.bind(this))
-    con.on('rowDescription', this.handleRowDescription.bind(this))
-    con.on('dataRow', this.handleDataRow.bind(this))
-    con.on('portalSuspended', this.handlePortalSuspended.bind(this))
-    con.on('emptyQuery', this.handleEmptyQuery.bind(this))
-    con.on('commandComplete', this.handleCommandComplete.bind(this))
-    con.on('parseComplete', this.handleParseComplete.bind(this))
-    con.on('copyInResponse', this.handleCopyInResponse.bind(this))
-    con.on('copyData', this.handleCopyData.bind(this))
-    con.on('notification', this.handleNotification.bind(this))
+    con.on('authenticationSASL', this._handleAuthSASL.bind(this))
+    con.on('authenticationSASLContinue', this._handleAuthSASLContinue.bind(this))
+    con.on('authenticationSASLFinal', this._handleAuthSASLFinal.bind(this))
+    con.on('backendKeyData', this._handleBackendKeyData.bind(this))
+    con.on('error', this._handleErrorEvent)
+    con.on('errorMessage', this._handleErrorMessage)
+    con.on('readyForQuery', this._handleReadyForQuery.bind(this))
+    con.on('notice', this._handleNotice.bind(this))
+    con.on('rowDescription', this._handleRowDescription.bind(this))
+    con.on('dataRow', this._handleDataRow.bind(this))
+    con.on('portalSuspended', this._handlePortalSuspended.bind(this))
+    con.on('emptyQuery', this._handleEmptyQuery.bind(this))
+    con.on('commandComplete', this._handleCommandComplete.bind(this))
+    con.on('parseComplete', this._handleParseComplete.bind(this))
+    con.on('copyInResponse', this._handleCopyInResponse.bind(this))
+    con.on('copyData', this._handleCopyData.bind(this))
+    con.on('notification', this._handleNotification.bind(this))
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
@@ -232,20 +232,20 @@ class Client extends EventEmitter {
     }
   }
 
-  handleAuthenticationCleartextPassword(msg) {
+  _handleAuthCleartextPassword(msg) {
     this._checkPgPass(() => {
       this.connection.password(this.password)
     })
   }
 
-  handleAuthenticationMD5Password(msg) {
+  _handleAuthMD5Password(msg) {
     this._checkPgPass((msg) => {
       const hashedPassword = utils.postgresMd5PasswordHash(this.user, this.password, msg.salt)
       this.connection.password(hashedPassword)
     })
   }
 
-  handleAuthenticationSASL(msg) {
+  _handleAuthSASL(msg) {
     this._checkPgPass((msg) => {
       this.saslSession = sasl.startSession(msg.mechanisms)
       const con = this.connection
@@ -253,29 +253,26 @@ class Client extends EventEmitter {
     })
   }
 
-  handleAuthenticationSASLContinue(msg) {
+  _handleAuthSASLContinue(msg) {
     const { saslSession } = this
     sasl.continueSession(saslSession, this.password, msg.data)
     con.sendSCRAMClientFinalMessage(saslSession.response)
   }
 
-  handleAuthenticationSASLFinal(msg) {
+  _handleAuthSASLFinal(msg) {
     sasl.finalizeSession(this.saslSession, msg.data)
     this.saslSession = null
   }
 
-  handleBackendKeyData(msg) {
+  _handleBackendKeyData(msg) {
     this.processID = msg.processID
     this.secretKey = msg.secretKey
   }
 
-  handleReadyForQuery(msg) {
+  _handleReadyForQuery(msg) {
     if (this._connecting) {
       this._connecting = false
       this._connected = true
-      const con = this.connection
-      con.removeListener('error', this.handleErrorWhileConnecting)
-      con.on('error', this.handleErrorWhileConnected)
       clearTimeout(this.connectionTimeoutHandle)
 
       // process possible callback argument to Client#connect
@@ -296,8 +293,9 @@ class Client extends EventEmitter {
     this._pulseQueryQueue()
   }
 
-  // if we receieve an error event or error message during the connection process we handle it here
-  handleErrorWhileConnecting = (err) => {
+  // if we receieve an error event or error message
+  // during the connection process we handle it here
+  _handleErrorWhileConnecting = (err) => {
     if (this._connectionError) {
       // TODO(bmc): this is swallowing errors - we shouldn't do this
       return
@@ -313,21 +311,24 @@ class Client extends EventEmitter {
   // if we're connected and we receive an error event from the connection
   // this means the socket is dead - do a hard abort of all queries and emit
   // the socket error on the client as well
-  handleErrorWhileConnected = (err) => {
+  _handleErrorEvent = (err) => {
+    if (this._connecting) {
+      return this._handleErrorWhileConnecting(err)
+    }
     this._queryable = false
     this._errorAllQueries(err)
     this.emit('error', err)
   }
 
   // handle error messages from the postgres backend
-  handleErrorMessage = (msg) => {
+  _handleErrorMessage = (msg) => {
     if (this._connecting) {
-      return this.handleErrorWhileConnecting(msg)
+      return this._handleErrorWhileConnecting(msg)
     }
     const activeQuery = this.activeQuery
 
     if (!activeQuery) {
-      this.handleErrorWhileConnected(msg)
+      this._handleErrorEvent(msg)
       return
     }
 
@@ -335,32 +336,32 @@ class Client extends EventEmitter {
     activeQuery.handleError(msg, this.connection)
   }
 
-  handleRowDescription(msg) {
+  _handleRowDescription(msg) {
     // delegate rowDescription to active query
     this.activeQuery.handleRowDescription(msg)
   }
 
-  handleDataRow(msg) {
+  _handleDataRow(msg) {
     // delegate dataRow to active query
     this.activeQuery.handleDataRow(msg)
   }
 
-  handlePortalSuspended(msg) {
+  _handlePortalSuspended(msg) {
     // delegate portalSuspended to active query
     this.activeQuery.handlePortalSuspended(this.connection)
   }
 
-  handleEmptyQuery(msg) {
+  _handleEmptyQuery(msg) {
     // delegate emptyQuery to active query
     this.activeQuery.handleEmptyQuery(this.connection)
   }
 
-  handleCommandComplete(msg) {
+  _handleCommandComplete(msg) {
     // delegate commandComplete to active query
     this.activeQuery.handleCommandComplete(msg, this.connection)
   }
 
-  handleParseComplete(msg) {
+  _handleParseComplete(msg) {
     // if a prepared statement has a name and properly parses
     // we track that its already been executed so we don't parse
     // it again on the same client
@@ -369,19 +370,19 @@ class Client extends EventEmitter {
     }
   }
 
-  handleCopyInResponse(msg) {
+  _handleCopyInResponse(msg) {
     this.activeQuery.handleCopyInResponse(this.connection)
   }
 
-  handleCopyData(msg) {
+  _handleCopyData(msg) {
     this.activeQuery.handleCopyData(msg, this.connection)
   }
 
-  handleNotification(msg) {
+  _handleNotification(msg) {
     this.emit('notification', msg)
   }
 
-  handleNotice(msg) {
+  _handleNotice(msg) {
     this.emit('notice', msg)
   }
 
