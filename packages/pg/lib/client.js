@@ -247,15 +247,13 @@ class Client extends EventEmitter {
   _handleAuthSASL(msg) {
     this._checkPgPass(() => {
       this.saslSession = sasl.startSession(msg.mechanisms)
-      const con = this.connection
-      con.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
+      this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
     })
   }
 
   _handleAuthSASLContinue(msg) {
-    const { saslSession } = this
-    sasl.continueSession(saslSession, this.password, msg.data)
-    con.sendSCRAMClientFinalMessage(saslSession.response)
+    sasl.continueSession(this.saslSession, this.password, msg.data)
+    this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
   }
 
   _handleAuthSASLFinal(msg) {
