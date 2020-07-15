@@ -95,9 +95,9 @@ class Client extends EventEmitter {
     }
     this._connecting = true
 
-    var connectionTimeoutHandle
+    this.connectionTimeoutHandle
     if (this._connectionTimeoutMillis > 0) {
-      connectionTimeoutHandle = setTimeout(() => {
+      this.connectionTimeoutHandle = setTimeout(() => {
         con._ending = true
         con.stream.destroy(new Error('timeout expired'))
       }, this._connectionTimeoutMillis)
@@ -133,35 +133,11 @@ class Client extends EventEmitter {
     con.once('backendKeyData', this.handleBackendKeyData.bind(this))
 
     this._connectionCallback = callback
-    const connectingErrorHandler = (err) => {
-      if (this._connectionError) {
-        return
-      }
-      this._connectionError = true
-      clearTimeout(connectionTimeoutHandle)
-      if (this._connectionCallback) {
-        return this._connectionCallback(err)
-      }
-      this.emit('error', err)
-    }
+    const connectingErrorHandler = this.handleErrorWhileConnecting.bind(this)
 
-    const connectedErrorHandler = (err) => {
-      this._queryable = false
-      this._errorAllQueries(err)
-      this.emit('error', err)
-    }
+    const connectedErrorHandler = this.handleErrorWhileConnected.bind(this)
 
-    const connectedErrorMessageHandler = (msg) => {
-      const activeQuery = this.activeQuery
-
-      if (!activeQuery) {
-        connectedErrorHandler(msg)
-        return
-      }
-
-      this.activeQuery = null
-      activeQuery.handleError(msg, con)
-    }
+    const connectedErrorMessageHandler = this.handleErrorMessage.bind(this)
 
     con.on('error', connectingErrorHandler)
     con.on('errorMessage', connectingErrorHandler)
@@ -175,7 +151,7 @@ class Client extends EventEmitter {
       con.removeListener('errorMessage', connectingErrorHandler)
       con.on('error', connectedErrorHandler)
       con.on('errorMessage', connectedErrorMessageHandler)
-      clearTimeout(connectionTimeoutHandle)
+      clearTimeout(this.connectionTimeoutHandle)
 
       // process possible callback argument to Client#connect
       if (this._connectionCallback) {
@@ -194,7 +170,7 @@ class Client extends EventEmitter {
     con.once('end', () => {
       const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
 
-      clearTimeout(connectionTimeoutHandle)
+      clearTimeout(this.connectionTimeoutHandle)
       this._errorAllQueries(error)
 
       if (!this._ending) {
@@ -329,6 +305,42 @@ class Client extends EventEmitter {
       activeQuery.handleReadyForQuery(this.connection)
     }
     this._pulseQueryQueue()
+  }
+
+  // if we receieve an error during the connection process we handle it here
+  handleErrorWhileConnecting(err) {
+    if (this._connectionError) {
+      // TODO(bmc): this is swallowing errors - we shouldn't do this
+      return
+    }
+    this._connectionError = true
+    clearTimeout(this.connectionTimeoutHandle)
+    if (this._connectionCallback) {
+      return this._connectionCallback(err)
+    }
+    this.emit('error', err)
+  }
+
+  // if we're connected and we receive an error event from the connection
+  // this means the socket is dead - do a hard abort of all queries and emit
+  // the socket error on the client as well
+  handleErrorWhileConnected(err) {
+    this._queryable = false
+    this._errorAllQueries(err)
+    this.emit('error', err)
+  }
+
+  // handle error messages from the postgres backend
+  handleErrorMessage(msg) {
+    const activeQuery = this.activeQuery
+
+    if (!activeQuery) {
+      this.handleErrorWhileConnected(msg)
+      return
+    }
+
+    this.activeQuery = null
+    activeQuery.handleError(msg, this.connection)
   }
 
   handleRowDescription(msg) {
