@@ -61,7 +61,7 @@ const run = async () => {
   queries = await bench(client, insert, seconds * 1000)
   console.log('insert queries:', queries)
   console.log('qps', queries / seconds)
-  console.log('on my laptop best so far seen 5799 qps')
+  console.log('on my laptop best so far seen 6303 qps')
 
   console.log('')
   console.log('Warming up bytea test')
