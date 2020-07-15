@@ -154,13 +154,11 @@ class Connection extends EventEmitter {
   }
 
   // send bind message
-  // "more" === true to buffer the message until flush() is called
   bind(config) {
     this._send(serialize.bind(config))
   }
 
   // send execute message
-  // "more" === true to buffer the message until flush() is called
   execute(config) {
     this._send(serialize.execute(config))
   }

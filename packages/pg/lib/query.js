@@ -176,30 +176,26 @@ class Query extends EventEmitter {
   }
 
   _getRows(connection, rows) {
-    connection.execute(
-      {
-        portal: this.portal,
-        rows: rows,
-      },
-      true
-    )
+    connection.execute({
+      portal: this.portal,
+      rows: rows,
+    })
     connection.flush()
   }
 
+  // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
   prepare(connection) {
     // prepared statements need sync to be called after each command
     // complete or when an error is encountered
     this.isPreparedStatement = true
+
     // TODO refactor this poor encapsulation
     if (!this.hasBeenParsed(connection)) {
-      connection.parse(
-        {
-          text: this.text,
-          name: this.name,
-          types: this.types,
-        },
-        true
-      )
+      connection.parse({
+        text: this.text,
+        name: this.name,
+        types: this.types,
+      })
     }
 
     if (this.values) {
@@ -211,24 +207,17 @@ class Query extends EventEmitter {
       }
     }
 
-    // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
-    connection.bind(
-      {
-        portal: this.portal,
-        statement: this.name,
-        values: this.values,
-        binary: this.binary,
-      },
-      true
-    )
+    connection.bind({
+      portal: this.portal,
+      statement: this.name,
+      values: this.values,
+      binary: this.binary,
+    })
 
-    connection.describe(
-      {
-        type: 'P',
-        name: this.portal || '',
-      },
-      true
-    )
+    connection.describe({
+      type: 'P',
+      name: this.portal || '',
+    })
 
     this._getRows(connection, this.rows)
   }
