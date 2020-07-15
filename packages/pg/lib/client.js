@@ -199,36 +199,35 @@ class Client extends EventEmitter {
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
   // it can be supplied by the user if required - this is a breaking change!
   _checkPgPass(cb) {
-    return function (msg) {
-      if (typeof this.password === 'function') {
-        this._Promise
-          .resolve()
-          .then(() => this.password())
-          .then((pass) => {
-            if (pass !== undefined) {
-              if (typeof pass !== 'string') {
-                con.emit('error', new TypeError('Password must be a string'))
-                return
-              }
-              this.connectionParameters.password = this.password = pass
-            } else {
-              this.connectionParameters.password = this.password = null
+    const con = this.connection
+    if (typeof this.password === 'function') {
+      this._Promise
+        .resolve()
+        .then(() => this.password())
+        .then((pass) => {
+          if (pass !== undefined) {
+            if (typeof pass !== 'string') {
+              con.emit('error', new TypeError('Password must be a string'))
+              return
             }
-            cb(msg)
-          })
-          .catch((err) => {
-            con.emit('error', err)
-          })
-      } else if (this.password !== null) {
-        cb(msg)
-      } else {
-        pgPass(this.connectionParameters, function (pass) {
-          if (undefined !== pass) {
             this.connectionParameters.password = this.password = pass
+          } else {
+            this.connectionParameters.password = this.password = null
           }
-          cb(msg)
+          cb()
         })
-      }
+        .catch((err) => {
+          con.emit('error', err)
+        })
+    } else if (this.password !== null) {
+      cb()
+    } else {
+      pgPass(this.connectionParameters, function (pass) {
+        if (undefined !== pass) {
+          this.connectionParameters.password = this.password = pass
+        }
+        cb()
+      })
     }
   }
 
@@ -239,14 +238,14 @@ class Client extends EventEmitter {
   }
 
   _handleAuthMD5Password(msg) {
-    this._checkPgPass((msg) => {
+    this._checkPgPass(() => {
       const hashedPassword = utils.postgresMd5PasswordHash(this.user, this.password, msg.salt)
       this.connection.password(hashedPassword)
     })
   }
 
-  _handleAuthSASL(msg) {
-    this._checkPgPass((msg) => {
+  _handleAuthSASL() {
+    this._checkPgPass(() => {
       this.saslSession = sasl.startSession(msg.mechanisms)
       const con = this.connection
       con.sendSASLInitialResponseMessage(saslSession.mechanism, saslSession.response)
