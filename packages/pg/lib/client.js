@@ -181,8 +181,8 @@ class Client extends EventEmitter {
     con.on('authenticationSASLContinue', this._handleAuthSASLContinue.bind(this))
     con.on('authenticationSASLFinal', this._handleAuthSASLFinal.bind(this))
     con.on('backendKeyData', this._handleBackendKeyData.bind(this))
-    con.on('error', this._handleErrorEvent)
-    con.on('errorMessage', this._handleErrorMessage)
+    con.on('error', this._handleErrorEvent.bind(this))
+    con.on('errorMessage', this._handleErrorMessage.bind(this))
     con.on('readyForQuery', this._handleReadyForQuery.bind(this))
     con.on('notice', this._handleNotice.bind(this))
     con.on('rowDescription', this._handleRowDescription.bind(this))
@@ -295,7 +295,7 @@ class Client extends EventEmitter {
 
   // if we receieve an error event or error message
   // during the connection process we handle it here
-  _handleErrorWhileConnecting = (err) => {
+  _handleErrorWhileConnecting(err) {
     if (this._connectionError) {
       // TODO(bmc): this is swallowing errors - we shouldn't do this
       return
@@ -311,7 +311,7 @@ class Client extends EventEmitter {
   // if we're connected and we receive an error event from the connection
   // this means the socket is dead - do a hard abort of all queries and emit
   // the socket error on the client as well
-  _handleErrorEvent = (err) => {
+  _handleErrorEvent(err) {
     if (this._connecting) {
       return this._handleErrorWhileConnecting(err)
     }
@@ -321,7 +321,7 @@ class Client extends EventEmitter {
   }
 
   // handle error messages from the postgres backend
-  _handleErrorMessage = (msg) => {
+  _handleErrorMessage(msg) {
     if (this._connecting) {
       return this._handleErrorWhileConnecting(msg)
     }
