@@ -248,7 +248,7 @@ class Client extends EventEmitter {
     this._checkPgPass(() => {
       this.saslSession = sasl.startSession(msg.mechanisms)
       const con = this.connection
-      con.sendSASLInitialResponseMessage(saslSession.mechanism, saslSession.response)
+      con.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
     })
   }
 
