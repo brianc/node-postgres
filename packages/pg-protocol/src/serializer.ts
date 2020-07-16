@@ -106,6 +106,30 @@ type BindOpts = {
   binary?: boolean
   statement?: string
   values?: any[]
+  // optional map from JS value to postgres value per parameter
+  valueMap?: (param: any) => any
+}
+
+const paramWriter = new Writer()
+
+const writeValues = function (values: any[], valueMap?: (val: any) => any): void {
+  for (let i = 0; i < values.length; i++) {
+    var val = values[i]
+    if (val === null || typeof val === 'undefined') {
+      writer.addInt16(0)
+      paramWriter.addInt32(-1)
+    } else if (val instanceof Buffer) {
+      writer.addInt16(1)
+      const mappedVal = valueMap ? valueMap(val) : val
+      paramWriter.addInt32(mappedVal.length)
+      paramWriter.add(mappedVal)
+    } else {
+      writer.addInt16(0)
+      const mappedVal = valueMap ? valueMap(val) : val
+      paramWriter.addInt32(Buffer.byteLength(mappedVal))
+      paramWriter.addString(mappedVal)
+    }
+  }
 }
 
 const bind = (config: BindOpts = {}): Buffer => {
@@ -113,43 +137,22 @@ const bind = (config: BindOpts = {}): Buffer => {
   const portal = config.portal || ''
   const statement = config.statement || ''
   const binary = config.binary || false
-  var values = config.values || emptyArray
-  var len = values.length
+  const values = config.values || emptyArray
+  const len = values.length
 
-  var useBinary = false
-  // TODO(bmc): all the loops in here aren't nice, we can do better
-  for (var j = 0; j < len; j++) {
-    useBinary = useBinary || values[j] instanceof Buffer
-  }
+  writer.addCString(portal).addCString(statement)
+  writer.addInt16(len)
 
-  var buffer = writer.addCString(portal).addCString(statement)
-  if (!useBinary) {
-    buffer.addInt16(0)
-  } else {
-    buffer.addInt16(len)
-    for (j = 0; j < len; j++) {
-      buffer.addInt16(values[j] instanceof Buffer ? 1 : 0)
-    }
-  }
-  buffer.addInt16(len)
-  for (var i = 0; i < len; i++) {
-    var val = values[i]
-    if (val === null || typeof val === 'undefined') {
-      buffer.addInt32(-1)
-    } else if (val instanceof Buffer) {
-      buffer.addInt32(val.length)
-      buffer.add(val)
-    } else {
-      buffer.addInt32(Buffer.byteLength(val))
-      buffer.addString(val)
-    }
-  }
+  writeValues(values, config.valueMap)
+
+  writer.addInt16(len)
+  writer.add(paramWriter.flush())
 
   if (binary) {
-    buffer.addInt16(1) // format codes to use binary
-    buffer.addInt16(1)
+    writer.addInt16(1) // format codes to use binary
+    writer.addInt16(1)
   } else {
-    buffer.addInt16(0) // format codes to use text
+    writer.addInt16(0) // format codes to use text
   }
   return writer.flush(code.bind)
 }
