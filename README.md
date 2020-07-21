@@ -18,7 +18,7 @@ This repo is a monorepo which contains the core [pg](https://github.com/brianc/n
 - [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string)
 
 
-## Documenation
+## Documentation
 
 Each package in this repo should have it's own readme more focused on how to develop/contribute.  For overall documentation on the project and the related modules managed by this repo please see:
 
