@@ -123,7 +123,8 @@ class ConnectionParameters {
     add(params, this, 'connect_timeout')
     add(params, this, 'options')
 
-    var ssl = typeof this.ssl === 'object' ? this.ssl : this.ssl && typeof this.ssl === 'string' ? { sslmode: this.ssl } : {}
+    var ssl =
+      typeof this.ssl === 'object' ? this.ssl : this.ssl && typeof this.ssl === 'string' ? { sslmode: this.ssl } : {}
     add(params, ssl, 'sslmode')
     add(params, ssl, 'sslca')
     add(params, ssl, 'sslkey')
