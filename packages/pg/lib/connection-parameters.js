@@ -84,6 +84,11 @@ class ConnectionParameters {
     if (this.ssl === 'no-verify') {
       this.ssl = { rejectUnauthorized: false }
     }
+    if (this.ssl && this.ssl.key) {
+      Object.defineProperty(this.ssl, 'key', {
+        enumerable: false,
+      })
+    }
 
     this.client_encoding = val('client_encoding', config)
     this.replication = val('replication', config)
