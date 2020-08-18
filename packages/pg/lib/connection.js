@@ -85,7 +85,11 @@ class Connection extends EventEmitter {
       if (net.isIP(host) === 0) {
         options.servername = host
       }
-      self.stream = tls.connect(options)
+      try {
+        self.stream = tls.connect(options)
+      } catch (err) {
+        return self.emit('error', err)
+      }
       self.attachListeners(self.stream)
       self.stream.on('error', reportStreamError)
 
