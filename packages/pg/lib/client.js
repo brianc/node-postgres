@@ -215,7 +215,7 @@ class Client extends EventEmitter {
     } else if (this.password !== null) {
       cb()
     } else {
-      pgPass(this.connectionParameters, function (pass) {
+      pgPass(this.connectionParameters, (pass) => {
         if (undefined !== pass) {
           this.connectionParameters.password = this.password = pass
         }
