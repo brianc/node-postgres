@@ -172,6 +172,26 @@ test('libpq connection string building', function () {
     )
   })
 
+  test('builds conn string with options', function () {
+    var config = {
+      user: 'brian',
+      password: 'xyz',
+      port: 888,
+      host: 'localhost',
+      database: 'bam',
+      statement_timeout: 5000,
+      idle_in_transaction_session_timeout: 5000,
+    }
+    var subject = new ConnectionParameters(config)
+    subject.getLibpqConnectionString(
+      assert.calls(function (err, constring) {
+        assert(!err)
+        var parts = constring.split(/ (?=([^\']*\'[^\']*\')*[^\']*$)/)
+        checkForPart(parts, "options='-c statement_timeout=5000 -c idle_in_transaction_session_timeout=5000'")
+      })
+    )
+  })
+
   test('builds dns string', function () {
     var config = {
       user: 'brian',

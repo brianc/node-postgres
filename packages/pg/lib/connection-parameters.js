@@ -45,6 +45,21 @@ var add = function (params, config, paramName) {
   }
 }
 
+var escapeOptionValue = function (value) {
+  return ('' + value).replace(/\\/g, '\\\\').replace(/ /g, '\\ ')
+}
+
+var addOption = function (options, config, optionName) {
+  if (!config[optionName]) {
+    return
+  }
+
+  var value = config[optionName]
+  if (value !== undefined && value !== null) {
+    options.push('-c ' + optionName + '=' + escapeOptionValue(value))
+  }
+}
+
 class ConnectionParameters {
   constructor(config) {
     // if a string is passed, it is a raw connection string so we parse it into a config
@@ -120,6 +135,8 @@ class ConnectionParameters {
 
   getLibpqConnectionString(cb) {
     var params = []
+    var pgOptions = []
+
     add(params, this, 'user')
     add(params, this, 'password')
     add(params, this, 'port')
@@ -127,6 +144,16 @@ class ConnectionParameters {
     add(params, this, 'fallback_application_name')
     add(params, this, 'connect_timeout')
     add(params, this, 'options')
+
+    addOption(pgOptions, this, 'statement_timeout')
+    addOption(pgOptions, this, 'idle_in_transaction_session_timeout')
+
+    if (this.options) {
+      pgOptions.push(this.options)
+    }
+    if (pgOptions.length > 0) {
+      params.push('options=' + quoteParamValue(pgOptions.join(' ')))
+    }
 
     var ssl = typeof this.ssl === 'object' ? this.ssl : this.ssl ? { sslmode: this.ssl } : {}
     add(params, ssl, 'sslmode')
