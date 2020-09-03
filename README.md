@@ -20,7 +20,7 @@ This repo is a monorepo which contains the core [pg](https://github.com/brianc/n
 
 ## Documentation
 
-Each package in this repo should have it's own readme more focused on how to develop/contribute. For overall documentation on the project and the related modules managed by this repo please see:
+Each package in this repo should have its own readme more focused on how to develop/contribute. For overall documentation on the project and the related modules managed by this repo please see:
 
 ### :star: [Documentation](https://node-postgres.com) :star:
 
