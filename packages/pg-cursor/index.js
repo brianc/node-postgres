@@ -138,8 +138,6 @@ Cursor.prototype.handleEmptyQuery = function () {
 }
 
 Cursor.prototype.handleError = function (msg) {
-  this.connection.removeListener('noData', this._ifNoData)
-  this.connection.removeListener('rowDescription', this._rowDescription)
   this.state = 'error'
   this._error = msg
   // satisfy any waiting callback
@@ -155,8 +153,12 @@ Cursor.prototype.handleError = function (msg) {
     // only dispatch error events if we have a listener
     this.emit('error', msg)
   }
-  // call sync to keep this connection from hanging
-  this.connection.sync()
+  if (this.connection) {
+    this.connection.removeListener('noData', this._ifNoData)
+    this.connection.removeListener('rowDescription', this._rowDescription)
+    // call sync to keep this connection from hanging
+    this.connection.sync()
+  }
 }
 
 Cursor.prototype._getRows = function (rows, cb) {
