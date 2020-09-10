@@ -258,25 +258,25 @@ describe('parse', function () {
   it('configuration parameter sslmode=prefer', function () {
     var connectionString = 'pg:///?sslmode=prefer'
     var subject = parse(connectionString)
-    subject.ssl.should.eql(true)
+    subject.ssl.should.eql({})
   })
 
   it('configuration parameter sslmode=require', function () {
     var connectionString = 'pg:///?sslmode=require'
     var subject = parse(connectionString)
-    subject.ssl.should.eql(true)
+    subject.ssl.should.eql({})
   })
 
   it('configuration parameter sslmode=verify-ca', function () {
     var connectionString = 'pg:///?sslmode=verify-ca'
     var subject = parse(connectionString)
-    subject.ssl.should.eql(true)
+    subject.ssl.should.eql({})
   })
 
   it('configuration parameter sslmode=verify-full', function () {
     var connectionString = 'pg:///?sslmode=verify-full'
     var subject = parse(connectionString)
-    subject.ssl.should.eql(true)
+    subject.ssl.should.eql({})
   })
 
   it("configuration parameter sslmode=require doesn't overwrite sslrootcert=/path/to/ca", function () {
