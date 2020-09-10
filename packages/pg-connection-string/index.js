@@ -65,7 +65,7 @@ function parse(str) {
     config.ssl = false
   }
 
-  if (config.sslcert || config.sslkey || config.sslrootcert) {
+  if (config.sslcert || config.sslkey || config.sslrootcert || config.sslmode) {
     config.ssl = {}
   }
 
@@ -90,11 +90,9 @@ function parse(str) {
     case 'require':
     case 'verify-ca':
     case 'verify-full': {
-      config.ssl = config.ssl || true
       break
     }
     case 'no-verify': {
-      config.ssl = config.ssl || {}
       config.ssl.rejectUnauthorized = false
       break
     }
