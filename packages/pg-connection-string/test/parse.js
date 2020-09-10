@@ -241,6 +241,52 @@ describe('parse', function () {
     })
   })
 
+  it('configuration parameter sslmode=no-verify', function () {
+    var connectionString = 'pg:///?sslmode=no-verify'
+    var subject = parse(connectionString)
+    subject.ssl.should.eql({
+      rejectUnauthorized: false,
+    })
+  })
+
+  it('configuration parameter sslmode=disable', function () {
+    var connectionString = 'pg:///?sslmode=disable'
+    var subject = parse(connectionString)
+    subject.ssl.should.eql(false)
+  })
+
+  it('configuration parameter sslmode=prefer', function () {
+    var connectionString = 'pg:///?sslmode=prefer'
+    var subject = parse(connectionString)
+    subject.ssl.should.eql(true)
+  })
+
+  it('configuration parameter sslmode=require', function () {
+    var connectionString = 'pg:///?sslmode=require'
+    var subject = parse(connectionString)
+    subject.ssl.should.eql(true)
+  })
+
+  it('configuration parameter sslmode=verify-ca', function () {
+    var connectionString = 'pg:///?sslmode=verify-ca'
+    var subject = parse(connectionString)
+    subject.ssl.should.eql(true)
+  })
+
+  it('configuration parameter sslmode=verify-full', function () {
+    var connectionString = 'pg:///?sslmode=verify-full'
+    var subject = parse(connectionString)
+    subject.ssl.should.eql(true)
+  })
+
+  it("configuration parameter sslmode=require doesn't overwrite sslrootcert=/path/to/ca", function () {
+    var connectionString = 'pg:///?sslrootcert=' + __dirname + '/example.ca&sslmode=require'
+    var subject = parse(connectionString)
+    subject.ssl.should.eql({
+      ca: 'example ca\n',
+    })
+  })
+
   it('allow other params like max, ...', function () {
     var subject = parse('pg://myhost/db?max=18&min=4')
     subject.max.should.equal('18')
