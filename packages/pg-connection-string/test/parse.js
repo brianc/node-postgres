@@ -279,8 +279,8 @@ describe('parse', function () {
     subject.ssl.should.eql({})
   })
 
-  it("configuration parameter sslmode=require doesn't overwrite sslrootcert=/path/to/ca", function () {
-    var connectionString = 'pg:///?sslrootcert=' + __dirname + '/example.ca&sslmode=require'
+  it('configuration parameter ssl=true and sslmode=require still work with sslrootcert=/path/to/ca', function () {
+    var connectionString = 'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require'
     var subject = parse(connectionString)
     subject.ssl.should.eql({
       ca: 'example ca\n',
