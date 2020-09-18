@@ -35,8 +35,13 @@ class Connection extends EventEmitter {
     var self = this
 
     this._connecting = true
-    this.stream.setNoDelay(true)
-    this.stream.connect(port, host)
+    //Check if stream is open (e.g passing socket from SOCKS proxy)
+    if (!this.stream.readable && !this.stream.writeable) {
+      this.stream.setNoDelay(true)
+      this.stream.connect(port, host)
+    } else {
+      process.nextTick(() => self.emit('connect'))
+    }
 
     this.stream.once('connect', function () {
       if (self._keepAlive) {
