@@ -36,7 +36,7 @@ class Connection extends EventEmitter {
 
     this._connecting = true
     //Check if stream is open (e.g passing socket from SOCKS proxy)
-    if (!this.stream.readable && !this.stream.writeable) {
+    if (this.stream.pending) {
       this.stream.setNoDelay(true)
       this.stream.connect(port, host)
     } else {
