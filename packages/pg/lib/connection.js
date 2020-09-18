@@ -3,6 +3,7 @@
 var net = require('net')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
+var semver = require('semver')
 
 const { parse, serialize } = require('pg-protocol')
 
@@ -36,6 +37,10 @@ class Connection extends EventEmitter {
 
     this._connecting = true
     //Check if stream is open (e.g passing socket from SOCKS proxy)
+    if (!semver.satisfies(process.version, '>=10.16.0')) {
+      //since node v8 lacks pending
+      this.stream.pending = this.stream.connecting
+    }
     if (this.stream.pending) {
       this.stream.setNoDelay(true)
       this.stream.connect(port, host)
