@@ -39,7 +39,7 @@ class Connection extends EventEmitter {
     //Check if stream is open (e.g passing socket from SOCKS proxy)
     if (!semver.satisfies(process.version, '>=10.16.0')) {
       //since node v8 lacks pending
-      this.stream.pending = this.stream.connecting
+      this.stream.pending = !this.stream.connecting
     }
     if (this.stream.pending) {
       this.stream.setNoDelay(true)
