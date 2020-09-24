@@ -200,6 +200,12 @@ describe('parse', function () {
     subject.ssl.should.equal(true)
   })
 
+  it('configuration parameter ssl=false', function () {
+    var connectionString = 'pg:///?ssl=false'
+    var subject = parse(connectionString)
+    subject.ssl.should.equal(false)
+  })
+
   it('configuration parameter ssl=1', function () {
     var connectionString = 'pg:///?ssl=1'
     var subject = parse(connectionString)
