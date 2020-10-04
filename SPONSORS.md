@@ -31,3 +31,4 @@ node-postgres is made possible by the helpful contributors from the community as
 - Raul Murray
 - Simple Analytics
 - Trevor Linton
+- Ian Walter
