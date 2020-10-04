@@ -4,6 +4,12 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@8.4.0
+
+- Switch to optional peer dependencies & remove [semver](https://github.com/brianc/node-postgres/commit/a02dfac5ad2e2abf0dc3a9817f953938acdc19b1) package which has been a small thorn in the side of a few users.
+- Export `DatabaseError` from [pg-protocol](https://github.com/brianc/node-postgres/commit/58258430d52ee446721cc3e6611e26f8bcaa67f5).
+- Add support for `ssl-mode` in the [connection string](https://github.com/brianc/node-postgres/commit/6be3b9022f83efc721596cc41165afaa07bfceb0).
+
 ### pg@8.3.0
 
 - Support passing a [string of command line options flags](https://github.com/brianc/node-postgres/pull/2216) via the `{ options: string }` field on client/pool config.
