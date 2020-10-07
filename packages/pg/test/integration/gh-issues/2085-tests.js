@@ -4,6 +4,10 @@ var assert = require('assert')
 
 const suite = new helper.Suite()
 
+if (process.env.PGTESTNOSSL) {
+  return
+}
+
 suite.testAsync('it should connect over ssl', async () => {
   const ssl = helper.args.native
     ? 'require'
