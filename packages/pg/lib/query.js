@@ -101,19 +101,22 @@ class Query extends EventEmitter {
     this._checkForMultirow()
     this._result.addCommandComplete(msg)
     // need to sync after each command complete of a prepared statement
-    this.maybeSync(connection)
+    // if we were using a row count which results in multiple calls to _getRows
+    if (this.rows) {
+      this.maybeSync(connection)
+    }
   }
 
   // if a named prepared statement is created with empty query text
   // the backend will send an emptyQuery message but *not* a command complete message
   // execution on the connection will hang until the backend receives a sync message
   handleEmptyQuery(connection) {
-    this.maybeSync(connection)
+    // this.maybeSync(connection)
   }
 
   handleError(err, connection) {
     // need to sync after error during a prepared statement
-    this.maybeSync(connection)
+    // this.maybeSync(connection)
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
@@ -143,7 +146,7 @@ class Query extends EventEmitter {
   // say "Therefore, an Execute phase is always terminated by the appearance of exactly one of these messages:
   // CommandComplete, EmptyQueryResponse (if the portal was created from an empty query string), ErrorResponse, or PortalSuspended."
   maybeSync(connection) {
-    if (this.isPreparedStatement && !this._hasSentSync) {
+    if (this.isPreparedStatement) {
       this._hasSentSync = true
       connection.sync()
     }
@@ -181,7 +184,11 @@ class Query extends EventEmitter {
       portal: this.portal,
       rows: rows,
     })
-    connection.flush()
+    if (!rows) {
+      this.maybeSync(connection)
+    } else {
+      connection.flush()
+    }
   }
 
   // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
