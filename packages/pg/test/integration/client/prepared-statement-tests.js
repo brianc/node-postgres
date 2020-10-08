@@ -174,5 +174,15 @@ var suite = new helper.Suite()
     checkForResults(query)
   })
 
+  suite.testAsync('with no data response and rows', async function () {
+    const result = await client.query({
+      name: 'some insert',
+      text: '',
+      values: [],
+      rows: 1,
+    })
+    assert.equal(result.rows.length, 0)
+  })
+
   suite.test('cleanup', () => client.end())
 })()
