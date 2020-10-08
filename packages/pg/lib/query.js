@@ -97,24 +97,33 @@ class Query extends EventEmitter {
     }
   }
 
-  handleCommandComplete(msg, con) {
+  handleCommandComplete(msg, connection) {
     this._checkForMultirow()
     this._result.addCommandComplete(msg)
     // need to sync after each command complete of a prepared statement
-    if (this.isPreparedStatement && !this._hasSentSync) {
-      this._hasSentSync = true
-      con.sync()
-    }
+    this.maybeSync(connection)
   }
 
   // if a named prepared statement is created with empty query text
   // the backend will send an emptyQuery message but *not* a command complete message
   // execution on the connection will hang until the backend receives a sync message
-  handleEmptyQuery(con) {
-    if (this.isPreparedStatement && !this._hasSentSync) {
-      this._hasSentSync = true
-      con.sync()
+  handleEmptyQuery(connection) {
+    this.maybeSync(connection)
+  }
+
+  handleError(err, connection) {
+    // need to sync after error during a prepared statement
+    this.maybeSync(connection)
+    if (this._canceledDueToError) {
+      err = this._canceledDueToError
+      this._canceledDueToError = false
     }
+    // if callback supplied do not emit error event as uncaught error
+    // events will bubble up to node process
+    if (this.callback) {
+      return this.callback(err)
+    }
+    this.emit('error', err)
   }
 
   handleReadyForQuery(con) {
@@ -127,27 +136,16 @@ class Query extends EventEmitter {
     this.emit('end', this._results)
   }
 
-  handleError(err, connection) {
-    // need to sync after error during a prepared statement
-    // in postgres 9.6 the backend sends both a command complete and error response
-    // to a query which has timed out on rare, random occasions.  If we send sync twice we will receive
-    // to 'readyForQuery' events.  I think this might be a bug in postgres 9.6, but I'm not sure...
-    // the docs here: https://www.postgresql.org/docs/9.6/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
-    // say "Therefore, an Execute phase is always terminated by the appearance of exactly one of these messages: CommandComplete, EmptyQueryResponse (if the portal was created from an empty query string), ErrorResponse, or PortalSuspended."
-    if (this.isPreparedStatement && !this._hasSentSync) {
+  // in postgres 9.6 the backend sends both a command complete and error response
+  // to a query which has timed out on rare, random occasions.  If we send sync twice we will receive
+  // to 'readyForQuery' events.  I think this might be a bug in postgres 9.6, but I'm not sure...
+  // the docs here: https://www.postgresql.org/docs/9.6/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
+  // say "Therefore, an Execute phase is always terminated by the appearance of exactly one of these messages: CommandComplete, EmptyQueryResponse (if the portal was created from an empty query string), ErrorResponse, or PortalSuspended."
+  maybeSync(connection) {
+    if (this.isPreparedStatement) {
       this._hasSentSync = true
       connection.sync()
     }
-    if (this._canceledDueToError) {
-      err = this._canceledDueToError
-      this._canceledDueToError = false
-    }
-    // if callback supplied do not emit error event as uncaught error
-    // events will bubble up to node process
-    if (this.callback) {
-      return this.callback(err)
-    }
-    this.emit('error', err)
   }
 
   submit(connection) {
