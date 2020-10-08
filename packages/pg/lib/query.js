@@ -103,20 +103,22 @@ class Query extends EventEmitter {
     // need to sync after each command complete of a prepared statement
     // if we were using a row count which results in multiple calls to _getRows
     if (this.rows) {
-      this.maybeSync(connection)
+      connection.sync()
     }
   }
 
   // if a named prepared statement is created with empty query text
   // the backend will send an emptyQuery message but *not* a command complete message
-  // execution on the connection will hang until the backend receives a sync message
+  // since we pipeline sync immediately after execute we don't need to do anything here
+  // unless we have rows specified, in which case we did not pipeline the intial sync call
   handleEmptyQuery(connection) {
-    // this.maybeSync(connection)
+    if (this.rows) {
+      connection.sync()
+    }
   }
 
   handleError(err, connection) {
     // need to sync after error during a prepared statement
-    // this.maybeSync(connection)
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
@@ -137,19 +139,6 @@ class Query extends EventEmitter {
       this.callback(null, this._results)
     }
     this.emit('end', this._results)
-  }
-
-  // In postgres 9.x & 10.x the backend sends both a CommandComplete and ErrorResponse
-  // to the same query when it times out due to a statement_timeout on rare, random occasions.  If we send sync twice we will receive
-  // to ReadyForQuery messages .  I hink this might be a race condition in some versions of postgres, but I'm not sure...
-  // the docs here: https://www.postgresql.org/docs/9.6/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
-  // say "Therefore, an Execute phase is always terminated by the appearance of exactly one of these messages:
-  // CommandComplete, EmptyQueryResponse (if the portal was created from an empty query string), ErrorResponse, or PortalSuspended."
-  maybeSync(connection) {
-    if (this.isPreparedStatement) {
-      this._hasSentSync = true
-      connection.sync()
-    }
   }
 
   submit(connection) {
@@ -184,9 +173,12 @@ class Query extends EventEmitter {
       portal: this.portal,
       rows: rows,
     })
+    // if we're not reading pages of rows send the sync command
+    // to indicate the pipeline is finished
     if (!rows) {
-      this.maybeSync(connection)
+      connection.sync()
     } else {
+      // otherwise flush the call out to read more rows
       connection.flush()
     }
   }
