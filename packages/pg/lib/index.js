@@ -3,6 +3,7 @@
 var Client = require('./client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
+var TypeOverrides = require('./type-overrides')
 var Pool = require('pg-pool')
 
 const poolFactory = (Client) => {
@@ -20,6 +21,7 @@ var PG = function (clientConstructor) {
   this.Pool = poolFactory(this.Client)
   this._pools = []
   this.Connection = Connection
+  this.TypeOverrides = TypeOverrides
   this.types = require('pg-types')
 }
 
