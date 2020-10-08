@@ -31,7 +31,6 @@ class Query extends EventEmitter {
     this.isPreparedStatement = false
     this._canceledDueToError = false
     this._promise = null
-    this._hasSentSync = false
   }
 
   requiresPreparation() {
