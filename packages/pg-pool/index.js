@@ -76,7 +76,6 @@ class Pool extends EventEmitter {
     if (options != null && options.ssl && options.ssl.key) {
       // "hiding" the ssl->key so it doesn't show up in stack traces
       // or if the client is console.logged
-      this.options.ssl.key = options.ssl.key
       Object.defineProperty(this.options.ssl, 'key', {
         enumerable: false,
       })
