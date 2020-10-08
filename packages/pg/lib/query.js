@@ -142,7 +142,7 @@ class Query extends EventEmitter {
   // the docs here: https://www.postgresql.org/docs/9.6/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
   // say "Therefore, an Execute phase is always terminated by the appearance of exactly one of these messages: CommandComplete, EmptyQueryResponse (if the portal was created from an empty query string), ErrorResponse, or PortalSuspended."
   maybeSync(connection) {
-    if (this.isPreparedStatement) {
+    if (this.isPreparedStatement && !this._hasSentSync) {
       this._hasSentSync = true
       connection.sync()
     }
