@@ -6,7 +6,7 @@ suite.testAsync('timeout causing query crashes', async () => {
   const client = new helper.Client()
   await client.connect()
   await client.query('CREATE TEMP TABLE foobar( name TEXT NOT NULL, id SERIAL)')
-  client.query('BEGIN')
+  await client.query('BEGIN')
   await client.query("SET LOCAL statement_timeout TO '1ms'")
   let count = 0
   while (count++ < 5000) {
