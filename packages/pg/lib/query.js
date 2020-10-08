@@ -136,11 +136,12 @@ class Query extends EventEmitter {
     this.emit('end', this._results)
   }
 
-  // in postgres 9.6 the backend sends both a command complete and error response
-  // to a query which has timed out on rare, random occasions.  If we send sync twice we will receive
-  // to 'readyForQuery' events.  I think this might be a bug in postgres 9.6, but I'm not sure...
+  // In postgres 9.x & 10.x the backend sends both a CommandComplete and ErrorResponse
+  // to the same query when it times out due to a statement_timeout on rare, random occasions.  If we send sync twice we will receive
+  // to ReadyForQuery messages .  I hink this might be a race condition in some versions of postgres, but I'm not sure...
   // the docs here: https://www.postgresql.org/docs/9.6/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
-  // say "Therefore, an Execute phase is always terminated by the appearance of exactly one of these messages: CommandComplete, EmptyQueryResponse (if the portal was created from an empty query string), ErrorResponse, or PortalSuspended."
+  // say "Therefore, an Execute phase is always terminated by the appearance of exactly one of these messages:
+  // CommandComplete, EmptyQueryResponse (if the portal was created from an empty query string), ErrorResponse, or PortalSuspended."
   maybeSync(connection) {
     if (this.isPreparedStatement && !this._hasSentSync) {
       this._hasSentSync = true
