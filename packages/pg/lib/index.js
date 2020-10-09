@@ -40,9 +40,6 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
         if (err.code !== 'MODULE_NOT_FOUND') {
           throw err
         }
-        /* eslint-disable no-console */
-        console.error(err.message)
-        /* eslint-enable no-console */
       }
 
       // overwrite module.exports.native so that getter is never called again
