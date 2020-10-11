@@ -1,8 +1,13 @@
 const { Readable } = require('stream')
 const Cursor = require('pg-cursor')
 
+interface PgQueryStreamConfig {
+  batchSize: number
+  highWaterMark?: number
+}
+
 class PgQueryStream extends Readable {
-  constructor(text, values, config = {}) {
+  constructor(text, values, config: PgQueryStreamConfig = {}) {
     const { batchSize, highWaterMark = 100 } = config
     // https://nodejs.org/api/stream.html#stream_new_stream_readable_options
     super({ objectMode: true, emitClose: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
