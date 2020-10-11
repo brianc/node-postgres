@@ -2,7 +2,12 @@ import assert from 'assert'
 import concat from 'concat-stream'
 import { Transform } from 'stream'
 import helper from './helper'
+<<<<<<< HEAD
 import QueryStream from '../src'
+=======
+
+const QueryStream = require('../')
+>>>>>>> refactor(pg-query-stream): convert test to ts
 
 helper('concat', function (client) {
   it('concats correctly', function (done) {

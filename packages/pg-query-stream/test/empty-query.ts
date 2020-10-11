@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import helper from './helper'
 import QueryStream from '../src'
+=======
+import assert from 'assert'
+import helper from './helper'
+import QueryStream from '../'
+>>>>>>> refactor(pg-query-stream): convert test to ts
 
 helper('empty-query', function (client) {
   it('handles empty query', function (done) {

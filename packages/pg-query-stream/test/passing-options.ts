@@ -1,6 +1,10 @@
 import assert from 'assert'
 import helper from './helper'
+<<<<<<< HEAD
 import QueryStream from '../src'
+=======
+import QueryStream from '../'
+>>>>>>> refactor(pg-query-stream): convert test to ts
 
 helper('passing options', function (client) {
   it('passes row mode array', function (done) {

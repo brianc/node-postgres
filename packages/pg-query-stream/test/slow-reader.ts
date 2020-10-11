@@ -1,5 +1,9 @@
 import helper from './helper'
+<<<<<<< HEAD
 import QueryStream from '../src'
+=======
+import QueryStream from '../'
+>>>>>>> refactor(pg-query-stream): convert test to ts
 import concat from 'concat-stream'
 
 import { Transform } from 'stream'

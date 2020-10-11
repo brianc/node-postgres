@@ -5,8 +5,8 @@ import QueryStream from '../src'
 
 helper('instant', function (client) {
   it('instant', function (done) {
-    var query = new QueryStream('SELECT pg_sleep(1)', [])
-    var stream = client.query(query)
+    const query = new QueryStream('SELECT pg_sleep(1)', [])
+    const stream = client.query(query)
     stream.pipe(
       concat(function (res) {
         assert.strictEqual(res.length, 1)
