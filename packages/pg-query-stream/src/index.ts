@@ -2,7 +2,6 @@ import { Readable } from 'stream'
 import { Submittable, Connection } from 'pg'
 import Cursor from 'pg-cursor'
 
-<<<<<<< HEAD:packages/pg-query-stream/src/index.ts
 interface QueryStreamConfig {
   batchSize?: number
   highWaterMark?: number
@@ -23,15 +22,6 @@ class QueryStream extends Readable implements Submittable {
   handleEmptyQuery: Function
 
   public constructor(text: string, values?: any[], config: QueryStreamConfig = {}) {
-=======
-interface PgQueryStreamConfig {
-  batchSize: number
-  highWaterMark?: number
-}
-
-class PgQueryStream extends Readable {
-  constructor(text, values, config: PgQueryStreamConfig = {}) {
->>>>>>> feat(): start converting pg-query stream:packages/pg-query-stream/index.ts
     const { batchSize, highWaterMark = 100 } = config
 
     super({ objectMode: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })

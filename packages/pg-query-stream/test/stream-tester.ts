@@ -1,5 +1,6 @@
-import spec from 'stream-spec'
+import assert from 'assert'
 import helper from './helper'
+import spec from 'stream-spec'
 import QueryStream from '../src'
 
 helper('stream tester', function (client) {
