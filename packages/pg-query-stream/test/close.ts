@@ -1,13 +1,8 @@
 import assert from 'assert'
 import concat from 'concat-stream'
-<<<<<<< HEAD
 import QueryStream from '../src'
 import helper from './helper'
-=======
-
-const QueryStream = require('../')
-const helper = require('./helper')
->>>>>>> refactor(pg-query-stream): convert test to ts
+import helper from './helper'
 
 if (process.version.startsWith('v8.')) {
   console.error('warning! node less than 10lts stream closing semantics may not behave properly')
