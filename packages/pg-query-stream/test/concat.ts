@@ -1,14 +1,14 @@
-var assert = require('assert')
-var concat = require('concat-stream')
-var through = require('through')
-var helper = require('./helper')
+import assert from 'assert'
+import concat from 'concat-stream'
+import through from 'through'
+import helper from './helper'
 
-var QueryStream = require('../')
+const QueryStream = require('../')
 
 helper('concat', function (client) {
   it('concats correctly', function (done) {
-    var stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
-    var query = client.query(stream)
+    const stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
+    const query = client.query(stream)
     query
       .pipe(
         through(function (row) {
@@ -17,7 +17,7 @@ helper('concat', function (client) {
       )
       .pipe(
         concat(function (result) {
-          var total = result.reduce(function (prev, cur) {
+          const total = result.reduce(function (prev, cur) {
             return prev + cur
           })
           assert.equal(total, 20100)

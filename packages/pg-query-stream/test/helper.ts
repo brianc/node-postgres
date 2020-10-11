@@ -1,7 +1,8 @@
-var pg = require('pg')
-module.exports = function (name, cb) {
+import pg from 'pg'
+
+export default function (name, cb) {
   describe(name, function () {
-    var client = new pg.Client()
+    const client = new pg.Client()
 
     before(function (done) {
       client.connect(done)
