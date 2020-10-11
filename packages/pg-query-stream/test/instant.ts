@@ -1,12 +1,12 @@
-var assert = require('assert')
-var concat = require('concat-stream')
+import helper from './helper'
+import assert from 'assert'
+import concat from 'concat-stream'
+import QueryStream from '../'
 
-var QueryStream = require('../')
-
-require('./helper')('instant', function (client) {
+helper('instant', function (client) {
   it('instant', function (done) {
-    var query = new QueryStream('SELECT pg_sleep(1)', [])
-    var stream = client.query(query)
+    const query = new QueryStream('SELECT pg_sleep(1)', [])
+    const stream = client.query(query)
     stream.pipe(
       concat(function (res) {
         assert.equal(res.length, 1)

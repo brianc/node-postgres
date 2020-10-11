@@ -1,10 +1,12 @@
 import { Readable } from 'stream'
-import { Submittable, Connection } from 'pg'
+import { Submittable, Connection, types } from 'pg'
 import Cursor from 'pg-cursor'
 
 interface PgQueryStreamConfig {
   batchSize?: number
   highWaterMark?: number
+  rowMode?: 'array'
+  types?: any
 }
 
 class PgQueryStream extends Readable implements Submittable {
@@ -63,4 +65,4 @@ class PgQueryStream extends Readable implements Submittable {
   }
 }
 
-module.exports = PgQueryStream
+export = PgQueryStream
