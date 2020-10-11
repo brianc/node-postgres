@@ -64,8 +64,4 @@ class QueryStream extends Readable implements Submittable {
   }
 }
 
-<<<<<<< HEAD
 export = QueryStream
-=======
-export = QueryStream
->>>>>>> refactor(pg-query-stream): convert test to ts
