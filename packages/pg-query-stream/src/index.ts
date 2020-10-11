@@ -1,15 +1,28 @@
-const { Readable } = require('stream')
-const Cursor = require('pg-cursor')
+import { Readable } from 'stream'
+import { Submittable, Connection } from 'pg'
+import Cursor from 'pg-cursor'
 
 interface PgQueryStreamConfig {
-  batchSize: number
+  batchSize?: number
   highWaterMark?: number
 }
 
-class PgQueryStream extends Readable {
-  constructor(text, values, config: PgQueryStreamConfig = {}) {
+class PgQueryStream extends Readable implements Submittable {
+  cursor: any
+  handleRowDescription: Function
+  handleDataRow: Function
+  handlePortalSuspended: Function
+  handleCommandComplete: Function
+  handleReadyForQuery: Function
+  handleError: Function
+  handleEmptyQuery: Function
+
+  _result: any
+
+  constructor(text: string, values: any[], config: PgQueryStreamConfig = {}) {
     const { batchSize, highWaterMark = 100 } = config
     // https://nodejs.org/api/stream.html#stream_new_stream_readable_options
+    //@ts-expect-error
     super({ objectMode: true, emitClose: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
     this.cursor = new Cursor(text, values, config)
 
@@ -26,19 +39,19 @@ class PgQueryStream extends Readable {
     this._result = this.cursor._result
   }
 
-  submit(connection) {
+  submit(connection: Connection): void {
     this.cursor.submit(connection)
   }
 
-  _destroy(_err, cb) {
-    this.cursor.close((err) => {
+  _destroy(_err: Error, cb: Function) {
+    this.cursor.close((err?: Error) => {
       cb(err || _err)
     })
   }
 
   // https://nodejs.org/api/stream.html#stream_readable_read_size_1
-  _read(size) {
-    this.cursor.read(size, (err, rows, result) => {
+  _read(size: number) {
+    this.cursor.read(size, (err: Error, rows: any[], result: any) => {
       if (err) {
         // https://nodejs.org/api/stream.html#stream_errors_while_reading
         this.destroy(err)
@@ -50,4 +63,4 @@ class PgQueryStream extends Readable {
   }
 }
 
-module.exports = PgQueryStream
+export default PgQueryStream
