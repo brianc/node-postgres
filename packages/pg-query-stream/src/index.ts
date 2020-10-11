@@ -21,7 +21,7 @@ class PgQueryStream extends Readable implements Submittable {
 
   _result: any
 
-  constructor(text: string, values: any[], config: PgQueryStreamConfig = {}) {
+  constructor(text: string, values?: any[], config: PgQueryStreamConfig = {}) {
     const { batchSize, highWaterMark = 100 } = config
     // https://nodejs.org/api/stream.html#stream_new_stream_readable_options
     //@ts-expect-error
