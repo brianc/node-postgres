@@ -63,4 +63,4 @@ class PgQueryStream extends Readable implements Submittable {
   }
 }
 
-export default PgQueryStream
+module.exports = PgQueryStream
