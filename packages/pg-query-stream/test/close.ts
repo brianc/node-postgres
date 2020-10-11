@@ -1,8 +1,7 @@
 import assert from 'assert'
 import concat from 'concat-stream'
-
-const QueryStream = require('../')
-const helper = require('./helper')
+import QueryStream from '../'
+import helper from './helper'
 
 if (process.version.startsWith('v8.')) {
   console.error('warning! node less than 10lts stream closing semantics may not behave properly')
