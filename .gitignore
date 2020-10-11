@@ -4,6 +4,7 @@ build/
 *.log
 node_modules/
 package-lock.json
+nyc_output
 *.swp
 dist
 .DS_Store
