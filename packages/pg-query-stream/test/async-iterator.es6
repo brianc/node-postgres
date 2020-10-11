@@ -61,15 +61,15 @@ describe('Async iterator', () => {
     const rows = []
     for await (const row of client.query(new QueryStream(queryText, [], { batchSize: 1 }))) {
       rows.push(row)
-      break;
+      break
     }
     for await (const row of client.query(new QueryStream(queryText, []))) {
       rows.push(row)
-      break;
+      break
     }
     for await (const row of client.query(new QueryStream(queryText, []))) {
       rows.push(row)
-      break;
+      break
     }
     assert.strictEqual(rows.length, 3)
     client.release()
@@ -83,7 +83,7 @@ describe('Async iterator', () => {
     const stream = client.query(new QueryStream(queryText, []))
     for await (const row of stream) {
       rows.push(row)
-      break;
+      break
     }
     for await (const row of stream) {
       rows.push(row)

@@ -8,13 +8,16 @@
     "noImplicitAny": false,
     "moduleResolution": "node",
     "sourceMap": true,
+    "pretty": true,
     "outDir": "dist",
     "incremental": true,
     "baseUrl": ".",
     "declaration": true,
     "types": [
       "node",
-      "pg"
+      "pg",
+      "mocha",
+      "chai"
     ]
   },
   "include": [
