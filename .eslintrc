@@ -2,7 +2,7 @@
   "plugins": ["prettier"],
   "parser": "@typescript-eslint/parser",
   "extends": ["plugin:prettier/recommended", "prettier/@typescript-eslint"],
-  "ignorePatterns": ["node_modules", "coverage", "packages/pg-protocol/dist/**/*"],
+  "ignorePatterns": ["node_modules", "coverage", "packages/pg-protocol/dist/**/*", "packages/pg-query-stream/dist/**/*"],
   "parserOptions": {
     "ecmaVersion": 2017,
     "sourceType": "module"
