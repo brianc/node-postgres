@@ -59,8 +59,6 @@ matrix:
 
     # only run lint on latest Node LTS
     - node_js: lts/*
-      addons:
-        postgresql: '9.6'
       script: yarn lint
 
     # PostgreSQL 9.2 only works on precise
