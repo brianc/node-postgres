@@ -17,6 +17,10 @@
     "query",
     "stream"
   ],
+  "files": [
+    "/dist/*{js,ts,map}",
+    "/src"
+  ],
   "author": "Brian M. Carlson",
   "license": "MIT",
   "bugs": {
