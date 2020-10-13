@@ -11,7 +11,6 @@
     "pretty": true,
     "outDir": "dist",
     "incremental": true,
-    "downlevelIteration": true,
     "baseUrl": ".",
     "declaration": true,
     "types": [
