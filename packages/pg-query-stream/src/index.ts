@@ -54,7 +54,6 @@ class QueryStream extends Readable implements Submittable {
   public _read(size: number) {
     this.cursor.read(size, (err: Error, rows: any[]) => {
       if (err) {
-        // https://nodejs.org/api/stream.html#stream_errors_while_reading
         this.destroy(err)
       } else {
         for (const row of rows) this.push(row)
