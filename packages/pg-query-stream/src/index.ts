@@ -1,5 +1,5 @@
 import { Readable } from 'stream'
-import { Submittable, Connection, types } from 'pg'
+import { Submittable, Connection } from 'pg'
 import Cursor from 'pg-cursor'
 
 interface PgQueryStreamConfig {
@@ -23,9 +23,8 @@ class PgQueryStream extends Readable implements Submittable {
 
   constructor(text: string, values?: any[], config: PgQueryStreamConfig = {}) {
     const { batchSize, highWaterMark = 100 } = config
-    // https://nodejs.org/api/stream.html#stream_new_stream_readable_options
-    //@ts-expect-error
-    super({ objectMode: true, emitClose: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
+
+    super({ objectMode: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
     this.cursor = new Cursor(text, values, config)
 
     // delegate Submittable callbacks to cursor
@@ -55,7 +54,6 @@ class PgQueryStream extends Readable implements Submittable {
   _read(size: number) {
     this.cursor.read(size, (err: Error, rows: any[], result: any) => {
       if (err) {
-        // https://nodejs.org/api/stream.html#stream_errors_while_reading
         this.destroy(err)
       } else {
         for (const row of rows) this.push(row)

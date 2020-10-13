@@ -21,5 +21,9 @@
     "build:watch": "tsc --watch",
     "prepublish": "yarn build",
     "pretest": "yarn build"
-  }
+  },
+  "files": [
+    "/dist/*{js,ts,map}",
+    "/src"
+  ]
 }
