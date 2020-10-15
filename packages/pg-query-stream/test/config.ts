@@ -1,5 +1,4 @@
 import assert from 'assert'
-import helper from './helper'
 import QueryStream from '../src'
 
 describe('stream config options', () => {

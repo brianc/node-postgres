@@ -2,7 +2,6 @@ import assert from 'assert'
 import concat from 'concat-stream'
 import QueryStream from '../src'
 import helper from './helper'
-import helper from './helper'
 
 if (process.version.startsWith('v8.')) {
   console.error('warning! node less than 10lts stream closing semantics may not behave properly')

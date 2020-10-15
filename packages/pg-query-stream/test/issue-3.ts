@@ -1,9 +1,5 @@
 import pg from 'pg'
-<<<<<<< HEAD
 import QueryStream from '../src'
-=======
-import QueryStream from '../'
->>>>>>> refactor(pg-query-stream): convert test to ts
 
 describe('end semantics race condition', function () {
   before(function (done) {
