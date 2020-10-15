@@ -1,4 +1,4 @@
-import QueryStream from '../dist'
+import QueryStream from '../src'
 import pg from 'pg'
 import assert from 'assert'
 

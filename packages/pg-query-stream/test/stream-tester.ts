@@ -1,6 +1,6 @@
 import spec from 'stream-spec'
 import helper from './helper'
-import QueryStream from '../'
+import QueryStream from '../src'
 
 helper('stream tester', function (client) {
   it('passes stream spec', function (done) {

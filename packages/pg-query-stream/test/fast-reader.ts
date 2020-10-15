@@ -1,6 +1,6 @@
 import assert from 'assert'
 import helper from './helper'
-import QueryStream from '../'
+import QueryStream from '../src'
 
 helper('fast reader', function (client) {
   it('works', function (done) {

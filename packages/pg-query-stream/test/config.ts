@@ -1,5 +1,5 @@
 import assert from 'assert'
-import QueryStream from '../'
+import QueryStream from '../src'
 
 describe('stream config options', () => {
   // this is mostly for backwards compatibility.

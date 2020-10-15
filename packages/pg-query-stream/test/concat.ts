@@ -2,8 +2,7 @@ import assert from 'assert'
 import concat from 'concat-stream'
 import through from 'through'
 import helper from './helper'
-
-const QueryStream = require('../')
+import QueryStream from '../src'
 
 helper('concat', function (client) {
   it('concats correctly', function (done) {

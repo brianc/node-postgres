@@ -1,6 +1,5 @@
-import assert from 'assert'
 import helper from './helper'
-import QueryStream from '../'
+import QueryStream from '../src'
 
 helper('empty-query', function (client) {
   it('handles empty query', function (done) {
