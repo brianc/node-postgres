@@ -1,6 +1,6 @@
 import pg from 'pg'
 import assert from 'assert'
-const QueryStream = require('../')
+import QueryStream from '../src'
 
 describe('client options', function () {
   it('uses custom types from client config', function (done) {

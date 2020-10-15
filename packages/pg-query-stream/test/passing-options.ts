@@ -1,6 +1,6 @@
 import assert from 'assert'
 import helper from './helper'
-import QueryStream from '../'
+import QueryStream from '../src'
 
 helper('passing options', function (client) {
   it('passes row mode array', function (done) {

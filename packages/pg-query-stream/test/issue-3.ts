@@ -1,5 +1,5 @@
 import pg from 'pg'
-import QueryStream from '../'
+import QueryStream from '../src'
 
 describe('end semantics race condition', function () {
   before(function (done) {

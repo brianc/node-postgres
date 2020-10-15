@@ -2,7 +2,7 @@ import helper from './helper'
 import concat from 'concat-stream'
 import tester from 'stream-tester'
 import JSONStream from 'JSONStream'
-import QueryStream from '../'
+import QueryStream from '../src'
 
 helper('pauses', function (client) {
   it('pauses', function (done) {

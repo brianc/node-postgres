@@ -1,6 +1,6 @@
 import assert from 'assert'
 import concat from 'concat-stream'
-import QueryStream from '../'
+import QueryStream from '../src'
 import helper from './helper'
 
 if (process.version.startsWith('v8.')) {

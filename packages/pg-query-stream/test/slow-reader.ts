@@ -1,5 +1,5 @@
 import helper from './helper'
-import QueryStream from '../'
+import QueryStream from '../src'
 import concat from 'concat-stream'
 
 import { Transform } from 'stream'

@@ -1,5 +1,5 @@
 import helper from './helper'
-import QueryStream from '../'
+import QueryStream from '../src'
 import spec from 'stream-spec'
 import assert from 'assert'
 
