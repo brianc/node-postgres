@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { serialize } from './serializer'
+import { serialize } from '../src/serializer'
 import BufferList from './testing/buffer-list'
 
 describe('serializer', () => {
