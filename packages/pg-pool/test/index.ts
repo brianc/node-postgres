@@ -1,22 +1,16 @@
-'use strict'
-const expect = require('expect.js')
-const _ = require('lodash')
-
-const describe = require('mocha').describe
-const it = require('mocha').it
-
-const Pool = require('../')
+import assert from 'assert'
+import Pool from '../'
 
 describe('pool', function () {
   describe('with callbacks', function () {
-    it('works totally unconfigured', function (done) {
+    it('works totally un-configured', (done) => {
       const pool = new Pool()
       pool.connect(function (err, client, release) {
         if (err) return done(err)
         client.query('SELECT NOW()', function (err, res) {
           release()
           if (err) return done(err)
-          expect(res.rows).to.have.length(1)
+          assert.strictEqual(res.rows.length, 1)
           pool.end(done)
         })
       })
@@ -27,7 +21,7 @@ describe('pool', function () {
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
-        expect(client.binary).to.eql(true)
+        assert.strictEqual(client.binary, true)
         pool.end(done)
       })
     })
@@ -35,7 +29,7 @@ describe('pool', function () {
     it('can run a query with a callback without parameters', function (done) {
       const pool = new Pool()
       pool.query('SELECT 1 as num', function (err, res) {
-        expect(res.rows[0]).to.eql({ num: 1 })
+        assert.strictEqual(res.rows[0], { num: 1 })
         pool.end(function () {
           done(err)
         })
@@ -45,7 +39,7 @@ describe('pool', function () {
     it('can run a query with a callback', function (done) {
       const pool = new Pool()
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
-        expect(res.rows[0]).to.eql({ name: 'brianc' })
+        assert.strictEqual(res.rows[0], { name: 'brianc' })
         pool.end(function () {
           done(err)
         })
@@ -55,10 +49,10 @@ describe('pool', function () {
     it('passes connection errors to callback', function (done) {
       const pool = new Pool({ port: 53922 })
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
-        expect(res).to.be(undefined)
-        expect(err).to.be.an(Error)
-        // a connection error should not polute the pool with a dead client
-        expect(pool.totalCount).to.equal(0)
+        assert.strictEqual(res, undefined)
+        assert.ok(err instanceof Error)
+        // a connection error should not pollute the pool with a dead client
+        assert.strictEqual(pool.totalCount, 0)
         pool.end(function (err) {
           done(err)
         })

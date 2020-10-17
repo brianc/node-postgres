@@ -1,7 +1,4 @@
-const expect = require('expect.js')
-const describe = require('mocha').describe
-const it = require('mocha').it
-const Pool = require('../')
+import Pool from '../'
 
 describe('Connection strings', function () {
   it('pool delegates connectionString property to client', function (done) {

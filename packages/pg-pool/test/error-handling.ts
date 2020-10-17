@@ -1,12 +1,6 @@
-'use strict'
 const net = require('net')
 const co = require('co')
-const expect = require('expect.js')
-
-const describe = require('mocha').describe
-const it = require('mocha').it
-
-const Pool = require('../')
+import Pool from '../'
 
 describe('pool error handling', function () {
   it('Should complete these queries without dying', function (done) {

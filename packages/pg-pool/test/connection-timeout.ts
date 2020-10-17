@@ -1,13 +1,4 @@
-'use strict'
 const net = require('net')
-const co = require('co')
-const expect = require('expect.js')
-
-const describe = require('mocha').describe
-const it = require('mocha').it
-const before = require('mocha').before
-const after = require('mocha').after
-
 const Pool = require('../')
 
 describe('connection timeout', () => {
