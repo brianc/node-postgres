@@ -1,9 +1,5 @@
-const expect = require('expect.js')
-
-const describe = require('mocha').describe
-const it = require('mocha').it
-
-const Pool = require('../')
+import Pool from '../'
+import assert from 'assert'
 
 describe('logging', function () {
   it('logs to supplied log function if given', function () {
@@ -13,7 +9,7 @@ describe('logging', function () {
     }
     const pool = new Pool({ log: log })
     return pool.query('SELECT NOW()').then(function () {
-      expect(messages.length).to.be.greaterThan(0)
+      assert.notEqual(messages.length, 0, 'Expected to have messages')
       return pool.end()
     })
   })

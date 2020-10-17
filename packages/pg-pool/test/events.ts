@@ -1,10 +1,6 @@
-'use strict'
-
-const expect = require('expect.js')
 const EventEmitter = require('events').EventEmitter
-const describe = require('mocha').describe
-const it = require('mocha').it
 const Pool = require('../')
+import { expect } from 'chai'
 
 describe('events', function () {
   it('emits connect before callback', function (done) {
@@ -18,7 +14,7 @@ describe('events', function () {
       if (err) return done(err)
       release()
       pool.end()
-      expect(client).to.be(emittedClient)
+      chai.expect(client).to.equals(emittedClient)
       done()
     })
   })
