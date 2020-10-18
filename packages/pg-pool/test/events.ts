@@ -1,6 +1,6 @@
-const EventEmitter = require('events').EventEmitter
-const Pool = require('../')
-import { expect } from 'chai'
+import { EventEmitter } from 'events'
+import assert from 'assert'
+import Pool from '../'
 
 describe('events', function () {
   it('emits connect before callback', function (done) {
@@ -14,7 +14,7 @@ describe('events', function () {
       if (err) return done(err)
       release()
       pool.end()
-      chai.expect(client).to.equals(emittedClient)
+      assert.strictEqual(client, emittedClient)
       done()
     })
   })
@@ -33,14 +33,14 @@ describe('events', function () {
     pool.on('connect', function () {
       throw new Error('should never get here')
     })
-    return pool.connect().catch((e) => expect(e.message).to.equal('bad news'))
+    return pool.connect().catch((e) => assert.strictEqual(e.message, 'bad news'))
   })
 
   it('emits acquire every time a client is acquired', function (done) {
     const pool = new Pool()
     let acquireCount = 0
     pool.on('acquire', function (client) {
-      expect(client).to.be.ok()
+      assert.ok(client)
       acquireCount++
     })
     for (let i = 0; i < 10; i++) {
@@ -51,7 +51,7 @@ describe('events', function () {
       pool.query('SELECT now()')
     }
     setTimeout(function () {
-      expect(acquireCount).to.be(20)
+      assert.strictEqual(acquireCount, 20)
       pool.end(done)
     }, 100)
   })
@@ -59,14 +59,14 @@ describe('events', function () {
   it('emits error and client if an idle client in the pool hits an error', function (done) {
     const pool = new Pool()
     pool.connect(function (err, client) {
-      expect(err).to.equal(undefined)
+      assert.strictEqual(err, undefined)
       client.release()
       setImmediate(function () {
         client.emit('error', new Error('problem'))
       })
       pool.once('error', function (err, errClient) {
-        expect(err.message).to.equal('problem')
-        expect(errClient).to.equal(client)
+        assert.strictEqual(err.message, 'problem')
+        assert.strictEqual(errClient, client)
         done()
       })
     })

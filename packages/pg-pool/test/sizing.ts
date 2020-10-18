@@ -38,7 +38,7 @@ describe('pool size of 1', () => {
     const results = await Promise.all(queries)
     const counts = results.map((res) => parseInt(res.rows[0].counts, 10))
 
-    assert.strictEqual(counts, new Array(20).fill(1))
+    assert.deepStrictEqual(counts, new Array(20).fill(1))
 
     await pool.end()
   })
