@@ -1,6 +1,7 @@
 export function parse(connectionString: string): ConnectionOptions
 
 export interface ConnectionOptions {
+  [key: string]: unknown
   host: string | null
   password?: string
   user?: string
