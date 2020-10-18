@@ -16,8 +16,7 @@
     "types": [
       "node",
       "pg",
-      "mocha",
-      "chai"
+      "mocha"
     ]
   },
   "include": [

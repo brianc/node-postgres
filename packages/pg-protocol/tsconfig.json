@@ -14,8 +14,7 @@
     "declaration": true,
     "types": [
       "mocha",
-      "node",
-      "chai"
+      "node"
     ]
   },
   "include": [
