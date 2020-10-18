@@ -7,8 +7,8 @@
   "scripts": {
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
-    "test": "nyc mocha -r ts-node/register test/**/*.test.ts",
-    "test:watch": "nyc mocha -r -w ts-node/register test/**/*.test.ts"
+    "test": "nyc mocha -r ts-node/register test/**/*.ts",
+    "test:watch": "nyc mocha -r -w ts-node/register test/**/*.ts"
   },
   "repository": {
     "type": "git",
