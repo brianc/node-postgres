@@ -1,5 +1,5 @@
-const net = require('net')
-const co = require('co')
+import assert from 'assert'
+import net, { AddressInfo } from 'net'
 import Pool from '../'
 
 describe('pool error handling', function () {
@@ -26,33 +26,30 @@ describe('pool error handling', function () {
       ps.push(runErrorQuery())
     }
     Promise.all(ps).then(function () {
-      expect(shouldGet).to.eql(errors)
+      assert.deepStrictEqual(shouldGet, errors)
       pool.end(done)
     })
   })
 
   describe('calling release more than once', () => {
-    it(
-      'should throw each time',
-      co.wrap(function* () {
-        const pool = new Pool()
-        const client = yield pool.connect()
-        client.release()
-        expect(() => client.release()).to.throwError()
-        expect(() => client.release()).to.throwError()
-        return yield pool.end()
-      })
-    )
+    it('should throw each time', async () => {
+      const pool = new Pool()
+      const client = await pool.connect()
+      client.release()
+      assert.throws(() => client.release())
+      assert.throws(() => client.release())
+      await pool.end()
+    })
 
-    it('should throw each time with callbacks', function (done) {
+    it('should throw each time with callbacks', (done) => {
       const pool = new Pool()
 
       pool.connect(function (err, client, clientDone) {
-        expect(err).not.to.be.an(Error)
+        assert.strictEqual(err instanceof Error, false)
         clientDone()
 
-        expect(() => clientDone()).to.throwError()
-        expect(() => clientDone()).to.throwError()
+        assert.throws(() => clientDone())
+        assert.throws(() => clientDone())
 
         pool.end(done)
       })
@@ -60,14 +57,14 @@ describe('pool error handling', function () {
   })
 
   describe('calling connect after end', () => {
-    it('should return an error', function* () {
+    it('should return an error', async () => {
       const pool = new Pool()
-      const res = yield pool.query('SELECT $1::text as name', ['hi'])
-      expect(res.rows[0].name).to.equal('hi')
+      const res = await pool.query('SELECT $1::text as name', ['hi'])
+      assert.strictEqual(res.rows[0].name, 'hi')
       const wait = pool.end()
       pool.query('select now()')
-      yield wait
-      expect(() => pool.query('select now()')).to.reject()
+      await wait
+      await pool.query('select now()').catch((err) => assert.ok(err instanceof Error))
     })
   })
 
@@ -81,7 +78,7 @@ describe('pool error handling', function () {
         promises.push(squash(pool.query('SELECT NOW()')))
         promises.push(squash(pool.end()))
         Promise.all(promises).then((res) => {
-          expect(res).to.eql(['okay!', 'okay!', 'okay!'])
+          assert.deepStrictEqual(res, ['okay!', 'okay!', 'okay!'])
           done()
         })
       })
@@ -91,11 +88,11 @@ describe('pool error handling', function () {
       const pool = new Pool()
       pool.end(() => {
         pool.query('SELECT *', (err) => {
-          expect(err).to.be.an(Error)
+          assert.ok(err instanceof Error)
           pool.connect((err) => {
-            expect(err).to.be.an(Error)
+            assert.ok(err instanceof Error)
             pool.end((err) => {
-              expect(err).to.be.an(Error)
+              assert.ok(err instanceof Error)
               done()
             })
           })
@@ -105,74 +102,68 @@ describe('pool error handling', function () {
   })
 
   describe('error from idle client', () => {
-    it(
-      'removes client from pool',
-      co.wrap(function* () {
-        const pool = new Pool()
-        const client = yield pool.connect()
-        expect(pool.totalCount).to.equal(1)
-        expect(pool.waitingCount).to.equal(0)
-        expect(pool.idleCount).to.equal(0)
-        client.release()
-        yield new Promise((resolve, reject) => {
-          process.nextTick(() => {
-            let poolError
-            pool.once('error', (err) => {
-              poolError = err
-            })
-
-            let clientError
-            client.once('error', (err) => {
-              clientError = err
-            })
-
-            client.emit('error', new Error('expected'))
-
-            expect(clientError.message).to.equal('expected')
-            expect(poolError.message).to.equal('expected')
-            expect(pool.idleCount).to.equal(0)
-            expect(pool.totalCount).to.equal(0)
-            pool.end().then(resolve, reject)
+    it('removes client from pool', async () => {
+      const pool = new Pool()
+      const client = await pool.connect()
+      assert.strictEqual(pool.totalCount, 1)
+      assert.strictEqual(pool.waitingCount, 0)
+      assert.strictEqual(pool.idleCount, 0)
+      client.release()
+      await new Promise((resolve, reject) => {
+        process.nextTick(() => {
+          let poolError
+          pool.once('error', (err) => {
+            poolError = err
           })
+
+          let clientError
+          client.once('error', (err) => {
+            clientError = err
+          })
+
+          client.emit('error', new Error('expected'))
+
+          assert.strictEqual(clientError.message, 'expected')
+          assert.strictEqual(poolError.message, 'expected')
+          assert.strictEqual(pool.idleCount, 0)
+          assert.strictEqual(pool.totalCount, 0)
+          pool.end().then(resolve, reject)
         })
       })
-    )
+    })
   })
 
   describe('error from in-use client', () => {
-    it(
-      'keeps the client in the pool',
-      co.wrap(function* () {
-        const pool = new Pool()
-        const client = yield pool.connect()
-        expect(pool.totalCount).to.equal(1)
-        expect(pool.waitingCount).to.equal(0)
-        expect(pool.idleCount).to.equal(0)
+    it('keeps the client in the pool', async () => {
+      const pool = new Pool()
+      const client = await pool.connect()
+      assert.strictEqual(pool.totalCount, 1)
+      assert.strictEqual(pool.waitingCount, 0)
+      assert.strictEqual(pool.idleCount, 0)
 
-        yield new Promise((resolve, reject) => {
-          process.nextTick(() => {
-            let poolError
-            pool.once('error', (err) => {
-              poolError = err
-            })
-
-            let clientError
-            client.once('error', (err) => {
-              clientError = err
-            })
-
-            client.emit('error', new Error('expected'))
-
-            expect(clientError.message).to.equal('expected')
-            expect(poolError).not.to.be.ok()
-            expect(pool.idleCount).to.equal(0)
-            expect(pool.totalCount).to.equal(1)
-            client.release()
-            pool.end().then(resolve, reject)
+      await new Promise((resolve, reject) => {
+        process.nextTick(() => {
+          let poolError
+          pool.once('error', (err) => {
+            poolError = err
           })
+
+          let clientError
+          client.once('error', (err) => {
+            clientError = err
+          })
+
+          client.emit('error', new Error('expected'))
+
+          assert.strictEqual(clientError.message, 'expected')
+          assert.ok(poolError)
+          assert.strictEqual(pool.idleCount, 0)
+          assert.strictEqual(pool.totalCount, 1)
+          client.release()
+          pool.end().then(resolve, reject)
         })
       })
-    )
+    })
   })
 
   describe('passing a function to pool.query', () => {
@@ -180,34 +171,31 @@ describe('pool error handling', function () {
       const pool = new Pool()
       console.log('passing fn to query')
       pool.query((err) => {
-        expect(err).to.be.an(Error)
+        assert.ok(err instanceof Error)
         pool.end(done)
       })
     })
   })
 
   describe('pool with lots of errors', () => {
-    it(
-      'continues to work and provide new clients',
-      co.wrap(function* () {
-        const pool = new Pool({ max: 1 })
-        const errors = []
-        for (var i = 0; i < 20; i++) {
-          try {
-            yield pool.query('invalid sql')
-          } catch (err) {
-            errors.push(err)
-          }
+    it('continues to work and provide new clients', async () => {
+      const pool = new Pool({ max: 1 })
+      const errors = []
+      for (var i = 0; i < 20; i++) {
+        try {
+          await pool.query('invalid sql')
+        } catch (err) {
+          errors.push(err)
         }
-        expect(errors).to.have.length(20)
-        expect(pool.idleCount).to.equal(0)
-        expect(pool.query).to.be.a(Function)
-        const res = yield pool.query('SELECT $1::text as name', ['brianc'])
-        expect(res.rows).to.have.length(1)
-        expect(res.rows[0].name).to.equal('brianc')
-        return pool.end()
-      })
-    )
+      }
+      assert.strictEqual(errors.length, 20)
+      assert.strictEqual(pool.idleCount, 0)
+      assert.ok(pool.query instanceof Function)
+      const res = await pool.query('SELECT $1::text as name', ['brianc'])
+      assert.strictEqual(res.rows.length, 1)
+      assert.strictEqual(res.rows[0].name, 'brianc')
+      return pool.end()
+    })
   })
 
   it('should continue with queued items after a connection failure', (done) => {
@@ -218,17 +206,17 @@ describe('pool error handling', function () {
       .unref()
 
     closeServer.listen(() => {
-      const pool = new Pool({ max: 1, port: closeServer.address().port, host: 'localhost' })
+      const pool = new Pool({ max: 1, port: (closeServer.address() as AddressInfo).port, host: 'localhost' })
       pool.connect((err) => {
-        expect(err).to.be.an(Error)
+        assert.ok(err instanceof Error)
         if (err.code) {
-          expect(err.code).to.be('ECONNRESET')
+          assert.strictEqual(err.code, 'ECONNRESET')
         }
       })
       pool.connect((err) => {
-        expect(err).to.be.an(Error)
+        assert.ok(err instanceof Error)
         if (err.code) {
-          expect(err.code).to.be('ECONNRESET')
+          assert.strictEqual(err.code, 'ECONNRESET')
         }
         closeServer.close(() => {
           pool.end(done)
@@ -243,7 +231,7 @@ describe('pool error handling', function () {
       // We double close the connection in this test, prevent exception caused by that
     })
     pool.query('SELECT pg_sleep(5)', [], (err) => {
-      expect(err).to.be.an(Error)
+      assert.ok(err instanceof Error)
       done()
     })
 

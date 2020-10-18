@@ -1,73 +1,71 @@
-const net = require('net')
-const Pool = require('../')
+import net from 'net'
+import assert from 'assert'
+import Pool from '../'
 
 describe('connection timeout', () => {
   const connectionFailure = new Error('Temporary connection failure')
 
+  let server
+  let port
   before((done) => {
-    this.server = net.createServer((socket) => {
+    server = net.createServer((socket) => {
       socket.on('data', () => {
         // discard any buffered data or the server wont terminate
       })
     })
 
-    this.server.listen(() => {
-      this.port = this.server.address().port
+    server.listen(() => {
+      port = server.address().port
       done()
     })
   })
 
   after((done) => {
-    this.server.close(done)
+    server.close(done)
   })
 
   it('should callback with an error if timeout is passed', (done) => {
-    const pool = new Pool({ connectionTimeoutMillis: 10, port: this.port, host: 'localhost' })
+    const pool = new Pool({ connectionTimeoutMillis: 10, port: port, host: 'localhost' })
     pool.connect((err, client, release) => {
-      expect(err).to.be.an(Error)
-      expect(err.message).to.contain('timeout')
-      expect(client).to.equal(undefined)
-      expect(pool.idleCount).to.equal(0)
+      assert.ok(err instanceof Error)
+      assert.ok(err.message.includes('timeout'))
+      assert.strictEqual(client, undefined)
+      assert.strictEqual(pool.idleCount, 0)
       done()
     })
   })
 
   it('should reject promise with an error if timeout is passed', (done) => {
-    const pool = new Pool({ connectionTimeoutMillis: 10, port: this.port, host: 'localhost' })
+    const pool = new Pool({ connectionTimeoutMillis: 10, port: port, host: 'localhost' })
     pool.connect().catch((err) => {
-      expect(err).to.be.an(Error)
-      expect(err.message).to.contain('timeout')
-      expect(pool.idleCount).to.equal(0)
+      assert.ok(err instanceof Error)
+      assert.ok(err.message.includes('timeout'))
+      assert.strictEqual(pool.idleCount, 0)
       done()
     })
   })
 
-  it(
-    'should handle multiple timeouts',
-    co.wrap(
-      function* () {
-        const errors = []
-        const pool = new Pool({ connectionTimeoutMillis: 1, port: this.port, host: 'localhost' })
-        for (var i = 0; i < 15; i++) {
-          try {
-            yield pool.connect()
-          } catch (e) {
-            errors.push(e)
-          }
-        }
-        expect(errors).to.have.length(15)
-      }.bind(this)
-    )
-  )
+  it('should handle multiple timeouts', async () => {
+    const errors = []
+    const pool = new Pool({ connectionTimeoutMillis: 1, port: port, host: 'localhost' })
+    for (var i = 0; i < 15; i++) {
+      try {
+        await pool.connect()
+      } catch (e) {
+        errors.push(e)
+      }
+    }
+    assert.strictEqual(errors.length, 15)
+  })
 
   it('should timeout on checkout of used connection', (done) => {
     const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
     pool.connect((err, client, release) => {
-      expect(err).to.be(undefined)
-      expect(client).to.not.be(undefined)
+      assert.strictEqual(err, undefined)
+      assert.notStrictEqual(client, undefined)
       pool.connect((err, client) => {
-        expect(err).to.be.an(Error)
-        expect(client).to.be(undefined)
+        assert.ok(err instanceof Error)
+        assert.strictEqual(client, undefined)
         release()
         pool.end(done)
       })
@@ -77,18 +75,18 @@ describe('connection timeout', () => {
   it('should not break further pending checkouts on a timeout', (done) => {
     const pool = new Pool({ connectionTimeoutMillis: 200, max: 1 })
     pool.connect((err, client, releaseOuter) => {
-      expect(err).to.be(undefined)
+      assert.strictEqual(err, undefined)
 
       pool.connect((err, client) => {
-        expect(err).to.be.an(Error)
-        expect(client).to.be(undefined)
+        assert.ok(err instanceof Error)
+        assert.strictEqual(client, undefined)
         releaseOuter()
       })
 
       setTimeout(() => {
         pool.connect((err, client, releaseInner) => {
-          expect(err).to.be(undefined)
-          expect(client).to.not.be(undefined)
+          assert.strictEqual(err, undefined)
+          assert.notStrictEqual(client, undefined)
           releaseInner()
           pool.end(done)
         })
@@ -99,11 +97,11 @@ describe('connection timeout', () => {
   it('should timeout on query if all clients are busy', (done) => {
     const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
     pool.connect((err, client, release) => {
-      expect(err).to.be(undefined)
-      expect(client).to.not.be(undefined)
+      assert.strictEqual(err, undefined)
+      assert.notStrictEqual(client, undefined)
       pool.query('select now()', (err, result) => {
-        expect(err).to.be.an(Error)
-        expect(result).to.be(undefined)
+        assert.ok(err instanceof Error)
+        assert.strictEqual(result, undefined)
         release()
         pool.end(done)
       })
@@ -113,15 +111,15 @@ describe('connection timeout', () => {
   it('should recover from timeout errors', (done) => {
     const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
     pool.connect((err, client, release) => {
-      expect(err).to.be(undefined)
-      expect(client).to.not.be(undefined)
+      assert.strictEqual(err, undefined)
+      assert.notStrictEqual(client, undefined)
       pool.query('select now()', (err, result) => {
-        expect(err).to.be.an(Error)
-        expect(result).to.be(undefined)
+        assert.ok(err instanceof Error)
+        assert.strictEqual(result, undefined)
         release()
         pool.query('select $1::text as name', ['brianc'], (err, res) => {
-          expect(err).to.be(undefined)
-          expect(res.rows).to.have.length(1)
+          assert.strictEqual(err, undefined)
+          assert.strictEqual(res.rows.length, 1)
           pool.end(done)
         })
       })
@@ -153,11 +151,11 @@ describe('connection timeout', () => {
     })
 
     pool.connect((err, client, release) => {
-      expect(err).to.be(connectionFailure)
+      assert.strictEqual(err, connectionFailure)
 
       pool.query('select $1::text as name', ['brianc'], (err, res) => {
-        expect(err).to.be(undefined)
-        expect(res.rows).to.have.length(1)
+        assert.strictEqual(err, undefined)
+        assert.strictEqual(res.rows.length, 1)
         pool.end(done)
       })
     })
@@ -200,19 +198,19 @@ describe('connection timeout', () => {
 
     // Direct connect
     pool.connect((err, client, release) => {
-      expect(err).to.be(connectionFailure)
+      assert.strictEqual(err, connectionFailure)
     })
 
     // Queued
     let called = 0
     pool.connect((err, client, release) => {
       // Verify the callback is only called once
-      expect(called++).to.be(0)
-      expect(err).to.be.an(Error)
+      assert.strictEqual(called++, 0)
+      assert.ok(err instanceof Error)
 
       pool.query('select $1::text as name', ['brianc'], (err, res) => {
-        expect(err).to.be(undefined)
-        expect(res.rows).to.have.length(1)
+        assert.strictEqual(err, undefined)
+        assert.strictEqual(res.rows.length, 1)
         pool.end(done)
       })
     })

@@ -1,11 +1,5 @@
-'use strict'
-const co = require('co')
-const expect = require('expect.js')
-
-const describe = require('mocha').describe
-const it = require('mocha').it
-
-const Pool = require('../')
+import Pool from '../'
+import assert from 'assert'
 
 describe('pool ending', () => {
   it('ends without being used', (done) => {
@@ -17,24 +11,18 @@ describe('pool ending', () => {
     return new Pool().end()
   })
 
-  it(
-    'ends with clients',
-    co.wrap(function* () {
-      const pool = new Pool()
-      const res = yield pool.query('SELECT $1::text as name', ['brianc'])
-      expect(res.rows[0].name).to.equal('brianc')
-      return pool.end()
-    })
-  )
+  it('ends with clients', async () => {
+    const pool = new Pool()
+    const res = await pool.query('SELECT $1::text as name', ['brianc'])
+    assert.strictEqual(res.rows[0].name, 'brianc')
+    await pool.end()
+  })
 
-  it(
-    'allows client to finish',
-    co.wrap(function* () {
-      const pool = new Pool()
-      const query = pool.query('SELECT $1::text as name', ['brianc'])
-      yield pool.end()
-      const res = yield query
-      expect(res.rows[0].name).to.equal('brianc')
-    })
-  )
+  it('allows client to finish', async () => {
+    const pool = new Pool()
+    const query = pool.query('SELECT $1::text as name', ['brianc'])
+    await pool.end()
+    const res = await query
+    assert.strictEqual(res.rows[0].name, 'brianc')
+  })
 })

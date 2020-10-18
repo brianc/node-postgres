@@ -16,7 +16,7 @@ describe('pool', function () {
       })
     })
 
-    it('passes props to clients', function (done) {
+    it('passes props to clients', (done) => {
       const pool = new Pool({ binary: true })
       pool.connect(function (err, client, release) {
         release()
@@ -26,7 +26,7 @@ describe('pool', function () {
       })
     })
 
-    it('can run a query with a callback without parameters', function (done) {
+    it('can run a query with a callback without parameters', (done) => {
       const pool = new Pool()
       pool.query('SELECT 1 as num', function (err, res) {
         assert.strictEqual(res.rows[0], { num: 1 })
@@ -36,7 +36,7 @@ describe('pool', function () {
       })
     })
 
-    it('can run a query with a callback', function (done) {
+    it('can run a query with a callback', (done) => {
       const pool = new Pool()
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
         assert.strictEqual(res.rows[0], { name: 'brianc' })
@@ -46,7 +46,7 @@ describe('pool', function () {
       })
     })
 
-    it('passes connection errors to callback', function (done) {
+    it('passes connection errors to callback', (done) => {
       const pool = new Pool({ port: 53922 })
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
         assert.strictEqual(res, undefined)
@@ -59,17 +59,17 @@ describe('pool', function () {
       })
     })
 
-    it('does not pass client to error callback', function (done) {
+    it('does not pass client to error callback', (done) => {
       const pool = new Pool({ port: 58242 })
       pool.connect(function (err, client, release) {
-        expect(err).to.be.an(Error)
-        expect(client).to.be(undefined)
-        expect(release).to.be.a(Function)
+        assert.ok(err instanceof Error)
+        assert.strictEqual(client, undefined)
+        assert.ok(release instanceof Function)
         pool.end(done)
       })
     })
 
-    it('removes client if it errors in background', function (done) {
+    it('removes client if it errors in background', (done) => {
       const pool = new Pool()
       pool.connect(function (err, client, release) {
         release()
@@ -80,53 +80,53 @@ describe('pool', function () {
         }, 10)
       })
       pool.on('error', function (err) {
-        expect(err.message).to.be('on purpose')
-        expect(err.client).to.not.be(undefined)
-        expect(err.client.testString).to.be('foo')
+        assert.strictEqual(err.message, 'on purpose')
+        assert.notStrictEqual(err.client, undefined)
+        assert.strictEqual(err.client.testString, 'foo')
         err.client.connection.stream.on('end', function () {
           pool.end(done)
         })
       })
     })
 
-    it('should not change given options', function (done) {
+    it('should not change given options', (done) => {
       const options = { max: 10 }
       const pool = new Pool(options)
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
-        expect(options).to.eql({ max: 10 })
+        assert.strictEqual(options, { max: 10 })
         pool.end(done)
       })
     })
 
-    it('does not create promises when connecting', function (done) {
+    it('does not create promises when connecting', (done) => {
       const pool = new Pool()
       const returnValue = pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
         pool.end(done)
       })
-      expect(returnValue).to.be(undefined)
+      assert.strictEqual(returnValue, undefined)
     })
 
-    it('does not create promises when querying', function (done) {
+    it('does not create promises when querying', (done) => {
       const pool = new Pool()
       const returnValue = pool.query('SELECT 1 as num', function (err) {
         pool.end(function () {
           done(err)
         })
       })
-      expect(returnValue).to.be(undefined)
+      assert.strictEqual(returnValue, undefined)
     })
 
-    it('does not create promises when ending', function (done) {
+    it('does not create promises when ending', (done) => {
       const pool = new Pool()
       const returnValue = pool.end(done)
-      expect(returnValue).to.be(undefined)
+      assert.strictEqual(returnValue, undefined)
     })
 
-    it('never calls callback syncronously', function (done) {
+    it('never calls callback syncronously', (done) => {
       const pool = new Pool()
       pool.connect((err, client) => {
         if (err) throw err
@@ -141,7 +141,7 @@ describe('pool', function () {
               pool.end(done)
             })
           })
-          expect(called).to.equal(false)
+          assert.strictEqual(called, false)
         })
       })
     })
@@ -152,7 +152,7 @@ describe('pool', function () {
       const pool = new Pool()
       return pool.connect().then(function (client) {
         return client.query('select $1::text as name', ['hi']).then(function (res) {
-          expect(res.rows).to.eql([{ name: 'hi' }])
+          assert.strictEqual(res.rows, [{ name: 'hi' }])
           client.release()
           return pool.end()
         })
@@ -162,16 +162,16 @@ describe('pool', function () {
     it('executes a query directly', () => {
       const pool = new Pool()
       return pool.query('SELECT $1::text as name', ['hi']).then((res) => {
-        expect(res.rows).to.have.length(1)
-        expect(res.rows[0].name).to.equal('hi')
+        assert.strictEqual(res.rows.length, 1)
+        assert.strictEqual(res.rows[0].name, 'hi')
         return pool.end()
       })
     })
 
     it('properly pools clients', function () {
       const pool = new Pool({ poolSize: 9 })
-      const promises = _.times(30, function () {
-        return pool.connect().then(function (client) {
+      const promises = new Array(30).map(() => {
+        return pool.connect().then((client) => {
           return client.query('select $1::text as name', ['hi']).then(function (res) {
             client.release()
             return res
@@ -179,8 +179,8 @@ describe('pool', function () {
         })
       })
       return Promise.all(promises).then(function (res) {
-        expect(res).to.have.length(30)
-        expect(pool.totalCount).to.be(9)
+        assert.strictEqual(res.length, 30)
+        assert.strictEqual(pool.totalCount, 9)
         return pool.end()
       })
     })
@@ -190,9 +190,9 @@ describe('pool', function () {
       const text = 'select $1::text as name'
       const values = ['hi']
       const query = { text: text, values: values }
-      const promises = _.times(30, () => pool.query(query))
+      const promises = new Array(30).map(() => pool.query(query))
       return Promise.all(promises).then(function (queries) {
-        expect(queries).to.have.length(30)
+        assert.strictEqual(queries.length, 0)
         return pool.end()
       })
     })
@@ -201,17 +201,17 @@ describe('pool', function () {
       const pool = new Pool()
 
       const errors = []
-      const promises = _.times(30, () => {
+      const promises = new Array(30).map(() => {
         return pool.query('SELECT asldkfjasldkf').catch(function (e) {
           errors.push(e)
         })
       })
       return Promise.all(promises).then(() => {
-        expect(errors).to.have.length(30)
-        expect(pool.totalCount).to.equal(0)
-        expect(pool.idleCount).to.equal(0)
+        assert.strictEqual(errors.length, 30)
+        assert.strictEqual(pool.totalCount, 0)
+        assert.strictEqual(pool.idleCount, 0)
         return pool.query('SELECT $1::text as name', ['hi']).then(function (res) {
-          expect(res.rows).to.eql([{ name: 'hi' }])
+          assert.strictEqual(res.rows, [{ name: 'hi' }])
           return pool.end()
         })
       })
