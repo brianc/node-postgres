@@ -1,6 +1,6 @@
-const assert = require('assert')
-const pg = require('pg')
-const Cursor = require('../')
+import assert from 'assert'
+import Cursor from '../'
+import pg from 'pg'
 
 describe('queries with no data', function () {
   beforeEach(function (done) {

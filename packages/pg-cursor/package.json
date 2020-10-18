@@ -3,11 +3,13 @@
   "version": "2.6.0",
   "description": "Query cursor extension for node-postgres",
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
+  "files": [
+    "index.js"
+  ],
   "scripts": {
-    "test": "mocha"
+    "build": "tsc --build",
+    "build:watch": "tsc --build --watch",
+    "test": "mocha -r ts-node/register test/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -17,8 +19,12 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "devDependencies": {
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.0.0",
+    "@types/pg": "^7.14.5",
     "mocha": "^7.1.2",
-    "pg": "^8.6.0"
+    "ts-node": "^8.0.0",
+    "typescript": "^4.0.3"
   },
   "peerDependencies": {
     "pg": "^8"

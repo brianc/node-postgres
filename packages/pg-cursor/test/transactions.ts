@@ -1,6 +1,6 @@
-const assert = require('assert')
-const Cursor = require('../')
-const pg = require('pg')
+import assert from 'assert'
+import Cursor from '../'
+import pg from 'pg'
 
 describe('transactions', () => {
   it('can execute multiple statements in a transaction', async () => {
@@ -9,7 +9,7 @@ describe('transactions', () => {
     await client.query('begin')
     await client.query('CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)')
     const cursor = client.query(new Cursor('SELECT * FROM foobar'))
-    const rows = await new Promise((resolve, reject) => {
+    const rows: any[] = await new Promise((resolve, reject) => {
       cursor.read(10, (err, rows) => (err ? reject(err) : resolve(rows)))
     })
     assert.strictEqual(rows.length, 0)

@@ -1,7 +1,6 @@
-'use strict'
-const assert = require('assert')
-const Cursor = require('../')
-const pg = require('pg')
+import assert from 'assert'
+import Cursor from '../'
+import pg from 'pg'
 
 const text = 'SELECT generate_series as num FROM generate_series(0, 4)'
 
