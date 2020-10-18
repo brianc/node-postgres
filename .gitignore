@@ -1,4 +1,5 @@
 *~
+.env
 build/
 .lock-wscript
 *.log
@@ -9,4 +10,5 @@ nyc_output
 dist
 .DS_Store
 .vscode/
+.nyc_output
 manually-test-on-heroku.js
