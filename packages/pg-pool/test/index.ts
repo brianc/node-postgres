@@ -29,7 +29,7 @@ describe('pool', function () {
     it('can run a query with a callback without parameters', (done) => {
       const pool = new Pool()
       pool.query('SELECT 1 as num', function (err, res) {
-        assert.strictEqual(res.rows[0], { num: 1 })
+        assert.deepStrictEqual(res.rows[0], { num: 1 })
         pool.end(function () {
           done(err)
         })
@@ -39,7 +39,7 @@ describe('pool', function () {
     it('can run a query with a callback', (done) => {
       const pool = new Pool()
       pool.query('SELECT $1::text as name', ['brianc'], function (err, res) {
-        assert.strictEqual(res.rows[0], { name: 'brianc' })
+        assert.deepStrictEqual(res.rows[0], { name: 'brianc' })
         pool.end(function () {
           done(err)
         })
@@ -152,7 +152,7 @@ describe('pool', function () {
       const pool = new Pool()
       return pool.connect().then(function (client) {
         return client.query('select $1::text as name', ['hi']).then(function (res) {
-          assert.strictEqual(res.rows, [{ name: 'hi' }])
+          assert.deepStrictEqual(res.rows, [{ name: 'hi' }])
           client.release()
           return pool.end()
         })

@@ -3,7 +3,7 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "target": "es6",
     "noImplicitAny": true,
     "moduleResolution": "node",
@@ -18,7 +18,5 @@
       "pg"
     ]
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": []
 }
