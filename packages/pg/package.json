@@ -31,6 +31,7 @@
   "devDependencies": {
     "async": "0.9.0",
     "bluebird": "3.5.2",
+    "nyc": "15.1.0",
     "co": "4.6.0",
     "pg-copy-streams": "0.3.0"
   },

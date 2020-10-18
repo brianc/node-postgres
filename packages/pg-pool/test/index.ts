@@ -95,7 +95,7 @@ describe('pool', function () {
       pool.connect(function (err, client, release) {
         release()
         if (err) return done(err)
-        assert.strictEqual(options, { max: 10 })
+        assert.deepStrictEqual(options, { max: 10 })
         pool.end(done)
       })
     })
@@ -170,7 +170,7 @@ describe('pool', function () {
 
     it('properly pools clients', function () {
       const pool = new Pool({ poolSize: 9 })
-      const promises = new Array(30).map(() => {
+      const promises = new Array(30).fill(null).map(() => {
         return pool.connect().then((client) => {
           return client.query('select $1::text as name', ['hi']).then(function (res) {
             client.release()
@@ -190,9 +190,9 @@ describe('pool', function () {
       const text = 'select $1::text as name'
       const values = ['hi']
       const query = { text: text, values: values }
-      const promises = new Array(30).map(() => pool.query(query))
+      const promises = new Array(30).fill(null).map(() => pool.query(query))
       return Promise.all(promises).then(function (queries) {
-        assert.strictEqual(queries.length, 0)
+        assert.strictEqual(queries.length, 30)
         return pool.end()
       })
     })
@@ -201,7 +201,7 @@ describe('pool', function () {
       const pool = new Pool()
 
       const errors = []
-      const promises = new Array(30).map(() => {
+      const promises = new Array(30).fill(null).map(() => {
         return pool.query('SELECT asldkfjasldkf').catch(function (e) {
           errors.push(e)
         })
@@ -211,7 +211,7 @@ describe('pool', function () {
         assert.strictEqual(pool.totalCount, 0)
         assert.strictEqual(pool.idleCount, 0)
         return pool.query('SELECT $1::text as name', ['hi']).then(function (res) {
-          assert.strictEqual(res.rows, [{ name: 'hi' }])
+          assert.deepStrictEqual(res.rows, [{ name: 'hi' }])
           return pool.end()
         })
       })

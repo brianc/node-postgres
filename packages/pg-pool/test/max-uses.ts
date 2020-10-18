@@ -34,7 +34,7 @@ describe('maxUses', () => {
     assert.strictEqual(client, client2)
     client2.release()
     const client3 = await pool.connect()
-    assert.strictEqual(client3, client2)
+    assert.notStrictEqual(client3, client2)
     client3.release()
     await pool.end()
   })
@@ -52,7 +52,7 @@ describe('maxUses', () => {
     const client3Promise = pool.connect().then((client3) => {
       // client3 should be a fresh client since client2's release caused the first client to be expended
       assert.strictEqual(pool.waitingCount, 0)
-      assert.strictEqual(client3, client1)
+      assert.notStrictEqual(client3, client1)
       return client3.release()
     })
     // There should be two pending requests since we have 3 connect requests but a max size of 1
@@ -71,7 +71,7 @@ describe('maxUses', () => {
     const pool = new Pool({ maxUses: 1, log })
     const client = await pool.connect()
     client.release()
-    assert.strictEqual(messages, 'remove expended client')
+    assert.ok(messages.includes('remove expended client'))
     await pool.end()
   })
 })

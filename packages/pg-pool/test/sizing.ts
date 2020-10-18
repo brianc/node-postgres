@@ -34,7 +34,7 @@ describe('pool size of 1', () => {
     const queryColumn = version < 90200 ? 'current_query' : 'query'
 
     const queryText = 'SELECT COUNT(*) as counts FROM pg_stat_activity WHERE ' + queryColumn + ' = $1'
-    const queries = new Array(20).map(() => pool.query(queryText, [queryText]))
+    const queries = new Array(20).fill(pool.query(queryText, [queryText]))
     const results = await Promise.all(queries)
     const counts = results.map((res) => parseInt(res.rows[0].counts, 10))
 

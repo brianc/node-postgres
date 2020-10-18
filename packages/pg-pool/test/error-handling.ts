@@ -144,7 +144,7 @@ describe('pool error handling', function () {
           client.emit('error', new Error('expected'))
 
           assert.strictEqual(clientError.message, 'expected')
-          assert.ok(poolError)
+          assert.ifError(poolError)
           assert.strictEqual(pool.idleCount, 0)
           assert.strictEqual(pool.totalCount, 1)
           client.release()
