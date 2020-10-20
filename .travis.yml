@@ -17,6 +17,8 @@ node_js:
   - 13.6
   - 14
 
+after_success: yarn run test:coverage
+
 addons:
   postgresql: '10'
 

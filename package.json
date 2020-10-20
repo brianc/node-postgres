@@ -11,18 +11,11 @@
   ],
   "scripts": {
     "test": "yarn lerna exec yarn test",
-<<<<<<< HEAD
+    "test:coverage": "yarn lerna run yarn test:coverage",
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
-    "pretest": "yarn build",
-    "prepublish": "yarn build",
-    "lint": "eslint '*/**/*.{js,ts,tsx}'"
-=======
-    "test:watch": "yarn lerna run yarn test:watch",
-    "build": "tsc --build",
-    "build:watch": "tsc --build --watch",
-    "lint": "if [ -x ./node_modules/.bin/prettier ]; then eslint '*/**/*.{js,ts,tsx}'; fi;"
->>>>>>> chore(): improve test coverage
+    "lint": "eslint . --ext .js,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.ts,.tsx --fix"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.4.0",
