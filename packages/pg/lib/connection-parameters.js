@@ -143,7 +143,6 @@ class ConnectionParameters {
     add(params, this, 'application_name')
     add(params, this, 'fallback_application_name')
     add(params, this, 'connect_timeout')
-    add(params, this, 'options')
 
     addOption(pgOptions, this, 'statement_timeout')
     addOption(pgOptions, this, 'idle_in_transaction_session_timeout')
