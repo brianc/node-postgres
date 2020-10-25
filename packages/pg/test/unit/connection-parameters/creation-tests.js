@@ -188,7 +188,10 @@ test('libpq connection string building', function () {
       assert.calls(function (err, constring) {
         assert(!err)
         var parts = constring.split(/ (?=([^\']*\'[^\']*\')*[^\']*$)/)
-        checkForPart(parts, "options='-c statement_timeout=5000 -c idle_in_transaction_session_timeout=5000 -c geqo=off -c foobar=off'")
+        checkForPart(
+          parts,
+          "options='-c statement_timeout=5000 -c idle_in_transaction_session_timeout=5000 -c geqo=off -c foobar=off'"
+        )
       })
     )
   })
