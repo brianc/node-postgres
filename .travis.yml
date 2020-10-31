@@ -43,6 +43,38 @@ matrix:
         postgresql: '9.5'
       dist: precise
 
+    # Run tests/paths with client certificate authentication
+    - node_js: lts/*
+      env:
+        - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres
+          PGSSLMODE=verify-full
+          PGSSLROOTCERT=$TRAVIS_BUILD_DIR/packages/pg/test/tls/test-server-ca.crt
+          PGSSLCERT=$TRAVIS_BUILD_DIR/packages/pg/test/tls/test-client.crt
+          PGSSLKEY=$TRAVIS_BUILD_DIR/packages/pg/test/tls/test-client.key
+          PG_CLIENT_CERT_TEST=1
+      before_script:
+        - chmod go= packages/pg/test/tls/test-client.key
+        - |
+          sudo sed -i \
+            -e '/^ssl_cert_file =/d' \
+            -e '/^ssl_key_file =/d' \
+            /etc/postgresql/10/main/postgresql.conf
+
+          cat <<'travis ci breaks heredoc' | sudo tee -a /etc/postgresql/10/main/postgresql.conf > /dev/null
+            ssl_cert_file = 'test-server.crt'
+            ssl_key_file = 'test-server.key'
+            ssl_ca_file = 'test-client-ca.crt'
+
+        - printf 'hostssl all all %s cert\n' 127.0.0.1/32 ::1/128 | sudo tee /etc/postgresql/10/main/pg_hba.conf > /dev/null
+        - sudo make -C packages/pg/test/tls install DESTDIR=/var/ramfs/postgresql/10/main
+        - sudo systemctl restart postgresql@10-main
+        - yarn build
+      script:
+        - cd packages/pg
+        - node test/integration/connection-pool/tls-tests.js
+        - npm install --no-save pg-native
+        - node test/integration/connection-pool/tls-tests.js native
+
     # different PostgreSQL versions on Node LTS
     - node_js: lts/erbium
       addons:
