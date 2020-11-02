@@ -58,8 +58,7 @@ var SSLNegotiationPacketTests = [
   },
 ]
 
-for (var i = 0; i < SSLNegotiationPacketTests.length; i++) {
-  var tc = SSLNegotiationPacketTests[i]
+for (const tc of SSLNegotiationPacketTests) {
   suite.test(tc.testName, function (done) {
     // our fake postgres server
     var socket

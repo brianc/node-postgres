@@ -3,15 +3,10 @@
 // eslint-disable-next-line
 var Native = require('pg-native')
 var TypeOverrides = require('../type-overrides')
-var semver = require('semver')
 var pkg = require('../../package.json')
-var assert = require('assert')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var ConnectionParameters = require('../connection-parameters')
-
-var msg = 'Version >= ' + pkg.minNativeVersion + ' of pg-native required.'
-assert(semver.gte(Native.version, pkg.minNativeVersion), msg)
 
 var NativeQuery = require('./query')
 

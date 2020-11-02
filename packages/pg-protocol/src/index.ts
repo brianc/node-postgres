@@ -1,4 +1,4 @@
-import { BackendMessage } from './messages'
+import { BackendMessage, DatabaseError } from './messages'
 import { serialize } from './serializer'
 import { Parser, MessageCallback } from './parser'
 
@@ -8,4 +8,4 @@ export function parse(stream: NodeJS.ReadableStream, callback: MessageCallback):
   return new Promise((resolve) => stream.on('end', () => resolve()))
 }
 
-export { serialize }
+export { serialize, DatabaseError }

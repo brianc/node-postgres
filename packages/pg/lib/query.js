@@ -96,39 +96,28 @@ class Query extends EventEmitter {
     }
   }
 
-  handleCommandComplete(msg, con) {
+  handleCommandComplete(msg, connection) {
     this._checkForMultirow()
     this._result.addCommandComplete(msg)
     // need to sync after each command complete of a prepared statement
-    if (this.isPreparedStatement) {
-      con.sync()
+    // if we were using a row count which results in multiple calls to _getRows
+    if (this.rows) {
+      connection.sync()
     }
   }
 
   // if a named prepared statement is created with empty query text
   // the backend will send an emptyQuery message but *not* a command complete message
-  // execution on the connection will hang until the backend receives a sync message
-  handleEmptyQuery(con) {
-    if (this.isPreparedStatement) {
-      con.sync()
+  // since we pipeline sync immediately after execute we don't need to do anything here
+  // unless we have rows specified, in which case we did not pipeline the intial sync call
+  handleEmptyQuery(connection) {
+    if (this.rows) {
+      connection.sync()
     }
-  }
-
-  handleReadyForQuery(con) {
-    if (this._canceledDueToError) {
-      return this.handleError(this._canceledDueToError, con)
-    }
-    if (this.callback) {
-      this.callback(null, this._results)
-    }
-    this.emit('end', this._results)
   }
 
   handleError(err, connection) {
     // need to sync after error during a prepared statement
-    if (this.isPreparedStatement) {
-      connection.sync()
-    }
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
@@ -139,6 +128,16 @@ class Query extends EventEmitter {
       return this.callback(err)
     }
     this.emit('error', err)
+  }
+
+  handleReadyForQuery(con) {
+    if (this._canceledDueToError) {
+      return this.handleError(this._canceledDueToError, con)
+    }
+    if (this.callback) {
+      this.callback(null, this._results)
+    }
+    this.emit('end', this._results)
   }
 
   submit(connection) {
@@ -173,7 +172,14 @@ class Query extends EventEmitter {
       portal: this.portal,
       rows: rows,
     })
-    connection.flush()
+    // if we're not reading pages of rows send the sync command
+    // to indicate the pipeline is finished
+    if (!rows) {
+      connection.sync()
+    } else {
+      // otherwise flush the call out to read more rows
+      connection.flush()
+    }
   }
 
   // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY

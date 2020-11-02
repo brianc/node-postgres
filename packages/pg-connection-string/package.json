@@ -1,6 +1,6 @@
 {
   "name": "pg-connection-string",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Functions for dealing with a PostgresSQL connection string",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -22,9 +22,9 @@
   "author": "Blaine Bublitz <blaine@iceddev.com> (http://iceddev.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/iceddev/pg-connection-string/issues"
+    "url": "https://github.com/brianc/node-postgres/issues"
   },
-  "homepage": "https://github.com/iceddev/pg-connection-string",
+  "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string",
   "devDependencies": {
     "chai": "^4.1.1",
     "coveralls": "^3.0.4",

@@ -65,7 +65,7 @@ function parse(str) {
     config.ssl = false
   }
 
-  if (config.sslcert || config.sslkey || config.sslrootcert) {
+  if (config.sslcert || config.sslkey || config.sslrootcert || config.sslmode) {
     config.ssl = {}
   }
 
@@ -79,6 +79,23 @@ function parse(str) {
 
   if (config.sslrootcert) {
     config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
+  }
+
+  switch (config.sslmode) {
+    case 'disable': {
+      config.ssl = false
+      break
+    }
+    case 'prefer':
+    case 'require':
+    case 'verify-ca':
+    case 'verify-full': {
+      break
+    }
+    case 'no-verify': {
+      config.ssl.rejectUnauthorized = false
+      break
+    }
   }
 
   return config

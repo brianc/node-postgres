@@ -57,6 +57,15 @@ class Client extends EventEmitter {
     this.processID = null
     this.secretKey = null
     this.ssl = this.connectionParameters.ssl || false
+    // As with Password, make SSL->Key (the private key) non-enumerable.
+    // It won't show up in stack traces
+    // or if the client is console.logged
+    if (this.ssl && this.ssl.key) {
+      Object.defineProperty(this.ssl, 'key', {
+        enumerable: false,
+      })
+    }
+
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
   }
 
@@ -215,7 +224,7 @@ class Client extends EventEmitter {
     } else if (this.password !== null) {
       cb()
     } else {
-      pgPass(this.connectionParameters, function (pass) {
+      pgPass(this.connectionParameters, (pass) => {
         if (undefined !== pass) {
           this.connectionParameters.password = this.password = pass
         }
