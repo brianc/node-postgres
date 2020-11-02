@@ -110,6 +110,10 @@ describe('serializer', () => {
       var expectedBuffer = new BufferList()
         .addCString('bang') // portal name
         .addCString('woo') // statement name
+        .addInt16(4)
+        .addInt16(0)
+        .addInt16(0)
+        .addInt16(0)
         .addInt16(0)
         .addInt16(4)
         .addInt32(1)

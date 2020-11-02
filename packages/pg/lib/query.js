@@ -206,7 +206,7 @@ class Query extends EventEmitter {
         statement: this.name,
         values: this.values,
         binary: this.binary,
-        valueMap: utils.prepareValue,
+        valueMapper: utils.prepareValue,
       })
     } catch (err) {
       this.handleError(err, connection)

@@ -101,31 +101,42 @@ const parse = (query: ParseOpts): Buffer => {
   return writer.flush(code.parse)
 }
 
+type ValueMapper = (param: any, index: number) => any
+
 type BindOpts = {
   portal?: string
   binary?: boolean
   statement?: string
   values?: any[]
   // optional map from JS value to postgres value per parameter
-  valueMap?: (param: any) => any
+  valueMapper?: ValueMapper
 }
 
 const paramWriter = new Writer()
 
-const writeValues = function (values: any[], valueMap?: (val: any) => any): void {
+// make this a const enum so typescript will inline the value
+const enum ParamType {
+  STRING = 0,
+  BINARY = 1,
+}
+
+const writeValues = function (values: any[], valueMapper?: ValueMapper): void {
   for (let i = 0; i < values.length; i++) {
-    var val = values[i]
-    if (val === null || typeof val === 'undefined') {
-      writer.addInt16(0)
+    const mappedVal = valueMapper ? valueMapper(values[i], i) : values[i]
+    if (mappedVal == null) {
+      // add the param type (string) to the writer
+      writer.addInt16(ParamType.STRING)
+      // write -1 to the param writer to indicate null
       paramWriter.addInt32(-1)
-    } else if (val instanceof Buffer) {
-      writer.addInt16(1)
-      const mappedVal = valueMap ? valueMap(val) : val
+    } else if (mappedVal instanceof Buffer) {
+      // add the param type (binary) to the writer
+      writer.addInt16(ParamType.BINARY)
+      // add the buffer to the param writer
       paramWriter.addInt32(mappedVal.length)
       paramWriter.add(mappedVal)
     } else {
-      writer.addInt16(0)
-      const mappedVal = valueMap ? valueMap(val) : val
+      // add the param type (string) to the writer
+      writer.addInt16(ParamType.STRING)
       paramWriter.addInt32(Buffer.byteLength(mappedVal))
       paramWriter.addString(mappedVal)
     }
@@ -143,17 +154,13 @@ const bind = (config: BindOpts = {}): Buffer => {
   writer.addCString(portal).addCString(statement)
   writer.addInt16(len)
 
-  writeValues(values, config.valueMap)
+  writeValues(values, config.valueMapper)
 
   writer.addInt16(len)
   writer.add(paramWriter.flush())
 
-  if (binary) {
-    writer.addInt16(1) // format codes to use binary
-    writer.addInt16(1)
-  } else {
-    writer.addInt16(0) // format codes to use text
-  }
+  // format code
+  writer.addInt16(binary ? ParamType.BINARY : ParamType.STRING)
   return writer.flush(code.bind)
 }
 
