@@ -1,11 +1,30 @@
-const { Readable } = require('stream')
-const Cursor = require('pg-cursor')
+import { Readable } from 'stream'
+import { Submittable, Connection } from 'pg'
+import Cursor from 'pg-cursor'
 
-class PgQueryStream extends Readable {
-  constructor(text, values, config = {}) {
+interface QueryStreamConfig {
+  batchSize?: number
+  highWaterMark?: number
+  rowMode?: 'array'
+  types?: any
+}
+
+class QueryStream extends Readable implements Submittable {
+  cursor: any
+  _result: any
+
+  handleRowDescription: Function
+  handleDataRow: Function
+  handlePortalSuspended: Function
+  handleCommandComplete: Function
+  handleReadyForQuery: Function
+  handleError: Function
+  handleEmptyQuery: Function
+
+  public constructor(text: string, values?: any[], config: QueryStreamConfig = {}) {
     const { batchSize, highWaterMark = 100 } = config
-    // https://nodejs.org/api/stream.html#stream_new_stream_readable_options
-    super({ objectMode: true, emitClose: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
+
+    super({ objectMode: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
     this.cursor = new Cursor(text, values, config)
 
     // delegate Submittable callbacks to cursor
@@ -21,19 +40,19 @@ class PgQueryStream extends Readable {
     this._result = this.cursor._result
   }
 
-  submit(connection) {
+  public submit(connection: Connection): void {
     this.cursor.submit(connection)
   }
 
-  _destroy(_err, cb) {
-    this.cursor.close((err) => {
+  public _destroy(_err: Error, cb: Function) {
+    this.cursor.close((err?: Error) => {
       cb(err || _err)
     })
   }
 
   // https://nodejs.org/api/stream.html#stream_readable_read_size_1
-  _read(size) {
-    this.cursor.read(size, (err, rows, result) => {
+  public _read(size: number) {
+    this.cursor.read(size, (err: Error, rows: any[]) => {
       if (err) {
         // https://nodejs.org/api/stream.html#stream_errors_while_reading
         this.destroy(err)
@@ -45,4 +64,4 @@ class PgQueryStream extends Readable {
   }
 }
 
-module.exports = PgQueryStream
+export = QueryStream

@@ -1,8 +1,9 @@
-var pg = require('pg')
-var QueryStream = require('../')
+import pg from 'pg'
+import QueryStream from '../src'
+
 describe('end semantics race condition', function () {
   before(function (done) {
-    var client = new pg.Client()
+    const client = new pg.Client()
     client.connect()
     client.on('drain', client.end.bind(client))
     client.on('end', done)
@@ -10,14 +11,14 @@ describe('end semantics race condition', function () {
     client.query('create table IF NOT EXISTS c(id int primary key references p)')
   })
   it('works', function (done) {
-    var client1 = new pg.Client()
+    const client1 = new pg.Client()
     client1.connect()
-    var client2 = new pg.Client()
+    const client2 = new pg.Client()
     client2.connect()
 
-    var qr = new QueryStream('INSERT INTO p DEFAULT VALUES RETURNING id')
+    const qr = new QueryStream('INSERT INTO p DEFAULT VALUES RETURNING id')
     client1.query(qr)
-    var id = null
+    let id = null
     qr.on('data', function (row) {
       id = row.id
     })

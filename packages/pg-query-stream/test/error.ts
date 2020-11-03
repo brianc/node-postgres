@@ -1,12 +1,11 @@
-var assert = require('assert')
-var helper = require('./helper')
-
-var QueryStream = require('../')
+import assert from 'assert'
+import helper from './helper'
+import QueryStream from '../src'
 
 helper('error', function (client) {
   it('receives error on stream', function (done) {
-    var stream = new QueryStream('SELECT * FROM asdf num', [])
-    var query = client.query(stream)
+    const stream = new QueryStream('SELECT * FROM asdf num', [])
+    const query = client.query(stream)
     query
       .on('error', function (err) {
         assert(err)

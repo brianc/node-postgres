@@ -1,14 +1,14 @@
-var assert = require('assert')
-var helper = require('./helper')
-var QueryStream = require('../')
+import assert from 'assert'
+import helper from './helper'
+import QueryStream from '../src'
 
 helper('fast reader', function (client) {
   it('works', function (done) {
-    var stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
-    var query = client.query(stream)
-    var result = []
+    const stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
+    const query = client.query(stream)
+    const result = []
     stream.on('readable', function () {
-      var res = stream.read()
+      let res = stream.read()
       while (res) {
         if (result.length !== 201) {
           assert(res, 'should not return null on evented reader')
@@ -24,7 +24,7 @@ helper('fast reader', function (client) {
       }
     })
     stream.on('end', function () {
-      var total = result.reduce(function (prev, cur) {
+      const total = result.reduce(function (prev, cur) {
         return prev + cur
       })
       assert.equal(total, 20100)

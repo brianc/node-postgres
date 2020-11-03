@@ -3,21 +3,22 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "target": "es6",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "moduleResolution": "node",
     "sourceMap": true,
+    "pretty": true,
     "outDir": "dist",
     "incremental": true,
     "baseUrl": ".",
     "declaration": true,
-    "paths": {
-      "*": [
-        "node_modules/*",
-        "src/types/*"
-      ]
-    }
+    "types": [
+      "node",
+      "pg",
+      "mocha",
+      "chai"
+    ]
   },
   "include": [
     "src/**/*"

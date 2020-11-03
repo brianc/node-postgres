@@ -13,7 +13,7 @@
     "chunky": "^0.0.0",
     "mocha": "^7.1.2",
     "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "typescript": "^4.0.3"
   },
   "scripts": {
     "test": "mocha dist/**/*.test.js",
@@ -21,5 +21,9 @@
     "build:watch": "tsc --watch",
     "prepublish": "yarn build",
     "pretest": "yarn build"
-  }
+  },
+  "files": [
+    "/dist/*{js,ts,map}",
+    "/src"
+  ]
 }

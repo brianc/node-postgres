@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "incremental": true,
+    "composite": true
+  },
+  "include": [],
+  "references": [
+    {"path": "./packages/pg-query-stream"},
+    {"path": "./packages/pg-protocol"}
+  ]
+}

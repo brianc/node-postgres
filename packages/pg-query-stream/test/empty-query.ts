@@ -1,6 +1,5 @@
-const assert = require('assert')
-const helper = require('./helper')
-const QueryStream = require('../')
+import helper from './helper'
+import QueryStream from '../src'
 
 helper('empty-query', function (client) {
   it('handles empty query', function (done) {

@@ -1,10 +1,10 @@
-var helper = require('./helper')
-var QueryStream = require('../')
-var concat = require('concat-stream')
+import helper from './helper'
+import QueryStream from '../src'
+import concat from 'concat-stream'
 
-var Transform = require('stream').Transform
+import { Transform } from 'stream'
 
-var mapper = new Transform({ objectMode: true })
+const mapper = new Transform({ objectMode: true })
 
 mapper._transform = function (obj, enc, cb) {
   this.push(obj)
@@ -14,7 +14,7 @@ mapper._transform = function (obj, enc, cb) {
 helper('slow reader', function (client) {
   it('works', function (done) {
     this.timeout(50000)
-    var stream = new QueryStream('SELECT * FROM generate_series(0, 201) num', [], {
+    const stream = new QueryStream('SELECT * FROM generate_series(0, 201) num', [], {
       highWaterMark: 100,
       batchSize: 50,
     })

@@ -1,12 +1,12 @@
-var assert = require('assert')
-var helper = require('./helper')
-var QueryStream = require('../')
+import assert from 'assert'
+import helper from './helper'
+import QueryStream from '../src'
 
 helper('passing options', function (client) {
   it('passes row mode array', function (done) {
-    var stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { rowMode: 'array' })
-    var query = client.query(stream)
-    var result = []
+    const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { rowMode: 'array' })
+    const query = client.query(stream)
+    const result = []
     query.on('data', (datum) => {
       result.push(datum)
     })
@@ -21,9 +21,9 @@ helper('passing options', function (client) {
     const types = {
       getTypeParser: () => (string) => string,
     }
-    var stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { types })
-    var query = client.query(stream)
-    var result = []
+    const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { types })
+    const query = client.query(stream)
+    const result = []
     query.on('data', (datum) => {
       result.push(datum)
     })
