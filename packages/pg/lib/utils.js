@@ -38,6 +38,10 @@ function arrayString(val) {
 // note: you can override this function to provide your own conversion mechanism
 // for complex types, etc...
 var prepareValue = function (val, seen) {
+  // null and undefined are both null for postgres
+  if (val == null) {
+    return null
+  }
   if (val instanceof Buffer) {
     return val
   }
@@ -57,9 +61,6 @@ var prepareValue = function (val, seen) {
   }
   if (Array.isArray(val)) {
     return arrayString(val)
-  }
-  if (val === null || typeof val === 'undefined') {
-    return null
   }
   if (typeof val === 'object') {
     return prepareObject(val, seen)

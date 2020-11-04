@@ -110,6 +110,10 @@ describe('serializer', () => {
       var expectedBuffer = new BufferList()
         .addCString('bang') // portal name
         .addCString('woo') // statement name
+        .addInt16(4)
+        .addInt16(0)
+        .addInt16(0)
+        .addInt16(0)
         .addInt16(0)
         .addInt16(4)
         .addInt32(1)
@@ -123,6 +127,31 @@ describe('serializer', () => {
         .join(true, 'B')
       assert.deepEqual(actual, expectedBuffer)
     })
+  })
+
+  it('with custom valueMapper', function () {
+    const actual = serialize.bind({
+      portal: 'bang',
+      statement: 'woo',
+      values: ['1', 'hi', null, 'zing'],
+      valueMapper: () => null,
+    })
+    var expectedBuffer = new BufferList()
+      .addCString('bang') // portal name
+      .addCString('woo') // statement name
+      .addInt16(4)
+      .addInt16(0)
+      .addInt16(0)
+      .addInt16(0)
+      .addInt16(0)
+      .addInt16(4)
+      .addInt32(-1)
+      .addInt32(-1)
+      .addInt32(-1)
+      .addInt32(-1)
+      .addInt16(0)
+      .join(true, 'B')
+    assert.deepEqual(actual, expectedBuffer)
   })
 
   it('with named statement, portal, and buffer value', function () {

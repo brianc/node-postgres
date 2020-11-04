@@ -5,7 +5,7 @@ export class Writer {
   private offset: number = 5
   private headerPosition: number = 0
   constructor(private size = 256) {
-    this.buffer = Buffer.alloc(size)
+    this.buffer = Buffer.allocUnsafe(size)
   }
 
   private ensure(size: number): void {
@@ -15,7 +15,7 @@ export class Writer {
       // exponential growth factor of around ~ 1.5
       // https://stackoverflow.com/questions/2269063/buffer-growth-strategy
       var newSize = oldBuffer.length + (oldBuffer.length >> 1) + size
-      this.buffer = Buffer.alloc(newSize)
+      this.buffer = Buffer.allocUnsafe(newSize)
       oldBuffer.copy(this.buffer)
     }
   }

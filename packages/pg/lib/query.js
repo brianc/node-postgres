@@ -197,21 +197,21 @@ class Query extends EventEmitter {
       })
     }
 
-    if (this.values) {
-      try {
-        this.values = this.values.map(utils.prepareValue)
-      } catch (err) {
-        this.handleError(err, connection)
-        return
-      }
+    // because we're mapping user supplied values to
+    // postgres wire protocol compatible values it could
+    // throw an exception, so try/catch this section
+    try {
+      connection.bind({
+        portal: this.portal,
+        statement: this.name,
+        values: this.values,
+        binary: this.binary,
+        valueMapper: utils.prepareValue,
+      })
+    } catch (err) {
+      this.handleError(err, connection)
+      return
     }
-
-    connection.bind({
-      portal: this.portal,
-      statement: this.name,
-      values: this.values,
-      binary: this.binary,
-    })
 
     connection.describe({
       type: 'P',

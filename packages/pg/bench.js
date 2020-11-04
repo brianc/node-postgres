@@ -45,37 +45,40 @@ const run = async () => {
   console.log('warmup done')
   const seconds = 5
 
-  let queries = await bench(client, params, seconds * 1000)
-  console.log('')
-  console.log('little queries:', queries)
-  console.log('qps', queries / seconds)
-  console.log('on my laptop best so far seen 733 qps')
+  for (let i = 0; i < 4; i++) {
+    let queries = await bench(client, params, seconds * 1000)
+    console.log('')
+    console.log('little queries:', queries)
+    console.log('qps', queries / seconds)
+    console.log('on my laptop best so far seen 733 qps')
 
-  console.log('')
-  queries = await bench(client, seq, seconds * 1000)
-  console.log('sequence queries:', queries)
-  console.log('qps', queries / seconds)
-  console.log('on my laptop best so far seen 1309 qps')
+    console.log('')
+    queries = await bench(client, seq, seconds * 1000)
+    console.log('sequence queries:', queries)
+    console.log('qps', queries / seconds)
+    console.log('on my laptop best so far seen 1309 qps')
 
-  console.log('')
-  queries = await bench(client, insert, seconds * 1000)
-  console.log('insert queries:', queries)
-  console.log('qps', queries / seconds)
-  console.log('on my laptop best so far seen 6303 qps')
+    console.log('')
+    queries = await bench(client, insert, seconds * 1000)
+    console.log('insert queries:', queries)
+    console.log('qps', queries / seconds)
+    console.log('on my laptop best so far seen 6445 qps')
 
-  console.log('')
-  console.log('Warming up bytea test')
-  await client.query({
-    text: 'INSERT INTO buf(name, data) VALUES ($1, $2)',
-    values: ['test', Buffer.allocUnsafe(104857600)],
-  })
-  console.log('bytea warmup done')
-  const start = Date.now()
-  const results = await client.query('SELECT * FROM buf')
-  const time = Date.now() - start
-  console.log('bytea time:', time, 'ms')
-  console.log('bytea length:', results.rows[0].data.byteLength, 'bytes')
-  console.log('on my laptop best so far seen 1107ms and 104857600 bytes')
+    console.log('')
+    console.log('Warming up bytea test')
+    await client.query({
+      text: 'INSERT INTO buf(name, data) VALUES ($1, $2)',
+      values: ['test', Buffer.allocUnsafe(104857600)],
+    })
+    console.log('bytea warmup done')
+    const start = Date.now()
+    const results = await client.query('SELECT * FROM buf')
+    const time = Date.now() - start
+    console.log('bytea time:', time, 'ms')
+    console.log('bytea length:', results.rows[0].data.byteLength, 'bytes')
+    console.log('on my laptop best so far seen 1107ms and 104857600 bytes')
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
 
   await client.end()
   await client.end()
