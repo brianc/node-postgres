@@ -232,6 +232,14 @@ var resetTimezoneOffset = function () {
   Date.prototype.getTimezoneOffset = getTimezoneOffset
 }
 
+const rejection = (promise) =>
+  promise.then(
+    (value) => {
+      throw new Error(`Promise resolved when rejection was expected; value: ${sys.inspect(value)}`)
+    },
+    (error) => error
+  )
+
 module.exports = {
   Sink: Sink,
   Suite: Suite,
@@ -242,4 +250,5 @@ module.exports = {
   Client: Client,
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset,
+  rejection: rejection,
 }

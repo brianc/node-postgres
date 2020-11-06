@@ -19,7 +19,10 @@ const suite = new helper.Suite('error handling')
 
 suite.test('sending non-array argument as values causes an error callback', (done) => {
   const client = new Client()
-  client.connect(() => {
+  client.connect((err) => {
+    if (err) {
+      return done(err)
+    }
     client.query('select $1::text as name', 'foo', (err) => {
       assert(err instanceof Error)
       client.query('SELECT $1::text as name', ['foo'], (err, res) => {
@@ -32,7 +35,10 @@ suite.test('sending non-array argument as values causes an error callback', (don
 
 suite.test('re-using connections results in error callback', (done) => {
   const client = new Client()
-  client.connect(() => {
+  client.connect((err) => {
+    if (err) {
+      return done(err)
+    }
     client.connect((err) => {
       assert(err instanceof Error)
       client.end(done)
@@ -40,19 +46,22 @@ suite.test('re-using connections results in error callback', (done) => {
   })
 })
 
-suite.test('re-using connections results in promise rejection', (done) => {
+suite.testAsync('re-using connections results in promise rejection', () => {
   const client = new Client()
-  client.connect().then(() => {
-    client.connect().catch((err) => {
+  return client.connect().then(() => {
+    return helper.rejection(client.connect()).then((err) => {
       assert(err instanceof Error)
-      client.end().then(done)
+      return client.end()
     })
   })
 })
 
 suite.test('using a client after closing it results in error', (done) => {
   const client = new Client()
-  client.connect(() => {
+  client.connect((err) => {
+    if (err) {
+      return done(err)
+    }
     client.end(
       assert.calls(() => {
         client.query(
@@ -227,12 +236,16 @@ suite.test('connected, idle client error', (done) => {
 
 suite.test('cannot pass non-string values to query as text', (done) => {
   const client = new Client()
-  client.connect()
-  client.query({ text: {} }, (err) => {
-    assert(err)
-    client.query({}, (err) => {
-      client.on('drain', () => {
-        client.end(done)
+  client.connect((err) => {
+    if (err) {
+      return done(err)
+    }
+    client.query({ text: {} }, (err) => {
+      assert(err)
+      client.query({}, (err) => {
+        client.on('drain', () => {
+          client.end(done)
+        })
       })
     })
   })
