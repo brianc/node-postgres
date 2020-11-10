@@ -13,6 +13,7 @@
   },
   "keywords": [
     "postgres",
+    "query-stream",
     "pg",
     "query",
     "stream"
