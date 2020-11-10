@@ -80,6 +80,11 @@ class ConnectionParameters {
 
     this.ssl = typeof config.ssl === 'undefined' ? readSSLConfigFromEnvironment() : config.ssl
 
+    if (typeof this.ssl === 'string') {
+      if (this.ssl === 'true') {
+        this.ssl = true
+      }
+    }
     // support passing in ssl=no-verify via connection string
     if (this.ssl === 'no-verify') {
       this.ssl = { rejectUnauthorized: false }
