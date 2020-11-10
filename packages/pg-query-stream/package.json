@@ -1,6 +1,6 @@
 {
   "name": "pg-query-stream",
-  "version": "3.3.2",
+  "version": "3.4.0",
   "description": "Postgres query result returned as readable stream",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,15 +27,15 @@
     "url": "https://github.com/brianc/node-postgres/issues"
   },
   "devDependencies": {
-    "@types/node": "^14.0.0",
-    "@types/pg": "^7.14.5",
     "@types/chai": "^4.2.13",
     "@types/mocha": "^8.0.3",
+    "@types/node": "^14.0.0",
+    "@types/pg": "^7.14.5",
     "JSONStream": "~0.7.1",
     "concat-stream": "~1.0.1",
     "eslint-plugin-promise": "^3.5.0",
     "mocha": "^7.1.2",
-    "pg": "^8.4.2",
+    "pg": "^8.5.0",
     "stream-spec": "~0.3.5",
     "stream-tester": "0.0.5",
     "through": "~2.3.4",
@@ -43,6 +43,6 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "pg-cursor": "^2.4.2"
+    "pg-cursor": "^2.5.0"
   }
 }
