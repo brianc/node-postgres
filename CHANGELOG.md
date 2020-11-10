@@ -4,6 +4,12 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@8.5.0
+
+- Fix bug forwarding [ssl key](https://github.com/brianc/node-postgres/pull/2394).
+- Convert pg-query-stream internals to [typescript](https://github.com/brianc/node-postgres/pull/2376).
+- Performance [improvements](https://github.com/brianc/node-postgres/pull/2286).
+
 ### pg@8.4.0
 
 - Switch to optional peer dependencies & remove [semver](https://github.com/brianc/node-postgres/commit/a02dfac5ad2e2abf0dc3a9817f953938acdc19b1) package which has been a small thorn in the side of a few users.
