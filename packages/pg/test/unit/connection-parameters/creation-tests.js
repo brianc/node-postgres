@@ -257,7 +257,6 @@ test('libpq connection string building', function () {
   })
 
   test('password contains  < and/or >  characters', function () {
-    return false
     var sourceConfig = {
       user: 'brian',
       password: 'hello<ther>e',
@@ -306,6 +305,11 @@ test('libpq connection string building', function () {
     defaults.ssl = true
     var c = new Client('postgres://user@password:host/database')
     assert(c.ssl, 'Client should have ssl enabled via defaults')
+  })
+
+  test('coercing string "true" to boolean', function () {
+    const subject = new ConnectionParameters({ ssl: 'true' })
+    assert.strictEqual(subject.ssl, true)
   })
 
   test('ssl is set on client', function () {
