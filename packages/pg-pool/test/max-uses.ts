@@ -64,7 +64,7 @@ describe('maxUses', () => {
   })
 
   it('logs when removing an expended client', async () => {
-    const messages = []
+    const messages: string[] = []
     const log = function (msg) {
       messages.push(msg)
     }

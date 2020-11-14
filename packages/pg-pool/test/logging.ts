@@ -3,7 +3,7 @@ import assert from 'assert'
 
 describe('logging', function () {
   it('logs to supplied log function if given', function () {
-    const messages = []
+    const messages: string[] = []
     const log = function (msg) {
       messages.push(msg)
     }

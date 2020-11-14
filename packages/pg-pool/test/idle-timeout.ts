@@ -21,7 +21,7 @@ describe('idle timeout', () => {
     clientA.release()
     clientB.release(new Error())
 
-    const removal = new Promise((resolve) => {
+    const removal = new Promise<void>((resolve) => {
       pool.on('remove', () => {
         assert.strictEqual(pool.idleCount, 0)
         assert.strictEqual(pool.totalCount, 0)
@@ -40,7 +40,7 @@ describe('idle timeout', () => {
 
   it('can remove idle clients and recreate them', async () => {
     const pool = new Pool({ idleTimeoutMillis: 1 })
-    const results = []
+    const results: Promise<unknown>[] = []
     for (var i = 0; i < 20; i++) {
       let query = pool.query('SELECT NOW()')
       assert.strictEqual(pool.idleCount, 0)
@@ -55,7 +55,7 @@ describe('idle timeout', () => {
 
   it('does not time out clients which are used', async () => {
     const pool = new Pool({ idleTimeoutMillis: 1 })
-    const results = []
+    const results: Promise<unknown>[] = []
     for (var i = 0; i < 20; i++) {
       let client = await pool.connect()
       assert.strictEqual(pool.totalCount, 1)

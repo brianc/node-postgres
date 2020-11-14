@@ -46,7 +46,7 @@ describe('connection timeout', () => {
   })
 
   it('should handle multiple timeouts', async () => {
-    const errors = []
+    const errors: Error[] = []
     const pool = new Pool({ connectionTimeoutMillis: 1, port: port, host: 'localhost' })
     for (var i = 0; i < 15; i++) {
       try {

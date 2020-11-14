@@ -200,7 +200,7 @@ describe('pool', function () {
     it('recovers from query errors', function () {
       const pool = new Pool()
 
-      const errors = []
+      const errors: Error[] = []
       const promises = new Array(30).fill(null).map(() => {
         return pool.query('SELECT asldkfjasldkf').catch(function (e) {
           errors.push(e)

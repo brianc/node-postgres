@@ -21,7 +21,7 @@ describe('pool error handling', function () {
           })
       })
     }
-    const ps = []
+    const ps: Promise<unknown>[] = []
     for (let i = 0; i < 5; i++) {
       ps.push(runErrorQuery())
     }
@@ -59,7 +59,7 @@ describe('pool error handling', function () {
   describe('using an ended pool', () => {
     it('rejects all additional promises', (done) => {
       const pool = new Pool()
-      const promises = []
+      const promises: Promise<void>[] = []
       pool.end().then(() => {
         const squash = (promise) => promise.catch((e) => 'okay!')
         promises.push(squash(pool.connect()))
@@ -168,7 +168,7 @@ describe('pool error handling', function () {
   describe('pool with lots of errors', () => {
     it('continues to work and provide new clients', async () => {
       const pool = new Pool({ max: 1 })
-      const errors = []
+      const errors: Error[] = []
       for (var i = 0; i < 20; i++) {
         try {
           await pool.query('invalid sql')
