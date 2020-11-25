@@ -52,7 +52,7 @@ describe('error recovery', () => {
   })
 
   // created from https://github.com/brianc/node-postgres/pull/2333
-  it.skip('handles an error on a stream after a plain text non-stream error', async () => {
+  it('handles an error on a stream after a plain text non-stream error', async () => {
     const client = new Client()
     const stmt = 'SELECT * FROM goose;'
     await client.connect()
