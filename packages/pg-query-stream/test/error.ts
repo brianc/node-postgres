@@ -61,14 +61,32 @@ describe('error recovery', () => {
         assert(e, 'Query should have rejected with an error')
         const stream = new QueryStream('SELECT * FROM duck')
         client.query(stream)
+        stream.on('data', () => {})
         stream.on('error', () => {
-          console.log('stream error')
           client.end((err) => {
-            console.log('client ended')
             err ? reject(err) : resolve()
           })
         })
       })
+    })
+  })
+
+  it('does not crash when closing a connection with a queued stream', async () => {
+    const client = new Client()
+    const stmt = 'SELECT * FROM goose;'
+    await client.connect()
+    return new Promise(async (resolve) => {
+      let queryError: Error | undefined
+      client.query(stmt).catch((e) => {
+        queryError = e
+      })
+      const stream = client.query(new QueryStream(stmt))
+      stream.on('data', () => {})
+      stream.on('error', () => {
+        assert(queryError, 'query should have errored due to client ending')
+        resolve()
+      })
+      await client.end()
     })
   })
 })
