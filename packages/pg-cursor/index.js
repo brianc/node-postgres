@@ -155,8 +155,12 @@ Cursor.prototype.handleError = function (msg) {
     // only dispatch error events if we have a listener
     this.emit('error', msg)
   }
-  // call sync to keep this connection from hanging
-  this.connection.sync()
+  // If we have already received a ready for query event do not double-sync
+  // because this can cause a readyForQuery to be trigger a second time.
+  if (this.state !== 'done') {
+    // call sync to trigger a readyForQuery
+    this.connection.sync()
+  }
 }
 
 Cursor.prototype._getRows = function (rows, cb) {
