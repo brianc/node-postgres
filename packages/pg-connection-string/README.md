@@ -22,7 +22,7 @@ var config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
 
 The resulting config contains a subset of the following properties:
 
-* `host` - Postgres server hostname or, for UNIX doamain sockets, the socket filename
+* `host` - Postgres server hostname or, for UNIX domain sockets, the socket filename
 * `port` - port on which to connect
 * `user` - User with which to authenticate to the server
 * `password` - Corresponding password
