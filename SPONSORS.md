@@ -9,6 +9,7 @@ node-postgres is made possible by the helpful contributors from the community as
 - [CrateDB](https://crate.io/)
 - [BitMEX](https://www.bitmex.com/app/trade/XBTUSD)
 - [Dataform](https://dataform.co/)
+- [Eaze](https://www.eaze.com/)
 
 # Supporters
 
@@ -34,3 +35,5 @@ node-postgres is made possible by the helpful contributors from the community as
 - Trevor Linton
 - Ian Walter
 - @Guido4000
+- [Martti Laine](https://github.com/codeclown)
+- [Tim Nolet](https://github.com/tnolet)

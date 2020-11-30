@@ -53,6 +53,11 @@ node-postgres's continued development has been made possible in part by generous
 <a href="https://crate.io" target="_blank">
   <img height="80" src="https://node-postgres.com/crate-io.png" />
 </a>
+
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAABCAQAAAB0m0auAAAADElEQVR42mNkIBIAAABSAAI2VLqiAAAAAElFTkSuQmCC" />
+<a href="https://www.eaze.com" target="_blank">
+  <img height="80" src="https://node-postgres.com/eaze.png" />
+</a>
 </div>
 
 If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable [please consider supporting](https://github.com/sponsors/brianc) its development.
