@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg-query-stream@4.0.0
+
+- Library has been [converted](https://github.com/brianc/node-postgres/pull/2376) to Typescript. The behavior is identical, but there could be subtle breaking changes due to class names changing or other small inconsistencies introduced by the conversion.
+
 ### pg@8.5.0
 
 - Fix bug forwarding [ssl key](https://github.com/brianc/node-postgres/pull/2394).
