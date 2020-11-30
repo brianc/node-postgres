@@ -37,6 +37,7 @@ Cursor.prototype._rowDescription = function () {
 }
 
 Cursor.prototype.submit = function (connection) {
+  this.state = 'submitted'
   this.connection = connection
   this._portal = 'C_' + nextUniqueID++
 
@@ -87,7 +88,12 @@ Cursor.prototype._closePortal = function () {
   // open can lock tables for modification if inside a transaction.
   // see https://github.com/brianc/node-pg-cursor/issues/56
   this.connection.close({ type: 'P', name: this._portal })
-  this.connection.sync()
+
+  // If we've received an error we already sent a sync message.
+  // do not send another sync as it triggers another readyForQuery message.
+  if (this.state !== 'error') {
+    this.connection.sync()
+  }
 }
 
 Cursor.prototype.handleRowDescription = function (msg) {
@@ -138,8 +144,18 @@ Cursor.prototype.handleEmptyQuery = function () {
 }
 
 Cursor.prototype.handleError = function (msg) {
-  this.connection.removeListener('noData', this._ifNoData)
-  this.connection.removeListener('rowDescription', this._rowDescription)
+  // If we're in an initialized state we've never been submitted
+  // and don't have a connection instance reference yet.
+  // This can happen if you queue a stream and close the client before
+  // the client has submitted the stream.  In this scenario we don't have
+  // a connection so there's nothing to unsubscribe from.
+  if (this.state !== 'initialized') {
+    this.connection.removeListener('noData', this._ifNoData)
+    this.connection.removeListener('rowDescription', this._rowDescription)
+    // call sync to trigger a readyForQuery
+    this.connection.sync()
+  }
+
   this.state = 'error'
   this._error = msg
   // satisfy any waiting callback
@@ -155,8 +171,6 @@ Cursor.prototype.handleError = function (msg) {
     // only dispatch error events if we have a listener
     this.emit('error', msg)
   }
-  // call sync to keep this connection from hanging
-  this.connection.sync()
 }
 
 Cursor.prototype._getRows = function (rows, cb) {
@@ -189,6 +203,7 @@ Cursor.prototype.close = function (cb) {
       return
     }
   }
+
   this._closePortal()
   this.state = 'done'
   if (cb) {
@@ -199,7 +214,7 @@ Cursor.prototype.close = function (cb) {
 }
 
 Cursor.prototype.read = function (rows, cb) {
-  if (this.state === 'idle') {
+  if (this.state === 'idle' || this.state === 'submitted') {
     return this._getRows(rows, cb)
   }
   if (this.state === 'busy' || this.state === 'initialized') {
