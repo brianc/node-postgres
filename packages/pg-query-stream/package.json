@@ -1,6 +1,6 @@
 {
   "name": "pg-query-stream",
-  "version": "3.4.2",
+  "version": "4.0.0",
   "description": "Postgres query result returned as readable stream",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -44,6 +44,6 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "pg-cursor": "^2.5.1"
+    "pg-cursor": "^2.5.2"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "pg-cursor",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "Query cursor extension for node-postgres",
   "main": "index.js",
   "directories": {
