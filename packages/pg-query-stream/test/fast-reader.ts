@@ -6,7 +6,7 @@ helper('fast reader', function (client) {
   it('works', function (done) {
     const stream = new QueryStream('SELECT * FROM generate_series(0, 200) num', [])
     const query = client.query(stream)
-    const result = []
+    const result: any[] = []
     stream.on('readable', function () {
       let res = stream.read()
       while (res) {
@@ -15,7 +15,7 @@ helper('fast reader', function (client) {
         } else {
           // a readable stream will emit a null datum when it finishes being readable
           // https://nodejs.org/api/stream.html#stream_event_readable
-          assert.equal(res, null)
+          assert.strictEqual(res, null)
         }
         if (res) {
           result.push(res.num)
@@ -24,10 +24,10 @@ helper('fast reader', function (client) {
       }
     })
     stream.on('end', function () {
-      const total = result.reduce(function (prev, cur) {
+      const total = result.reduce((prev, cur) => {
         return prev + cur
       })
-      assert.equal(total, 20100)
+      assert.strictEqual(total, 20100)
       done()
     })
     assert.strictEqual(query.read(2), null)

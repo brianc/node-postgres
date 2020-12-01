@@ -10,7 +10,7 @@ helper('error', function (client) {
     query
       .on('error', function (err) {
         assert(err)
-        assert.equal(err.code, '42P01')
+        assert.strictEqual(err.code, '42P01')
         done()
       })
       .on('data', function () {

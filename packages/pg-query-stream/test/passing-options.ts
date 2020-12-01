@@ -6,13 +6,13 @@ helper('passing options', function (client) {
   it('passes row mode array', function (done) {
     const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { rowMode: 'array' })
     const query = client.query(stream)
-    const result = []
+    const result: any[] = []
     query.on('data', (datum) => {
       result.push(datum)
     })
     query.on('end', () => {
       const expected = new Array(11).fill(0).map((_, i) => [i])
-      assert.deepEqual(result, expected)
+      assert.deepStrictEqual(result, expected)
       done()
     })
   })
@@ -23,7 +23,7 @@ helper('passing options', function (client) {
     }
     const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { types })
     const query = client.query(stream)
-    const result = []
+    const result: any[] = []
     query.on('data', (datum) => {
       result.push(datum)
     })
