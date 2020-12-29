@@ -25,6 +25,8 @@ function continueSession(session, password, serverData) {
 
   if (!sv.nonce.startsWith(session.clientNonce)) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce does not start with client nonce')
+  } else if (sv.nonce.length === session.clientNonce.length) {
+    throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce is too short')
   }
 
   var saltBytes = Buffer.from(sv.salt, 'base64')
