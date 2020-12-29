@@ -32,7 +32,7 @@ function continueSession(session, password, serverData) {
   var saltedPassword = Hi(password, saltBytes, sv.iteration)
 
   var clientKey = createHMAC(saltedPassword, 'Client Key')
-  var storedKey = crypto.createHash('sha256').update(clientKey).digest()
+  var storedKey = sha256(clientKey)
 
   var clientFirstMessageBare = 'n=*,r=' + session.clientNonce
   var serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
@@ -127,6 +127,10 @@ function xorBuffers(a, b) {
     }
   }
   return Buffer.from(res)
+}
+
+function sha256(text) {
+  return crypto.createHash('sha256').update(text).digest()
 }
 
 function createHMAC(key, msg) {
