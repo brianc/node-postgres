@@ -20,6 +20,12 @@ function continueSession(session, password, serverData) {
   if (session.message !== 'SASLInitialResponse') {
     throw new Error('SASL: Last message was not SASLInitialResponse')
   }
+  if (typeof password !== 'string') {
+    throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string')
+  }
+  if (typeof serverData !== 'string') {
+    throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: serverData must be a string')
+  }
 
   const sv = parseServerFirstMessage(serverData)
 
