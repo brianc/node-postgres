@@ -65,14 +65,11 @@ function finalizeSession(session, serverData) {
   if (session.message !== 'SASLResponse') {
     throw new Error('SASL: Last message was not SASLResponse')
   }
-
-  const attrPairs = parseAttributePairs(serverData)
-  const serverSignature = attrPairs.get('v')
-  if (!serverSignature) {
-    throw new TypeError('SASL: server signature is missing')
-  } else if (!isBase64(serverSignature)) {
-    throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature must be base64')
+  if (typeof serverData !== 'string') {
+    throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: serverData must be a string')
   }
+
+  const { serverSignature } = parseServerFinalMessage(serverData)
 
   if (serverSignature !== session.serverSignature) {
     throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature does not match')
@@ -154,6 +151,19 @@ function parseServerFirstMessage(data) {
     nonce,
     salt,
     iteration,
+  }
+}
+
+function parseServerFinalMessage(serverData) {
+  const attrPairs = parseAttributePairs(serverData)
+  const serverSignature = attrPairs.get('v')
+  if (!serverSignature) {
+    throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature is missing')
+  } else if (!isBase64(serverSignature)) {
+    throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature must be base64')
+  }
+  return {
+    serverSignature,
   }
 }
 
