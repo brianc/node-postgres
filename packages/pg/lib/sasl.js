@@ -69,6 +69,22 @@ function finalizeSession(session, serverData) {
   }
 }
 
+/**
+ * printable       = %x21-2B / %x2D-7E
+ *                   ;; Printable ASCII except ",".
+ *                   ;; Note that any "printable" is also
+ *                   ;; a valid "value".
+ */
+function isPrintableChars(text) {
+  if (typeof text !== 'string') {
+    throw new TypeError('SASL: text must be a string')
+  }
+  return text
+    .split('')
+    .map((_, i) => text.charCodeAt(i))
+    .every((c) => (c >= 0x21 && c <= 0x2b) || (c >= 0x2d && c <= 0x7e))
+}
+
 function parseAttributePairs(text) {
   if (typeof text !== 'string') {
     throw new TypeError('SASL: attribute pairs text must be a string')
@@ -92,6 +108,8 @@ function extractVariablesFromFirstServerMessage(data) {
   const nonce = attrPairs.get('r')
   if (!nonce) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: nonce missing')
+  } else if (!isPrintableChars(nonce)) {
+    throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: nonce must only contain printable characters')
   }
   const salt = attrPairs.get('s')
   if (!salt) {
