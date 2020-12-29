@@ -41,7 +41,6 @@ suite.test('SSL connection error allows event loop to exit', (done) => {
   })
 })
 
-
 suite.test('Non "S" response code allows event loop to exit', (done) => {
   const port = makeTerminatingBackend('X')
   const client = new helper.pg.Client({ ssl: 'require', host: 'localhost', port })
