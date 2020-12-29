@@ -21,7 +21,7 @@ function continueSession(session, password, serverData) {
     throw new Error('SASL: Last message was not SASLInitialResponse')
   }
 
-  const sv = extractVariablesFromFirstServerMessage(serverData)
+  const sv = parseServerFirstMessage(serverData)
 
   if (!sv.nonce.startsWith(session.clientNonce)) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce does not start with client nonce')
@@ -121,7 +121,7 @@ function parseAttributePairs(text) {
   )
 }
 
-function extractVariablesFromFirstServerMessage(data) {
+function parseServerFirstMessage(data) {
   const attrPairs = parseAttributePairs(data)
 
   const nonce = attrPairs.get('r')
