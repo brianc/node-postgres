@@ -111,16 +111,6 @@ assert.success = function (callback) {
   }
 }
 
-assert.throws = function (offender) {
-  try {
-    offender()
-  } catch (e) {
-    assert.ok(e instanceof Error, 'Expected ' + offender + ' to throw instances of Error')
-    return
-  }
-  assert.ok(false, 'Expected ' + offender + ' to throw exception')
-}
-
 assert.lengthIs = function (actual, expectedLength) {
   assert.equal(actual.length, expectedLength)
 }
