@@ -62,6 +62,8 @@ function finalizeSession(session, serverData) {
   const serverSignature = attrPairs.get('v')
   if (!serverSignature) {
     throw new TypeError('SASL: server signature is missing')
+  } else if (!isBase64(serverSignature)) {
+    throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature must be base64')
   }
 
   if (serverSignature !== session.serverSignature) {
@@ -83,6 +85,21 @@ function isPrintableChars(text) {
     .split('')
     .map((_, i) => text.charCodeAt(i))
     .every((c) => (c >= 0x21 && c <= 0x2b) || (c >= 0x2d && c <= 0x7e))
+}
+
+/**
+ * base64-char     = ALPHA / DIGIT / "/" / "+"
+ *
+ * base64-4        = 4base64-char
+ *
+ * base64-3        = 3base64-char "="
+ *
+ * base64-2        = 2base64-char "=="
+ *
+ * base64          = *base64-4 [base64-3 / base64-2]
+ */
+function isBase64(text) {
+  return /^(?:[a-zA-Z0-9+/]{4})*(?:[a-zA-Z0-9+/]{2}==|[a-zA-Z0-9+/]{3}=)?$/.test(text)
 }
 
 function parseAttributePairs(text) {
@@ -114,6 +131,8 @@ function extractVariablesFromFirstServerMessage(data) {
   const salt = attrPairs.get('s')
   if (!salt) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: salt missing')
+  } else if (!isBase64(salt)) {
+    throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: salt must be base64')
   }
   const iterationText = attrPairs.get('i')
   if (!iterationText) {
