@@ -31,7 +31,7 @@ function continueSession(session, password, serverData) {
 
   var saltedPassword = Hi(password, saltBytes, sv.iteration)
 
-  var clientKey = createHMAC(saltedPassword, 'Client Key')
+  var clientKey = hmacSha256(saltedPassword, 'Client Key')
   var storedKey = sha256(clientKey)
 
   var clientFirstMessageBare = 'n=*,r=' + session.clientNonce
@@ -41,12 +41,12 @@ function continueSession(session, password, serverData) {
 
   var authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
-  var clientSignature = createHMAC(storedKey, authMessage)
+  var clientSignature = hmacSha256(storedKey, authMessage)
   var clientProofBytes = xorBuffers(clientKey, clientSignature)
   var clientProof = clientProofBytes.toString('base64')
 
-  var serverKey = createHMAC(saltedPassword, 'Server Key')
-  var serverSignatureBytes = createHMAC(serverKey, authMessage)
+  var serverKey = hmacSha256(saltedPassword, 'Server Key')
+  var serverSignatureBytes = hmacSha256(serverKey, authMessage)
 
   session.message = 'SASLResponse'
   session.serverSignature = serverSignatureBytes.toString('base64')
@@ -133,15 +133,15 @@ function sha256(text) {
   return crypto.createHash('sha256').update(text).digest()
 }
 
-function createHMAC(key, msg) {
+function hmacSha256(key, msg) {
   return crypto.createHmac('sha256', key).update(msg).digest()
 }
 
 function Hi(password, saltBytes, iterations) {
-  var ui1 = createHMAC(password, Buffer.concat([saltBytes, Buffer.from([0, 0, 0, 1])]))
+  var ui1 = hmacSha256(password, Buffer.concat([saltBytes, Buffer.from([0, 0, 0, 1])]))
   var ui = ui1
   for (var i = 0; i < iterations - 1; i++) {
-    ui1 = createHMAC(password, ui1)
+    ui1 = hmacSha256(password, ui1)
     ui = xorBuffers(ui, ui1)
   }
 
