@@ -25,6 +25,9 @@ services:
       PGUSER: user
       PGDATABASE: data
       PGHOST: db
+      # set this to true in the development environment until I can get SSL setup on the 
+      # docker postgres instance
+      PGTESTNOSSL: true
       
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity

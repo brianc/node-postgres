@@ -20,7 +20,7 @@ suite.test('valid connection completes promise', () => {
 })
 
 suite.test('invalid connection rejects promise', (done) => {
-  const client = new pg.Client({ host: 'alksdjflaskdfj' })
+  const client = new pg.Client({ host: 'alksdjflaskdfj', port: 1234 })
   return client.connect().catch((e) => {
     assert(e instanceof Error)
     done()
