@@ -38,7 +38,7 @@ test('sasl/scram', function () {
     test('fails when last session message was not SASLInitialResponse', function () {
       assert.throws(
         function () {
-          sasl.continueSession({})
+          sasl.continueSession({}, '', '')
         },
         {
           message: 'SASL: Last message was not SASLInitialResponse',
@@ -53,6 +53,7 @@ test('sasl/scram', function () {
             {
               message: 'SASLInitialResponse',
             },
+            'bad-password',
             's=1,i=1'
           )
         },
@@ -69,6 +70,7 @@ test('sasl/scram', function () {
             {
               message: 'SASLInitialResponse',
             },
+            'bad-password',
             'r=1,i=1'
           )
         },
@@ -85,7 +87,8 @@ test('sasl/scram', function () {
             {
               message: 'SASLInitialResponse',
             },
-            'r=1,s=1'
+            'bad-password',
+            'r=1,s=abcd'
           )
         },
         {
@@ -102,7 +105,8 @@ test('sasl/scram', function () {
               message: 'SASLInitialResponse',
               clientNonce: '2',
             },
-            'r=1,s=1,i=1'
+            'bad-password',
+            'r=1,s=abcd,i=1'
           )
         },
         {
@@ -117,12 +121,12 @@ test('sasl/scram', function () {
         clientNonce: 'a',
       }
 
-      sasl.continueSession(session, 'password', 'r=ab,s=x,i=1')
+      sasl.continueSession(session, 'password', 'r=ab,s=abcd,i=1')
 
       assert.equal(session.message, 'SASLResponse')
-      assert.equal(session.serverSignature, 'TtywIrpWDJ0tCSXM2mjkyiaa8iGZsZG7HllQxr8fYAo=')
+      assert.equal(session.serverSignature, 'jwt97IHWFn7FEqHykPTxsoQrKGOMXJl/PJyJ1JXTBKc=')
 
-      assert.equal(session.response, 'c=biws,r=ab,p=KAEPBUTjjofB0IM5UWcZApK1dSzFE0o5vnbWjBbvFHA=')
+      assert.equal(session.response, 'c=biws,r=ab,p=mU8grLfTjDrJer9ITsdHk0igMRDejG10EJPFbIBL3D0=')
     })
   })
 
@@ -138,15 +142,32 @@ test('sasl/scram', function () {
       )
     })
 
+    test('fails when server signature is not valid base64', function () {
+      assert.throws(
+        function () {
+          sasl.finalizeSession(
+            {
+              message: 'SASLResponse',
+              serverSignature: 'abcd',
+            },
+            'v=x1' // Purposefully invalid base64
+          )
+        },
+        {
+          message: 'SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature must be base64',
+        }
+      )
+    })
+
     test('fails when server signature does not match', function () {
       assert.throws(
         function () {
           sasl.finalizeSession(
             {
               message: 'SASLResponse',
-              serverSignature: '3',
+              serverSignature: 'abcd',
             },
-            'v=4'
+            'v=xyzq'
           )
         },
         {
@@ -159,9 +180,9 @@ test('sasl/scram', function () {
       sasl.finalizeSession(
         {
           message: 'SASLResponse',
-          serverSignature: '5',
+          serverSignature: 'abcd',
         },
-        'v=5'
+        'v=abcd'
       )
     })
   })
