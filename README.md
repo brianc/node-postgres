@@ -24,6 +24,8 @@ Each package in this repo should have its own readme more focused on how to deve
 
 ### :star: [Documentation](https://node-postgres.com) :star:
 
+The source repo for the documentation is https://github.com/brianc/node-postgres-docs.
+
 ### Features
 
 - Pure JavaScript client and native libpq bindings share _the same API_
