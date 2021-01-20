@@ -15,6 +15,7 @@ import {
   CopyResponse,
   NotificationResponseMessage,
   RowDescriptionMessage,
+  ParameterDescriptionMessage,
   Field,
   DataRowMessage,
   ParameterStatusMessage,
@@ -62,6 +63,7 @@ const enum MessageCodes {
   ErrorMessage = 0x45, // E
   NoticeMessage = 0x4e, // N
   RowDescriptionMessage = 0x54, // T
+  ParameterDescriptionMessage = 0x74, // t
   PortalSuspended = 0x73, // s
   ReplicationStart = 0x57, // W
   EmptyQuery = 0x49, // I
@@ -188,6 +190,8 @@ export class Parser {
         return this.parseErrorMessage(offset, length, bytes, 'notice')
       case MessageCodes.RowDescriptionMessage:
         return this.parseRowDescriptionMessage(offset, length, bytes)
+      case MessageCodes.ParameterDescriptionMessage:
+        return this.parseParameterDescriptionMessage(offset, length, bytes)
       case MessageCodes.CopyIn:
         return this.parseCopyInMessage(offset, length, bytes)
       case MessageCodes.CopyOut:
@@ -262,6 +266,16 @@ export class Parser {
     const dataTypeModifier = this.reader.int32()
     const mode = this.reader.int16() === 0 ? 'text' : 'binary'
     return new Field(name, tableID, columnID, dataTypeID, dataTypeSize, dataTypeModifier, mode)
+  }
+
+  private parseParameterDescriptionMessage(offset: number, length: number, bytes: Buffer) {
+    this.reader.setBuffer(offset, bytes)
+    const parameterCount = this.reader.int16()
+    const message = new ParameterDescriptionMessage(length, parameterCount)
+    for (let i = 0; i < parameterCount; i++) {
+      message.dataTypeIDs[i] = this.reader.int32()
+    }
+    return message
   }
 
   private parseDataRowMessage(offset: number, length: number, bytes: Buffer) {

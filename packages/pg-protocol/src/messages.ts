@@ -11,6 +11,7 @@ export type MessageName =
   | 'copyDone'
   | 'copyData'
   | 'rowDescription'
+  | 'parameterDescription'
   | 'parameterStatus'
   | 'backendKeyData'
   | 'notification'
@@ -149,6 +150,14 @@ export class RowDescriptionMessage {
   public readonly fields: Field[]
   constructor(public readonly length: number, public readonly fieldCount: number) {
     this.fields = new Array(this.fieldCount)
+  }
+}
+
+export class ParameterDescriptionMessage {
+  public readonly name: MessageName = 'parameterDescription'
+  public readonly dataTypeIDs: number[]
+  constructor(public readonly length: number, public readonly parameterCount: number) {
+    this.dataTypeIDs = new Array(this.parameterCount)
   }
 }
 

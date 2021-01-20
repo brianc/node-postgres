@@ -144,6 +144,35 @@ var expectedTwoRowMessage = {
   ],
 }
 
+var emptyParameterDescriptionBuffer = new BufferList()
+  .addInt16(0) // number of parameters
+  .join(true, 't')
+
+var oneParameterDescBuf = buffers.parameterDescription([1111])
+
+var twoParameterDescBuf = buffers.parameterDescription([2222, 3333])
+
+var expectedEmptyParameterDescriptionMessage = {
+  name: 'parameterDescription',
+  length: 6,
+  parameterCount: 0,
+  dataTypeIDs: [],
+}
+
+var expectedOneParameterMessage = {
+  name: 'parameterDescription',
+  length: 10,
+  parameterCount: 1,
+  dataTypeIDs: [1111],
+}
+
+var expectedTwoParameterMessage = {
+  name: 'parameterDescription',
+  length: 14,
+  parameterCount: 2,
+  dataTypeIDs: [2222, 3333],
+}
+
 var testForMessage = function (buffer: Buffer, expectedMessage: any) {
   it('recieves and parses ' + expectedMessage.name, async () => {
     const messages = await parseBuffers([buffer])
@@ -243,6 +272,12 @@ describe('PgPacketStream', function () {
     testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage)
     testForMessage(oneRowDescBuff, expectedOneRowMessage)
     testForMessage(twoRowBuf, expectedTwoRowMessage)
+  })
+
+  describe('parameterDescription messages', function () {
+    testForMessage(emptyParameterDescriptionBuffer, expectedEmptyParameterDescriptionMessage)
+    testForMessage(oneParameterDescBuf, expectedOneParameterMessage)
+    testForMessage(twoParameterDescBuf, expectedTwoParameterMessage)
   })
 
   describe('parsing rows', function () {
