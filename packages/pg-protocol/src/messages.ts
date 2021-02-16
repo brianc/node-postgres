@@ -1,6 +1,6 @@
 export type Mode = 'text' | 'binary'
 
-export const enum MessageName {
+export enum MessageName {
   parseComplete = 'parseComplete',
   bindComplete = 'bindComplete',
   closeComplete = 'closeComplete',
