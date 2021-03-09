@@ -22,6 +22,11 @@
     "prepublish": "yarn build",
     "pretest": "yarn build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-postgres.git",
+    "directory": "packages/pg-protocol"
+  },
   "files": [
     "/dist/*{js,ts,map}",
     "/src"
