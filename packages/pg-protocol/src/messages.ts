@@ -1,33 +1,32 @@
 export type Mode = 'text' | 'binary'
 
-export const enum MessageName {
-  parseComplete = 'parseComplete',
-  bindComplete = 'bindComplete',
-  closeComplete = 'closeComplete',
-  noData = 'noData',
-  portalSuspended = 'portalSuspended',
-  replicationStart = 'replicationStart',
-  emptyQuery = 'emptyQuery',
-  copyDone = 'copyDone',
-  copyData = 'copyData',
-  rowDescription = 'rowDescription',
-  parameterStatus = 'parameterStatus',
-  backendKeyData = 'backendKeyData',
-  notification = 'notification',
-  readyForQuery = 'readyForQuery',
-  commandComplete = 'commandComplete',
-  dataRow = 'dataRow',
-  copyInResponse = 'copyInResponse',
-  copyOutResponse = 'copyOutResponse',
-  authenticationOk = 'authenticationOk',
-  authenticationMD5Password = 'authenticationMD5Password',
-  authenticationCleartextPassword = 'authenticationCleartextPassword',
-  authenticationSASL = 'authenticationSASL',
-  authenticationSASLContinue = 'authenticationSASLContinue',
-  authenticationSASLFinal = 'authenticationSASLFinal',
-  error = 'error',
-  notice = 'notice',
-}
+export type MessageName =
+  | 'parseComplete'
+  | 'bindComplete'
+  | 'closeComplete'
+  | 'noData'
+  | 'portalSuspended'
+  | 'replicationStart'
+  | 'emptyQuery'
+  | 'copyDone'
+  | 'copyData'
+  | 'rowDescription'
+  | 'parameterStatus'
+  | 'backendKeyData'
+  | 'notification'
+  | 'readyForQuery'
+  | 'commandComplete'
+  | 'dataRow'
+  | 'copyInResponse'
+  | 'copyOutResponse'
+  | 'authenticationOk'
+  | 'authenticationMD5Password'
+  | 'authenticationCleartextPassword'
+  | 'authenticationSASL'
+  | 'authenticationSASLContinue'
+  | 'authenticationSASLFinal'
+  | 'error'
+  | 'notice'
 
 export interface BackendMessage {
   name: MessageName
@@ -35,42 +34,42 @@ export interface BackendMessage {
 }
 
 export const parseComplete: BackendMessage = {
-  name: MessageName.parseComplete,
+  name: 'parseComplete',
   length: 5,
 }
 
 export const bindComplete: BackendMessage = {
-  name: MessageName.bindComplete,
+  name: 'bindComplete',
   length: 5,
 }
 
 export const closeComplete: BackendMessage = {
-  name: MessageName.closeComplete,
+  name: 'closeComplete',
   length: 5,
 }
 
 export const noData: BackendMessage = {
-  name: MessageName.noData,
+  name: 'noData',
   length: 5,
 }
 
 export const portalSuspended: BackendMessage = {
-  name: MessageName.portalSuspended,
+  name: 'portalSuspended',
   length: 5,
 }
 
 export const replicationStart: BackendMessage = {
-  name: MessageName.replicationStart,
+  name: 'replicationStart',
   length: 4,
 }
 
 export const emptyQuery: BackendMessage = {
-  name: MessageName.emptyQuery,
+  name: 'emptyQuery',
   length: 4,
 }
 
 export const copyDone: BackendMessage = {
-  name: MessageName.copyDone,
+  name: 'copyDone',
   length: 4,
 }
 
@@ -117,7 +116,7 @@ export class DatabaseError extends Error implements NoticeOrError {
 }
 
 export class CopyDataMessage {
-  public readonly name = MessageName.copyData
+  public readonly name = 'copyData'
   constructor(public readonly length: number, public readonly chunk: Buffer) {}
 }
 
@@ -146,7 +145,7 @@ export class Field {
 }
 
 export class RowDescriptionMessage {
-  public readonly name: MessageName = MessageName.rowDescription
+  public readonly name: MessageName = 'rowDescription'
   public readonly fields: Field[]
   constructor(public readonly length: number, public readonly fieldCount: number) {
     this.fields = new Array(this.fieldCount)
@@ -154,7 +153,7 @@ export class RowDescriptionMessage {
 }
 
 export class ParameterStatusMessage {
-  public readonly name: MessageName = MessageName.parameterStatus
+  public readonly name: MessageName = 'parameterStatus'
   constructor(
     public readonly length: number,
     public readonly parameterName: string,
@@ -163,17 +162,17 @@ export class ParameterStatusMessage {
 }
 
 export class AuthenticationMD5Password implements BackendMessage {
-  public readonly name: MessageName = MessageName.authenticationMD5Password
+  public readonly name: MessageName = 'authenticationMD5Password'
   constructor(public readonly length: number, public readonly salt: Buffer) {}
 }
 
 export class BackendKeyDataMessage {
-  public readonly name: MessageName = MessageName.backendKeyData
+  public readonly name: MessageName = 'backendKeyData'
   constructor(public readonly length: number, public readonly processID: number, public readonly secretKey: number) {}
 }
 
 export class NotificationResponseMessage {
-  public readonly name: MessageName = MessageName.notification
+  public readonly name: MessageName = 'notification'
   constructor(
     public readonly length: number,
     public readonly processId: number,
@@ -183,18 +182,18 @@ export class NotificationResponseMessage {
 }
 
 export class ReadyForQueryMessage {
-  public readonly name: MessageName = MessageName.readyForQuery
+  public readonly name: MessageName = 'readyForQuery'
   constructor(public readonly length: number, public readonly status: string) {}
 }
 
 export class CommandCompleteMessage {
-  public readonly name: MessageName = MessageName.commandComplete
+  public readonly name: MessageName = 'commandComplete'
   constructor(public readonly length: number, public readonly text: string) {}
 }
 
 export class DataRowMessage {
   public readonly fieldCount: number
-  public readonly name: MessageName = MessageName.dataRow
+  public readonly name: MessageName = 'dataRow'
   constructor(public length: number, public fields: any[]) {
     this.fieldCount = fields.length
   }
@@ -202,7 +201,7 @@ export class DataRowMessage {
 
 export class NoticeMessage implements BackendMessage, NoticeOrError {
   constructor(public readonly length: number, public readonly message: string | undefined) {}
-  public readonly name = MessageName.notice
+  public readonly name = 'notice'
   public severity: string | undefined
   public code: string | undefined
   public detail: string | undefined
