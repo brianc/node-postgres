@@ -17,7 +17,7 @@
   },
   "scripts": {
     "test": "mocha dist/**/*.test.js",
-    "build": "tsc",
+    "build": "tsc && node script/remove-public-const-enum.js",
     "build:watch": "tsc --watch",
     "prepublish": "yarn build",
     "pretest": "yarn build"
