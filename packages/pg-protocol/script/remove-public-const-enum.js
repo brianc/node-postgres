@@ -4,31 +4,39 @@
 const fs = require('fs')
 const path = require('path')
 
-const filepath = path.join(__dirname, '../dist/messages.d.ts')
-const backuppath = path.join(__dirname, '../dist/messages.const-enum.d.ts')
+const PATCH_SOURCE = process.argv.slice(2).indexOf('--src') >= 0
+const filepath = path.join(__dirname, PATCH_SOURCE ? '../src/messages.ts' : '../dist/messages.d.ts')
+const backuppath = path.join(
+  __dirname,
+  PATCH_SOURCE ? '../src/messages.const-enum.ts' : '../dist/messages.const-enum.d.ts'
+)
+const otherfiles = ['../src/parser.ts']
 /** @type {string} */
 let srcpath
-// use the filepath if it's newer
-try {
-  const backupStat = fs.statSync(backuppath)
-  const fileStat = fs.statSync(filepath)
-  srcpath = fileStat.mtimeMs > backupStat.mtimeMs ? filepath : backuppath
-} catch (err) {
-  if (err.code !== 'ENOENT') {
-    throw err
-  }
+if (PATCH_SOURCE) {
   srcpath = filepath
+} else {
+  // use the filepath if it's newer
+  try {
+    const backupStat = fs.statSync(backuppath)
+    const fileStat = fs.statSync(filepath)
+    srcpath = fileStat.mtimeMs > backupStat.mtimeMs ? filepath : backuppath
+  } catch (err) {
+    if (err.code !== 'ENOENT') {
+      throw err
+    }
+    srcpath = filepath
+  }
 }
 const src = fs.readFileSync(srcpath, 'utf8')
-if (srcpath === filepath) {
-  fs.writeFileSync(backuppath, src, 'utf8')
-}
 
 /** @type {({startIndex: number, endIndex: number, content: string})[]} */
 let replacements = []
 
 // find the const enum declarations
-const startRe = /(^|\n)export declare const enum ([A-Za-z][A-Za-z0-9]+) \{\n*/g
+const startRe = PATCH_SOURCE
+  ? /(^|\n)export const enum ([A-Za-z][A-Za-z0-9]+) \{\n*/g
+  : /(^|\n)export declare const enum ([A-Za-z][A-Za-z0-9]+) \{\n*/g
 const endRe = /\n\}/g
 
 const constEnums = {}
@@ -87,7 +95,26 @@ if (replacements.length > 0) {
     out = out.replace(re, (s, enumItemName) => enumItems[enumItemName])
   }
 
+  if (!PATCH_SOURCE && srcpath === filepath) {
+    fs.writeFileSync(backuppath, src, 'utf8')
+  }
   fs.writeFileSync(filepath, out, 'utf8')
-  const now = new Date()
-  fs.utimesSync(backuppath, now, now)
+  if (!PATCH_SOURCE) {
+    const now = new Date()
+    fs.utimesSync(backuppath, now, now)
+  } else {
+    for (const f of otherfiles) {
+      const otherfile = path.join(__dirname, f)
+
+      let otherOut = fs.readFileSync(otherfile, 'utf8')
+      // replace references to the enum with the literals
+      for (const enumName of Object.keys(constEnums)) {
+        const enumItems = constEnums[enumName]
+        const re = new RegExp(`\\b${enumName}\\.(${Object.keys(enumItems).join('|')})\\b`, 'g')
+
+        otherOut = otherOut.replace(re, (s, enumItemName) => enumItems[enumItemName])
+      }
+      fs.writeFileSync(otherfile, otherOut, 'utf8')
+    }
+  }
 }
