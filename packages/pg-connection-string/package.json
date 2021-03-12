@@ -11,7 +11,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git"
+    "url": "git://github.com/brianc/node-postgres.git",
+    "directory": "packages/pg-connection-string"
   },
   "keywords": [
     "pg",
