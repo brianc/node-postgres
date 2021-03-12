@@ -183,9 +183,9 @@ export class Parser {
       case MessageCodes.BackendKeyData:
         return this.parseBackendKeyData(offset, length, bytes)
       case MessageCodes.ErrorMessage:
-        return this.parseErrorMessage(offset, length, bytes, 'error')
+        return this.parseErrorMessage(offset, length, bytes, MessageName.error)
       case MessageCodes.NoticeMessage:
-        return this.parseErrorMessage(offset, length, bytes, 'notice')
+        return this.parseErrorMessage(offset, length, bytes, MessageName.notice)
       case MessageCodes.RowDescriptionMessage:
         return this.parseRowDescriptionMessage(offset, length, bytes)
       case MessageCodes.CopyIn:
@@ -217,11 +217,11 @@ export class Parser {
   }
 
   private parseCopyInMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, 'copyInResponse')
+    return this.parseCopyMessage(offset, length, bytes, MessageName.copyInResponse)
   }
 
   private parseCopyOutMessage(offset: number, length: number, bytes: Buffer) {
-    return this.parseCopyMessage(offset, length, bytes, 'copyOutResponse')
+    return this.parseCopyMessage(offset, length, bytes, MessageName.copyOutResponse)
   }
 
   private parseCopyMessage(offset: number, length: number, bytes: Buffer, messageName: MessageName) {
@@ -295,7 +295,7 @@ export class Parser {
     const code = this.reader.int32()
     // TODO(bmc): maybe better types here
     const message: BackendMessage & any = {
-      name: 'authenticationOk',
+      name: MessageName.authenticationOk,
       length,
     }
 
@@ -304,18 +304,18 @@ export class Parser {
         break
       case 3: // AuthenticationCleartextPassword
         if (message.length === 8) {
-          message.name = 'authenticationCleartextPassword'
+          message.name = MessageName.authenticationCleartextPassword
         }
         break
       case 5: // AuthenticationMD5Password
         if (message.length === 12) {
-          message.name = 'authenticationMD5Password'
+          message.name = MessageName.authenticationMD5Password
           const salt = this.reader.bytes(4)
           return new AuthenticationMD5Password(length, salt)
         }
         break
       case 10: // AuthenticationSASL
-        message.name = 'authenticationSASL'
+        message.name = MessageName.authenticationSASL
         message.mechanisms = []
         let mechanism: string
         do {
@@ -327,11 +327,11 @@ export class Parser {
         } while (mechanism)
         break
       case 11: // AuthenticationSASLContinue
-        message.name = 'authenticationSASLContinue'
+        message.name = MessageName.authenticationSASLContinue
         message.data = this.reader.string(length - 8)
         break
       case 12: // AuthenticationSASLFinal
-        message.name = 'authenticationSASLFinal'
+        message.name = MessageName.authenticationSASLFinal
         message.data = this.reader.string(length - 8)
         break
       default:
@@ -352,7 +352,9 @@ export class Parser {
     const messageValue = fields.M
 
     const message =
-      name === 'notice' ? new NoticeMessage(length, messageValue) : new DatabaseError(messageValue, length, name)
+      name === MessageName.notice
+        ? new NoticeMessage(length, messageValue)
+        : new DatabaseError(messageValue, length, name)
 
     message.severity = fields.S
     message.code = fields.C
