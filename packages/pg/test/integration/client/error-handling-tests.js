@@ -142,7 +142,7 @@ suite.test('when a query is binding', function (done) {
 
   assert.emits(query, 'error', function (err) {
     if (!helper.config.native) {
-      assert(err instanceof DatabaseError);
+      assert(err instanceof DatabaseError)
     }
     assert.equal(err.severity, 'ERROR')
     ensureFuture(client, done)
@@ -218,7 +218,7 @@ suite.test('within a simple query', (done) => {
 
   assert.emits(query, 'error', function (error) {
     if (!helper.config.native) {
-      assert(error instanceof DatabaseError);
+      assert(error instanceof DatabaseError)
     }
     assert.equal(error.severity, 'ERROR')
     done()
