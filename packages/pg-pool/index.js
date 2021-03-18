@@ -59,12 +59,12 @@ function makeIdleListener(pool, client) {
 }
 
 class PoolError extends Error {
-    // A PoolError is an error throwed during a Pool process. Each type of error contains a specific "code".
-    // Please document in README file the error codes.
-    constructor(message, code) {
-        super(message)
-        this.code = code
-    }
+  // A PoolError is an error throwed during a Pool process. Each type of error contains a specific "code".
+  // Please document in README file the error codes.
+  constructor(message, code) {
+    super(message)
+    this.code = code
+  }
 }
 
 class Pool extends EventEmitter {
@@ -343,7 +343,9 @@ class Pool extends EventEmitter {
     if (typeof text === 'function') {
       const response = promisify(this.Promise, text)
       setImmediate(function () {
-        return response.callback(new PoolError('Passing a function as the first parameter to pool.query is not supported', 'Z0002'))
+        return response.callback(
+          new PoolError('Passing a function as the first parameter to pool.query is not supported', 'Z0002')
+        )
       })
       return response.result
     }
