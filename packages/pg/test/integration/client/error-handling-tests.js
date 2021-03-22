@@ -5,6 +5,7 @@ var util = require('util')
 
 var pg = helper.pg
 const Client = pg.Client
+const DatabaseError = pg.DatabaseError
 
 var createErorrClient = function () {
   var client = helper.client()
@@ -140,6 +141,9 @@ suite.test('when a query is binding', function (done) {
   )
 
   assert.emits(query, 'error', function (err) {
+    if (!helper.config.native) {
+      assert(err instanceof DatabaseError)
+    }
     assert.equal(err.severity, 'ERROR')
     ensureFuture(client, done)
   })
@@ -213,6 +217,9 @@ suite.test('within a simple query', (done) => {
   var query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"))
 
   assert.emits(query, 'error', function (error) {
+    if (!helper.config.native) {
+      assert(error instanceof DatabaseError)
+    }
     assert.equal(error.severity, 'ERROR')
     done()
   })

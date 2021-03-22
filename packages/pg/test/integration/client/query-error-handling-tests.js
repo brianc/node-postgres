@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var util = require('util')
 var Query = helper.pg.Query
+var DatabaseError = helper.pg.DatabaseError
 
 test('error during query execution', function () {
   var client = new Client(helper.args)
@@ -74,6 +75,9 @@ test('9.3 column error fields', function () {
 
           client.query('CREATE TEMP TABLE column_err_test(a int NOT NULL)')
           client.query('INSERT INTO column_err_test(a) VALUES (NULL)', function (err) {
+            if (!helper.config.native) {
+              assert(err instanceof DatabaseError)
+            }
             assert.equal(err.severity, 'ERROR')
             assert.equal(err.code, '23502')
             assert.equal(err.table, 'column_err_test')
@@ -102,6 +106,9 @@ test('9.3 constraint error fields', function () {
           client.query('CREATE TEMP TABLE constraint_err_test(a int PRIMARY KEY)')
           client.query('INSERT INTO constraint_err_test(a) VALUES (1)')
           client.query('INSERT INTO constraint_err_test(a) VALUES (1)', function (err) {
+            if (!helper.config.native) {
+              assert(err instanceof DatabaseError)
+            }
             assert.equal(err.severity, 'ERROR')
             assert.equal(err.code, '23505')
             assert.equal(err.table, 'constraint_err_test')
