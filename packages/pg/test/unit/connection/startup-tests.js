@@ -7,9 +7,10 @@ test('connection can take existing stream', function () {
   assert.equal(con.stream, stream)
 })
 
-test('using any stream', function () {
+test('using pending stream', function () {
   var makeStream = function () {
     var stream = new MemoryStream()
+    stream.pending = true
     stream.connect = function (port, host) {
       this.connectCalled = true
       this.port = port
