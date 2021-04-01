@@ -2,7 +2,6 @@
 
 var net = require('net')
 var EventEmitter = require('events').EventEmitter
-var util = require('util')
 
 const { parse, serialize } = require('pg-protocol')
 
