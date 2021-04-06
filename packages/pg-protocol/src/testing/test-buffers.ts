@@ -62,6 +62,16 @@ const buffers = {
     return buf.join(true, 'T')
   },
 
+  parameterDescription: function (dataTypeIDs: number[]) {
+    dataTypeIDs = dataTypeIDs || []
+    var buf = new BufferList()
+    buf.addInt16(dataTypeIDs.length)
+    dataTypeIDs.forEach(function (dataTypeID) {
+      buf.addInt32(dataTypeID)
+    })
+    return buf.join(true, 't')
+  },
+
   dataRow: function (columns: any[]) {
     columns = columns || []
     var buf = new BufferList()
