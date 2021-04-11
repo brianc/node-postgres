@@ -1,6 +1,6 @@
 import assert from 'assert'
 import concat from 'concat-stream'
-import through from 'through'
+import { Transform } from 'stream'
 import helper from './helper'
 import QueryStream from '../src'
 
@@ -10,8 +10,11 @@ helper('concat', function (client) {
     const query = client.query(stream)
     query
       .pipe(
-        through(function (row) {
-          this.push(row.num)
+        new Transform({
+          transform(chunk, _, callback) {
+            callback(null, chunk.num)
+          },
+          objectMode: true,
         })
       )
       .pipe(
