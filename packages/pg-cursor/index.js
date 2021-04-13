@@ -28,6 +28,9 @@ util.inherits(Cursor, EventEmitter)
 Cursor.prototype._ifNoData = function () {
   this.state = 'idle'
   this._shiftQueue()
+  if (this.connection) {
+    this.connection.removeListener('rowDescription', this._rowDescription)
+  }
 }
 
 Cursor.prototype._rowDescription = function () {
