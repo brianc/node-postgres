@@ -65,18 +65,6 @@ describe('pool error handling', function () {
     })
   })
 
-  describe('calling connect after end', () => {
-    it('should return an error', function* () {
-      const pool = new Pool()
-      const res = yield pool.query('SELECT $1::text as name', ['hi'])
-      expect(res.rows[0].name).to.equal('hi')
-      const wait = pool.end()
-      pool.query('select now()')
-      yield wait
-      expect(() => pool.query('select now()')).to.reject()
-    })
-  })
-
   describe('using an ended pool', () => {
     it('rejects all additional promises', (done) => {
       const pool = new Pool()
