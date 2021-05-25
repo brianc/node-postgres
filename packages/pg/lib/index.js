@@ -23,6 +23,14 @@ var PG = function (clientConstructor) {
   this.Connection = Connection
   this.types = require('pg-types')
   this.DatabaseError = DatabaseError
+
+  try {
+    this.Cursor = require('pg-cursor')
+  } catch (err) {
+    if (err.code !== 'MODULE_NOT_FOUND') {
+      throw err
+    }
+  }
 }
 
 if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
