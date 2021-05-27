@@ -197,17 +197,13 @@ describe('pool error handling', function () {
       const pool = new Pool({ max: 1, port: (closeServer.address() as AddressInfo).port, host: 'localhost' })
       pool.connect((err: NodeJS.ErrnoException) => {
         assert.ok(err instanceof Error)
-        // @ts-expect-error
         if (err.code) {
-          // @ts-expect-error
           assert.strictEqual(err.code, 'ECONNRESET')
         }
       })
       pool.connect((err: NodeJS.ErrnoException) => {
         assert.ok(err instanceof Error)
-        // @ts-expect-error
         if (err.code) {
-          // @ts-expect-error
           assert.strictEqual(err.code, 'ECONNRESET')
         }
         closeServer.close(() => {
