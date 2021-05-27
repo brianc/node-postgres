@@ -6,7 +6,7 @@ const pg = require('pg')
 const text = 'SELECT generate_series as num FROM generate_series(0, 50)'
 
 function poolQueryPromise(pool, readRowCount) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     pool.connect((err, client, done) => {
       if (err) {
         done(err)
@@ -90,7 +90,7 @@ describe('pool', function () {
       const cursor = new Cursor(text)
       const client = await pool.connect()
       client.query(cursor)
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         cursor.read(25, function (err) {
           assert.ifError(err)
           cursor.close(function (err) {
