@@ -8,7 +8,6 @@ describe('client options', function () {
       getTypeParser: () => (string) => string,
     }
 
-    //@ts-expect-error
     const client = new pg.Client({ types })
     client.connect()
     const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num')
