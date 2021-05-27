@@ -30,9 +30,9 @@
   },
   "homepage": "https://github.com/brianc/node-pg-pool#readme",
   "devDependencies": {
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^7.0.0",
     "@types/node": "^12.12.21",
-    "@types/pg": "^7.14.5",
+    "@types/pg": "^8.6.0",
     "@types/bluebird":" ^3.5.32",
     "bluebird": "3.4.1",
     "mocha": "^7.1.2",

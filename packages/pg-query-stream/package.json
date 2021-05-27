@@ -32,8 +32,8 @@
     "url": "https://github.com/brianc/node-postgres/issues"
   },
   "devDependencies": {
-    "@types/mocha": "^8.0.3",
-    "@types/pg": "^7.14.5",
+    "@types/mocha": "^7.0.0",
+    "@types/pg": "^8.6.0",
     "@types/node": "^12.0.0",
     "JSONStream": "~0.7.1",
     "concat-stream": "~1.0.1",

@@ -20,9 +20,9 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "devDependencies": {
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^7.0.0",
     "@types/node": "^12.0.0",
-    "@types/pg": "^7.14.5",
+    "@types/pg": "^8.6.0",
     "mocha": "^7.1.2",
     "nyc": "15.1.0",
     "coveralls": "^3.1.0",
