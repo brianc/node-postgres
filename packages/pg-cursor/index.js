@@ -7,7 +7,6 @@ const util = require('util')
 let nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
 
 class Cursor extends EventEmitter {
-
   constructor(text, values, config) {
     super()
 
