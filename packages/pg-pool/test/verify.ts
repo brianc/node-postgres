@@ -5,7 +5,6 @@ describe('verify', () => {
   it('verifies a client with a callback', (done) => {
     const pool = new Pool({
       verify: (client, cb) => {
-        // client.release() TODO: verify if this was a bug
         cb(new Error('nope'))
       },
     })
