@@ -187,18 +187,6 @@ class Cursor extends EventEmitter {
     this.connection.flush()
   }
 
-  // users really shouldn't be calling 'end' here and terminating a connection to postgres
-  // via the low level connection.end api
-  end(cb) {
-    return util.deprecate(function () {
-      if (this.state !== 'initialized') {
-        this.connection.sync()
-      }
-      this.connection.once('end', cb)
-      this.connection.end()
-    }, 'Cursor.end is deprecated. Call end on the client itself to end a connection to the database.')()
-  }
-
   close(cb) {
     if (!this.connection || this.state === 'done') {
       if (cb) {
@@ -234,5 +222,16 @@ class Cursor extends EventEmitter {
     }
   }
 }
+
+// we can't correctly use util.deprecate in an ES6 method
+Cursor.prototype.end = util.deprecate(function (cb) {
+  // users really shouldn't be calling 'end' here and terminating a connection to postgres
+  // via the low level connection.end api
+  if (this.state !== 'initialized') {
+    this.connection.sync()
+  }
+  this.connection.once('end', cb)
+  this.connection.end()
+}, 'Cursor.end is deprecated. Call end on the client itself to end a connection to the database.')
 
 module.exports = Cursor
