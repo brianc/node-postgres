@@ -2,6 +2,8 @@
 
 const pg = require('../../../lib')
 const helper = require('../test-helper')
+if (helper.args.native) return // disable to native
+
 var Query = helper.pg.Query
 
 const suite = new helper.Suite()
@@ -24,12 +26,11 @@ suite.test('empty query.callback do not throw fatal exception', async (done) => 
       callback: undefined,
     }
     await client.query(new Query(queryConfig))
-    client.end()
+    await client.end()
   } catch (error) {
-    errorReceived = error
-  }
-  if (errorReceived === notExpectedErr) {
-    done(new Error('Received error queryCallback is not a function'))
+    if (error === notExpectedErr) {
+      done(new Error('Received error queryCallback is not a function'))
+    }
   }
   done()
 })
