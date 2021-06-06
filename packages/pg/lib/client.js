@@ -520,7 +520,7 @@ class Client extends EventEmitter {
     }
 
     if (readTimeout) {
-      queryCallback = query.callback
+      queryCallback = typeof query.callback === 'function' ? query.callback : () => {}
 
       readTimeoutTimer = setTimeout(() => {
         var error = new Error('Query read timeout')
@@ -528,9 +528,8 @@ class Client extends EventEmitter {
         process.nextTick(() => {
           query.handleError(error, this.connection)
         })
-        if (typeof queryCallback === 'function') {
-          queryCallback(error)
-        }
+
+        queryCallback(error)
 
         // we already returned an error,
         // just do nothing if query completes
@@ -547,9 +546,7 @@ class Client extends EventEmitter {
 
       query.callback = (err, res) => {
         clearTimeout(readTimeoutTimer)
-        if (typeof queryCallback === 'function') {
-          queryCallback(err, res)
-        }
+        queryCallback(err, res)
       }
     }
 
