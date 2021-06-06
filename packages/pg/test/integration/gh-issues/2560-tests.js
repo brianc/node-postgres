@@ -2,7 +2,7 @@
 
 const pg = require('../../../lib')
 const helper = require('../test-helper')
-if (helper.args.native) return // disable to native
+if (helper.args.native) return // don't run in native
 
 var Query = helper.pg.Query
 
