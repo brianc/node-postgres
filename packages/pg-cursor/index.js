@@ -233,6 +233,9 @@ class Cursor extends EventEmitter {
   }
 }
 
-Cursor.prototype.end = util.deprecate(Cursor.prototype.end, 'Cursor.end is deprecated. Call end on the client itself to end a connection to the database.')
+Cursor.prototype.end = util.deprecate(
+  Cursor.prototype.end,
+  'Cursor.end is deprecated. Call end on the client itself to end a connection to the database.'
+)
 
 module.exports = Cursor
