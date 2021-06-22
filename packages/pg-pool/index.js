@@ -168,7 +168,7 @@ class Pool extends EventEmitter {
     const result = response.result
 
     // if we don't have to connect a new client, don't do so
-    if (this._clients.length >= this.options.max || this._idle.length) {
+    if (this._isFull() || this._idle.length) {
       // if we have idle clients schedule a pulse immediately
       if (this._idle.length) {
         process.nextTick(() => this._pulseQueue())
