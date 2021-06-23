@@ -18,13 +18,10 @@ describe('cursor using promises', function () {
     this.client.end()
   })
 
-  it('resolve with result', function (done) {
+  it('resolve with result', async function () {
     const cursor = this.pgCursor(text)
-    cursor
-      .read(6)
-      .then((res) => assert.strictEqual(res.length, 6))
-      .error((err) => assert.ifError(err))
-      .finally(() => done())
+    const res = await cursor.read(6)
+    assert.strictEqual(res.length, 6)
   })
 
   it('reject with error', function (done) {
@@ -35,26 +32,20 @@ describe('cursor using promises', function () {
     })
   })
 
-  it('read multiple times', async function (done) {
+  it('read multiple times', async function () {
     const cursor = this.pgCursor(text)
     let res
 
-    try {
-      res = await cursor.read(2)
-      assert.strictEqual(res.length, 2)
+    res = await cursor.read(2)
+    assert.strictEqual(res.length, 2)
 
-      res = await cursor.read(3)
-      assert.strictEqual(res.length, 3)
+    res = await cursor.read(3)
+    assert.strictEqual(res.length, 3)
 
-      res = await cursor.read(1)
-      assert.strictEqual(res.length, 1)
+    res = await cursor.read(1)
+    assert.strictEqual(res.length, 1)
 
-      res = await cursor.read(1)
-      assert.strictEqual(res.length, 0)
-    } catch (err) {
-      assert.ifError(err)
-    } finally {
-      done()
-    }
+    res = await cursor.read(1)
+    assert.strictEqual(res.length, 0)
   })
 })
