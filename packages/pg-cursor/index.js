@@ -199,7 +199,7 @@ class Cursor extends EventEmitter {
   }
 
   close(cb) {
-    var promise
+    let promise
 
     if (!cb) {
       promise = new this._Promise((resolve, reject) => {
@@ -228,7 +228,7 @@ class Cursor extends EventEmitter {
   }
 
   read(rows, cb) {
-    var promise
+    let promise
 
     if (!cb) {
       promise = new this._Promise((resolve, reject) => {
