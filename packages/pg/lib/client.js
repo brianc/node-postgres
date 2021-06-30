@@ -203,9 +203,19 @@ class Client extends EventEmitter {
   _checkPgPass(cb) {
     const con = this.connection
     if (typeof this.password === 'function') {
+
       this._Promise
         .resolve()
-        .then(() => this.password())
+        .then(() => 
+        {
+          const res = this.password();
+          if(typeof res === 'object' && res.constructor.name == 'Promise'){
+            return res.then((pass)=>{
+              return pass;
+            })
+          }else
+            return res;
+        })
         .then((pass) => {
           if (pass !== undefined) {
             if (typeof pass !== 'string') {
