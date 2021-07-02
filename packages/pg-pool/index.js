@@ -83,6 +83,7 @@ class Pool extends EventEmitter {
 
     this.options.max = this.options.max || this.options.poolSize || 10
     this.options.maxUses = this.options.maxUses || Infinity
+    this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.log = this.options.log || function () {}
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
@@ -136,6 +137,7 @@ class Pool extends EventEmitter {
       const idleItem = this._idle.pop()
       clearTimeout(idleItem.timeoutId)
       const client = idleItem.client
+      client.ref()
       const idleListener = idleItem.idleListener
 
       return this._acquireClient(client, pendingItem, idleListener, false)
@@ -323,6 +325,15 @@ class Pool extends EventEmitter {
         this.log('remove idle client')
         this._remove(client)
       }, this.options.idleTimeoutMillis)
+
+      if (this.options.allowExitOnIdle) {
+        // allow Node to exit if this is all that's left
+        tid.unref()
+      }
+    }
+
+    if (this.options.allowExitOnIdle) {
+      client.unref()
     }
 
     this._idle.push(new IdleItem(client, idleListener, tid))

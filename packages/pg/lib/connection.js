@@ -177,6 +177,14 @@ class Connection extends EventEmitter {
     this._send(syncBuffer)
   }
 
+  ref() {
+    this.stream.ref()
+  }
+
+  unref() {
+    this.stream.unref()
+  }
+
   end() {
     // 0x58 = 'X'
     this._ending = true
