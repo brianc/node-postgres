@@ -59,8 +59,7 @@ function makeIdleListener(pool, client) {
 }
 
 class PoolError extends Error {
-  // A PoolError is an error throwed during a Pool process. Each type of error contains a specific "code".
-  // Please document in README file the error codes.
+  // A PoolError is an error thrown during a Pool operation. Each type of error contains a specific "code", documented in pg-pool’s README.
   constructor(message, code) {
     super(message)
     this.code = code
