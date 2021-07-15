@@ -11,6 +11,7 @@ interface QueryStreamConfig {
 
 class QueryStream extends Readable implements Submittable {
   cursor: any
+  pendingReads: number
   _result: any
 
   handleRowDescription: Function
@@ -26,6 +27,7 @@ class QueryStream extends Readable implements Submittable {
 
     super({ objectMode: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
     this.cursor = new Cursor(text, values, config)
+    this.pendingReads = 0;
 
     // delegate Submittable callbacks to cursor
     this.handleRowDescription = this.cursor.handleRowDescription.bind(this.cursor)
@@ -35,6 +37,11 @@ class QueryStream extends Readable implements Submittable {
     this.handleReadyForQuery = this.cursor.handleReadyForQuery.bind(this.cursor)
     this.handleError = this.cursor.handleError.bind(this.cursor)
     this.handleEmptyQuery = this.cursor.handleEmptyQuery.bind(this.cursor)
+
+    this.cursor.on('row', (row: any) => {
+      this.pendingReads -= 1
+      this.push(row)
+    })
 
     // pg client sets types via _result property
     this._result = this.cursor._result
@@ -52,12 +59,15 @@ class QueryStream extends Readable implements Submittable {
 
   // https://nodejs.org/api/stream.html#stream_readable_read_size_1
   public _read(size: number) {
+    if (this.pendingReads > 0) {
+      return
+    }
+    this.pendingReads = size
     this.cursor.read(size, (err: Error, rows: any[]) => {
       if (err) {
         // https://nodejs.org/api/stream.html#stream_errors_while_reading
         this.destroy(err)
       } else {
-        for (const row of rows) this.push(row)
         if (rows.length < size) this.push(null)
       }
     })
