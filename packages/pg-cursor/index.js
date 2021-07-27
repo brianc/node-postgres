@@ -17,6 +17,7 @@ class Cursor extends EventEmitter {
     this._queue = []
     this.state = 'initialized'
     this._result = new Result(this._conf.rowMode, this._conf.types)
+    this._Promise = this._conf.Promise || global.Promise
     this._cb = null
     this._rows = null
     this._portal = null
@@ -198,6 +199,14 @@ class Cursor extends EventEmitter {
   }
 
   close(cb) {
+    let promise
+
+    if (!cb) {
+      promise = new this._Promise((resolve, reject) => {
+        cb = (err) => (err ? reject(err) : resolve())
+      })
+    }
+
     if (!this.connection || this.state === 'done') {
       if (cb) {
         return setImmediate(cb)
@@ -213,23 +222,34 @@ class Cursor extends EventEmitter {
         cb()
       })
     }
+
+    // Return the promise (or undefined)
+    return promise
   }
 
   read(rows, cb) {
+    let promise
+
+    if (!cb) {
+      promise = new this._Promise((resolve, reject) => {
+        cb = (err, rows) => (err ? reject(err) : resolve(rows))
+      })
+    }
+
     if (this.state === 'idle' || this.state === 'submitted') {
-      return this._getRows(rows, cb)
-    }
-    if (this.state === 'busy' || this.state === 'initialized') {
-      return this._queue.push([rows, cb])
-    }
-    if (this.state === 'error') {
-      return setImmediate(() => cb(this._error))
-    }
-    if (this.state === 'done') {
-      return setImmediate(() => cb(null, []))
+      this._getRows(rows, cb)
+    } else if (this.state === 'busy' || this.state === 'initialized') {
+      this._queue.push([rows, cb])
+    } else if (this.state === 'error') {
+      setImmediate(() => cb(this._error))
+    } else if (this.state === 'done') {
+      setImmediate(() => cb(null, []))
     } else {
       throw new Error('Unknown state: ' + this.state)
     }
+
+    // Return the promise (or undefined)
+    return promise
   }
 }
 
