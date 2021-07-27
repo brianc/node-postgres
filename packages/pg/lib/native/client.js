@@ -285,6 +285,9 @@ Client.prototype.cancel = function (query) {
   }
 }
 
+Client.prototype.ref = function () {}
+Client.prototype.unref = function () {}
+
 Client.prototype.setTypeParser = function (oid, format, parseFn) {
   return this._types.setTypeParser(oid, format, parseFn)
 }
