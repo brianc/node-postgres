@@ -577,6 +577,14 @@ class Client extends EventEmitter {
     return result
   }
 
+  ref() {
+    this.connection.ref()
+  }
+
+  unref() {
+    this.connection.unref()
+  }
+
   end(cb) {
     this._ending = true
 

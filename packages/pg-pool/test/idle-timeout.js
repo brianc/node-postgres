@@ -4,6 +4,8 @@ const expect = require('expect.js')
 
 const describe = require('mocha').describe
 const it = require('mocha').it
+const { fork } = require('child_process')
+const path = require('path')
 
 const Pool = require('../')
 
@@ -84,4 +86,33 @@ describe('idle timeout', () => {
       return pool.end()
     })
   )
+
+  it('unrefs the connections and timeouts so the program can exit when idle when the allowExitOnIdle option is set', function (done) {
+    const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
+      silent: true,
+      env: { ...process.env, ALLOW_EXIT_ON_IDLE: '1' },
+    })
+    let result = ''
+    child.stdout.setEncoding('utf8')
+    child.stdout.on('data', (chunk) => (result += chunk))
+    child.on('error', (err) => done(err))
+    child.on('close', () => {
+      expect(result).to.equal('completed first\ncompleted second\n')
+      done()
+    })
+  })
+
+  it('keeps old behavior when allowExitOnIdle option is not set', function (done) {
+    const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
+      silent: true,
+    })
+    let result = ''
+    child.stdout.setEncoding('utf8')
+    child.stdout.on('data', (chunk) => (result += chunk))
+    child.on('error', (err) => done(err))
+    child.on('close', () => {
+      expect(result).to.equal('completed first\ncompleted second\nremoved\n')
+      done()
+    })
+  })
 })
