@@ -26,7 +26,7 @@ describe('cursor using promises', function () {
 
   it('reject with error', function (done) {
     const cursor = this.pgCursor('select asdfasdf')
-    cursor.read(1).error((err) => {
+    cursor.read(1).catch((err) => {
       assert(err)
       done()
     })
