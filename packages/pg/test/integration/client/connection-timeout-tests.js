@@ -7,7 +7,7 @@ const suite = new helper.Suite()
 
 const options = {
   host: 'localhost',
-  port: 54321,
+  port: Math.floor(Math.random() * 2000) + 2000,
   connectionTimeoutMillis: 2000,
   user: 'not',
   database: 'existing',

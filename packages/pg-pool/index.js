@@ -137,7 +137,7 @@ class Pool extends EventEmitter {
       const idleItem = this._idle.pop()
       clearTimeout(idleItem.timeoutId)
       const client = idleItem.client
-      client.ref()
+      client.ref && client.ref()
       const idleListener = idleItem.idleListener
 
       return this._acquireClient(client, pendingItem, idleListener, false)
