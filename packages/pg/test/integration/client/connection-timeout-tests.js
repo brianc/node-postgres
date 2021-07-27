@@ -13,7 +13,7 @@ const options = {
   database: 'existing',
 }
 
-const serverWithConnectionTimeout = (timeout, callback) => {
+const serverWithConnectionTimeout = (port, timeout, callback) => {
   const sockets = new Set()
 
   const server = net.createServer((socket) => {
@@ -47,11 +47,11 @@ const serverWithConnectionTimeout = (timeout, callback) => {
     }
   }
 
-  server.listen(options.port, options.host, () => callback(closeServer))
+  server.listen(port, options.host, () => callback(closeServer))
 }
 
 suite.test('successful connection', (done) => {
-  serverWithConnectionTimeout(0, (closeServer) => {
+  serverWithConnectionTimeout(options.port, 0, (closeServer) => {
     const timeoutId = setTimeout(() => {
       throw new Error('Client should have connected successfully but it did not.')
     }, 3000)
@@ -67,12 +67,13 @@ suite.test('successful connection', (done) => {
 })
 
 suite.test('expired connection timeout', (done) => {
-  serverWithConnectionTimeout(options.connectionTimeoutMillis * 2, (closeServer) => {
+  const opts = { ...options, port: 54322 }
+  serverWithConnectionTimeout(opts.port, opts.connectionTimeoutMillis * 2, (closeServer) => {
     const timeoutId = setTimeout(() => {
       throw new Error('Client should have emitted an error but it did not.')
     }, 3000)
 
-    const client = new helper.Client(options)
+    const client = new helper.Client(opts)
     client
       .connect()
       .then(() => client.end())
