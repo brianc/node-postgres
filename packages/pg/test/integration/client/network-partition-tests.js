@@ -11,6 +11,7 @@ var Server = function (response) {
   this.response = response
 }
 
+let port = 54321
 Server.prototype.start = function (cb) {
   // this is our fake postgres server
   // it responds with our specified response immediatley after receiving every buffer
@@ -39,7 +40,7 @@ Server.prototype.start = function (cb) {
     }.bind(this)
   )
 
-  var port = 54321
+  port = port + 1
 
   var options = {
     host: 'localhost',
