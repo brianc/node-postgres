@@ -208,11 +208,8 @@ class Cursor extends EventEmitter {
     }
 
     if (!this.connection || this.state === 'done') {
-      if (cb) {
-        return setImmediate(cb)
-      } else {
-        return
-      }
+      setImmediate(cb)
+      return promise
     }
 
     this._closePortal()
