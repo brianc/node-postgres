@@ -23,6 +23,17 @@ describe('close', function () {
     })
   })
 
+  it('can close a finished cursor a promise', function (done) {
+    const cursor = new Cursor(text)
+    this.client.query(cursor)
+    cursor.read(100, (err) => {
+      assert.ifError(err)
+      cursor.close().then(() => {
+        this.client.query('SELECT NOW()', done)
+      })
+    })
+  })
+
   it('closes cursor early', function (done) {
     const cursor = new Cursor(text)
     this.client.query(cursor)

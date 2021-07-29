@@ -208,20 +208,15 @@ class Cursor extends EventEmitter {
     }
 
     if (!this.connection || this.state === 'done') {
-      if (cb) {
-        return setImmediate(cb)
-      } else {
-        return
-      }
+      setImmediate(cb)
+      return promise
     }
 
     this._closePortal()
     this.state = 'done'
-    if (cb) {
-      this.connection.once('readyForQuery', function () {
-        cb()
-      })
-    }
+    this.connection.once('readyForQuery', function () {
+      cb()
+    })
 
     // Return the promise (or undefined)
     return promise
