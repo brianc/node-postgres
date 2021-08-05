@@ -172,6 +172,49 @@ test('libpq connection string building', function () {
     )
   })
 
+  test('builds conn string with options and statement_timeout', function () {
+    var config = {
+      user: 'brian',
+      password: 'xyz',
+      port: 888,
+      host: 'localhost',
+      database: 'bam',
+      statement_timeout: 5000,
+      idle_in_transaction_session_timeout: 5000,
+      options: '-c geqo=off -c foobar=off',
+    }
+    var subject = new ConnectionParameters(config)
+    subject.getLibpqConnectionString(
+      assert.calls(function (err, constring) {
+        assert(!err)
+        var parts = constring.split(/ (?=([^\']*\'[^\']*\')*[^\']*$)/)
+        checkForPart(
+          parts,
+          "options='-c statement_timeout=5000 -c idle_in_transaction_session_timeout=5000 -c geqo=off -c foobar=off'"
+        )
+      })
+    )
+  })
+
+  test('builds conn string with options and without statement_timeout', function () {
+    var config = {
+      user: 'brian',
+      password: 'xyz',
+      port: 888,
+      host: 'localhost',
+      database: 'bam',
+      options: '-c geqo=off -c foobar=off',
+    }
+    var subject = new ConnectionParameters(config)
+    subject.getLibpqConnectionString(
+      assert.calls(function (err, constring) {
+        assert(!err)
+        var parts = constring.split(/ (?=([^\']*\'[^\']*\')*[^\']*$)/)
+        checkForPart(parts, "options='-c geqo=off -c foobar=off'")
+      })
+    )
+  })
+
   test('builds dns string', function () {
     var config = {
       user: 'brian',
