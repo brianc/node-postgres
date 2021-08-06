@@ -1,6 +1,8 @@
 'use strict'
 
-var dns = require('dns')
+var { promisify } = require('util')
+
+var dnsLookup = promisify(require('dns').lookup)
 
 var defaults = require('./defaults')
 
@@ -155,11 +157,15 @@ class ConnectionParameters {
     if (this.client_encoding) {
       params.push('client_encoding=' + quoteParamValue(this.client_encoding))
     }
-    dns.lookup(this.host, function (err, address) {
-      if (err) return cb(err, null)
-      params.push('hostaddr=' + quoteParamValue(address))
-      return cb(null, params.join(' '))
-    })
+    Promise.all(this.host.split(',').map((host) => dnsLookup(host))).then(
+      (results) => {
+        params.push('hostaddr=' + quoteParamValue(results.map(({ address }) => address).join(',')))
+        cb(null, params.join(' '))
+      },
+      (err) => {
+        cb(err, null)
+      }
+    )
   }
 }
 

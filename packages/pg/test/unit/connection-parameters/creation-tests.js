@@ -177,7 +177,7 @@ test('libpq connection string building', function () {
       user: 'brian',
       password: 'asdf',
       port: 5432,
-      host: 'localhost',
+      host: 'localhost,localhost',
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
@@ -185,7 +185,7 @@ test('libpq connection string building', function () {
         assert(!err)
         var parts = constring.split(' ')
         checkForPart(parts, "user='brian'")
-        checkForPart(parts, "hostaddr='127.0.0.1'")
+        checkForPart(parts, "hostaddr='127.0.0.1,127.0.0.1'")
       })
     )
   })
@@ -195,7 +195,7 @@ test('libpq connection string building', function () {
       user: 'brian',
       password: 'asf',
       port: 5432,
-      host: 'asdlfkjasldfkksfd#!$!!!!..com',
+      host: 'localhost,invalid',
     }
     var subject = new ConnectionParameters(config)
     subject.getLibpqConnectionString(
