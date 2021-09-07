@@ -117,5 +117,17 @@ if (!process.version.startsWith('v8')) {
       client.release()
       await pool.end()
     })
+
+    it('supports breaking with low watermark', async function () {
+      const pool = new pg.Pool({ max: 1 })
+      const client = await pool.connect()
+
+      for await (const _ of client.query(new QueryStream('select TRUE', [], { highWaterMark: 1 }))) break
+      for await (const _ of client.query(new QueryStream('select TRUE', [], { highWaterMark: 1 }))) break
+      for await (const _ of client.query(new QueryStream('select TRUE', [], { highWaterMark: 1 }))) break
+
+      client.release()
+      await pool.end()
+    })
   })
 }
