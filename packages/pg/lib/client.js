@@ -546,7 +546,7 @@ class Client extends EventEmitter {
 
       query.callback = (err, res) => {
         clearTimeout(readTimeoutTimer)
-        queryCallback(err, res)
+        if (queryCallback) queryCallback(err, res)
       }
     }
 
