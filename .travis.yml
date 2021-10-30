@@ -11,11 +11,9 @@ env:
 node_js:
   - lts/dubnium
   - lts/erbium
-  # node 13.7 seems to have changed behavior of async iterators exiting early on streams
-  # if 13.8 still has this problem when it comes down I'll talk to the node team about the change
-  # in the mean time...peg to 13.6
-  - 13.6
-  - 14
+  - lts/fermium
+  - lts/gallium
+  - 17
 
 addons:
   postgresql: '10'
@@ -23,7 +21,7 @@ addons:
 matrix:
   include:
     # Run tests/paths that require password authentication
-    - node_js: lts/erbium
+    - node_js: lts/gallium
       env:
         - CC=clang CXX=clang++ npm_config_clang=1 PGUSER=postgres PGDATABASE=postgres PGPASSWORD=test-password SCRAM_TEST_PGUSER=scram_test SCRAM_TEST_PGPASSWORD=test4scram
       before_script: |
@@ -76,16 +74,16 @@ matrix:
         - node test/integration/connection-pool/tls-tests.js native
 
     # different PostgreSQL versions on Node LTS
-    - node_js: lts/erbium
+    - node_js: lts/gallium
       addons:
         postgresql: '9.3'
-    - node_js: lts/erbium
+    - node_js: lts/gallium
       addons:
         postgresql: '9.4'
-    - node_js: lts/erbium
+    - node_js: lts/gallium
       addons:
         postgresql: '9.5'
-    - node_js: lts/erbium
+    - node_js: lts/gallium
       addons:
         postgresql: '9.6'
 
