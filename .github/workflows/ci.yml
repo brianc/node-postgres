@@ -7,8 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['8', '10', '12', '14', '16', '17']
-    name: Node ${{ matrix.node }} sample
+        # node: ['8', '10', '12', '14', '16', '17']
+        node: ['16']
+    name: Node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup node
