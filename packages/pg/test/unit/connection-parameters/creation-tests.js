@@ -1,8 +1,9 @@
 'use strict'
-var helper = require('../test-helper')
-var assert = require('assert')
-var ConnectionParameters = require('../../../lib/connection-parameters')
-var defaults = require('../../../lib').defaults
+const helper = require('../test-helper')
+const assert = require('assert')
+const ConnectionParameters = require('../../../lib/connection-parameters')
+const defaults = require('../../../lib').defaults
+const dns = require('dns')
 
 // clear process.env
 for (var key in process.env) {
@@ -151,7 +152,15 @@ var checkForPart = function (array, part) {
   assert.ok(array.indexOf(part) > -1, array.join(' ') + ' did not contain ' + part)
 }
 
-suite.test('builds simple string', function () {
+const getDNSHost = async function (host) {
+  return new Promise((resolve, reject) => {
+    dns.lookup(host, (err, addresses) => {
+      err ? reject(err) : resolve(addresses)
+    })
+  })
+}
+
+suite.testAsync('builds simple string', async function () {
   var config = {
     user: 'brian',
     password: 'xyz',
@@ -160,20 +169,22 @@ suite.test('builds simple string', function () {
     database: 'bam',
   }
   var subject = new ConnectionParameters(config)
-  subject.getLibpqConnectionString(
-    assert.calls(function (err, constring) {
+  const dnsHost = await getDNSHost(config.host)
+  return new Promise((resolve) => {
+    subject.getLibpqConnectionString(function (err, constring) {
       assert(!err)
       var parts = constring.split(' ')
       checkForPart(parts, "user='brian'")
       checkForPart(parts, "password='xyz'")
       checkForPart(parts, "port='888'")
-      checkForPart(parts, "hostaddr='127.0.0.1'")
+      checkForPart(parts, `hostaddr='${dnsHost}'`)
       checkForPart(parts, "dbname='bam'")
+      resolve()
     })
-  )
+  })
 })
 
-suite.test('builds dns string', function () {
+suite.test('builds dns string', async function () {
   var config = {
     user: 'brian',
     password: 'asdf',
@@ -181,14 +192,16 @@ suite.test('builds dns string', function () {
     host: 'localhost',
   }
   var subject = new ConnectionParameters(config)
-  subject.getLibpqConnectionString(
-    assert.calls(function (err, constring) {
+  const dnsHost = await getDNSHost(config.host)
+  return new Promise((resolve) => {
+    subject.getLibpqConnectionString(function (err, constring) {
       assert(!err)
       var parts = constring.split(' ')
       checkForPart(parts, "user='brian'")
-      checkForPart(parts, "hostaddr='127.0.0.1'")
+      checkForPart(parts, `hostaddr='${dnsHost}'`)
+      resolve()
     })
-  )
+  })
 })
 
 suite.test('error when dns fails', function () {
