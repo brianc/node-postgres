@@ -17,8 +17,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        # node: ['8', '10', '12', '14', '16', '17']
-        node: ['16']
+        node: ['8', '10', '12', '14', '16', '17']
     name: Node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v2
