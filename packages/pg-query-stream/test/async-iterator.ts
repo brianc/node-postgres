@@ -88,11 +88,16 @@ if (!process.version.startsWith('v8')) {
         rows.push(row)
         break
       }
-      for await (const row of stream) {
-        rows.push(row)
-      }
-      for await (const row of stream) {
-        rows.push(row)
+
+      try {
+        for await (const row of stream) {
+          rows.push(row)
+        }
+        for await (const row of stream) {
+          rows.push(row)
+        }
+      } catch (e) {
+        // swallow error - node 17 throws if stream is aborted
       }
       assert.strictEqual(rows.length, 1)
       client.release()
