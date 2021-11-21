@@ -4,10 +4,14 @@ var net = require('net')
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('pg-protocol')
+const { setDefaultLocalhost } = require('./defaults')
 
 const flushBuffer = serialize.flush()
 const syncBuffer = serialize.sync()
 const endBuffer = serialize.end()
+
+/** @type {import('dns').LookupAddress} */
+let lookup;
 
 // TODO(bmc) support binary mode at some point
 class Connection extends EventEmitter {
@@ -30,15 +34,19 @@ class Connection extends EventEmitter {
     })
   }
 
-  connect(port, host) {
+  async connect(port, host) {
     var self = this
 
     this._connecting = true
     this.stream.setNoDelay(true)
+
+    const _lookup = lookup || await setDefaultLocalhost();
+    if (!lookup) lookup = _lookup;
+
     this.stream.connect({
-      port,
-      host,
-      family: 4
+      port: port,
+      host: host,
+      family: _lookup.family
     });
 
     this.stream.once('connect', function () {

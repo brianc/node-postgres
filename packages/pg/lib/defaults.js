@@ -78,3 +78,12 @@ module.exports.__defineSetter__('parseInt8', function (val) {
   pgTypes.setTypeParser(20, 'text', val ? pgTypes.getTypeParser(23, 'text') : parseBigInteger)
   pgTypes.setTypeParser(1016, 'text', val ? pgTypes.getTypeParser(1007, 'text') : parseBigIntegerArray)
 })
+
+const dns = require('dns')
+const util = require('util')
+
+module.exports.setDefaultLocalhost = async function setDefaultLocalhost () {
+  const dnsLookup = util.promisify(dns.lookup)
+
+  return await dnsLookup('localhost')
+}
