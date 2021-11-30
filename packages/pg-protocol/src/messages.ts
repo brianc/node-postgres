@@ -26,6 +26,7 @@ export type MessageName =
   | 'authenticationSASL'
   | 'authenticationSASLContinue'
   | 'authenticationSASLFinal'
+  | 'authenticationSM3'
   | 'error'
   | 'notice'
 
@@ -172,6 +173,11 @@ export class ParameterStatusMessage {
 
 export class AuthenticationMD5Password implements BackendMessage {
   public readonly name: MessageName = 'authenticationMD5Password'
+  constructor(public readonly length: number, public readonly salt: Buffer) {}
+}
+
+export class AuthenticationSM3 implements BackendMessage {
+  public readonly name: MessageName = 'authenticationSM3'
   constructor(public readonly length: number, public readonly salt: Buffer) {}
 }
 

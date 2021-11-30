@@ -24,6 +24,7 @@ import {
   BackendMessage,
   MessageName,
   AuthenticationMD5Password,
+  AuthenticationSM3,  
   NoticeMessage,
 } from './messages'
 import { BufferReader } from './buffer-reader'
@@ -348,8 +349,13 @@ export class Parser {
         message.name = 'authenticationSASLFinal'
         message.data = this.reader.string(length - 8)
         break
-      default:
-        throw new Error('Unknown authenticationOk message type ' + code)
+      case 13: // AuthenticationSM3
+        message.name = 'authenticationSM3'
+        const salt = this.reader.bytes(4)
+        return new AuthenticationSM3(length, salt)      
+      default:{
+		    throw new Error('Unknown authenticationOk message type ' + code)
+	    }
     }
     return message
   }

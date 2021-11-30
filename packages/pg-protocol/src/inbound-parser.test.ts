@@ -189,6 +189,7 @@ var md5PasswordBuffer = buffers.authenticationMD5Password()
 var SASLBuffer = buffers.authenticationSASL()
 var SASLContinueBuffer = buffers.authenticationSASLContinue()
 var SASLFinalBuffer = buffers.authenticationSASLFinal()
+var SM3Buffer = buffers.authenticationSM3()
 
 var expectedPlainPasswordMessage = {
   name: 'authenticationCleartextPassword',
@@ -212,6 +213,11 @@ var expectedSASLContinueMessage = {
 var expectedSASLFinalMessage = {
   name: 'authenticationSASLFinal',
   data: 'data',
+}
+
+var expectedSM3Message = {
+  name: 'authenticationSM3',
+  salt: Buffer.from([1, 2, 3, 4]),
 }
 
 var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
@@ -253,6 +259,8 @@ describe('PgPacketStream', function () {
   // and adds a test which is deterministic, rather than relying on network packet chunking
   const extendedSASLFinalBuffer = Buffer.concat([SASLFinalBuffer, Buffer.from([1, 2, 4, 5])])
   testForMessage(extendedSASLFinalBuffer, expectedSASLFinalMessage)
+
+  testForMessage(SM3Buffer,expectedSM3Message)
 
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage)
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)

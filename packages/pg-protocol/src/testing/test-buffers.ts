@@ -33,6 +33,13 @@ const buffers = {
     return new BufferList().addInt32(12).addString('data').join(true, 'R')
   },
 
+  authenticationSM3: function () {
+    return new BufferList()
+      .addInt32(13)
+      .add(Buffer.from([1, 2, 3, 4]))
+      .join(true, 'R')  
+  },
+
   parameterStatus: function (name: string, value: string) {
     return new BufferList().addCString(name).addCString(value).join(true, 'S')
   },
