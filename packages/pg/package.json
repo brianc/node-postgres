@@ -24,9 +24,10 @@
     "packet-reader": "1.0.0",
     "pg-connection-string": "^2.5.0",
     "pg-pool": "^3.4.1",
-    "pg-protocol": "^1.5.0",
     "pg-types": "^2.1.0",
-    "pgpass": "1.x"
+    "pgpass": "1.x",
+    "postgres-date": "^2.0.0",
+    "sm-crypto": "^0.3.6"
   },
   "devDependencies": {
     "async": "0.9.0",

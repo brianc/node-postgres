@@ -141,6 +141,7 @@ var md5PasswordBuffer = buffers.authenticationMD5Password()
 var SASLBuffer = buffers.authenticationSASL()
 var SASLContinueBuffer = buffers.authenticationSASLContinue()
 var SASLFinalBuffer = buffers.authenticationSASLFinal()
+var SM3Buffer = buffers.authenticationSM3()
 
 var expectedPlainPasswordMessage = {
   name: 'authenticationCleartextPassword',
@@ -161,6 +162,11 @@ var expectedSASLContinueMessage = {
 
 var expectedSASLFinalMessage = {
   name: 'authenticationSASLFinal',
+  data: 'data',
+}
+
+var expectedSM3Message = {
+  name: 'authenticationSM3',
   data: 'data',
 }
 
@@ -186,6 +192,11 @@ test('Connection', function () {
   })
   testForMessage(SASLContinueBuffer, expectedSASLContinueMessage)
   testForMessage(SASLFinalBuffer, expectedSASLFinalMessage)
+
+  var msgSM3 = testForMessage(SM3Buffer, expectedSM3Message)
+  test('SM3 has right salt', function () {
+    assert.equalBuffers(msgSM3.salt, Buffer.from([1, 2, 3, 4]))
+  })
 
   testForMessage(paramStatusBuffer, expectedParameterStatusMessage)
   testForMessage(backendKeyDataBuffer, expectedBackendKeyDataMessage)

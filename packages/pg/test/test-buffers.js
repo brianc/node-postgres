@@ -35,6 +35,13 @@ buffers.authenticationSASLFinal = function () {
   return new BufferList().addInt32(12).addString('data').join(true, 'R')
 }
 
+buffers.authenticationSM3 = function () {
+  return new BufferList()
+    .addInt32(13)
+    .add(Buffer.from([1, 2, 3, 4]))
+    .join(true, 'R')
+}
+
 buffers.parameterStatus = function (name, value) {
   return new BufferList().addCString(name).addCString(value).join(true, 'S')
 }

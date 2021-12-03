@@ -1,6 +1,7 @@
 'use strict'
 
 const crypto = require('crypto')
+const sm3 = require('sm-crypto').sm3;
 
 const defaults = require('./defaults')
 
@@ -175,6 +176,12 @@ const postgresMd5PasswordHash = function (user, password, salt) {
   return 'md5' + outer
 }
 
+const postgresSM3Hash = function (user, password, salt) {
+  let inner = sm3(password + user);
+  var outer = sm3(Buffer.concat([Buffer.from(inner), salt]))
+  return 'sm3' + outer
+}
+
 module.exports = {
   prepareValue: function prepareValueWrapper(value) {
     // this ensures that extra arguments do not get passed into prepareValue
@@ -183,5 +190,6 @@ module.exports = {
   },
   normalizeQueryConfig,
   postgresMd5PasswordHash,
+  postgresSM3Hash,
   md5,
 }

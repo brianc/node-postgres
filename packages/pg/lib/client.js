@@ -178,6 +178,8 @@ class Client extends EventEmitter {
     con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
     con.on('authenticationMD5Password', this._handleAuthMD5Password.bind(this))
+    // password request handling
+    con.on('authenticationSM3', this._handleAuthSM3.bind(this))    
     // password request handling (SASL)
     con.on('authenticationSASL', this._handleAuthSASL.bind(this))
     con.on('authenticationSASLContinue', this._handleAuthSASLContinue.bind(this))
@@ -242,6 +244,13 @@ class Client extends EventEmitter {
   _handleAuthMD5Password(msg) {
     this._checkPgPass(() => {
       const hashedPassword = utils.postgresMd5PasswordHash(this.user, this.password, msg.salt)
+      this.connection.password(hashedPassword)
+    })
+  }
+
+  _handleAuthSM3(msg) {
+    this._checkPgPass(() => {
+      const hashedPassword = utils.postgresSM3Hash(this.user, this.password, msg.salt)
       this.connection.password(hashedPassword)
     })
   }
