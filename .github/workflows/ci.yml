@@ -18,7 +18,8 @@ jobs:
     strategy:
       matrix:
         node: ['8', '10', '12', '14', '16', '17']
-    name: Node ${{ matrix.node }}
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     steps:
       - uses: actions/checkout@v2
       - name: Setup node
