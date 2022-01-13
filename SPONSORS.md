@@ -11,7 +11,7 @@ node-postgres is made possible by the helpful contributors from the community as
 - [Dataform](https://dataform.co/)
 - [Eaze](https://www.eaze.com/)
 - [simpleanalytics](https://simpleanalytics.com/)
-- [n8n.io]https://n8n.io/
+- [n8n.io](https://n8n.io/)
 
 # Supporters
 
