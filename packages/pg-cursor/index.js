@@ -86,6 +86,8 @@ class Cursor extends EventEmitter {
   }
 
   _closePortal() {
+    if (this.state === 'done') return
+
     // because we opened a named portal to stream results
     // we need to close the same named portal.  Leaving a named portal
     // open can lock tables for modification if inside a transaction.
@@ -97,6 +99,8 @@ class Cursor extends EventEmitter {
     if (this.state !== 'error') {
       this.connection.sync()
     }
+
+    this.state = 'done'
   }
 
   handleRowDescription(msg) {
@@ -213,7 +217,6 @@ class Cursor extends EventEmitter {
     }
 
     this._closePortal()
-    this.state = 'done'
     this.connection.once('readyForQuery', function () {
       cb()
     })
