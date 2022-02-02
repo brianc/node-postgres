@@ -183,33 +183,6 @@ process.on('uncaughtException', function (err) {
   process.exit(255)
 })
 
-var Sink = function (expected, timeout, callback) {
-  var defaultTimeout = 5000
-  if (typeof timeout === 'function') {
-    callback = timeout
-    timeout = defaultTimeout
-  }
-  timeout = timeout || defaultTimeout
-  var internalCount = 0
-  var kill = function () {
-    assert.ok(false, 'Did not reach expected ' + expected + ' with an idle timeout of ' + timeout)
-  }
-  var killTimeout = setTimeout(kill, timeout)
-  return {
-    add: function (count) {
-      count = count || 1
-      internalCount += count
-      clearTimeout(killTimeout)
-      if (internalCount < expected) {
-        killTimeout = setTimeout(kill, timeout)
-      } else {
-        assert.equal(internalCount, expected)
-        callback()
-      }
-    },
-  }
-}
-
 var getTimezoneOffset = Date.prototype.getTimezoneOffset
 
 var setTimezoneOffset = function (minutesOffset) {
@@ -231,7 +204,6 @@ const rejection = (promise) =>
   )
 
 module.exports = {
-  Sink: Sink,
   Suite: Suite,
   pg: require('./../lib/'),
   args: args,
