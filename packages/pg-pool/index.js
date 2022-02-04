@@ -255,9 +255,14 @@ class Pool extends EventEmitter {
           setTimeout(() => {
             this.log('ending client due to expired lifetime')
             this._expired.add(client)
-            const idleIndex = this._idle.findIndex(idleItem => idleItem.client === client)
+            const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
             if (idleIndex !== -1) {
-              this._acquireClient(client, new PendingItem((err, client, clientRelease) => clientRelease()), idleListener, false)
+              this._acquireClient(
+                client,
+                new PendingItem((err, client, clientRelease) => clientRelease()),
+                idleListener,
+                false
+              )
             }
           }, this.options.maxLifetimeSeconds * 1000)
         }

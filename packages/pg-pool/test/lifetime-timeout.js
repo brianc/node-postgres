@@ -29,7 +29,8 @@ describe('lifetime timeout', () => {
       done()
     })
   })
-  it('can remove expired clients and recreate them',
+  it(
+    'can remove expired clients and recreate them',
     co.wrap(function* () {
       const pool = new Pool({ maxLifetimeSeconds: 1 })
       let query = pool.query('SELECT pg_sleep(1)')
