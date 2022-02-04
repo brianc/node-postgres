@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+### pg@8.8.0
+
+- Add connection [lifetime limit](https://github.com/brianc/node-postgres/pull/2698) config option.
+
 ### pg@8.7.0
 
 - Add optional config to [pool](https://github.com/brianc/node-postgres/pull/2568) to allow process to exit if pool is idle.
