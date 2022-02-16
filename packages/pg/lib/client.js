@@ -53,6 +53,12 @@ class Client extends EventEmitter {
         encoding: this.connectionParameters.client_encoding || 'utf8',
       })
     this.queryQueue = []
+
+    // Client.sentQueryQueue is the queue of queries that have been sent on the wire
+    this.sentQueryQueue = []
+    // Client.sendImmediately can be set to false to restore the previous behavior
+    this.sendImmediately = true
+
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -286,6 +292,7 @@ class Client extends EventEmitter {
     const { activeQuery } = this
     this.activeQuery = null
     this.readyForQuery = true
+    this.handshakeDone = true
     if (activeQuery) {
       activeQuery.handleReadyForQuery(this.connection)
     }
@@ -472,20 +479,32 @@ class Client extends EventEmitter {
   }
 
   _pulseQueryQueue() {
+
+    if (!this.handshakeDone) {
+      return
+    }
+
+    while ((this.sendImmediately && !this.blocked) || (this.activeQuery === null && this.sentQueryQueue.length === 0)) {
+      var query = this.queryQueue.shift()
+      if (!query) break
+
+      const queryError = query.submit(this.connection)
+      if (queryError) {
+        process.nextTick(() => {
+          this.activeQuery.handleError(queryError, this.connection)
+          this.readyForQuery = true
+          this._pulseQueryQueue()
+        })
+      }
+      this.blocked = query.blocking
+      this.sentQueryQueue.push(query)
+    }
+
     if (this.readyForQuery === true) {
-      this.activeQuery = this.queryQueue.shift()
+      this.activeQuery = this.sentQueryQueue.shift()
       if (this.activeQuery) {
         this.readyForQuery = false
         this.hasExecuted = true
-
-        const queryError = this.activeQuery.submit(this.connection)
-        if (queryError) {
-          process.nextTick(() => {
-            this.activeQuery.handleError(queryError, this.connection)
-            this.readyForQuery = true
-            this._pulseQueryQueue()
-          })
-        }
       } else if (this.hasExecuted) {
         this.activeQuery = null
         this.emit('drain')
