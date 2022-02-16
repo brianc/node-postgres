@@ -56,8 +56,8 @@ class Client extends EventEmitter {
 
     // Client.sentQueryQueue is the queue of queries that have been sent on the wire
     this.sentQueryQueue = []
-    // Client.sendImmediately can be set to false to restore the previous behavior
-    this.sendImmediately = true
+    // Client.pipelining can be set to true to enable experimental pipelining mode
+    this.pipelining = false
 
     this.binary = c.binary || defaults.binary
     this.processID = null
@@ -484,7 +484,7 @@ class Client extends EventEmitter {
       return
     }
 
-    while ((this.sendImmediately && !this.blocked) || (this.activeQuery === null && this.sentQueryQueue.length === 0)) {
+    while ((this.pipelining && !this.blocked) || (this.activeQuery === null && this.sentQueryQueue.length === 0)) {
       var query = this.queryQueue.shift()
       if (!query) break
 
