@@ -498,6 +498,10 @@ class Client extends EventEmitter {
       }
       this.blocked = query.blocking
       this.sentQueryQueue.push(query)
+      if (query.name) {
+        console.log(`we store that ${query.name} has been submitted`)
+        this.connection.submittedNamedStatements[query.name] = query.text
+      }
     }
 
     if (this.readyForQuery === true) {
