@@ -3,8 +3,8 @@ require('./test-helper')
 var assert = require('assert')
 
 var pguser = process.env['PGUSER'] || process.env.USER
-var pgdatabase = process.env['PGDATABASE'] || process.env.USER
-var pgport = process.env['PGPORT'] || 5432
+var pgdatabase = process.env['PGDATABASE'] || 'postgres'
+var pgport = process.env['PGPORT'] || 5901
 
 test('client settings', function () {
   test('defaults', function () {
@@ -90,10 +90,10 @@ test('initializing from a config string', function () {
   test('when not including all values the defaults are used', function () {
     var client = new Client('postgres://host1')
     assert.equal(client.user, process.env['PGUSER'] || process.env.USER)
-    assert.equal(client.password, process.env['PGPASSWORD'] || null)
+    assert.equal(client.password, process.env['PGPASSWORD'] || 'password')
     assert.equal(client.host, 'host1')
-    assert.equal(client.port, process.env['PGPORT'] || 5432)
-    assert.equal(client.database, process.env['PGDATABASE'] || process.env.USER)
+    assert.equal(client.port, process.env['PGPORT'] || 5901)
+    assert.equal(client.database, process.env['PGDATABASE'] || 'postgres')
   })
 
   test('when not including all values the environment variables are used', function () {

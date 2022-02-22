@@ -6,7 +6,7 @@ class Test {
   constructor(name, cb) {
     this.name = name
     this.action = cb
-    this.timeout = 5000
+    this.timeout = 10000
   }
 
   run(cb) {

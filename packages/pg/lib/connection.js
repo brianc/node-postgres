@@ -1,6 +1,6 @@
 'use strict'
 
-var net = require('net')
+const WebSocketStream = require('websocket-stream');
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('pg-protocol')
@@ -14,9 +14,26 @@ class Connection extends EventEmitter {
   constructor(config) {
     super()
     config = config || {}
-    this.stream = config.stream || new net.Socket()
-    this._keepAlive = config.keepAlive
-    this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
+    this.stream = config.stream // possibly null, try to lazily load on connect
+    this.placeholderStream = false
+    if(!config.stream) {
+      var placeholder = {
+        once: function(){},
+        on: function(){},
+        end: function() {},
+        write: function(){},
+        writable: false,
+        socket: {
+          close: function(){},
+          _socket: {
+            ref: function(){},
+            unref: function(){}
+          }
+        } 
+      }
+      config.stream = placeholder
+      this.placeholderStream = true
+    } 
     this.lastBuffer = false
     this.parsedStatements = {}
     this.ssl = config.ssl || false
@@ -31,16 +48,20 @@ class Connection extends EventEmitter {
   }
 
   connect(port, host) {
+    if(this.placeholderStream) {
+      if(port && host) {
+        var url = 'ws://'+host+':'+port;
+      } else {
+        var url = 'ws://localhost:5901'
+      }
+      this.stream = new WebSocketStream(url)
+      this.placeholderStream = false
+    }
     var self = this
 
     this._connecting = true
-    this.stream.setNoDelay(true)
-    this.stream.connect(port, host)
 
     this.stream.once('connect', function () {
-      if (self._keepAlive) {
-        self.stream.setKeepAlive(true, self._keepAliveInitialDelayMillis)
-      }
       self.emit('connect')
     })
 
@@ -52,7 +73,6 @@ class Connection extends EventEmitter {
       self.emit('error', error)
     }
     this.stream.on('error', reportStreamError)
-
     this.stream.on('close', function () {
       self.emit('end')
     })
@@ -78,7 +98,6 @@ class Connection extends EventEmitter {
       const options = {
         socket: self.stream,
       }
-
       if (self.ssl !== true) {
         Object.assign(options, self.ssl)
 
@@ -87,9 +106,9 @@ class Connection extends EventEmitter {
         }
       }
 
-      if (net.isIP(host) === 0) {
-        options.servername = host
-      }
+      // if (net.isIP(host) === 0) {
+      //   options.servername = host
+      // }
       try {
         self.stream = tls.connect(options)
       } catch (err) {
@@ -112,6 +131,7 @@ class Connection extends EventEmitter {
         this.emit('message', msg)
       }
       this.emit(eventName, msg)
+      // console.log(msg)
     })
   }
 
@@ -178,22 +198,30 @@ class Connection extends EventEmitter {
   }
 
   ref() {
-    this.stream.ref()
+    this.stream.socket._socket.ref()
   }
 
   unref() {
-    this.stream.unref()
+    this.stream.socket._socket.unref()
   }
 
   end() {
     // 0x58 = 'X'
     this._ending = true
     if (!this._connecting || !this.stream.writable) {
-      this.stream.end()
+      if(this.stream.socket) {
+        this.stream.socket.close()
+      } else {
+        this.stream.end()
+      }
       return
     }
     return this.stream.write(endBuffer, () => {
-      this.stream.end()
+      if(this.stream.socket) {
+        this.stream.socket.close()
+      } else {
+        this.stream.end()
+      }
     })
   }
 

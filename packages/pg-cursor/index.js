@@ -23,6 +23,7 @@ class Cursor extends EventEmitter {
     this._portal = null
     this._ifNoData = this._ifNoData.bind(this)
     this._rowDescription = this._rowDescription.bind(this)
+    this.moveAllAndClosing = false
   }
 
   _ifNoData() {
@@ -42,7 +43,8 @@ class Cursor extends EventEmitter {
   submit(connection) {
     this.state = 'submitted'
     this.connection = connection
-    this._portal = 'C_' + nextUniqueID++
+    // the portal name must start with a lowercase c, for some reason
+    this._portal = 'c_' + nextUniqueID++
 
     const con = connection
 
@@ -86,6 +88,8 @@ class Cursor extends EventEmitter {
   }
 
   _closePortal() {
+    if (this.state === 'done') return
+
     // because we opened a named portal to stream results
     // we need to close the same named portal.  Leaving a named portal
     // open can lock tables for modification if inside a transaction.
@@ -97,6 +101,8 @@ class Cursor extends EventEmitter {
     if (this.state !== 'error') {
       this.connection.sync()
     }
+
+    this.state = 'done'
   }
 
   handleRowDescription(msg) {
@@ -129,7 +135,9 @@ class Cursor extends EventEmitter {
 
   handleCommandComplete(msg) {
     this._result.addCommandComplete(msg)
-    this._closePortal()
+    if (!this.moveAllAndClosing) {
+      this._closePortal()
+    }
   }
 
   handlePortalSuspended() {
@@ -198,6 +206,49 @@ class Cursor extends EventEmitter {
     this.connection.end()
   }
 
+  _promisifiedQuery(text) {
+    return new Promise((resolve, reject) => {
+      try {
+        var res = this.connection.query(text)
+        resolve(res)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  moveAllAndClose(cb) {
+    this.moveAllAndClosing = true
+    if (this.state === 'done' || this.state == 'error') {
+      return this.close(cb)
+    }
+    return this._promisifiedQuery("MOVE ALL FROM " + this._portal).then(() => {
+      this._close_checkFinished(cb)
+    })
+  }
+
+  _close_checkFinished(cb) {
+    this._closePortal()
+    // try to delay the callback until portal is finished closing
+    // (this means a closeComplete followed by a readyForQuery)
+    // (it's possible to have a readyForQuery without a closeComplete if called from moveAllAndClose)
+    var finishedClosing = false
+    this.connection.once('closeComplete', function () {
+      finishedClosing = true
+    })
+
+    const _handleReadyForQueryInClose = () => {
+      if (finishedClosing) {
+        cb()
+        this.moveAllAndClosing = false
+        this.connection.removeListener('readyForQuery', _handleReadyForQueryInClose)
+      } 
+    }
+
+    this.connection.on('readyForQuery', _handleReadyForQueryInClose)
+    return
+  }
+
   close(cb) {
     let promise
 
@@ -213,7 +264,6 @@ class Cursor extends EventEmitter {
     }
 
     this._closePortal()
-    this.state = 'done'
     this.connection.once('readyForQuery', function () {
       cb()
     })

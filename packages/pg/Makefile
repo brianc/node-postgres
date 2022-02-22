@@ -33,6 +33,9 @@ test-connection:
 	@echo "***Testing connection***"
 	@node script/create-test-tables.js $(params)
 
+test-unit-connection: test-connection
+	@find test/unit/connection -name "*-tests.js" | $(node-command)
+
 test-missing-native:
 	@echo "***Testing optional native install***"
 	@rm -rf node_modules/pg-native
@@ -52,6 +55,26 @@ test-native: node_modules/pg-native/index.js test-connection
 test-integration: test-connection
 	@echo "***Testing Pure Javascript***"
 	@find test/integration -name "*-tests.js" | $(node-command)
+
+test-integration-client: test-connection
+	@echo "***Testing integration for client***"
+	@find test/integration/client -name "*-tests.js" | $(node-command)
+
+test-integration-connection: test-connection
+	@echo "***Testing integration for connection***"
+	@find test/integration/connection -name "*-tests.js" | $(node-command)
+
+test-integration-connection-pool: test-connection
+	@echo "***Testing integration for connection***"
+	@find test/integration/connection-pool -name "*-tests.js" | $(node-command)
+
+test-gh-issues: test-connection
+	@echo "***Testing gh-issues***"
+	@find test/integration/gh-issues -name "*-tests.js" | $(node-command)
+
+test-unit-client: test-connection
+	@echo "***Testing integration for client***"
+	@find test/unit/client -name "*-tests.js" | $(node-command)
 
 test-binary: test-connection
 	@echo "***Testing Pure Javascript (binary)***"

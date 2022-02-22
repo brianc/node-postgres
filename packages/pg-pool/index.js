@@ -85,7 +85,7 @@ class Pool extends EventEmitter {
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.log = this.options.log || function () {}
-    this.Client = this.options.Client || Client || require('pg').Client
+    this.Client = this.options.Client || Client || require('../pg/lib/index.js').Client
     this.Promise = this.options.Promise || global.Promise
 
     if (typeof this.options.idleTimeoutMillis === 'undefined') {

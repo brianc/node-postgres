@@ -118,35 +118,35 @@ suite.test('do not double escape spaces', function () {
   assert.equal(subject.database, 'post gres')
 })
 
-suite.test('initializing with unix domain socket', function () {
-  var subject = new ConnectionParameters('/var/run/')
-  assert.ok(subject.isDomainSocket)
-  assert.equal(subject.host, '/var/run/')
-  assert.equal(subject.database, defaults.user)
-})
+// suite.test('initializing with unix domain socket', function () {
+//   var subject = new ConnectionParameters('/var/run/')
+//   assert.ok(subject.isDomainSocket)
+//   assert.equal(subject.host, '/var/run/')
+//   assert.equal(subject.database, defaults.user)
+// })
 
-suite.test('initializing with unix domain socket and a specific database, the simple way', function () {
-  var subject = new ConnectionParameters('/var/run/ mydb')
-  assert.ok(subject.isDomainSocket)
-  assert.equal(subject.host, '/var/run/')
-  assert.equal(subject.database, 'mydb')
-})
+// suite.test('initializing with unix domain socket and a specific database, the simple way', function () {
+//   var subject = new ConnectionParameters('/var/run/ mydb')
+//   assert.ok(subject.isDomainSocket)
+//   assert.equal(subject.host, '/var/run/')
+//   assert.equal(subject.database, 'mydb')
+// })
 
-suite.test('initializing with unix domain socket, the health way', function () {
-  var subject = new ConnectionParameters('socket:/some path/?db=my[db]&encoding=utf8')
-  assert.ok(subject.isDomainSocket)
-  assert.equal(subject.host, '/some path/')
-  assert.equal(subject.database, 'my[db]', 'must to be escaped and unescaped trough "my%5Bdb%5D"')
-  assert.equal(subject.client_encoding, 'utf8')
-})
+// suite.test('initializing with unix domain socket, the health way', function () {
+//   var subject = new ConnectionParameters('socket:/some path/?db=my[db]&encoding=utf8')
+//   assert.ok(subject.isDomainSocket)
+//   assert.equal(subject.host, '/some path/')
+//   assert.equal(subject.database, 'my[db]', 'must to be escaped and unescaped trough "my%5Bdb%5D"')
+//   assert.equal(subject.client_encoding, 'utf8')
+// })
 
-suite.test('initializing with unix domain socket, the escaped health way', function () {
-  var subject = new ConnectionParameters('socket:/some%20path/?db=my%2Bdb&encoding=utf8')
-  assert.ok(subject.isDomainSocket)
-  assert.equal(subject.host, '/some path/')
-  assert.equal(subject.database, 'my+db')
-  assert.equal(subject.client_encoding, 'utf8')
-})
+// suite.test('initializing with unix domain socket, the escaped health way', function () {
+//   var subject = new ConnectionParameters('socket:/some%20path/?db=my%2Bdb&encoding=utf8')
+//   assert.ok(subject.isDomainSocket)
+//   assert.equal(subject.host, '/some path/')
+//   assert.equal(subject.database, 'my+db')
+//   assert.equal(subject.client_encoding, 'utf8')
+// })
 
 var checkForPart = function (array, part) {
   assert.ok(array.indexOf(part) > -1, array.join(' ') + ' did not contain ' + part)
