@@ -275,7 +275,7 @@ describe('parse', function () {
     var connectionString = 'pg:///?sslmode=verify-ca'
     var subject = parse(connectionString)
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
-    expect(subject.ssl.checkServerIdentity()).be.undefined
+    expect(subject.ssl.checkServerIdentity()).to.be.undefined
   })
 
   it('configuration parameter sslmode=verify-full', function () {
@@ -289,7 +289,7 @@ describe('parse', function () {
     var subject = parse(connectionString)
     subject.ssl.should.have.property('ca', 'example ca\n')
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
-    expect(subject.ssl.checkServerIdentity()).be.undefined
+    expect(subject.ssl.checkServerIdentity()).to.be.undefined
   })
 
   it('allow other params like max, ...', function () {
