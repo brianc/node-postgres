@@ -14,9 +14,9 @@ for (var key in process.env) {
 suite.test('default values are used in new clients', function () {
   assert.same(pg.defaults, {
     user: process.env.USER,
-    database: 'postgres',
-    password: 'password',
-    port: 5901,
+    database: undefined,
+    password: null,
+    port: 5432,
     rows: 0,
     max: 10,
     binary: false,
@@ -31,9 +31,9 @@ suite.test('default values are used in new clients', function () {
   var client = new pg.Client()
   assert.same(client, {
     user: process.env.USER,
-    database: 'postgres',
-    password: 'password',
-    port: 5901,
+    database: process.env.USER,
+    password: null,
+    port: 5432,
   })
 })
 

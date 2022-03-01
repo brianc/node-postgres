@@ -52,7 +52,7 @@ class Connection extends EventEmitter {
       if(port && host) {
         var url = 'ws://'+host+':'+port;
       } else {
-        var url = 'ws://localhost:5901'
+        var url = 'ws://localhost:5432'
       }
       this.stream = new WebSocketStream(url)
       this.placeholderStream = false
@@ -131,7 +131,6 @@ class Connection extends EventEmitter {
         this.emit('message', msg)
       }
       this.emit(eventName, msg)
-      // console.log(msg)
     })
   }
 
