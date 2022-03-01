@@ -229,7 +229,7 @@ class Cursor extends EventEmitter {
 
   _close_checkFinished(cb) {
     this._closePortal()
-    // try to delay the callback until portal is finished closing
+    // delay the callback until portal is finished closing
     // (this means a closeComplete followed by a readyForQuery)
     // (it's possible to have a readyForQuery without a closeComplete if called from moveAllAndClose)
     var finishedClosing = false
