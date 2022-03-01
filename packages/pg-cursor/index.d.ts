@@ -13,5 +13,7 @@ interface CursorQueryConfig {
 export class Cursor {
   constructor(text: string, values: any[], config?: CursorQueryConfig);
   read(rowCount: number, callback: (err: Error | null, rows: any[], result: QueryResult) => void): void;
+  read(rowCount: number): Promise<any[]>;
   close(callback: () => void): void;
+  close(): Promise<void>;
 }
