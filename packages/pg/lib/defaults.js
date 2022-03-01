@@ -6,15 +6,12 @@ module.exports = {
 
   // database user's name
   user: process.platform === 'win32' ? process.env.USERNAME : process.env.USER,
-  // user: 'postgres',
 
   // name of database to connect
-  // database: undefined,
-  database: 'postgres',
+  database: undefined,
 
   // database user's password
-  // password: null,
-  password: 'password',
+  password: null,
 
   // a Postgres connection string to be used instead of setting individual connection items
   // NOTE:  Setting this value will cause it to override any other value (such as database or user) defined
@@ -22,7 +19,7 @@ module.exports = {
   connectionString: undefined,
 
   // database port
-  port: 5901,
+  port: 5432,
 
   // number of rows to return at a time from a prepared statement's
   // portal. 0 will return all rows at once

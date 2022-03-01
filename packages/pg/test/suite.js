@@ -6,6 +6,7 @@ class Test {
   constructor(name, cb) {
     this.name = name
     this.action = cb
+    // timeout set higher since 1105-tests.js takes around 9000 ms to pass with websockets
     this.timeout = 10000
   }
 
