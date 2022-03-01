@@ -3,6 +3,7 @@
   "version": "2.7.3",
   "description": "Query cursor extension for node-postgres",
   "main": "index.js",
+  "types": "index.d.ts",
   "directories": {
     "test": "test"
   },
