@@ -216,6 +216,8 @@ class Connection extends EventEmitter {
       return
     }
     return this.stream.write(endBuffer, () => {
+      // purely for unit/integration test purposes -- websockets use stream.socket.close() 
+      // while the memoryStream sockets used in testing use stream.end()
       if(this.stream.socket) {
         this.stream.socket.close()
       } else {
