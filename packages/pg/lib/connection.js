@@ -95,6 +95,7 @@ class Connection extends EventEmitter {
           return self.emit('error', new Error('There was an error establishing an SSL connection'))
       }
       var tls = require('tls')
+      var { isIP } = require('is-ip')
       const options = {
         socket: self.stream,
       }
@@ -106,9 +107,9 @@ class Connection extends EventEmitter {
         }
       }
 
-      // if (net.isIP(host) === 0) {
-      //   options.servername = host
-      // }
+      if (!isIP(host)) {
+        options.servername = host
+      }
       try {
         self.stream = tls.connect(options)
       } catch (err) {
