@@ -37,6 +37,7 @@
     "singleQuote": true
   },
   "dependencies": {
-    "is-ip": "^4.0.0"
+    "is-ip": "^4.0.0",
+    "websocket-stream": "^5.5.2"
   }
 }
