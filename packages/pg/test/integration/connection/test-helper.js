@@ -13,7 +13,7 @@ var connect = function (callback) {
     console.log(error)
     throw new Error('Connection error')
   })
-  con.connect(helper.args.port || '5433', helper.args.host || 'localhost')
+  con.connect(helper.args.port || '5432', helper.args.host || 'localhost')
   con.once('connect', function () {
     con.startup({
       user: username,
@@ -26,7 +26,7 @@ var connect = function (callback) {
       con.password(utils.postgresMd5PasswordHash(helper.args.user, helper.args.password, msg.salt))
     })
     con.once('readyForQuery', function () {
-      con.query('create temp table if not exists ids(id integer)')
+      con.query('create temp table ids(id integer)')
       con.once('readyForQuery', function () {
         con.query('insert into ids(id) values(1); insert into ids(id) values(2);')
         con.once('readyForQuery', function () {
