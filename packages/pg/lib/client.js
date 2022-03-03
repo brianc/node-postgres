@@ -268,7 +268,6 @@ class Client extends EventEmitter {
   }
 
   _handleReadyForQuery(msg) {
-    console.log("Status: " + msg.status)
     if (this._connecting) {
       this._connecting = false
       this._connected = true
