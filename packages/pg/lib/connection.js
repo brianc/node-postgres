@@ -14,9 +14,10 @@ class Connection extends EventEmitter {
   constructor(config) {
     super()
     config = config || {}
-    this.stream = config.stream // possibly null, try to lazily load on connect
     this.placeholderStream = false
-    if(!config.stream) {
+    this.stream = config.stream // possibly null: if so, temporarily use placeholder and lazily make the stream on connect()
+                                // since websocketstream attempts to connect on construction
+    if(!this.stream) {
       var placeholder = {
         once: function(){},
         on: function(){},
@@ -31,7 +32,7 @@ class Connection extends EventEmitter {
           }
         } 
       }
-      config.stream = placeholder
+      this.stream = placeholder
       this.placeholderStream = true
     } 
     this.lastBuffer = false
