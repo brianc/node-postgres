@@ -211,17 +211,20 @@ class Connection extends EventEmitter {
     this._ending = true
     if (!this._connecting || !this.stream.writable) {
       if(this.stream.socket) {
-        this.stream.socket.close()
+        // if we don't pass in 'data' parameter to socket.close(), 
+        // the server might send a 1005 close code in response (no status code present)
+        // and ws will error upon receiving the 1005 code
+        this.stream.socket.close(1000, 'connection.end called')
       } else {
         this.stream.end()
       }
       return
     }
     return this.stream.write(endBuffer, () => {
-      // purely for unit/integration test purposes -- websockets use stream.socket.close() 
-      // while the memoryStream sockets used in testing use stream.end()
+      // checking for stream.socket is purely for unit/integration test purposes 
+      // websockets use stream.socket.close() while the streams used in testing use stream.end()
       if(this.stream.socket) {
-        this.stream.socket.close()
+        this.stream.socket.close(1000, 'connection.end called')
       } else {
         this.stream.end()
       }
