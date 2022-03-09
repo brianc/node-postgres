@@ -28,15 +28,6 @@ suite.test('invalid uri rejects promise', (done) => {
   })
 })
 
-// original:
-// suite.test('invalid connection rejects promise', (done) => {
-//   const client = new pg.Client({ host: 'alksdjflaskdfj', port: 1234 })
-//   return client.connect().catch((e) => {
-//     assert(e instanceof Error)
-//     done()
-//   })
-// })
-
 suite.test('connected client does not reject promise after connection', (done) => {
   const client = new pg.Client()
   return client.connect().then(() => {
