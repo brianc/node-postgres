@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "is-ip": "^4.0.0",
+    "pg": "^8.7.3",
     "websocket-stream": "^5.5.2"
   }
 }
