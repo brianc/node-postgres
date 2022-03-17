@@ -103,9 +103,6 @@ class Connection extends EventEmitter {
   }
 
   attachListeners(stream) {
-    stream.on('end', () => {
-      this.emit('end')
-    })
     parse(stream, (msg) => {
       var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
       if (this._emitMessage) {
