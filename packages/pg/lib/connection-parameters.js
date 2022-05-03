@@ -125,9 +125,25 @@ class ConnectionParameters {
   }
 
   getLibpqConnectionString(cb) {
-    var params = []
-    add(params, this, 'user')
-    add(params, this, 'password')
+    if (typeof this.password === 'function') {
+      const pw = this.password();
+      if (typeof pw === 'string') {
+        return this._getLibpqConnectionString(cb, pw)
+      }
+      pw.then((pwString) => this._getLibpqConnectionString(cb, pwString)).catch((e) => cb(e))
+      return
+    }
+    this._getLibpqConnectionString(cb);
+  }
+
+  _getLibpqConnectionString(cb, pw) {
+    var params = [];
+    add(params, this, 'user');
+    if (pw != null) {
+      params.push('password=' + quoteParamValue(pw))
+    } else {
+      add(params, this, 'password');
+    }
     add(params, this, 'port')
     add(params, this, 'application_name')
     add(params, this, 'fallback_application_name')
