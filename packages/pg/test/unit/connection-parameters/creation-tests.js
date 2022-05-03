@@ -3,7 +3,6 @@ const helper = require('../test-helper')
 const assert = require('assert')
 const ConnectionParameters = require('../../../lib/connection-parameters')
 const defaults = require('../../../lib').defaults
-const dns = require('dns')
 
 // clear process.env
 for (var key in process.env) {
@@ -155,14 +154,6 @@ var checkForPart = function (array, part) {
   assert.ok(array.indexOf(part) > -1, array.join(' ') + ' did not contain ' + part)
 }
 
-const getDNSHost = async function (host) {
-  return new Promise((resolve, reject) => {
-    dns.lookup(host, (err, addresses) => {
-      err ? reject(err) : resolve(addresses)
-    })
-  })
-}
-
 suite.testAsync('builds simple string', async function () {
   var config = {
     user: 'brian',
@@ -172,7 +163,6 @@ suite.testAsync('builds simple string', async function () {
     database: 'bam',
   }
   var subject = new ConnectionParameters(config)
-  const dnsHost = await getDNSHost(config.host)
   return new Promise((resolve) => {
     subject.getLibpqConnectionString(function (err, constring) {
       assert(!err)
@@ -180,47 +170,11 @@ suite.testAsync('builds simple string', async function () {
       checkForPart(parts, "user='brian'")
       checkForPart(parts, "password='xyz'")
       checkForPart(parts, "port='888'")
-      checkForPart(parts, `hostaddr='${dnsHost}'`)
+      checkForPart(parts, "host='localhost'")
       checkForPart(parts, "dbname='bam'")
       resolve()
     })
   })
-})
-
-suite.test('builds dns string', async function () {
-  var config = {
-    user: 'brian',
-    password: 'asdf',
-    port: 5432,
-    host: 'localhost',
-  }
-  var subject = new ConnectionParameters(config)
-  const dnsHost = await getDNSHost(config.host)
-  return new Promise((resolve) => {
-    subject.getLibpqConnectionString(function (err, constring) {
-      assert(!err)
-      var parts = constring.split(' ')
-      checkForPart(parts, "user='brian'")
-      checkForPart(parts, `hostaddr='${dnsHost}'`)
-      resolve()
-    })
-  })
-})
-
-suite.test('error when dns fails', function () {
-  var config = {
-    user: 'brian',
-    password: 'asf',
-    port: 5432,
-    host: 'asdlfkjasldfkksfd#!$!!!!..com',
-  }
-  var subject = new ConnectionParameters(config)
-  subject.getLibpqConnectionString(
-    assert.calls(function (err, constring) {
-      assert.ok(err)
-      assert.isNull(constring)
-    })
-  )
 })
 
 suite.test('connecting to unix domain socket', function () {
