@@ -1334,15 +1334,6 @@ assertion-error@^1.1.0:
   resolved "https://registry.yarnpkg.com/assertion-error/-/assertion-error-1.1.0.tgz#e60b6b0e8f301bd97e5375215bda406c85118c0b"
   integrity sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==
 
-assertions@~2.3.0:
-  version "2.3.4"
-  resolved "https://registry.yarnpkg.com/assertions/-/assertions-2.3.4.tgz#a9433ced1fce57cc999af0965d1008e96c2796e6"
-  integrity sha1-qUM87R/OV8yZmvCWXRAI6WwnluY=
-  dependencies:
-    fomatto "git://github.com/BonsaiDen/Fomatto.git#468666f600b46f9067e3da7200fd9df428923ea6"
-    render "0.1"
-    traverser "1"
-
 assign-symbols@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/assign-symbols/-/assign-symbols-1.0.0.tgz#59667f41fadd4f20ccbc2bb96b8d4f7f78ec0367"
@@ -2009,11 +2000,6 @@ currently-unhandled@^0.4.1:
   integrity sha1-mI3zP+qxke95mmE2nddsF635V+o=
   dependencies:
     array-find-index "^1.0.1"
-
-curry@0.0.x:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/curry/-/curry-0.0.4.tgz#1750d518d919c44f3d37ff44edc693de1f0d5fcb"
-  integrity sha1-F1DVGNkZxE89N/9E7caT3h8NX8s=
 
 cyclist@^1.0.1:
   version "1.0.1"
@@ -2755,10 +2741,6 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.3"
     readable-stream "^2.3.6"
 
-"fomatto@git://github.com/BonsaiDen/Fomatto.git#468666f600b46f9067e3da7200fd9df428923ea6":
-  version "0.6.0"
-  resolved "git://github.com/BonsaiDen/Fomatto.git#468666f600b46f9067e3da7200fd9df428923ea6"
-
 for-in@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -2792,11 +2774,6 @@ from2@^2.1.0:
   dependencies:
     inherits "^2.0.1"
     readable-stream "^2.0.0"
-
-from@~0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/from/-/from-0.0.2.tgz#7fffac647a2f99b20d57b8e28379455cbb4189d0"
-  integrity sha1-f/+sZHovmbINV7jig3lFXLtBidA=
 
 fs-extra@^8.1.0:
   version "8.1.0"
@@ -5215,13 +5192,6 @@ regexpp@^3.0.0, regexpp@^3.1.0:
   resolved "https://registry.yarnpkg.com/regexpp/-/regexpp-3.1.0.tgz#206d0ad0a5648cffbdb8ae46438f3dc51c9f78e2"
   integrity sha512-ZOIzd8yVsQQA7j8GCSlPGXwg5PfmA1mrq0JP4nGhh54LaKN3xdai/vHUDu74pKwV8OxseMS65u2NImosQcSD0Q==
 
-render@0.1:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/render/-/render-0.1.4.tgz#cfb33a34e26068591d418469e23d8cc5ce1ceff5"
-  integrity sha1-z7M6NOJgaFkdQYRp4j2Mxc4c7/U=
-  dependencies:
-    traverser "0.0.x"
-
 repeat-element@^1.1.2:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/repeat-element/-/repeat-element-1.1.3.tgz#782e0d825c0c5a3bb39731f84efee6b742e6b1ce"
@@ -5683,15 +5653,6 @@ stream-spec@~0.3.5:
   dependencies:
     macgyver "~1.10"
 
-stream-tester@0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/stream-tester/-/stream-tester-0.0.5.tgz#4f86f2531149adaf6dd4b3ff262edf64ae9a171a"
-  integrity sha1-T4byUxFJra9t1LP/Ji7fZK6aFxo=
-  dependencies:
-    assertions "~2.3.0"
-    from "~0.0.2"
-    through "~0.0.3"
-
 string-width@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
@@ -5944,11 +5905,6 @@ through@2, "through@>=2.2.7 <3", through@^2.3.4, through@^2.3.6:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
-through@~0.0.3:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/through/-/through-0.0.4.tgz#0bf2f0fffafaac4bacbc533667e98aad00b588c8"
-  integrity sha1-C/Lw//r6rEusvFM2Z+mKrQC1iMg=
-
 tmp@^0.0.33:
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
@@ -6012,20 +5968,6 @@ tr46@~0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o=
-
-traverser@0.0.x:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/traverser/-/traverser-0.0.5.tgz#c66f38c456a0c21a88014b1223580c7ebe0631eb"
-  integrity sha1-xm84xFagwhqIAUsSI1gMfr4GMes=
-  dependencies:
-    curry "0.0.x"
-
-traverser@1:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/traverser/-/traverser-1.0.0.tgz#6f59e5813759aeeab3646b8f4513fd4a62e4fe20"
-  integrity sha1-b1nlgTdZruqzZGuPRRP9SmLk/iA=
-  dependencies:
-    curry "0.0.x"
 
 trim-newlines@^1.0.0:
   version "1.0.0"

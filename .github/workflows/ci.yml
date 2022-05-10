@@ -17,13 +17,13 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        node: ['8', '10', '12', '14', '16', '17']
+        node: ['8', '10', '12', '14', '16', '18']
         os: [ubuntu-latest, windows-latest, macos-latest]
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
           cache: yarn

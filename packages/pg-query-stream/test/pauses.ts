@@ -1,8 +1,19 @@
 import helper from './helper'
 import concat from 'concat-stream'
-import tester from 'stream-tester'
 import JSONStream from 'JSONStream'
 import QueryStream from '../src'
+import { Transform, TransformCallback } from 'stream'
+
+class PauseStream extends Transform {
+  constructor() {
+    super({ objectMode: true })
+  }
+
+  _transform(chunk, encoding, callback): void {
+    this.push(chunk, encoding)
+    setTimeout(callback, 1)
+  }
+}
 
 helper('pauses', function (client) {
   it('pauses', function (done) {
@@ -12,7 +23,7 @@ helper('pauses', function (client) {
       highWaterMark: 2,
     })
     const query = client.query(stream)
-    const pauser = tester.createPauseStream(0.1, 100)
+    const pauser = new PauseStream()
     query
       .pipe(JSONStream.stringify())
       .pipe(pauser)
