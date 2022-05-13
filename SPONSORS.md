@@ -12,6 +12,7 @@ node-postgres is made possible by the helpful contributors from the community as
 - [Eaze](https://www.eaze.com/)
 - [simpleanalytics](https://simpleanalytics.com/)
 - [n8n.io](https://n8n.io/)
+- [mpirik](https://github.com/mpirik)
 
 # Supporters
 
@@ -39,4 +40,8 @@ node-postgres is made possible by the helpful contributors from the community as
 - @Guido4000
 - [Martti Laine](https://github.com/codeclown)
 - [Tim Nolet](https://github.com/tnolet)
+- [Ideal Postcodes](https://github.com/ideal-postcodes)
 - [checkly](https://github.com/checkly)
+- [Scout APM](https://github.com/scoutapm-sponsorships)
+- [Sideline Sports](https://github.com/SidelineSports)
+- [Gadget](https://github.com/gadget-inc)
