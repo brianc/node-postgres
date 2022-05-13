@@ -3,7 +3,7 @@ if (module === require.main) {
   const allowExitOnIdle = process.env.ALLOW_EXIT_ON_IDLE === '1'
   const Pool = require('../index')
 
-  const pool = new Pool({ idleTimeoutMillis: 200, ...(allowExitOnIdle ? { allowExitOnIdle: true } : {}) })
+  const pool = new Pool({ maxLifetimeSeconds: 2, idleTimeoutMillis: 200, ...(allowExitOnIdle ? { allowExitOnIdle: true } : {}) })
   pool.query('SELECT NOW()', (err, res) => console.log('completed first'))
   pool.on('remove', () => {
     console.log('removed')
