@@ -1,6 +1,6 @@
 {
   "name": "pg",
-  "version": "8.7.3",
+  "version": "8.7.3a",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "database",
@@ -14,7 +14,7 @@
   "homepage": "https://github.com/brianc/node-postgres",
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
+    "url": "git+https://github.com/miraiex/node-postgres.git",
     "directory": "packages/pg"
   },
   "author": "Brian Carlson <brian.m.carlson@gmail.com>",

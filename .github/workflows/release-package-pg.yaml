@@ -12,29 +12,7 @@ defaults:
     # working-directory: packages/pg
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:11
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ci_db_test
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5    
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 12
-          cache: yarn
-      - run: yarn install
-      - run: PGTESTNOSSL=true PGUSER=postgres PGPASSWORD=postgres PGDATABASE=ci_db_test yarn test
-
   publish-gpr:
-    needs: build
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -46,6 +24,6 @@ jobs:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
       - run: yarn install
-      - run: yarn publish
+      - run: yarn publish packages/pg
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
