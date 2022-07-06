@@ -26,7 +26,6 @@ jobs:
           always-auth: true
       - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc          
       - run: yarn install
-      - name: Publish
-        run: echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc && yarn publish packages/pg
+      - run: yarn publish packages/pg
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
