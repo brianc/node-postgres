@@ -9,7 +9,7 @@ on:
 defaults:
   run:
     shell: bash
-    working-directory: packages/pg
+    # working-directory: packages/pg
 
 jobs:
   build:
