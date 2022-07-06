@@ -1,8 +1,6 @@
 name: Node.js Package
 
 on:
-  push:
-    branches: [ci-release-package]
   release:
     types: [created]
 
