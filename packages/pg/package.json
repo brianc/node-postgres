@@ -1,5 +1,5 @@
 {
-  "name": "pg",
+  "name": "@miraiex/pg",
   "version": "8.7.3a",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
@@ -11,7 +11,7 @@
     "postgresql",
     "rdbms"
   ],
-  "homepage": "https://github.com/brianc/node-postgres",
+  "homepage": "https://github.com/miraiex/node-postgres",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miraiex/node-postgres.git",
