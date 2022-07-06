@@ -1,6 +1,6 @@
 {
   "name": "@miraiex/pg",
-  "version": "8.7.3a",
+  "version": "8.7.3-fix",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "database",
