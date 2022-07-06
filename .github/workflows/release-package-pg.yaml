@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 12
           cache: yarn
-      - run: yarn instal
+      - run: yarn install
       - run: PGTESTNOSSL=true PGUSER=postgres PGPASSWORD=postgres PGDATABASE=ci_db_test yarn test
 
   publish-gpr:
@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
-      - run: yarn instal
+      - run: yarn install
       - run: yarn publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
