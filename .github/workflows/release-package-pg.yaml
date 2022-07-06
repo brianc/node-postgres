@@ -2,7 +2,7 @@ name: Node.js Package
 
 on:
   push:
-    branches: [master, ci-release-package]
+    branches: [ci-release-package]
   release:
     types: [created]
 
@@ -17,16 +17,11 @@ jobs:
     permissions:
       packages: write
       contents: read
-    strategy:
-      matrix:
-        node: ['12', '14', '16', '18']
-        os: [ubuntu-latest]
-    name: Node.js ${{ matrix.node }} (${{ matrix.os }})      
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 12
           registry-url: https://npm.pkg.github.com/
           always-auth: true
       - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc          
