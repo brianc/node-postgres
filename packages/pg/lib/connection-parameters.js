@@ -103,6 +103,7 @@ class ConnectionParameters {
     this.application_name = val('application_name', config, 'PGAPPNAME')
     this.fallback_application_name = val('fallback_application_name', config, false)
     this.statement_timeout = val('statement_timeout', config, false)
+    this.lock_timeout = val('lock_timeout', config, false)
     this.idle_in_transaction_session_timeout = val('idle_in_transaction_session_timeout', config, false)
     this.query_timeout = val('query_timeout', config, false)
 

@@ -54,6 +54,10 @@ module.exports = {
   // false=unlimited
   statement_timeout: false,
 
+  // Abort any statement that waits longer than the specified duration in milliseconds while attempting to acquire a lock.
+  // false=unlimited
+  lock_timeout: false,
+
   // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds
   // false=unlimited
   idle_in_transaction_session_timeout: false,
