@@ -28,6 +28,7 @@ var compare = function (actual, expected, type) {
   assert.equal(actual.password, expected.password, type + ' password')
   assert.equal(actual.binary, expected.binary, type + ' binary')
   assert.equal(actual.statement_timeout, expected.statement_timeout, type + ' statement_timeout')
+  assert.equal(actual.lock_timeout, expected.lock_timeout, type + ' lock_timeout')
   assert.equal(actual.options, expected.options, type + ' options')
   assert.equal(
     actual.idle_in_transaction_session_timeout,
@@ -51,6 +52,7 @@ suite.test('ConnectionParameters initializing from defaults with connectionStrin
     host: 'foo.bar.net',
     binary: defaults.binary,
     statement_timeout: false,
+    lock_timeout: false,
     idle_in_transaction_session_timeout: false,
     options: '-c geqo=off',
   }
@@ -78,6 +80,7 @@ suite.test('ConnectionParameters initializing from config', function () {
       asdf: 'blah',
     },
     statement_timeout: 15000,
+    lock_timeout: 15000,
     idle_in_transaction_session_timeout: 15000,
     options: '-c geqo=off',
   }

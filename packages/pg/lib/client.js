@@ -403,6 +403,9 @@ class Client extends EventEmitter {
     if (params.statement_timeout) {
       data.statement_timeout = String(parseInt(params.statement_timeout, 10))
     }
+    if (params.lock_timeout) {
+      data.lock_timeout = String(parseInt(params.lock_timeout, 10))
+    }
     if (params.idle_in_transaction_session_timeout) {
       data.idle_in_transaction_session_timeout = String(parseInt(params.idle_in_transaction_session_timeout, 10))
     }
