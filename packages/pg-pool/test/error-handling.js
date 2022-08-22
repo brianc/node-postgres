@@ -38,14 +38,15 @@ describe('pool error handling', function () {
   })
 
   it('Catches errors in client.query', async function () {
-    await expect((new Pool()).query(null)).to.throwError()
-    await expect(async () => {
-      try {
-        await (new Pool()).query(null)
-      } catch (e) {
-        console.log(e)
-      }
-    }).not.to.throwError()
+    let caught = false
+    const pool = new Pool()
+    try {
+      await pool.query(null)
+    } catch (e) {
+      caught = true
+    }
+    pool.end()
+    expect(caught).to.be(true)
   })
 
   describe('calling release more than once', () => {
