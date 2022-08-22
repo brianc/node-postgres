@@ -35,7 +35,7 @@
     "pg-copy-streams": "0.3.0"
   },
   "peerDependencies": {
-    "pg-native": ">=2.0.0"
+    "pg-native": ">=3.0.1"
   },
   "peerDependenciesMeta": {
     "pg-native": {
