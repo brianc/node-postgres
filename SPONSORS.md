@@ -13,6 +13,9 @@ node-postgres is made possible by the helpful contributors from the community as
 - [simpleanalytics](https://simpleanalytics.com/)
 - [n8n.io](https://n8n.io/)
 - [mpirik](https://github.com/mpirik)
+- [@BLUE-DEVIL1134](https://github.com/BLUE-DEVIL1134)
+- [bubble.io](https://bubble.io/)
+- GitHub[https://github.com/github]
 
 # Supporters
 
