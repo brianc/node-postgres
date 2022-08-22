@@ -406,20 +406,24 @@ class Pool extends EventEmitter {
 
       client.once('error', onError)
       this.log('dispatching query')
-      client.query(text, values, (err, res) => {
-        this.log('query dispatched')
-        client.removeListener('error', onError)
-        if (clientReleased) {
-          return
-        }
-        clientReleased = true
-        client.release(err)
-        if (err) {
-          return cb(err)
-        } else {
-          return cb(undefined, res)
-        }
-      })
+      try {
+        client.query(text, values, (err, res) => {
+          this.log('query dispatched')
+          client.removeListener('error', onError)
+          if (clientReleased) {
+            return
+          }
+          clientReleased = true
+          client.release(err)
+          if (err) {
+            return cb(err)
+          } else {
+            return cb(undefined, res)
+          }
+        })
+      } catch (err) {
+        return cb(err)
+      }
     })
     return response.result
   }
