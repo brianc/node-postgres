@@ -417,11 +417,11 @@ class Pool extends EventEmitter {
           client.release(err)
           if (err) {
             return cb(err)
-          } else {
-            return cb(undefined, res)
           }
+          return cb(undefined, res)
         })
       } catch (err) {
+        client.release(err)
         return cb(err)
       }
     })
