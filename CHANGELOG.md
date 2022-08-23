@@ -4,6 +4,14 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.8.0
+
+- Bump minimum required version of [native bindings](https://github.com/brianc/node-postgres/pull/2787)
+- Catch previously uncatchable errors thrown in [`pool.query`](https://github.com/brianc/node-postgres/pull/2569)
+- Prevent the pool from blocking the event loop if all clients are [idle](https://github.com/brianc/node-postgres/pull/2721) (and `allowExitOnIdle` is enabled)
+- Support `lock_timeout` in [client config](https://github.com/brianc/node-postgres/pull/2779)
+- Fix errors thrown in callbacks from [interfering with cleanup](https://github.com/brianc/node-postgres/pull/2753)
+
 ### pg-pool@3.5.0
 
 - Add connection [lifetime limit](https://github.com/brianc/node-postgres/pull/2698) config option.
