@@ -87,7 +87,7 @@ class Connection extends EventEmitter {
         }
       }
 
-      if (net.isIP(host) === 0) {
+      if (!options.servername && net.isIP(host) === 0) {
         options.servername = host
       }
       try {
