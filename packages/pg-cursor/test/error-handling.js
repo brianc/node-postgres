@@ -19,6 +19,24 @@ describe('error handling', function () {
       })
     })
   })
+
+  it('can continue after connection lost', function (done) {
+    const client = new pg.Client()
+    client.connect()
+    const cursor = client.query(new Cursor('SELECT NOW()'))
+    cursor.read(1, function (err) {
+      // Simulate a connection dropout by disconnecting.
+      client.end(function (err) {
+        assert.ifError(err)
+        // Try to close the cursor as if we didn't know the connection had
+        // dropped out.
+        cursor.close(function (err) {
+          assert.ifError(err)
+          done()
+        })
+      })
+    })
+  })
 })
 
 describe('read callback does not fire sync', () => {
