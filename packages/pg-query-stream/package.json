@@ -34,7 +34,7 @@
     "@types/node": "^14.0.0",
     "@types/pg": "^7.14.5",
     "JSONStream": "~0.7.1",
-    "concat-stream": "~1.0.1",
+    "concat-stream": "~2.0.0",
     "eslint-plugin-promise": "^6.0.1",
     "mocha": "^7.1.2",
     "pg": "^8.8.0",
