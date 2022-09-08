@@ -32,7 +32,7 @@
     "async": "2.6.4",
     "bluebird": "3.5.2",
     "co": "4.6.0",
-    "pg-copy-streams": "0.3.0"
+    "pg-copy-streams": "6.0.4"
   },
   "peerDependencies": {
     "pg-native": ">=3.0.1"

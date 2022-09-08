@@ -2382,10 +2382,10 @@ eslint-plugin-prettier@^3.1.4:
   dependencies:
     prettier-linter-helpers "^1.0.0"
 
-eslint-plugin-promise@^3.5.0:
-  version "3.8.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-3.8.0.tgz#65ebf27a845e3c1e9d6f6a5622ddd3801694b621"
-  integrity sha512-JiFL9UFR15NKpHyGii1ZcvmtIqa3UTwiDAGb8atSffe43qJ3+1czVGN6UtkklpcJ2DVnqvTMzEKRaJdBkAL2aQ==
+eslint-plugin-promise@^6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-6.0.1.tgz#a8cddf96a67c4059bdabf4d724a29572188ae423"
+  integrity sha512-uM4Tgo5u3UWQiroOyDEsYcVMOo7re3zmno0IZmB5auxoaQNIceAbXEkSt8RNrKtaYehARHG06pYK6K1JhtP0Zw==
 
 eslint-scope@^5.0.0, eslint-scope@^5.1.1:
   version "5.1.1"
@@ -4507,6 +4507,11 @@ object.pick@^1.3.0:
   dependencies:
     isobject "^3.0.1"
 
+obuf@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/obuf/-/obuf-1.1.2.tgz#09bea3343d41859ebd446292d11c9d4db619084e"
+  integrity sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==
+
 octokit-pagination-methods@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/octokit-pagination-methods/-/octokit-pagination-methods-1.1.0.tgz#cf472edc9d551055f9ef73f6e42b4dbb4c80bea4"
@@ -4809,10 +4814,12 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
-pg-copy-streams@0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/pg-copy-streams/-/pg-copy-streams-0.3.0.tgz#a4fbc2a3b788d4e9da6f77ceb35422d8d7043b7f"
-  integrity sha1-pPvCo7eI1Onab3fOs1Qi2NcEO38=
+pg-copy-streams@6.0.4:
+  version "6.0.4"
+  resolved "https://registry.yarnpkg.com/pg-copy-streams/-/pg-copy-streams-6.0.4.tgz#eca6b081f6c2655b8f3f0979b1537c5f7739cc03"
+  integrity sha512-FH6q2nFo0n2cFacLyIKorjDz8AOYtxrAANx1XMvYbKWNM2geY731gZstuP4mXMlqO6urRl9oIscFxf3GMIg3Ng==
+  dependencies:
+    obuf "^1.1.2"
 
 pg-cursor@^1.3.0:
   version "1.3.0"
