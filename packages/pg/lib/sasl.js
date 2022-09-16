@@ -37,7 +37,7 @@ function continueSession(session, password, serverData) {
 
   var saltBytes = Buffer.from(sv.salt, 'base64')
 
-  var saltedPassword = Hi(password, saltBytes, sv.iteration)
+  var saltedPassword = crypto.pbkdf2Sync(password, saltBytes, sv.iteration, 32, 'sha256')
 
   var clientKey = hmacSha256(saltedPassword, 'Client Key')
   var storedKey = sha256(clientKey)
@@ -189,17 +189,6 @@ function sha256(text) {
 
 function hmacSha256(key, msg) {
   return crypto.createHmac('sha256', key).update(msg).digest()
-}
-
-function Hi(password, saltBytes, iterations) {
-  var ui1 = hmacSha256(password, Buffer.concat([saltBytes, Buffer.from([0, 0, 0, 1])]))
-  var ui = ui1
-  for (var i = 0; i < iterations - 1; i++) {
-    ui1 = hmacSha256(password, ui1)
-    ui = xorBuffers(ui, ui1)
-  }
-
-  return ui
 }
 
 module.exports = {
