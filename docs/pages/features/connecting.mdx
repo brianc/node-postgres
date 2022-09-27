@@ -1,11 +1,10 @@
 ---
 title: Connecting
-slug: /features/connecting
 ---
 
 ## Environment variables
 
-node-postgres uses the same [environment variables](https://www.postgresql.org/docs/9.1/static/libpq-envars.html) as libpq to connect to a PostgreSQL server. Both individual clients & pools will use these environment variables. Here's a tiny program connecting node.js to the PostgreSQL server:
+node-postgres uses the same [environment variables](https://www.postgresql.org/docs/9.1/static/libpq-envars.html) as libpq and psql to connect to a PostgreSQL server. Both individual clients & pools will use these environment variables. Here's a tiny program connecting node.js to the PostgreSQL server:
 
 ```js
 const { Pool, Client } = require('pg')
@@ -48,7 +47,7 @@ This allows us to write our programs without having to specify connection inform
 The default values for the environment variables used are:
 
 ```
-PGHOST='localhost'
+PGHOST=localhost
 PGUSER=process.env.USER
 PGDATABASE=process.env.USER
 PGPASSWORD=null
@@ -120,18 +119,18 @@ const pool = new Pool({
 })
 ```
 
-### Programmatic Connection to Sockets
+### Unix Domain Sockets
 
 Connections to unix sockets can also be made. This can be useful on distros like Ubuntu, where authentication is managed via the socket connection instead of a password.
 
 ```js
-const { Client } = require('pg');
+const { Client } = require('pg')
 client = new Client({
-    host: '/cloudsql/myproject:zone:mydb',
-    user: 'username',
-    password: 'password',
-    database: 'database_name',
-});
+  host: '/cloudsql/myproject:zone:mydb',
+  user: 'username',
+  password: 'password',
+  database: 'database_name',
+})
 ```
 
 ## Connection URI

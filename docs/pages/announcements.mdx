@@ -1,81 +1,83 @@
+import { Alert } from '/components/alert.tsx'
+
 ## 2020-02-25
 
 ### pg@8.0 release
 
 `pg@8.0` is [being released](https://github.com/brianc/node-postgres/pull/2117) which contains a handful of breaking changes.
 
-I will outline each breaking change here and try to give some historical context on them.  Most of them are small and subtle and likely wont impact you; __however__, there is one larger breaking change you will likely run into:
+I will outline each breaking change here and try to give some historical context on them. Most of them are small and subtle and likely wont impact you; **however**, there is one larger breaking change you will likely run into:
 
-___
+---
 
-#### Support all `tls.connect` [options](https://nodejs.org/api/tls.html#tls_tls_connect_options_callback) being passed to the client/pool constructor under the `ssl` option.
+- Support all `tls.connect` [options](https://nodejs.org/api/tls.html#tls_tls_connect_options_callback) being passed to the client/pool constructor under the `ssl` option.
 
-Previously we white listed the parameters passed here and did slight massaging of some of them.  The main __breaking__ change here is that now if you do this:
+Previously we white listed the parameters passed here and did slight massaging of some of them. The main **breaking** change here is that now if you do this:
 
-```
+```js
 const client = new Client({ ssl: true })
 ```
 
-<div class="alert alert-danger" style="margin-top: 20px">
-Now we will use the default ssl options to tls.connect which includes rejectUnauthorized being enabled.  This means your connection attempt may fail if you are using a self-signed cert.  To use the old behavior you should do this:
-</div>
+<Alert>
+  Now we will use the default ssl options to tls.connect which includes rejectUnauthorized being enabled. This means
+  your connection attempt may fail if you are using a self-signed cert. To use the old behavior you should do this:
+</Alert>
 
-```
+```js
 const client = new Client({ ssl: { rejectUnauthorized: false } })
 ```
 
 This makes pg a bit more secure "out of the box" while still enabling you to opt in to the old behavior.
 
-___
+---
 
 The rest of the changes are relatively minor & you likely wont need to do anything, but good to be aware none the less!
 
-#### change default database name
+- change default database name
 
 If a database name is not specified, available in the environment at `PGDATABASE`, or available at `pg.defaults`, we used to use the username of the process user as the name of the database. Now we will use the `user` property supplied to the client as the database name, if it exists. What this means is this:
 
-```
+```jsx
 new Client({
-  user: 'foo'
+  user: 'foo',
 })
 ```
 
 `pg@7.x` will default the database name to the _process_ user. `pg@8.x` will use the `user` property supplied to the client. If you have not supplied `user` to the client, and it isn't available through any of its existing lookup mechanisms (environment variables, pg.defaults) then it will still use the process user for the database name.
 
+- drop support for versions of node older than 8.0
 
-#### drop support for versions of node older than 8.0
+Node@6.0 has been out of LTS for quite some time now, and I've removed it from our test matrix. `pg@8.0` _may_ still work on older versions of node, but it isn't a goal of the project anymore. Node@8.0 is actually no longer in the LTS support line, but pg will continue to test against and support 8.0 until there is a compelling reason to drop support for it. Any security vulnerability issues which come up I will back-port fixes to the `pg@7.x` line and do a release, but any other fixes or improvments will not be back ported.
 
-Node@6.0 has been out of LTS for quite some time now, and I've removed it from our test matrix.  `pg@8.0` _may_ still work on older versions of node, but it isn't a goal of the project anymore.  Node@8.0 is actually no longer in the LTS support line, but pg will continue to test against and support 8.0 until there is a compelling reason to drop support for it.  Any security vulnerability issues which come up I will back-port fixes to the `pg@7.x` line and do a release, but any other fixes or improvments will not be back ported.
+- prevent password from being logged accidentally
 
-#### prevent password from being logged accidentally
+`pg@8.0` makes the password field on the pool and client non-enumerable. This means when you do `console.log(client)` you wont have your database password printed out unintenionally. You can still do `console.log(client.password)` if you really want to see it!
 
-`pg@8.0` makes the password field on the pool and client non-enumerable.  This means when you do `console.log(client)` you wont have your database password printed out unintenionally.  You can still do `console.log(client.password)` if you really want to see it!
+- make `pg.native` non-enumerable
 
-#### make `pg.native` non-enumerable
+You can use `pg.native.Client` to access the native client. The first time you access the `pg.native` getter it imports the native bindings...which must be installed. In some cases (such as webpacking the pg code for lambda deployment) the `.native` property would be traversed and trigger an import of the native bindings as a side-effect. Making this property non-enumerable will fix this issue. An easy fix, but its technically a breaking change in cases where people _are_ relying on this side effect for any reason.
 
-You can use `pg.native.Client` to access the native client.  The first time you access the `pg.native` getter it imports the native bindings...which must be installed.  In some cases (such as webpacking the pg code for lambda deployment) the `.native` property would be traversed and trigger an import of the native bindings as a side-effect.  Making this property non-enumerable will fix this issue.  An easy fix, but its technically a breaking change in cases where people _are_ relying on this side effect for any reason.
+- make `pg.Pool` an es6 class
 
-#### make `pg.Pool` an es6 class
+This makes extending `pg.Pool` possible. Previously it was not a "proper" es6 class and `class MyPool extends pg.Pool` wouldn't work.
 
-This makes extending `pg.Pool` possible.  Previously it was not a "proper" es6 class and `class MyPool extends pg.Pool` wouldn't work.
+- make `Notice` messages _not_ an instance of a JavaScript error
 
-#### make `Notice` messages _not_ an instance of a JavaScript error
+The code path for parsing `notice` and `error` messages from the postgres backend is the same. Previously created a JavaScript `Error` instance for _both_ of these message types. Now, only actual `errors` from the postgres backend will be an instance of an `Error`. The _shape_ and _properties_ of the two messages did not change outside of this.
 
-The code path for parsing `notice` and `error` messages from the postgres backend is the same.  Previously created a JavaScript `Error` instance for _both_ of these message types.  Now, only actual `errors` from the postgres backend will be an instance of an `Error`.  The _shape_ and _properties_ of the two messages did not change outside of this. 
+- monorepo
 
-#### monorepo
+While not technically a breaking change for the module itself, I have begun the process of [consolidating](https://github.com/brianc/node-pg-query-stream) [separate](https://github.com/brianc/node-pg-cursor/) [repos](https://github.com/brianc/node-pg-pool) into the main [repo](https://github.com/brianc/node-postgres) and converted it into a monorepo managed by lerna. This will help me stay on top of issues better (it was hard to bounce between 3-4 separate repos) and coordinate bug fixes and changes between dependant modules.
 
-While not technically a breaking change for the module itself, I have begun the process of [consolidating](https://github.com/brianc/node-pg-query-stream) [separate](https://github.com/brianc/node-pg-cursor/) [repos](https://github.com/brianc/node-pg-pool) into the main [repo](https://github.com/brianc/node-postgres) and converted it into a monorepo managed by lerna.  This will help me stay on top of issues better (it was hard to bounce between 3-4 separate repos) and coordinate bug fixes and changes between dependant modules.
+Thanks for reading that! pg tries to be super pedantic about not breaking backwards-compatibility in non semver major releases....even for seemingly small things. If you ever notice a breaking change on a semver minor/patch release please stop by the [repo](https://github.com/brianc/node-postgres) and open an issue!
 
-Thanks for reading that!  pg tries to be super pedantic about not breaking backwards-compatibility in non semver major releases....even for seemingly small things.  If you ever notice a breaking change on a semver minor/patch release please stop by the [repo](https://github.com/brianc/node-postgres) and open an issue!
-
-_If you find `pg` valuable to you or your business please consider [supporting](http://github.com/sponsors/brianc) it's continued development!  Big performance improvements, typescript, better docs, query pipelining and more are all in the works!_
+_If you find `pg` valuable to you or your business please consider [supporting](http://github.com/sponsors/brianc) it's continued development! Big performance improvements, typescript, better docs, query pipelining and more are all in the works!_
 
 ## 2019-07-18
 
 ### New documentation
 
-After a _very_ long time on my todo list I've ported the docs from my old hand-rolled webapp running on route53 + elb + ec2 + dokku (I know, I went overboard!) to [gatsby](https://www.gatsbyjs.org/) hosted on [netlify](https://www.netlify.com/) which is _so_ much easier to manage.  I've released the code at [https://github.com/brianc/node-postgres-docs](https://github.com/brianc/node-postgres-docs) and invite your contributions! Let's make this documentation better together.  Any time changes are merged to master on the documentation repo it will automatically deploy. 
+After a _very_ long time on my todo list I've ported the docs from my old hand-rolled webapp running on route53 + elb + ec2 + dokku (I know, I went overboard!) to [gatsby](https://www.gatsbyjs.org/) hosted on [netlify](https://www.netlify.com/) which is _so_ much easier to manage. I've released the code at [https://github.com/brianc/node-postgres-docs](https://github.com/brianc/node-postgres-docs) and invite your contributions! Let's make this documentation better together. Any time changes are merged to master on the documentation repo it will automatically deploy.
 
 If you see an error in the docs, big or small, use the "edit on github" button to edit the page & submit a pull request right there. I'll get a new version out ASAP with your changes! If you want to add new pages of documentation open an issue if you need guidance, and I'll help you get started.
 

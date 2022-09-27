@@ -1,15 +1,15 @@
 // theme.config.js
 export default {
-  projectLink: 'https://github.com/shuding/nextra', // GitHub link in the navbar
-  docsRepositoryBase: 'https://github.com/shuding/nextra/blob/master', // base URL for the docs repository
-  titleSuffix: ' – Nextra',
+  projectLink: 'https://github.com/brianc/node-postgres', // GitHub link in the navbar
+  docsRepositoryBase: 'https://github.com/brianc/node-postgres/blob/master', // base URL for the docs repository
+  titleSuffix: ' – node-postgres',
   nextLinks: true,
   prevLinks: true,
   search: true,
   customSearch: null, // customizable, you can use algolia for example
   darkMode: true,
   footer: true,
-  footerText: `MIT ${new Date().getFullYear()} © Shu Ding.`,
+  footerText: `MIT ${new Date().getFullYear()} © Brian Carlson.`,
   footerEditLink: `Edit this page on GitHub`,
   logo: (
     <>

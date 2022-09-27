@@ -35,8 +35,8 @@ cursor.read(100, (err, rows) => {
 })
 ```
 
-```
-interface CursorQueryConfig {
+```ts
+type CursorQueryConfig {
   // by default rows come out as a key/value pair for each row
   // pass the string 'array' here to receive rows as an array of values
   rowMode?: string;

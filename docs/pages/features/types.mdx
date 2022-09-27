@@ -1,7 +1,8 @@
 ---
 title: Data Types
-slug: /features/types
 ---
+
+import { Alert } from '/components/alert.tsx'
 
 PostgreSQL has a rich system of supported [data types](https://www.postgresql.org/docs/9.5/static/datatype.html). node-postgres does its best to support the most common data types out of the box and supplies an extensible type parser to allow for custom type serialization and parsing.
 
@@ -83,7 +84,7 @@ console.log(result.rows)
 
 psql output:
 
-```psql
+```
 bmc=# select * from dates;
   date_col  |      timestamp_col      |      timestamptz_col
 ------------+-------------------------+----------------------------
@@ -95,8 +96,11 @@ node-postgres converts `DATE` and `TIMESTAMP` columns into the **local** time of
 
 _note: I generally use `TIMESTAMPTZ` when storing dates; otherwise, inserting a time from a process in one timezone and reading it out in a process in another timezone can cause unexpected differences in the time._
 
-<div class='message is-warning'>
-  <div class='message-body'>
-    Although PostgreSQL supports microseconds in dates, JavaScript only supports dates to the millisecond precision.  Keep this in mind when you send dates to and from PostgreSQL from node: your microseconds will be truncated when converting to a JavaScript date object even if they exist in the database.  If you need to preserve them, I recommend using a custom type parser.
+<Alert>
+  <div class="message-body">
+    Although PostgreSQL supports microseconds in dates, JavaScript only supports dates to the millisecond precision.
+    Keep this in mind when you send dates to and from PostgreSQL from node: your microseconds will be truncated when
+    converting to a JavaScript date object even if they exist in the database. If you need to preserve them, I recommend
+    using a custom type parser.
   </div>
-</div>
+</Alert>

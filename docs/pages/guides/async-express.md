@@ -1,6 +1,5 @@
 ---
 title: Express with async/await
-slug: /guides/async-express
 ---
 
 My preferred way to use node-postgres (and all async code in node.js) is with `async/await`. I find it makes reasoning about control-flow easier and allows me to write more concise and maintainable code.
@@ -61,7 +60,7 @@ Then in my `routes/index.js` file I'll have something like this which mounts eac
 const users = require('./user')
 const photos = require('./photos')
 
-module.exports = app => {
+module.exports = (app) => {
   app.use('/users', users)
   app.use('/photos', photos)
   // etc..

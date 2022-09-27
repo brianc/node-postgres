@@ -1,6 +1,5 @@
 ---
 title: Suggested Project Structure
-slug: /guides/project-structure
 ---
 
 Whenever I am writing a project & using node-postgres I like to create a file within it and make all interactions with the database go through this file. This serves a few purposes:
@@ -81,7 +80,7 @@ module.exports = {
 
 That was pretty quick! And now all of our queries everywhere in our application are being logged.
 
-_note: I didn't log the query parameters.  Depending on your application you might be storing encrypted passwords or other sensitive information in your database.  If you log your query parameters you might accidentally log sensitive information.  Every app is different though so do what suits you best!_
+_note: I didn't log the query parameters. Depending on your application you might be storing encrypted passwords or other sensitive information in your database. If you log your query parameters you might accidentally log sensitive information. Every app is different though so do what suits you best!_
 
 Now what if we need to check out a client from the pool to run several queries in a row in a transaction? We can add another method to our `db/index.js` file when we need to do this:
 
@@ -103,7 +102,7 @@ module.exports = {
     pool.connect((err, client, done) => {
       callback(err, client, done)
     })
-  }
+  },
 }
 ```
 
@@ -152,13 +151,13 @@ module.exports = {
 
       callback(err, client, release)
     })
-  }
+  },
 }
 ```
 
 Using async/await:
 
-```
+```js
 module.exports = {
   async query(text, params) {
     const start = Date.now()
@@ -191,7 +190,8 @@ module.exports = {
       return release.apply(client)
     }
     return client
-  }
+  },
 }
 ```
+
 That should hopefully give us enough diagnostic information to track down any leaks.
