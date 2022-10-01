@@ -24,7 +24,7 @@
     "eslint-config-prettier": "^6.12.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.4",
-    "lerna": "^3.19.0",
+    "lerna": "^5.5.4",
     "prettier": "2.7.1",
     "typescript": "^4.0.3"
   },
