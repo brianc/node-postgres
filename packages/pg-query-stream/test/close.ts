@@ -106,7 +106,11 @@ if (process.version.startsWith('v8.')) {
       await assert.rejects(() => pool.query('SELECT TRUE'), { message: 'timeout exceeded when trying to connect' });
 
       await stream.destroy();
-      if(process.env.WAIT_AFTER_CLOSE) await new Promise(resolve => setTimeout(resolve, 100));
+      if(process.env.WAIT_AFTER_CLOSE === '1') await new Promise(resolve => setTimeout(resolve, 100));
+
+      if(process.env.WAIT_AFTER_CLOSE === '2') {
+        await new Promise(resolve => stream.once('close', resolve));
+      }
 
       await client.release();
 

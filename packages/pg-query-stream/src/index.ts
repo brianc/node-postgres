@@ -45,7 +45,8 @@ class QueryStream extends Readable implements Submittable {
   }
 
   public _destroy(_err: Error, cb: Function) {
-    this.cursor.close((err?: Error) => {
+    this.cursor.close(async (err?: Error) => {
+      if(process.env.WAIT_AFTER_CLOSE === '2') await new Promise(resolve => setTimeout(resolve, 100));
       cb(err || _err)
     })
   }
