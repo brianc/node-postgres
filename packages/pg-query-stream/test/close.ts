@@ -110,6 +110,8 @@ if (process.version.startsWith('v8.')) {
 
       const res2 = await pool.query('SELECT TRUE');
       assert.deepStrictEqual(res2.rows, [ { bool:true } ]);
+
+      await pool.end();
     })
   })
 }
