@@ -93,7 +93,7 @@ if (process.version.startsWith('v8.')) {
   })
 
   describe('use after error', () => {
-    it('should work if used after error', async () => {
+    it.only('should work if used after error', async () => {
       const pool = new pg.Pool({ max: 1, connectionTimeoutMillis: 400, statement_timeout: 400 });
 
       const res1 = await pool.query('SELECT TRUE');
