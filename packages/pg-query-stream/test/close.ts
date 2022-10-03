@@ -1,5 +1,6 @@
 import assert from 'assert'
 import concat from 'concat-stream'
+import pg from 'pg'
 import QueryStream from '../src'
 import helper from './helper'
 
@@ -88,6 +89,27 @@ if (process.version.startsWith('v8.')) {
       stream.on('data', () => done(new Error('stream should not have returned rows')))
       stream.destroy()
       stream.on('close', done)
+    })
+  })
+
+  describe('use after error', () => {
+    it('should work if used after error', async () => {
+      const pool = new pg.Pool({ max: 1, connectionTimeoutMillis: 400, statement_timeout: 400 });
+
+      const res1 = await pool.query('SELECT TRUE');
+      assert.deepStrictEqual(res1.rows, [ { bool:true } ]);
+
+      const query = new QueryStream('SELECT TRUE');
+      const client = await pool.connect();
+      const stream = await client.query(query);
+
+      await assert.rejects(() => pool.query('SELECT TRUE'), { message: 'timeout exceeded when trying to connect' });
+
+      await stream.destroy();
+      await client.release();
+
+      const res2 = await pool.query('SELECT TRUE');
+      assert.deepStrictEqual(res2.rows, [ { bool:true } ]);
     })
   })
 }
