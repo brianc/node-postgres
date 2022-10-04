@@ -364,7 +364,7 @@ class Client extends EventEmitter {
     // if a prepared statement has a name and properly parses
     // we track that its already been executed so we don't parse
     // it again on the same client
-    if (this.activeQuery.name) {
+    if (this.activeQuery?.name) {
       this.connection.parsedStatements[this.activeQuery.name] = this.activeQuery.text
     }
   }
