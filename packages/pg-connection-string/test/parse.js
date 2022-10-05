@@ -317,4 +317,10 @@ describe('parse', function () {
     var subject = parse(connectionString)
     subject.keepalives.should.equal('0')
   })
+
+  it('use the port specified in the query parameters', function () {
+    var connectionString = 'postgres:///?host=localhost&port=1234'
+    var subject = parse(connectionString)
+    subject.port.should.equal('1234')
+  })
 })

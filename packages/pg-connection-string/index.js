@@ -31,7 +31,6 @@ function parse(str) {
   config.user = auth[0]
   config.password = auth.splice(1).join(':')
 
-  config.port = result.port
   if (result.protocol == 'socket:') {
     config.host = decodeURI(result.pathname)
     config.database = result.query.db
@@ -41,6 +40,10 @@ function parse(str) {
   if (!config.host) {
     // Only set the host if there is no equivalent query param.
     config.host = result.hostname
+  }
+  if (!config.port) {
+    // Only set the port if there is no equivalent query param.
+    config.port = result.port
   }
 
   // If the host is missing it might be a URL-encoded path to a socket.
