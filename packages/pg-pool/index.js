@@ -331,7 +331,7 @@ class Pool extends EventEmitter {
     client._poolUseCount = (client._poolUseCount || 0) + 1
 
     // TODO(bmc): expose a proper, public interface _queryable and _ending
-    if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
+    if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses || client?.activeQuery?.cursor) {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
