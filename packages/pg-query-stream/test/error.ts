@@ -89,4 +89,58 @@ describe('error recovery', () => {
       await client.end()
     })
   })
+
+  it.only('should work if used after timeout error', async () => {
+    const pool = new Pool({ max: 1, connectionTimeoutMillis: 400, statement_timeout: 400 });
+
+    const res1 = await pool.query('SELECT 1 AS a');
+    assert.deepStrictEqual(res1.rows, [ { a:1 } ]);
+
+    const query = new QueryStream('SELECT 2 AS b');
+    const client = await pool.connect();
+    const stream = await client.query(query);
+
+    await assert.rejects(() => pool.query('SELECT TRUE'), { message: 'timeout exceeded when trying to connect' });
+
+    await stream.destroy();
+    if(process.env.WAIT_AFTER_CLOSE === '1') await new Promise(resolve => setTimeout(resolve, 100));
+
+    if(process.env.WAIT_AFTER_CLOSE === '2') {
+      await new Promise(resolve => stream.once('close', resolve));
+    }
+
+    await client.release();
+
+    const res2 = await pool.query('SELECT 4 AS d');
+    assert.deepStrictEqual(res2.rows, [ { d:4 } ]);
+
+    await pool.end();
+  })
+
+  it.only('should work if used after syntax error', async () => {
+    const pool = new Pool({ max: 1, statement_timeout: 1 }); // statement_timeout is required here, so maybe this is just another timeout error?
+
+    const res1 = await pool.query('SELECT 1 AS a');
+    assert.deepStrictEqual(res1.rows, [ { a:1 } ]);
+
+    const query = new QueryStream('SELECT 2 AS b');
+    const client = await pool.connect();
+    const stream = await client.query(query);
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    await stream.destroy();
+    if(process.env.WAIT_AFTER_CLOSE === '1') await new Promise(resolve => setTimeout(resolve, 100));
+
+    if(process.env.WAIT_AFTER_CLOSE === '2') {
+      await new Promise(resolve => stream.once('close', resolve));
+    }
+
+    await client.release();
+
+    const res2 = await pool.query('SELECT 4 AS d');
+    assert.deepStrictEqual(res2.rows, [ { d:4 } ]);
+
+    await pool.end();
+  })
 })
