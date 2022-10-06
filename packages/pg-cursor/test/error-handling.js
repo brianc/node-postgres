@@ -64,6 +64,39 @@ describe('read callback does not fire sync', () => {
     })
     after = true
   })
+
+  it('should fire for every listener', (done) => {
+    const client = new pg.Client()
+    client.connect()
+    const cursor = client.query(new Cursor('SYNTAX ERROR?  YOU BET!'))
+    const callbackCounts = [0, 0, 0, 0, 0];
+    cursor.read(1, err => {
+      ++callbackCounts[0];
+      assert.strictEqual(err.message, 'syntax error at or near "SYNTAX"');
+    })
+    cursor.read(1, err => {
+      ++callbackCounts[1];
+      assert.strictEqual(err.message, 'syntax error at or near "SYNTAX"');
+    })
+    cursor.read(1, err => {
+      ++callbackCounts[2];
+      assert.strictEqual(err.message, 'syntax error at or near "SYNTAX"');
+    })
+    cursor.read(1, err => {
+      ++callbackCounts[3];
+      assert.strictEqual(err.message, 'syntax error at or near "SYNTAX"');
+    })
+    cursor.read(1, err => {
+      ++callbackCounts[4];
+      assert.strictEqual(err.message, 'syntax error at or near "SYNTAX"');
+    })
+    setTimeout(() => {
+      assert.deepStrictEqual(callbackCounts, [1, 1, 1, 1, 1], 'all callbacks should be called exactly once')
+      assert.deepStrictEqual(cursor._queue, [], 'should empty the queue')
+      client.end()
+      done()
+    }, 100);
+  })
 })
 
 describe('proper cleanup', function () {

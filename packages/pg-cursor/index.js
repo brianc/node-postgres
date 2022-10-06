@@ -171,8 +171,9 @@ class Cursor extends EventEmitter {
     }
     // dispatch error to all waiting callbacks
     for (let i = 0; i < this._queue.length; i++) {
-      this._queue.pop()[1](msg)
+      this._queue[i][1](msg)
     }
+    this._queue.length = 0
 
     if (this.listenerCount('error') > 0) {
       // only dispatch error events if we have a listener
