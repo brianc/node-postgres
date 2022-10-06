@@ -118,7 +118,7 @@ describe('error recovery', () => {
   })
 
   it.only('should work if used after syntax error', async () => {
-    const pool = new Pool({ max: 1, statement_timeout: 1 }); // statement_timeout is required here, so maybe this is just another timeout error?
+    const pool = new Pool({ max: 1, statement_timeout: 100 }); // statement_timeout is required here, so maybe this is just another timeout error?
 
     const res1 = await pool.query('SELECT 1 AS a');
     assert.deepStrictEqual(res1.rows, [ { a:1 } ]);
