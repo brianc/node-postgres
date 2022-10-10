@@ -31,7 +31,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.13",
     "@types/mocha": "^8.0.3",
-    "@types/node": "^14.0.0",
+    "@types/node": "^18.8.3",
     "@types/pg": "^7.14.5",
     "JSONStream": "~0.7.1",
     "concat-stream": "~1.0.1",
