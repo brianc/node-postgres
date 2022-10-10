@@ -1,0 +1,27 @@
+---
+title: Native Bindings
+slug: /features/native
+metaTitle: bar
+---
+
+Native bindings between node.js & [libpq](https://www.postgresql.org/docs/9.5/static/libpq.html) are provided by the [node-pg-native](https://github.com/brianc/node-pg-native) package. node-postgres can consume this package & use the native bindings to access the PostgreSQL server while giving you the same interface that is used with the JavaScript version of the library.
+
+To use the native bindings first you'll need to install them:
+
+```sh
+$ npm install pg pg-native
+```
+
+Once `pg-native` is installed instead of requiring a `Client` or `Pool` constructor from `pg` you do the following:
+
+```js
+const { Client, Pool } = require('pg').native
+```
+
+When you access the `.native` property on `require('pg')` it will automatically require the `pg-native` package and wrap it in the same API.
+
+<div class='alert alert-warning'>
+  Care has been taken to normalize between the two, but there might still be edge cases where things behave subtly differently due to the nature of using libpq over handling the binary protocol directly in JavaScript, so it's recommended you chose to either use the JavaScript driver or the native bindings both in development and production.  For what its worth: I use the pure JavaScript driver because the JavaScript driver is more portable (doesn't need a compiler), and the pure JavaScript driver is <em>plenty</em> fast.
+</div>
+
+Some of the modules using advanced features of PostgreSQL such as [pg-query-stream](https://github.com/brianc/node-pg-query-stream), [pg-cursor](https://github.com/brianc/node-pg-cursor),and [pg-copy-streams](https://github.com/brianc/node-pg-copy-streams) need to operate directly on the binary stream and therefore are incompatible with the native bindings.

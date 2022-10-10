@@ -1,0 +1,145 @@
+import { Alert } from '/components/alert.tsx'
+
+## 2020-02-25
+
+### pg@8.0 release
+
+`pg@8.0` is [being released](https://github.com/brianc/node-postgres/pull/2117) which contains a handful of breaking changes.
+
+I will outline each breaking change here and try to give some historical context on them. Most of them are small and subtle and likely wont impact you; **however**, there is one larger breaking change you will likely run into:
+
+---
+
+- Support all `tls.connect` [options](https://nodejs.org/api/tls.html#tls_tls_connect_options_callback) being passed to the client/pool constructor under the `ssl` option.
+
+Previously we white listed the parameters passed here and did slight massaging of some of them. The main **breaking** change here is that now if you do this:
+
+```js
+const client = new Client({ ssl: true })
+```
+
+<Alert>
+  Now we will use the default ssl options to tls.connect which includes rejectUnauthorized being enabled. This means
+  your connection attempt may fail if you are using a self-signed cert. To use the old behavior you should do this:
+</Alert>
+
+```js
+const client = new Client({ ssl: { rejectUnauthorized: false } })
+```
+
+This makes pg a bit more secure "out of the box" while still enabling you to opt in to the old behavior.
+
+---
+
+The rest of the changes are relatively minor & you likely wont need to do anything, but good to be aware none the less!
+
+- change default database name
+
+If a database name is not specified, available in the environment at `PGDATABASE`, or available at `pg.defaults`, we used to use the username of the process user as the name of the database. Now we will use the `user` property supplied to the client as the database name, if it exists. What this means is this:
+
+```jsx
+new Client({
+  user: 'foo',
+})
+```
+
+`pg@7.x` will default the database name to the _process_ user. `pg@8.x` will use the `user` property supplied to the client. If you have not supplied `user` to the client, and it isn't available through any of its existing lookup mechanisms (environment variables, pg.defaults) then it will still use the process user for the database name.
+
+- drop support for versions of node older than 8.0
+
+Node@6.0 has been out of LTS for quite some time now, and I've removed it from our test matrix. `pg@8.0` _may_ still work on older versions of node, but it isn't a goal of the project anymore. Node@8.0 is actually no longer in the LTS support line, but pg will continue to test against and support 8.0 until there is a compelling reason to drop support for it. Any security vulnerability issues which come up I will back-port fixes to the `pg@7.x` line and do a release, but any other fixes or improvments will not be back ported.
+
+- prevent password from being logged accidentally
+
+`pg@8.0` makes the password field on the pool and client non-enumerable. This means when you do `console.log(client)` you wont have your database password printed out unintenionally. You can still do `console.log(client.password)` if you really want to see it!
+
+- make `pg.native` non-enumerable
+
+You can use `pg.native.Client` to access the native client. The first time you access the `pg.native` getter it imports the native bindings...which must be installed. In some cases (such as webpacking the pg code for lambda deployment) the `.native` property would be traversed and trigger an import of the native bindings as a side-effect. Making this property non-enumerable will fix this issue. An easy fix, but its technically a breaking change in cases where people _are_ relying on this side effect for any reason.
+
+- make `pg.Pool` an es6 class
+
+This makes extending `pg.Pool` possible. Previously it was not a "proper" es6 class and `class MyPool extends pg.Pool` wouldn't work.
+
+- make `Notice` messages _not_ an instance of a JavaScript error
+
+The code path for parsing `notice` and `error` messages from the postgres backend is the same. Previously created a JavaScript `Error` instance for _both_ of these message types. Now, only actual `errors` from the postgres backend will be an instance of an `Error`. The _shape_ and _properties_ of the two messages did not change outside of this.
+
+- monorepo
+
+While not technically a breaking change for the module itself, I have begun the process of [consolidating](https://github.com/brianc/node-pg-query-stream) [separate](https://github.com/brianc/node-pg-cursor/) [repos](https://github.com/brianc/node-pg-pool) into the main [repo](https://github.com/brianc/node-postgres) and converted it into a monorepo managed by lerna. This will help me stay on top of issues better (it was hard to bounce between 3-4 separate repos) and coordinate bug fixes and changes between dependant modules.
+
+Thanks for reading that! pg tries to be super pedantic about not breaking backwards-compatibility in non semver major releases....even for seemingly small things. If you ever notice a breaking change on a semver minor/patch release please stop by the [repo](https://github.com/brianc/node-postgres) and open an issue!
+
+_If you find `pg` valuable to you or your business please consider [supporting](http://github.com/sponsors/brianc) it's continued development! Big performance improvements, typescript, better docs, query pipelining and more are all in the works!_
+
+## 2019-07-18
+
+### New documentation
+
+After a _very_ long time on my todo list I've ported the docs from my old hand-rolled webapp running on route53 + elb + ec2 + dokku (I know, I went overboard!) to [gatsby](https://www.gatsbyjs.org/) hosted on [netlify](https://www.netlify.com/) which is _so_ much easier to manage. I've released the code at [https://github.com/brianc/node-postgres-docs](https://github.com/brianc/node-postgres-docs) and invite your contributions! Let's make this documentation better together. Any time changes are merged to master on the documentation repo it will automatically deploy.
+
+If you see an error in the docs, big or small, use the "edit on github" button to edit the page & submit a pull request right there. I'll get a new version out ASAP with your changes! If you want to add new pages of documentation open an issue if you need guidance, and I'll help you get started.
+
+I want to extend a special **thank you** to all the [supporters](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md) and [contributors](https://github.com/brianc/node-postgres/graphs/contributors) to the project that have helped keep me going through times of burnout or life "getting in the way." ❤️
+
+It's been quite a journey, and I look forward continuing it for as long as I can provide value to all y'all. 🤠
+
+## 2017-08-12
+
+### code execution vulnerability
+
+Today [@sehrope](https://github.com/sehrope) found and reported a code execution vulnerability in node-postgres. This affects all versions from `pg@2.x` through `pg@7.1.0`.
+
+I have published a fix on the tip of each major version branch of all affected versions as well as a fix on each minor version branch of `pg@6.x` and `pg@7.x`:
+
+### Fixes
+
+The following versions have been published to npm & contain a patch to fix the vulnerability:
+
+```
+pg@2.11.2
+pg@3.6.4
+pg@4.5.7
+pg@5.2.1
+pg@6.0.5
+pg@6.1.6
+pg@6.2.5
+pg@6.3.3
+pg@6.4.2
+pg@7.0.3
+pg@7.1.2
+```
+
+### Example
+
+To demonstrate the issue & see if you are vunerable execute the following in node:
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+client.connect()
+
+const sql = `SELECT 1 AS "\\'/*", 2 AS "\\'*/\n + console.log(process.env)] = null;\n//"`
+
+client.query(sql, (err, res) => {
+  client.end()
+})
+```
+
+You will see your environment variables printed to your console. An attacker can use this exploit to execute any arbitrary node code within your process.
+
+### Impact
+
+This vulnerability _likely_ does not impact you if you are connecting to a database you control and not executing user-supplied sql. Still, you should **absolutely** upgrade to the most recent patch version as soon as possible to be safe.
+
+Two attack vectors we quickly thought of:
+
+- 1 - executing unsafe, user-supplied sql which contains a malicious column name like the one above.
+- 2 - connecting to an untrusted database and executing a query which returns results where any of the column names are malicious.
+
+### Support
+
+I have created [an issue](https://github.com/brianc/node-postgres/issues/1408) you can use to discuss the vulnerability with me or ask questions, and I have reported this issue [on twitter](https://twitter.com/briancarlson) and directly to Heroku and [nodesecurity.io](https://nodesecurity.io/).
+
+I take security very seriously. If you or your company benefit from node-postgres **[please sponsor my work](https://www.patreon.com/node_postgres)**: this type of issue is one of the many things I am responsible for, and I want to be able to continue to tirelessly provide a world-class PostgreSQL experience in node for years to come.

@@ -1,0 +1,106 @@
+---
+title: Data Types
+---
+
+import { Alert } from '/components/alert.tsx'
+
+PostgreSQL has a rich system of supported [data types](https://www.postgresql.org/docs/9.5/static/datatype.html). node-postgres does its best to support the most common data types out of the box and supplies an extensible type parser to allow for custom type serialization and parsing.
+
+## strings by default
+
+node-postgres will convert a database type to a JavaScript string if it doesn't have a registered type parser for the database type. Furthermore, you can send any type to the PostgreSQL server as a string and node-postgres will pass it through without modifying it in any way. To circumvent the type parsing completely do something like the following.
+
+```js
+const queryText = 'SELECT int_col::text, date_col::text, json_col::text FROM my_table'
+const result = await client.query(queryText)
+
+console.log(result.rows[0]) // will contain the unparsed string value of each column
+```
+
+## type parsing examples
+
+### uuid + json / jsonb
+
+There is no data type in JavaScript for a uuid/guid so node-postgres converts a uuid to a string. JavaScript has great support for JSON and node-postgres converts json/jsonb objects directly into their JavaScript object via [`JSON.parse`](https://github.com/brianc/node-pg-types/blob/master/lib/textParsers.js#L193). Likewise sending an object to the PostgreSQL server via a query from node-postgres, node-posgres will call [`JSON.stringify`](https://github.com/brianc/node-postgres/blob/e5f0e5d36a91a72dda93c74388ac890fa42b3be0/lib/utils.js#L47) on your outbound value, automatically converting it to json for the server.
+
+```js
+const createTableText = `
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TEMP TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  data JSONB
+);
+`
+// create our temp table
+await client.query(createTableText)
+
+const newUser = { email: 'brian.m.carlson@gmail.com' }
+// create a new user
+await client.query('INSERT INTO users(data) VALUES($1)', [newUser])
+
+const { rows } = await client.query('SELECT * FROM users')
+
+console.log(rows)
+/*
+output:
+[{
+  id: 'd70195fd-608e-42dc-b0f5-eee975a621e9',
+  data: { email: 'brian.m.carlson@gmail.com' }
+}]
+*/
+```
+
+### date / timestamp / timestamptz
+
+node-postgres will convert instances of JavaScript date objects into the expected input value for your PostgreSQL server. Likewise, when reading a `date`, `timestamp`, or `timestamptz` column value back into JavaScript, node-postgres will parse the value into an instance of a JavaScript `Date` object.
+
+```js
+const createTableText = `
+CREATE TEMP TABLE dates(
+  date_col DATE,
+  timestamp_col TIMESTAMP,
+  timestamptz_col TIMESTAMPTZ
+);
+`
+// create our temp table
+await client.query(createTableText)
+
+// insert the current time into it
+const now = new Date()
+const insertText = 'INSERT INTO dates(date_col, timestamp_col, timestamptz_col) VALUES ($1, $2, $3)'
+await client.query(insertText, [now, now, now])
+
+// read the row back out
+const result = await client.query('SELECT * FROM dates')
+
+console.log(result.rows)
+// {
+// date_col: 2017-05-29T05:00:00.000Z,
+// timestamp_col: 2017-05-29T23:18:13.263Z,
+// timestamptz_col: 2017-05-29T23:18:13.263Z
+// }
+```
+
+psql output:
+
+```
+bmc=# select * from dates;
+  date_col  |      timestamp_col      |      timestamptz_col
+------------+-------------------------+----------------------------
+ 2017-05-29 | 2017-05-29 18:18:13.263 | 2017-05-29 18:18:13.263-05
+(1 row)
+```
+
+node-postgres converts `DATE` and `TIMESTAMP` columns into the **local** time of the node process set at `process.env.TZ`.
+
+_note: I generally use `TIMESTAMPTZ` when storing dates; otherwise, inserting a time from a process in one timezone and reading it out in a process in another timezone can cause unexpected differences in the time._
+
+<Alert>
+  <div class="message-body">
+    Although PostgreSQL supports microseconds in dates, JavaScript only supports dates to the millisecond precision.
+    Keep this in mind when you send dates to and from PostgreSQL from node: your microseconds will be truncated when
+    converting to a JavaScript date object even if they exist in the database. If you need to preserve them, I recommend
+    using a custom type parser.
+  </div>
+</Alert>

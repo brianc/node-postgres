@@ -1,0 +1,81 @@
+---
+title: pg.Cursor
+slug: /api/cursor
+---
+
+A cursor can be used to efficiently read through large result sets without loading the entire result-set into memory ahead of time. It's useful to simulate a 'streaming' style read of data, or exit early from a large result set. The cursor is passed to `client.query` and is dispatched internally in a way very similar to how normal queries are sent, but the API it presents for consuming the result set is different.
+
+## install
+
+```
+$ npm install pg pg-cursor
+```
+
+## constructor
+
+### `new Cursor(text: String, values: Any[][, config: CursorQueryConfig])`
+
+Instantiates a new Cursor. A cursor is an instance of `Submittable` and should be passed directly to the `client.query` method.
+
+```js
+const { Pool } = require('pg')
+const Cursor = require('pg-cursor')
+
+const pool = new Pool()
+const client = await pool.connect()
+const text = 'SELECT * FROM my_large_table WHERE something > $1'
+const values = [10]
+
+const cursor = client.query(new Cursor(text, values))
+
+cursor.read(100, (err, rows) => {
+  cursor.close(() => {
+    client.release()
+  })
+})
+```
+
+```ts
+type CursorQueryConfig {
+  // by default rows come out as a key/value pair for each row
+  // pass the string 'array' here to receive rows as an array of values
+  rowMode?: string;
+
+  // custom type parsers just for this query result
+  types?: Types;
+}
+```
+
+## read
+
+### `cursor.read(rowCount: Number, callback: (err: Error, rows: Row[], result: pg.Result) => void) => void`
+
+Read `rowCount` rows from the cursor instance. The callback will be called when the rows are available, loaded into memory, parsed, and converted to JavaScript types.
+
+If the cursor has read to the end of the result sets all subsequent calls to cursor#read will return a 0 length array of rows. Calling `read` on a cursor that has read to the end.
+
+Here is an example of reading to the end of a cursor:
+
+```js
+const { Pool } = require('pg')
+const Cursor = require('pg-cursor')
+
+const pool = new Pool()
+const client = await pool.connect()
+const cursor = client.query(new Cursor('select * from generate_series(0, 5)'))
+cursor.read(100, (err, rows) => {
+  if (err) {
+    throw err
+  }
+  assert(rows.length == 6)
+  cursor.read(100, (err, rows) => {
+    assert(rows.length == 0)
+  })
+})
+```
+
+## close
+
+### `cursor.close(callback: () => void) => void`
+
+Used to close the cursor early. If you want to stop reading from the cursor before you get all of the rows returned, call this.
