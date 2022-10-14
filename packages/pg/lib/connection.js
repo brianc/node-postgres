@@ -173,7 +173,6 @@ class Connection extends EventEmitter {
 
   sync() {
     this._ending = true
-    this._send(flushBuffer)
     this._send(syncBuffer)
   }
 
