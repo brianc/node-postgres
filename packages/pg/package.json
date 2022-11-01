@@ -25,7 +25,7 @@
     "pg-connection-string": "^2.5.0",
     "pg-pool": "^3.5.2",
     "pg-protocol": "^1.5.0",
-    "pg-types": "^2.1.0",
+    "pg-types": "^4.0.0",
     "pgpass": "1.x"
   },
   "devDependencies": {
