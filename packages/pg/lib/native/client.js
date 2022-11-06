@@ -3,7 +3,6 @@
 // eslint-disable-next-line
 var Native = require('pg-native')
 var TypeOverrides = require('../type-overrides')
-var pkg = require('../../package.json')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
 var ConnectionParameters = require('../connection-parameters')
