@@ -4,6 +4,8 @@ const crypto = require('crypto')
 
 const defaults = require('./defaults')
 
+const util = require('util')
+
 function escapeElement(elementRepresentation) {
   var escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
@@ -52,7 +54,7 @@ var prepareValue = function (val, seen) {
     }
     return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
   }
-  if (val instanceof Date) {
+  if (util.types.isDate(val)) {
     if (defaults.parseInputDatesAsUTC) {
       return dateToStringUTC(val)
     } else {
