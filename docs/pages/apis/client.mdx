@@ -41,8 +41,6 @@ const client = new Client({
 
 ## client.connect
 
-### `client.connect(callback: (err: Error) => void) => void`
-
 Calling `client.connect` with a callback:
 
 ```js
@@ -56,8 +54,6 @@ client.connect((err) => {
   }
 })
 ```
-
-### `client.connect() => Promise<void>`
 
 Calling `client.connect` without a callback yields a promise:
 
@@ -74,19 +70,35 @@ _note: connect returning a promise only available in pg@7.0 or above_
 
 ## client.query
 
-### `client.query` - text, optional values, and callback.
+### QueryConfig
 
-Passing query text, optional query parameters, and a callback to `client.query` results in a type-signature of:
+You can pass an object to `client.query` with the signature of:
 
 ```ts
-client.query(
-  text: string,
-  values?: Array<any>,
-  callback: (err: Error, result: Result) => void
-) => void
+type QueryConfig {
+  // the raw query text
+  text: string;
+
+  // an array of query parameters
+  values?: Array<any>;
+
+  // name of the query - used for prepared statements
+  name?: string;
+
+  // by default rows come out as a key/value pair for each row
+  // pass the string 'array' here to receive rows as an array of values
+  rowMode?: string;
+
+  // custom type parsers just for this query result
+  types?: Types;
+}
 ```
 
-That is a kinda gross type signature but it translates out to this:
+### callback API
+
+```ts
+client.query(text: string, values?: any[], callback?: (err: Error, result: QueryResult) => void) => void
+```
 
 **Plain text query with a callback:**
 
@@ -114,15 +126,12 @@ client.query('SELECT $1::text as name', ['brianc'], (err, res) => {
 })
 ```
 
-### `client.query` - text, optional values: Promise
+### Promise API
 
 If you call `client.query` with query text and optional parameters but **don't** pass a callback, then you will receive a `Promise` for a query result.
 
 ```ts
-client.query(
-  text: string,
-  values?: Array<any>
-) => Promise<Result>
+client.query(text: string, values?: any[]) => Promise<Result>
 ```
 
 **Plain text query with a promise**
@@ -151,30 +160,8 @@ client
   .then(() => client.end())
 ```
 
-### `client.query(config: QueryConfig, callback: (err?: Error, result?: Result) => void) => void`
-
-### `client.query(config: QueryConfig) => Promise<Result>`
-
-You can pass an object to `client.query` with the signature of:
-
 ```ts
-type QueryConfig {
-  // the raw query text
-  text: string;
-
-  // an array of query parameters
-  values?: Array<any>;
-
-  // name of the query - used for prepared statements
-  name?: string;
-
-  // by default rows come out as a key/value pair for each row
-  // pass the string 'array' here to receive rows as an array of values
-  rowMode?: string;
-
-  // custom type parsers just for this query result
-  types?: Types;
-}
+client.query(config: QueryConfig) => Promise<Result>
 ```
 
 **client.query with a QueryConfig and a callback**
@@ -246,8 +233,6 @@ query.on('error', (err) => {
 
 ## client.end
 
-### client.end(cb?: (err?: Error) => void) => void
-
 Disconnects the client from the PostgreSQL server.
 
 ```js
@@ -258,8 +243,6 @@ client.end((err) => {
   }
 })
 ```
-
-### `client.end() => Promise<void>`
 
 Calling end without a callback yields a promise:
 
@@ -274,7 +257,11 @@ _note: end returning a promise is only available in pg7.0 and above_
 
 ## events
 
-### client.on('error', (err: Error) => void) => void
+### error
+
+```ts
+client.on('error', (err: Error) => void) => void
+```
 
 When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and foward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` callback/promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
 
@@ -291,11 +278,15 @@ client.on('error', (err) => {
 // process output: 'something bad has happened!' followed by stacktrace :P
 ```
 
-### client.on('end') => void
+### end
+
+```ts
+client.on('end') => void
+```
 
 When the client disconnects from the PostgreSQL server it will emit an end event once.
 
-### client.on('notification', (notification: Notification) => void) => void
+### notification
 
 Used for `listen/notify` events:
 
@@ -321,7 +312,11 @@ client.on('notification', (msg) => {
 client.query(`NOTIFY foo, 'bar!'`)
 ```
 
-### client.on('notice', (notice: Error) => void) => void
+### notice
+
+```ts
+client.on('notice', (notice: Error) => void) => void
+```
 
 Used to log out [notice messages](https://www.postgresql.org/docs/9.6/static/plpgsql-errors-and-messages.html) from the PostgreSQL server.
 
