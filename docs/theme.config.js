@@ -1,16 +1,26 @@
 // theme.config.js
 export default {
-  projectLink: 'https://github.com/brianc/node-postgres', // GitHub link in the navbar
-  docsRepositoryBase: 'https://github.com/brianc/node-postgres/blob/master', // base URL for the docs repository
+  project: {
+    link: 'https://github.com/brianc/node-postgres',
+  },
+  twitter: {
+    cardType: 'summary_large_image',
+    site: 'https://node-postgres.com',
+  },
+  docsRepositoryBase: 'https://github.com/brianc/node-postgres/blob/master/docs', // base URL for the docs repository
   titleSuffix: ' – node-postgres',
-  nextLinks: true,
-  prevLinks: true,
-  search: true,
-  customSearch: null, // customizable, you can use algolia for example
   darkMode: true,
   footer: true,
-  footerText: `MIT ${new Date().getFullYear()} © Brian Carlson.`,
-  footerEditLink: `Edit this page on GitHub`,
+  navigation: {
+    prev: true,
+    next: true,
+  },
+  footer: {
+    text: `MIT ${new Date().getFullYear()} © Brian Carlson.`,
+  },
+  editLink: {
+    text: 'Edit this page on GitHub',
+  },
   logo: (
     <>
       <svg>...</svg>
@@ -22,6 +32,20 @@ export default {
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta name="description" content="Nextra: the next docs builder" />
       <meta name="og:title" content="Nextra: the next docs builder" />
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100138145-1"></script>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+      
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-100138145-1');
+
+      `,
+        }}
+      ></script>
     </>
   ),
 }
