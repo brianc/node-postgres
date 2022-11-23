@@ -63,7 +63,9 @@ const pool = new Pool({
 
 Often we only need to run a single query on the database, so as convenience the pool has a method to run a query on the first available idle client and return its result.
 
-`pool.query() => Promise<pg.Result>`
+```ts
+pool.query(text: string, values?: any[]) => Promise<pg.Result>
+```
 
 ```js
 const { Pool } = require('pg')
@@ -78,7 +80,9 @@ pool
 
 Callbacks are also supported:
 
-`pool.query(callback: (err?: Error, result: pg.Result)) => void`
+```ts
+pool.query(text: string, values?: any[], callback?: (err?: Error, result: pg.Result)) => void
+```
 
 ```js
 const { Pool } = require('pg')
