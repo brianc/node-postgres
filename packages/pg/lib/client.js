@@ -1,7 +1,6 @@
 'use strict'
 
 var EventEmitter = require('events').EventEmitter
-var util = require('util')
 var utils = require('./utils')
 var sasl = require('./sasl')
 var pgPass = require('pgpass')
