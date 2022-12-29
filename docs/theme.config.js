@@ -24,7 +24,7 @@ export default {
   logo: (
     <>
       <svg>...</svg>
-      <span>Next.js Static Site Generator</span>
+      <span>node-postgres</span>
     </>
   ),
   head: (
