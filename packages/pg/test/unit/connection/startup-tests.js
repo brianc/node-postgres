@@ -7,6 +7,18 @@ test('connection can take existing stream', function () {
   assert.equal(con.stream, stream)
 })
 
+test('connection can take stream factory method', function () {
+  var stream = new MemoryStream()
+  var connectionOpts = {}
+  var makeStream = function (opts) {
+    assert.equal(connectionOpts, opts)
+    return stream
+  }
+  connectionOpts.stream = makeStream
+  var con = new Connection(connectionOpts)
+  assert.equal(con.stream, stream)
+})
+
 test('using any stream', function () {
   var makeStream = function () {
     var stream = new MemoryStream()
