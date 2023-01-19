@@ -80,6 +80,26 @@ test('sasl/scram', function () {
       )
     })
 
+    test('fails when client password is not a string', function () {
+      for(const badPasswordValue of [null, undefined, 123, new Date(), {}]) {
+        assert.throws(
+          function () {
+            sasl.continueSession(
+              {
+                message: 'SASLInitialResponse',
+                clientNonce: 'a',
+              },
+              badPasswordValue,
+              'r=1,i=1'
+            )
+          },
+          {
+            message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string',
+          }
+        )
+      }
+    })
+
     test('fails when iteration is missing in server message', function () {
       assert.throws(
         function () {
