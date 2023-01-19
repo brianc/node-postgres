@@ -444,7 +444,7 @@ class Client extends EventEmitter {
 
   // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
   escapeIdentifier(str) {
-    return '"' + str.replace(/"/g, '""') + '"'
+    return '"' + str.replace(/["\0]/g, '""') + '"'
   }
 
   // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
@@ -459,6 +459,8 @@ class Client extends EventEmitter {
       } else if (c === '\\') {
         escaped += c + c
         hasBackslash = true
+      } else if (c === '\0') {
+        // Ignore it
       } else {
         escaped += c
       }
