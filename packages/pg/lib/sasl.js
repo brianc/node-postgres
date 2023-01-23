@@ -23,6 +23,9 @@ function continueSession(session, password, serverData) {
   if (typeof password !== 'string') {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string')
   }
+  if (password === '') {
+    throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a non-empty string')
+  }
   if (typeof serverData !== 'string') {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: serverData must be a string')
   }
