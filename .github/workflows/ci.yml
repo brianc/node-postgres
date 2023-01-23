@@ -15,6 +15,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: ci_db_test
+          POSTGRES_HOST_AUTH_METHOD: 'md5'
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -23,7 +24,19 @@ jobs:
         node: ['10', '12', '14', '16', '18']
         os: [ubuntu-latest, windows-latest, macos-latest]
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
+    env:
+        PGUSER: postgres
+        PGHOST: localhost
+        PGPASSWORD: postgres
+        PGDATABASE: ci_db_test
+        PGTESTNOSSL: 'true'
+        SCRAM_TEST_PGUSER: scram_test
+        SCRAM_TEST_PGPASSWORD: test4scram
     steps:
+      - run: |
+          psql \
+            -c "SET password_encryption = 'scram-sha-256'" \
+            -c "CREATE ROLE scram_test LOGIN PASSWORD 'test4scram'"
       - uses: actions/checkout@v3
         with:
           persist-credentials: false
@@ -34,4 +47,4 @@ jobs:
           cache: yarn
       - run: yarn install
       # TODO(bmc): get ssl tests working in ci
-      - run: PGTESTNOSSL=true PGUSER=postgres PGPASSWORD=postgres PGDATABASE=ci_db_test yarn test
+      - run: yarn test

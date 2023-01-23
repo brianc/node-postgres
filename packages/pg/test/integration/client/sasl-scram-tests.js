@@ -73,3 +73,24 @@ suite.testAsync('sasl/scram fails when password is wrong', async () => {
   )
   assert.ok(usingSasl, 'Should be using SASL for authentication')
 })
+
+suite.testAsync('sasl/scram fails when password is empty', async () => {
+  const client = new pg.Client({
+    ...config,
+    // We use a password function here so the connection defaults do not
+    // override the empty string value with one from process.env.PGPASSWORD
+    password: () =>  '',
+  })
+  let usingSasl = false
+  client.connection.once('authenticationSASL', () => {
+    usingSasl = true
+  })
+  await assert.rejects(
+    () => client.connect(),
+    {
+      message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a non-empty string',
+    },
+    'Error code should be for a password error'
+  )
+  assert.ok(usingSasl, 'Should be using SASL for authentication')
+})

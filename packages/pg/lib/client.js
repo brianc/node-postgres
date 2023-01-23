@@ -247,19 +247,31 @@ class Client extends EventEmitter {
 
   _handleAuthSASL(msg) {
     this._checkPgPass(() => {
-      this.saslSession = sasl.startSession(msg.mechanisms)
-      this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
+      try {
+        this.saslSession = sasl.startSession(msg.mechanisms)
+        this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
+      } catch (err) {
+        this.connection.emit('error', err)
+      }
     })
   }
 
   _handleAuthSASLContinue(msg) {
-    sasl.continueSession(this.saslSession, this.password, msg.data)
-    this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+    try {
+      sasl.continueSession(this.saslSession, this.password, msg.data)
+      this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+    } catch (err) {
+      this.connection.emit('error', err)
+    }
   }
 
   _handleAuthSASLFinal(msg) {
-    sasl.finalizeSession(this.saslSession, msg.data)
-    this.saslSession = null
+    try {
+      sasl.finalizeSession(this.saslSession, msg.data)
+      this.saslSession = null
+    } catch (err) {
+      this.connection.emit('error', err)
+    }
   }
 
   _handleBackendKeyData(msg) {
