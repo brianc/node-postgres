@@ -4,13 +4,19 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.9.0
+
+- Add support for [stream factory](https://github.com/brianc/node-postgres/pull/2898).
+- [Better errors](https://github.com/brianc/node-postgres/pull/2901) for SASL authentication.
+- [Use native crypto module](https://github.com/brianc/node-postgres/pull/2815) for SASL authentication.
+
 ## pg@8.8.0
 
-- Bump minimum required version of [native bindings](https://github.com/brianc/node-postgres/pull/2787)
-- Catch previously uncatchable errors thrown in [`pool.query`](https://github.com/brianc/node-postgres/pull/2569)
-- Prevent the pool from blocking the event loop if all clients are [idle](https://github.com/brianc/node-postgres/pull/2721) (and `allowExitOnIdle` is enabled)
-- Support `lock_timeout` in [client config](https://github.com/brianc/node-postgres/pull/2779)
-- Fix errors thrown in callbacks from [interfering with cleanup](https://github.com/brianc/node-postgres/pull/2753)
+- Bump minimum required version of [native bindings](https://github.com/brianc/node-postgres/pull/2787).
+- Catch previously uncatchable errors thrown in [`pool.query`](https://github.com/brianc/node-postgres/pull/2569).
+- Prevent the pool from blocking the event loop if all clients are [idle](https://github.com/brianc/node-postgres/pull/2721) (and `allowExitOnIdle` is enabled).
+- Support `lock_timeout` in [client config](https://github.com/brianc/node-postgres/pull/2779).
+- Fix errors thrown in callbacks from [interfering with cleanup](https://github.com/brianc/node-postgres/pull/2753).
 
 ### pg-pool@3.5.0
 
