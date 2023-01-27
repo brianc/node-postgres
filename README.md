@@ -55,20 +55,7 @@ You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that
 
 ## Sponsorship :two_hearts:
 
-node-postgres's continued development has been made possible in part by generous finanical support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md) and these featured sponsors:
-
-<div align="center">
-  <p>
-    <a href="https://crate.io" target="_blank">
-      <img height="80" src="https://node-postgres.com/crate-io.png" />
-    </a>
-  </p>
-  <p>
-    <a href="https://www.eaze.com" target="_blank">
-      <img height="80" src="https://node-postgres.com/eaze.png" />
-    </a>
-  </p>
-</div>
+node-postgres's continued development has been made possible in part by generous finanical support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
 
 If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable [please consider supporting](https://github.com/sponsors/brianc) its development.
 
