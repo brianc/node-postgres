@@ -1,0 +1,325 @@
+---
+title: pg.Client
+---
+
+## new Client
+
+`new Client(config: Config)`
+
+Every field of the `config` object is entirely optional. A `Client` instance will use [environment variables](/features/connecting#environment-variables) for all missing values.
+
+```ts
+type Config = {
+  user?: string, // default process.env.PGUSER || process.env.USER
+  password?: string or function, //default process.env.PGPASSWORD
+  host?: string, // default process.env.PGHOST
+  database?: string, // default process.env.PGDATABASE || user
+  port?: number, // default process.env.PGPORT
+  connectionString?: string, // e.g. postgres://user:password@host:5432/database
+  ssl?: any, // passed directly to node.TLSSocket, supports all tls.connect options
+  types?: any, // custom type parsers
+  statement_timeout?: number, // number of milliseconds before a statement in query will time out, default is no timeout
+  query_timeout?: number, // number of milliseconds before a query call will timeout, default is no timeout
+  application_name?: string, // The name of the application that created this Client instance
+  connectionTimeoutMillis?: number, // number of milliseconds to wait for connection, default is no timeout
+  idle_in_transaction_session_timeout?: number // number of milliseconds before terminating any session with an open idle transaction, default is no timeout
+}
+```
+
+example to create a client with specific connection information:
+
+```js
+const { Client } = require('pg')
+
+const client = new Client({
+  host: 'my.database-server.com',
+  port: 5334,
+  user: 'database-user',
+  password: 'secretpassword!!',
+})
+```
+
+## client.connect
+
+Calling `client.connect` with a callback:
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+client.connect((err) => {
+  if (err) {
+    console.error('connection error', err.stack)
+  } else {
+    console.log('connected')
+  }
+})
+```
+
+Calling `client.connect` without a callback yields a promise:
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+client
+  .connect()
+  .then(() => console.log('connected'))
+  .catch((err) => console.error('connection error', err.stack))
+```
+
+_note: connect returning a promise only available in pg@7.0 or above_
+
+## client.query
+
+### QueryConfig
+
+You can pass an object to `client.query` with the signature of:
+
+```ts
+type QueryConfig {
+  // the raw query text
+  text: string;
+
+  // an array of query parameters
+  values?: Array<any>;
+
+  // name of the query - used for prepared statements
+  name?: string;
+
+  // by default rows come out as a key/value pair for each row
+  // pass the string 'array' here to receive rows as an array of values
+  rowMode?: string;
+
+  // custom type parsers just for this query result
+  types?: Types;
+}
+```
+
+### callback API
+
+```ts
+client.query(text: string, values?: any[], callback?: (err: Error, result: QueryResult) => void) => void
+```
+
+**Plain text query with a callback:**
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+client.connect()
+client.query('SELECT NOW()', (err, res) => {
+  if (err) throw err
+  console.log(res)
+  client.end()
+})
+```
+
+**Parameterized query with a callback:**
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+client.connect()
+client.query('SELECT $1::text as name', ['brianc'], (err, res) => {
+  if (err) throw err
+  console.log(res)
+  client.end()
+})
+```
+
+### Promise API
+
+If you call `client.query` with query text and optional parameters but **don't** pass a callback, then you will receive a `Promise` for a query result.
+
+```ts
+client.query(text: string, values?: any[]) => Promise<Result>
+```
+
+**Plain text query with a promise**
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+client.connect()
+client
+  .query('SELECT NOW()')
+  .then((result) => console.log(result))
+  .catch((e) => console.error(e.stack))
+  .then(() => client.end())
+```
+
+**Parameterized query with a promise**
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+client.connect()
+client
+  .query('SELECT $1::text as name', ['brianc'])
+  .then((result) => console.log(result))
+  .catch((e) => console.error(e.stack))
+  .then(() => client.end())
+```
+
+```ts
+client.query(config: QueryConfig) => Promise<Result>
+```
+
+**client.query with a QueryConfig and a callback**
+
+If you pass a `name` parameter to the `client.query` method, the client will create a [prepared statement](/features/queries#prepared-statements).
+
+```js
+const query = {
+  name: 'get-name',
+  text: 'SELECT $1::text',
+  values: ['brianc'],
+  rowMode: 'array',
+}
+
+client.query(query, (err, res) => {
+  if (err) {
+    console.error(err.stack)
+  } else {
+    console.log(res.rows) // ['brianc']
+  }
+})
+```
+
+**client.query with a QueryConfig and a Promise**
+
+```js
+const query = {
+  name: 'get-name',
+  text: 'SELECT $1::text',
+  values: ['brianc'],
+  rowMode: 'array',
+}
+
+// promise
+client
+  .query(query)
+  .then((res) => {
+    console.log(res.rows) // ['brianc']
+  })
+  .catch((e) => {
+    console.error(e.stack)
+  })
+```
+
+**client.query with a `Submittable`**
+
+If you pass an object to `client.query` and the object has a `.submit` function on it, the client will pass it's PostgreSQL server connection to the object and delegate query dispatching to the supplied object. This is an advanced feature mostly intended for library authors. It is incidentally also currently how the callback and promise based queries above are handled internally, but this is subject to change. It is also how [pg-cursor](https://github.com/brianc/node-pg-cursor) and [pg-query-stream](https://github.com/brianc/node-pg-query-stream) work.
+
+```js
+const Query = require('pg').Query
+const query = new Query('select $1::text as name', ['brianc'])
+
+const result = client.query(query)
+
+assert(query === result) // true
+
+query.on('row', (row) => {
+  console.log('row!', row) // { name: 'brianc' }
+})
+query.on('end', () => {
+  console.log('query done')
+})
+query.on('error', (err) => {
+  console.error(err.stack)
+})
+```
+
+---
+
+## client.end
+
+Disconnects the client from the PostgreSQL server.
+
+```js
+client.end((err) => {
+  console.log('client has disconnected')
+  if (err) {
+    console.log('error during disconnection', err.stack)
+  }
+})
+```
+
+Calling end without a callback yields a promise:
+
+```js
+client
+  .end()
+  .then(() => console.log('client has disconnected'))
+  .catch((err) => console.error('error during disconnection', err.stack))
+```
+
+_note: end returning a promise is only available in pg7.0 and above_
+
+## events
+
+### error
+
+```ts
+client.on('error', (err: Error) => void) => void
+```
+
+When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and foward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` callback/promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
+
+```js
+const client = new pg.Client()
+client.connect()
+
+client.on('error', (err) => {
+  console.error('something bad has happened!', err.stack)
+})
+
+// walk over to server, unplug network cable
+
+// process output: 'something bad has happened!' followed by stacktrace :P
+```
+
+### end
+
+```ts
+client.on('end') => void
+```
+
+When the client disconnects from the PostgreSQL server it will emit an end event once.
+
+### notification
+
+Used for `listen/notify` events:
+
+```ts
+type Notification {
+  processId: number,
+  channel: string,
+  payload?: string
+}
+```
+
+```js
+const client = new pg.Client()
+client.connect()
+
+client.query('LISTEN foo')
+
+client.on('notification', (msg) => {
+  console.log(msg.channel) // foo
+  console.log(msg.payload) // bar!
+})
+
+client.query(`NOTIFY foo, 'bar!'`)
+```
+
+### notice
+
+```ts
+client.on('notice', (notice: Error) => void) => void
+```
+
+Used to log out [notice messages](https://www.postgresql.org/docs/9.6/static/plpgsql-errors-and-messages.html) from the PostgreSQL server.
+
+```js
+client.on('notice', (msg) => console.warn('notice:', msg))
+```

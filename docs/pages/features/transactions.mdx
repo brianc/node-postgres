@@ -1,0 +1,93 @@
+---
+title: Transactions
+---
+
+import { Alert } from '/components/alert.tsx'
+
+To execute a transaction with node-postgres you simply execute `BEGIN / COMMIT / ROLLBACK` queries yourself through a client. Because node-postgres strives to be low level and un-opinionated, it doesn't provide any higher level abstractions specifically around transactions.
+
+<Alert>
+  You <strong>must</strong> use the <em>same</em> client instance for all statements within a transaction. PostgreSQL
+  isolates a transaction to individual clients. This means if you initialize or use transactions with the{' '}
+  <span className="code">pool.query</span> method you <strong>will</strong> have problems. Do not use transactions with
+  the <span className="code">pool.query</span> method.
+</Alert>
+
+## Examples
+
+### async/await
+
+Things are considerably more straightforward if you're using async/await:
+
+```js
+const { Pool } = require('pg')
+const pool = new Pool()
+
+// note: we don't try/catch this because if connecting throws an exception
+// we don't need to dispose of the client (it will be undefined)
+const client = await pool.connect()
+
+try {
+  await client.query('BEGIN')
+  const queryText = 'INSERT INTO users(name) VALUES($1) RETURNING id'
+  const res = await client.query(queryText, ['brianc'])
+
+  const insertPhotoText = 'INSERT INTO photos(user_id, photo_url) VALUES ($1, $2)'
+  const insertPhotoValues = [res.rows[0].id, 's3.bucket.foo']
+  await client.query(insertPhotoText, insertPhotoValues)
+  await client.query('COMMIT')
+} catch (e) {
+  await client.query('ROLLBACK')
+  throw e
+} finally {
+  client.release()
+}
+```
+
+### callbacks
+
+node-postgres is a very old library, and still has an optional callback API. Here's an example of doing the same code above, but with callbacks:
+
+```js
+const { Pool } = require('pg')
+const pool = new Pool()
+
+pool.connect((err, client, done) => {
+  const shouldAbort = (err) => {
+    if (err) {
+      console.error('Error in transaction', err.stack)
+      client.query('ROLLBACK', (err) => {
+        if (err) {
+          console.error('Error rolling back client', err.stack)
+        }
+        // release the client back to the pool
+        done()
+      })
+    }
+    return !!err
+  }
+
+  client.query('BEGIN', (err) => {
+    if (shouldAbort(err)) return
+    const queryText = 'INSERT INTO users(name) VALUES($1) RETURNING id'
+    client.query(queryText, ['brianc'], (err, res) => {
+      if (shouldAbort(err)) return
+
+      const insertPhotoText = 'INSERT INTO photos(user_id, photo_url) VALUES ($1, $2)'
+      const insertPhotoValues = [res.rows[0].id, 's3.bucket.foo']
+      client.query(insertPhotoText, insertPhotoValues, (err, res) => {
+        if (shouldAbort(err)) return
+
+        client.query('COMMIT', (err) => {
+          if (err) {
+            console.error('Error committing transaction', err.stack)
+          }
+          done()
+        })
+      })
+    })
+  })
+})
+```
+
+..thank goodness for `async/await` yeah?

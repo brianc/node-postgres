@@ -1,7 +1,6 @@
 'use strict'
 
 var EventEmitter = require('events').EventEmitter
-var util = require('util')
 var utils = require('./utils')
 var sasl = require('./sasl')
 var pgPass = require('pgpass')
@@ -260,19 +259,31 @@ class Client extends EventEmitter {
 
   _handleAuthSASL(msg) {
     this._checkPgPass(() => {
-      this.saslSession = sasl.startSession(msg.mechanisms)
-      this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
+      try {
+        this.saslSession = sasl.startSession(msg.mechanisms)
+        this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
+      } catch (err) {
+        this.connection.emit('error', err)
+      }
     })
   }
 
   _handleAuthSASLContinue(msg) {
-    sasl.continueSession(this.saslSession, this.password, msg.data)
-    this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+    try {
+      sasl.continueSession(this.saslSession, this.password, msg.data)
+      this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+    } catch (err) {
+      this.connection.emit('error', err)
+    }
   }
 
   _handleAuthSASLFinal(msg) {
-    sasl.finalizeSession(this.saslSession, msg.data)
-    this.saslSession = null
+    try {
+      sasl.finalizeSession(this.saslSession, msg.data)
+      this.saslSession = null
+    } catch (err) {
+      this.connection.emit('error', err)
+    }
   }
 
   _handleBackendKeyData(msg) {
@@ -429,6 +440,9 @@ class Client extends EventEmitter {
     }
     if (params.statement_timeout) {
       data.statement_timeout = String(parseInt(params.statement_timeout, 10))
+    }
+    if (params.lock_timeout) {
+      data.lock_timeout = String(parseInt(params.lock_timeout, 10))
     }
     if (params.idle_in_transaction_session_timeout) {
       data.idle_in_transaction_session_timeout = String(parseInt(params.idle_in_transaction_session_timeout, 10))

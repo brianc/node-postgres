@@ -1,0 +1,52 @@
+---
+title: Welcome
+slug: /
+---
+
+node-postgres is a collection of node.js modules for interfacing with your PostgreSQL database. It has support for callbacks, promises, async/await, connection pooling, prepared statements, cursors, streaming results, C/C++ bindings, rich type parsing, and more! Just like PostgreSQL itself there are a lot of features: this documentation aims to get you up and running quickly and in the right direction. It also tries to provide guides for more advanced & edge-case topics allowing you to tap into the full power of PostgreSQL from node.js.
+
+## Install
+
+```bash
+$ npm install pg
+```
+
+## Supporters
+
+node-postgres continued development and support is made possible by the many [supporters](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
+
+If you or your company would like to sponsor node-postgres stop by [github sponsors](https://github.com/sponsors/brianc) and sign up or feel free to [email me](mailto:brian@pecanware.com) if you want to add your logo to the documentation or discuss higher tiers of sponsorship!
+
+# Version compatibility
+
+node-postgres strives to be compatible with all recent lts versions of node & the most recent "stable" version. At the time of this writing node-postgres is compatible with node 8.x, 10.x, 12.x and 14.x To use node >= 14.x you will need to install `pg@8.2.x` or later due to some internal stream changes on the node 14 branch. Dropping support for an old node lts version will always be considered a breaking change in node-postgres and will be done on _major_ version number changes only, and we will try to keep support for 8.x for as long as reasonably possible.
+
+## Getting started
+
+This is the simplest possible way to connect, query, and disconnect with async/await:
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+await client.connect()
+
+const res = await client.query('SELECT $1::text as message', ['Hello world!'])
+console.log(res.rows[0].message) // Hello world!
+await client.end()
+```
+
+And here's the same thing with callbacks:
+
+```js
+const { Client } = require('pg')
+const client = new Client()
+
+client.connect()
+
+client.query('SELECT $1::text as message', ['Hello world!'], (err, res) => {
+  console.log(err ? err.stack : res.rows[0].message) // Hello World!
+  client.end()
+})
+```
+
+Our real-world apps are almost always more complicated than that, and I urge you to read on!

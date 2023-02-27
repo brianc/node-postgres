@@ -14,7 +14,12 @@ class Connection extends EventEmitter {
   constructor(config) {
     super()
     config = config || {}
+
     this.stream = config.stream || new net.Socket()
+    if (typeof this.stream === 'function') {
+      this.stream = this.stream(config)
+    }
+
     this._keepAlive = config.keepAlive
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
     this.lastBuffer = false
@@ -173,7 +178,6 @@ class Connection extends EventEmitter {
 
   sync() {
     this._ending = true
-    this._send(flushBuffer)
     this._send(syncBuffer)
   }
 

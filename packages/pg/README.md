@@ -1,7 +1,6 @@
 # node-postgres
 
 [![Build Status](https://secure.travis-ci.org/brianc/node-postgres.svg?branch=master)](http://travis-ci.org/brianc/node-postgres)
-[![Dependency Status](https://david-dm.org/brianc/node-postgres.svg?path=packages/pg)](https://david-dm.org/brianc/node-postgres?path=packages/pg)
 <span class="badge-npmversion"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/v/pg.svg" alt="NPM version" /></a></span>
 <span class="badge-npmdownloads"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/pg.svg" alt="NPM downloads" /></a></span>
 
@@ -47,18 +46,7 @@ You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that
 
 ## Sponsorship :two_hearts:
 
-node-postgres's continued development has been made possible in part by generous finanical support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md) and these featured sponsors:
-
-<div align="center">
-<a href="https://crate.io" target="_blank">
-  <img height="80" src="https://node-postgres.com/crate-io.png" />
-</a>
-
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAABCAQAAAB0m0auAAAADElEQVR42mNkIBIAAABSAAI2VLqiAAAAAElFTkSuQmCC" />
-<a href="https://www.eaze.com" target="_blank">
-  <img height="80" src="https://node-postgres.com/eaze.png" />
-</a>
-</div>
+node-postgres's continued development has been made possible in part by generous finanical support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
 
 If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable [please consider supporting](https://github.com/sponsors/brianc) its development.
 

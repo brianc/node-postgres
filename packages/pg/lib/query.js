@@ -135,7 +135,14 @@ class Query extends EventEmitter {
       return this.handleError(this._canceledDueToError, con)
     }
     if (this.callback) {
-      this.callback(null, this._results)
+      try {
+        this.callback(null, this._results)
+      }
+      catch(err) {
+        process.nextTick(() => {
+          throw err
+        })
+      }
     }
     this.emit('end', this._results)
   }

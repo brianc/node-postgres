@@ -1,0 +1,52 @@
+---
+title: pg.Result
+slug: /api/result
+---
+
+The `pg.Result` shape is returned for every successful query.
+
+<div className="alert alert-info">note: you cannot instantiate this directly</div>
+
+## properties
+
+### `result.rows: Array<any>`
+
+Every result will have a rows array. If no rows are returned the array will be empty. Otherwise the array will contain one item for each row returned from the query. By default node-postgres creates a map from the name to value of each column, giving you a json-like object back for each row.
+
+### `result.fields: Array<FieldInfo>`
+
+Every result will have a fields array. This array contains the `name` and `dataTypeID` of each field in the result. These fields are ordered in the same order as the columns if you are using `arrayMode` for the query:
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool()
+
+const client = await pool.connect()
+const result = await client.query({
+  rowMode: 'array',
+  text: 'SELECT 1 as one, 2 as two;',
+})
+console.log(result.fields[0].name) // one
+console.log(result.fields[1].name) // two
+console.log(result.rows) // [ [ 1, 2 ] ]
+await client.end()
+```
+
+### `result.command: string`
+
+The command type last executed: `INSERT` `UPDATE` `CREATE` `SELECT` etc.
+
+### `result.rowCount: int`
+
+The number of rows processed by the last command. 
+
+_note: this does not reflect the number of rows __returned__ from a query.  e.g. an update statement could update many rows (so high `result.rowCount` value) but `result.rows.length` would be zero.  To check for an empty query reponse on a `SELECT` query use `result.rows.length === 0`_.
+
+[@sehrope](https://github.com/brianc/node-postgres/issues/2182#issuecomment-620553915) has a good explanation:
+
+The `rowCount` is populated from the command tag supplied by the PostgreSQL server. It's generally of the form: `COMMAND [OID] [ROWS]`
+
+For DML commands (INSERT, UPDATE, etc), it reflects how many rows the server modified to process the command. For SELECT or COPY commands it reflects how many rows were retrieved or copied. More info on the specifics here: https://www.postgresql.org/docs/current/protocol-message-formats.html (search for CommandComplete for the message type)
+
+The note in the docs about the difference is because that value is controlled by the server. It's possible for a non-standard server (ex: PostgreSQL fork) or a server version in the future to provide different information in some situations so it'd be best not to rely on it to assume that the rows array length matches the `rowCount`. It's fine to use it for DML counts though.

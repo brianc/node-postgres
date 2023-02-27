@@ -84,6 +84,7 @@ class Pool extends EventEmitter {
     this.options.max = this.options.max || this.options.poolSize || 10
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
+    this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
     this.log = this.options.log || function () {}
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
@@ -94,6 +95,7 @@ class Pool extends EventEmitter {
 
     this._clients = []
     this._idle = []
+    this._expired = new WeakSet()
     this._pendingQueue = []
     this._endCallback = undefined
     this.ending = false
@@ -123,6 +125,7 @@ class Pool extends EventEmitter {
       }
       return
     }
+
     // if we don't have any waiting, do nothing
     if (!this._pendingQueue.length) {
       this.log('no queued requests')
@@ -248,6 +251,25 @@ class Pool extends EventEmitter {
       } else {
         this.log('new client connected')
 
+        if (this.options.maxLifetimeSeconds !== 0) {
+          const maxLifetimeTimeout = setTimeout(() => {
+            this.log('ending client due to expired lifetime')
+            this._expired.add(client)
+            const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
+            if (idleIndex !== -1) {
+              this._acquireClient(
+                client,
+                new PendingItem((err, client, clientRelease) => clientRelease()),
+                idleListener,
+                false
+              )
+            }
+          }, this.options.maxLifetimeSeconds * 1000)
+
+          maxLifetimeTimeout.unref()
+          client.once('end', () => clearTimeout(maxLifetimeTimeout))
+        }
+
         return this._acquireClient(client, pendingItem, idleListener, true)
       }
     })
@@ -318,6 +340,15 @@ class Pool extends EventEmitter {
       return
     }
 
+    const isExpired = this._expired.has(client)
+    if (isExpired) {
+      this.log('remove expired client')
+      this._expired.delete(client)
+      this._remove(client)
+      this._pulseQueue()
+      return
+    }
+
     // idle timeout
     let tid
     if (this.options.idleTimeoutMillis) {
@@ -375,20 +406,24 @@ class Pool extends EventEmitter {
 
       client.once('error', onError)
       this.log('dispatching query')
-      client.query(text, values, (err, res) => {
-        this.log('query dispatched')
-        client.removeListener('error', onError)
-        if (clientReleased) {
-          return
-        }
-        clientReleased = true
-        client.release(err)
-        if (err) {
-          return cb(err)
-        } else {
+      try {
+        client.query(text, values, (err, res) => {
+          this.log('query dispatched')
+          client.removeListener('error', onError)
+          if (clientReleased) {
+            return
+          }
+          clientReleased = true
+          client.release(err)
+          if (err) {
+            return cb(err)
+          }
           return cb(undefined, res)
-        }
-      })
+        })
+      } catch (err) {
+        client.release(err)
+        return cb(err)
+      }
     })
     return response.result
   }
@@ -412,6 +447,10 @@ class Pool extends EventEmitter {
 
   get idleCount() {
     return this._idle.length
+  }
+
+  get expiredCount() {
+    return this._clients.reduce((acc, client) => acc + (this._expired.has(client) ? 1 : 0), 0)
   }
 
   get totalCount() {

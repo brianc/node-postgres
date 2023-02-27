@@ -1,4 +1,4 @@
-// http://developer.postgresql.org/pgdocs/postgres/protocol-message-formats.html
+// https://www.postgresql.org/docs/current/protocol-message-formats.html
 import BufferList from './buffer-list'
 
 const buffers = {

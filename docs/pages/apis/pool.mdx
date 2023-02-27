@@ -1,0 +1,278 @@
+---
+title: pg.Pool
+---
+
+import { Alert } from '/components/alert.tsx'
+
+## new Pool
+
+```ts
+new Pool(config: Config)
+```
+
+Constructs a new pool instance.
+
+The pool is initially created empty and will create new clients lazily as they are needed. Every field of the `config` object is entirely optional. The config passed to the pool is also passed to every client instance within the pool when the pool creates that client.
+
+```ts
+type Config = {
+  // all valid client config options are also valid here
+  // in addition here are the pool specific configuration parameters:
+
+  // number of milliseconds to wait before timing out when connecting a new client
+  // by default this is 0 which means no timeout
+  connectionTimeoutMillis?: number
+
+  // number of milliseconds a client must sit idle in the pool and not be checked out
+  // before it is disconnected from the backend and discarded
+  // default is 10000 (10 seconds) - set to 0 to disable auto-disconnection of idle clients
+  idleTimeoutMillis?: number
+
+  // maximum number of clients the pool should contain
+  // by default this is set to 10.
+  max?: number
+
+  // Default behavior is the pool will keep clients open & connected to the backend
+  // until idleTimeoutMillis expire for each client and node will maintain a ref
+  // to the socket on the client, keeping the event loop alive until all clients are closed
+  // after being idle or the pool is manually shutdown with `pool.end()`.
+  //
+  // Setting `allowExitOnIdle: true` in the config will allow the node event loop to exit
+  // as soon as all clients in the pool are idle, even if their socket is still open
+  // to the postgres server.  This can be handy in scripts & tests
+  // where you don't want to wait for your clients to go idle before your process exits.
+  allowExitOnIdle?: boolean
+}
+```
+
+example to create a new pool with configuration:
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool({
+  host: 'localhost',
+  user: 'database-user',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+})
+```
+
+## pool.query
+
+Often we only need to run a single query on the database, so as convenience the pool has a method to run a query on the first available idle client and return its result.
+
+```ts
+pool.query(text: string, values?: any[]) => Promise<pg.Result>
+```
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool()
+
+pool
+  .query('SELECT $1::text as name', ['brianc'])
+  .then((res) => console.log(res.rows[0].name)) // brianc
+  .catch((err) => console.error('Error executing query', err.stack))
+```
+
+Callbacks are also supported:
+
+```ts
+pool.query(text: string, values?: any[], callback?: (err?: Error, result: pg.Result)) => void
+```
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool()
+
+pool.query('SELECT $1::text as name', ['brianc'], (err, result) => {
+  if (err) {
+    return console.error('Error executing query', err.stack)
+  }
+  console.log(result.rows[0].name) // brianc
+})
+```
+
+Notice in the example above there is no need to check out or release a client. The pool is doing the acquiring and releasing internally. I find `pool.query` to be a handy shortcut many situations and use it exclusively unless I need a transaction.
+
+<Alert>
+  <div>
+    Do <strong>not</strong> use <code>pool.query</code> if you are using a transaction.
+  </div>
+  The pool will dispatch every query passed to pool.query on the first available idle client. Transactions within PostgreSQL
+  are scoped to a single client and so dispatching individual queries within a single transaction across multiple, random
+  clients will cause big problems in your app and not work. For more info please read <a href="/features/transactions">
+    transactions
+  </a>.
+</Alert>
+
+## pool.connect
+
+`pool.connect(callback: (err?: Error, client?: pg.Client, release?: releaseCallback) => void) => void`
+
+Acquires a client from the pool.
+
+- If there are idle clients in the pool one will be returned to the callback on `process.nextTick`.
+- If the pool is not full but all current clients are checked out a new client will be created & returned to this callback.
+- If the pool is 'full' and all clients are currently checked out will wait in a FIFO queue until a client becomes available by it being released back to the pool.
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool()
+
+pool.connect((err, client, release) => {
+  if (err) {
+    return console.error('Error acquiring client', err.stack)
+  }
+  client.query('SELECT NOW()', (err, result) => {
+    release()
+    if (err) {
+      return console.error('Error executing query', err.stack)
+    }
+    console.log(result.rows)
+  })
+})
+```
+
+`pool.connect() => Promise<pg.Client>`
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool()
+
+;(async function () {
+  const client = await pool.connect()
+  await client.query('SELECT NOW()')
+  client.release()
+})()
+```
+
+### releasing clients
+
+`release: (err?: Error)`
+
+Client instances returned from `pool.connect` will have a `release` method which will release them from the pool.
+
+The `release` method on an acquired client returns it back to the pool. If you pass a truthy value in the `err` position to the callback, instead of releasing the client to the pool, the pool will be instructed to disconnect and destroy this client, leaving a space within itself for a new client.
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool()
+// check out a single client
+const client = await pool.connect()
+// release the client
+client.release()
+```
+
+```js
+const { Pool } = require('pg')
+
+const pool = new Pool()
+assert(pool.totalCount === 0)
+assert(pool.idleCount === 0)
+
+const client = await pool.connect()
+await client.query('SELECT NOW()')
+assert(pool.totalCount === 1)
+assert(pool.idleCount === 0)
+
+// tell the pool to destroy this client
+client.release(true)
+assert(pool.idleCount === 0)
+assert(pool.totalCount === 0)
+```
+
+<Alert>
+  <div>
+    You <strong>must</strong> release a client when you are finished with it.
+  </div>
+  If you forget to release the client then your application will quickly exhaust available, idle clients in the pool and
+  all further calls to <code>pool.connect</code> will timeout with an error or hang indefinitely if you have <code>
+    connectionTimeoutMillis
+  </code> configured to 0.
+</Alert>
+
+## pool.end
+
+Calling `pool.end` will drain the pool of all active clients, disconnect them, and shut down any internal timers in the pool. It is common to call this at the end of a script using the pool or when your process is attempting to shut down cleanly.
+
+```js
+// again both promises and callbacks are supported:
+const { Pool } = require('pg')
+
+const pool = new Pool()
+
+// either this:
+pool.end(() => {
+  console.log('pool has ended')
+})
+
+// or this:
+pool.end().then(() => console.log('pool has ended'))
+```
+
+## properties
+
+`pool.totalCount: number`
+
+The total number of clients existing within the pool.
+
+`pool.idleCount: number`
+
+The number of clients which are not checked out but are currently idle in the pool.
+
+`pool.waitingCount: number`
+
+The number of queued requests waiting on a client when all clients are checked out. It can be helpful to monitor this number to see if you need to adjust the size of the pool.
+
+## events
+
+`Pool` instances are also instances of [`EventEmitter`](https://nodejs.org/api/events.html).
+
+### connect
+
+`pool.on('connect', (client: Client) => void) => void`
+
+Whenever the pool establishes a new client connection to the PostgreSQL backend it will emit the `connect` event with the newly connected client. This presents an opportunity for you to run setup commands on a client.
+
+```js
+const pool = new Pool()
+pool.on('connect', (client) => {
+  client.query('SET DATESTYLE = iso, mdy')
+})
+```
+
+### acquire
+
+`pool.on('acquire', (client: Client) => void) => void`
+
+Whenever a client is checked out from the pool the pool will emit the `acquire` event with the client that was acquired.
+
+### error
+
+`pool.on('error', (err: Error, client: Client) => void) => void`
+
+When a client is sitting idly in the pool it can still emit errors because it is connected to a live backend.
+
+If the backend goes down or a network partition is encountered all the idle, connected clients in your application will emit an error _through_ the pool's error event emitter.
+
+The error listener is passed the error as the first argument and the client upon which the error occurred as the 2nd argument. The client will be automatically terminated and removed from the pool, it is only passed to the error handler in case you want to inspect it.
+
+<Alert>
+  <div>You probably want to add an event listener to the pool to catch background errors errors!</div>
+  Just like other event emitters, if a pool emits an <code>error</code> event and no listeners are added node will emit an
+  uncaught error and potentially crash your node process.
+</Alert>
+
+### remove
+
+`pool.on('remove', (client: Client) => void) => void`
+
+Whenever a client is closed & removed from the pool the pool will emit the `remove` event.
