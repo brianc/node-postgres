@@ -37,6 +37,7 @@ class Client extends EventEmitter {
     this._Promise = c.Promise || global.Promise
     this._types = new TypeOverrides(c.types)
     this._ending = false
+    this._ended = false
     this._connecting = false
     this._connected = false
     this._connectionError = false
@@ -132,6 +133,7 @@ class Client extends EventEmitter {
 
       clearTimeout(this.connectionTimeoutHandle)
       this._errorAllQueries(error)
+      this._ended = true
 
       if (!this._ending) {
         // if the connection is ended without us calling .end()
@@ -603,7 +605,7 @@ class Client extends EventEmitter {
     this._ending = true
 
     // if we have never connected, then end is a noop, callback immediately
-    if (!this.connection._connecting) {
+    if (!this.connection._connecting || this._ended) {
       if (cb) {
         cb()
       } else {
