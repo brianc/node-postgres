@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg-pool@8.10.0
+
+- Emit `release` event when client is returned to [the pool](https://github.com/brianc/node-postgres/pull/2845).
+
 ## pg@8.9.0
 
 - Add support for [stream factory](https://github.com/brianc/node-postgres/pull/2898).
