@@ -330,6 +330,8 @@ class Pool extends EventEmitter {
 
     client._poolUseCount = (client._poolUseCount || 0) + 1
 
+    this.emit('release', err, client)
+
     // TODO(bmc): expose a proper, public interface _queryable and _ending
     if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
       if (client._poolUseCount >= this.options.maxUses) {
