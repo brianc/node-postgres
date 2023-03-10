@@ -271,6 +271,12 @@ The error listener is passed the error as the first argument and the client upon
   uncaught error and potentially crash your node process.
 </Alert>
 
+### release
+
+`pool.on('release', (err: Error, client: Client) => void) => void`
+
+Whenever a client is released back into the pool, the pool will emit the `release` event.
+
 ### remove
 
 `pool.on('remove', (client: Client) => void) => void`
