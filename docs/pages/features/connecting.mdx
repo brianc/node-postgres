@@ -13,11 +13,6 @@ const { Pool, Client } = require('pg')
 // for connection information
 const pool = new Pool()
 
-pool.query('SELECT NOW()', (err, res) => {
-  console.log(err, res)
-  pool.end()
-})
-
 // you can also use async/await
 const res = await pool.query('SELECT NOW()')
 await pool.end()
@@ -69,10 +64,7 @@ const pool = new Pool({
   port: 3211,
 })
 
-pool.query('SELECT NOW()', (err, res) => {
-  console.log(err, res)
-  pool.end()
-})
+await pool.query('SELECT NOW()');
 
 const client = new Client({
   user: 'dbuser',
@@ -81,12 +73,12 @@ const client = new Client({
   password: 'secretpassword',
   port: 3211,
 })
-client.connect()
 
-client.query('SELECT NOW()', (err, res) => {
-  console.log(err, res)
-  client.end()
-})
+await client.connect()
+
+await client.query('SELECT NOW()');
+
+await client.end();
 ```
 
 Many cloud providers include alternative methods for connecting to database instances using short-lived authentication tokens. node-postgres supports dynamic passwords via a callback function, either synchronous or asynchronous. The callback function must resolve to a string.
@@ -145,18 +137,16 @@ const pool = new Pool({
   connectionString,
 })
 
-pool.query('SELECT NOW()', (err, res) => {
-  console.log(err, res)
-  pool.end()
-})
+await pool.query('SELECT NOW()')
+await pool.end()
 
 const client = new Client({
   connectionString,
 })
-client.connect()
 
-client.query('SELECT NOW()', (err, res) => {
-  console.log(err, res)
-  client.end()
-})
+await client.connect()
+
+await client.query('SELECT NOW()')
+
+await client.end()
 ```
