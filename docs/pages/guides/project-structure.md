@@ -11,8 +11,6 @@ Whenever I am writing a project & using node-postgres I like to create a file wi
 
 ## example
 
-_note: I am using callbacks in this example to introduce as few concepts as possible at a time, but the same is doable with promises or async/await_
-
 The location doesn't really matter - I've found it usually ends up being somewhat app specific and in line with whatever folder structure conventions you're using. For this example I'll use an express app structured like so:
 
 ```
@@ -47,13 +45,9 @@ That's it. But now everywhere else in my application instead of requiring `pg` d
 // and not requiring node-postgres directly
 const db = require('../db')
 
-app.get('/:id', (req, res, next) => {
-  db.query('SELECT * FROM users WHERE id = $1', [req.params.id], (err, result) => {
-    if (err) {
-      return next(err)
-    }
-    res.send(result.rows[0])
-  })
+app.get('/:id', async (req, res, next) => {
+  const result = await db.query('SELECT * FROM users WHERE id = $1', [req.params.id]
+  res.send(result.rows[0])
 })
 
 // ... many other routes in this file
@@ -67,13 +61,12 @@ const { Pool } = require('pg')
 const pool = new Pool()
 
 module.exports = {
-  query: (text, params, callback) => {
+  query: async (text, params) => {
     const start = Date.now()
-    return pool.query(text, params, (err, res) => {
-      const duration = Date.now() - start
-      console.log('executed query', { text, duration, rows: res.rowCount })
-      callback(err, res)
-    })
+    const res = await pool.query(text, params)
+    const duration = Date.now() - start
+    console.log('executed query', { text, duration, rows: res.rowCount })
+    return res
   },
 }
 ```
@@ -90,72 +83,20 @@ const { Pool } = require('pg')
 const pool = new Pool()
 
 module.exports = {
-  query: (text, params, callback) => {
+  query: async (text, params) => {
     const start = Date.now()
-    return pool.query(text, params, (err, res) => {
-      const duration = Date.now() - start
-      console.log('executed query', { text, duration, rows: res.rowCount })
-      callback(err, res)
-    })
+    const res = await pool.query(text, params)
+    const duration = Date.now() - start
+    console.log('executed query', { text, duration, rows: res.rowCount })
+    return res
   },
-  getClient: (callback) => {
-    pool.connect((err, client, done) => {
-      callback(err, client, done)
-    })
+  getClient: () => {
+    return pool.connect()
   },
 }
 ```
 
 Okay. Great - the simplest thing that could possibly work. It seems like one of our routes that checks out a client to run a transaction is forgetting to call `done` in some situation! Oh no! We are leaking a client & have hundreds of these routes to go audit. Good thing we have all our client access going through this single file. Lets add some deeper diagnostic information here to help us track down where the client leak is happening.
-
-```js
-const { Pool } = require('pg')
-
-const pool = new Pool()
-
-module.exports = {
-  query: (text, params, callback) => {
-    const start = Date.now()
-    return pool.query(text, params, (err, res) => {
-      const duration = Date.now() - start
-      console.log('executed query', { text, duration, rows: res.rowCount })
-      callback(err, res)
-    })
-  },
-  getClient: (callback) => {
-    pool.connect((err, client, done) => {
-      const query = client.query
-
-      // monkey patch the query method to keep track of the last query executed
-      client.query = (...args) => {
-        client.lastQuery = args
-        return query.apply(client, args)
-      }
-
-      // set a timeout of 5 seconds, after which we will log this client's last query
-      const timeout = setTimeout(() => {
-        console.error('A client has been checked out for more than 5 seconds!')
-        console.error(`The last executed query on this client was: ${client.lastQuery}`)
-      }, 5000)
-
-      const release = (err) => {
-        // call the actual 'done' method, returning this client to the pool
-        done(err)
-
-        // clear our timeout
-        clearTimeout(timeout)
-
-        // set the query method back to its old un-monkey-patched version
-        client.query = query
-      }
-
-      callback(err, client, release)
-    })
-  },
-}
-```
-
-Using async/await:
 
 ```js
 module.exports = {
