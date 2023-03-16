@@ -41,32 +41,12 @@ const client = new Client({
 
 ## client.connect
 
-Calling `client.connect` with a callback:
-
 ```js
 const { Client } = require('pg')
 const client = new Client()
-client.connect((err) => {
-  if (err) {
-    console.error('connection error', err.stack)
-  } else {
-    console.log('connected')
-  }
-})
+
+await client.connect()
 ```
-
-Calling `client.connect` without a callback yields a promise:
-
-```js
-const { Client } = require('pg')
-const client = new Client()
-client
-  .connect()
-  .then(() => console.log('connected'))
-  .catch((err) => console.error('connection error', err.stack))
-```
-
-_note: connect returning a promise only available in pg@7.0 or above_
 
 ## client.query
 
@@ -94,77 +74,43 @@ type QueryConfig {
 }
 ```
 
-### callback API
-
-```ts
-client.query(text: string, values?: any[], callback?: (err: Error, result: QueryResult) => void) => void
-```
-
-**Plain text query with a callback:**
-
-```js
-const { Client } = require('pg')
-const client = new Client()
-client.connect()
-client.query('SELECT NOW()', (err, res) => {
-  if (err) throw err
-  console.log(res)
-  client.end()
-})
-```
-
-**Parameterized query with a callback:**
-
-```js
-const { Client } = require('pg')
-const client = new Client()
-client.connect()
-client.query('SELECT $1::text as name', ['brianc'], (err, res) => {
-  if (err) throw err
-  console.log(res)
-  client.end()
-})
-```
-
-### Promise API
-
-If you call `client.query` with query text and optional parameters but **don't** pass a callback, then you will receive a `Promise` for a query result.
-
 ```ts
 client.query(text: string, values?: any[]) => Promise<Result>
 ```
 
-**Plain text query with a promise**
+**Plain text query**
 
 ```js
 const { Client } = require('pg')
 const client = new Client()
-client.connect()
-client
-  .query('SELECT NOW()')
-  .then((result) => console.log(result))
-  .catch((e) => console.error(e.stack))
-  .then(() => client.end())
+
+await client.connect()
+
+const result = await client.query('SELECT NOW()')
+console.log(result)
+
+await client.end()
 ```
 
-**Parameterized query with a promise**
+**Parameterized query**
 
 ```js
 const { Client } = require('pg')
 const client = new Client()
-client.connect()
-client
-  .query('SELECT $1::text as name', ['brianc'])
-  .then((result) => console.log(result))
-  .catch((e) => console.error(e.stack))
-  .then(() => client.end())
+
+await client.connect()
+
+const result = await client.query('SELECT $1::text as name', ['brianc'])
+console.log(result)
+
+await client.end()
 ```
 
 ```ts
 client.query(config: QueryConfig) => Promise<Result>
 ```
 
-**client.query with a QueryConfig and a callback**
+**client.query with a QueryConfig**
 
 If you pass a `name` parameter to the `client.query` method, the client will create a [prepared statement](/features/queries#prepared-statements).
 
@@ -176,34 +122,10 @@ const query = {
   rowMode: 'array',
 }
 
-client.query(query, (err, res) => {
-  if (err) {
-    console.error(err.stack)
-  } else {
-    console.log(res.rows) // ['brianc']
-  }
-})
-```
+const result = await client.query(query)
+console.log(result.rows) // ['brianc']
 
-**client.query with a QueryConfig and a Promise**
-
-```js
-const query = {
-  name: 'get-name',
-  text: 'SELECT $1::text',
-  values: ['brianc'],
-  rowMode: 'array',
-}
-
-// promise
-client
-  .query(query)
-  .then((res) => {
-    console.log(res.rows) // ['brianc']
-  })
-  .catch((e) => {
-    console.error(e.stack)
-  })
+await client.end()
 ```
 
 **client.query with a `Submittable`**
@@ -221,9 +143,11 @@ assert(query === result) // true
 query.on('row', (row) => {
   console.log('row!', row) // { name: 'brianc' }
 })
+
 query.on('end', () => {
   console.log('query done')
 })
+
 query.on('error', (err) => {
   console.error(err.stack)
 })
@@ -236,24 +160,9 @@ query.on('error', (err) => {
 Disconnects the client from the PostgreSQL server.
 
 ```js
-client.end((err) => {
-  console.log('client has disconnected')
-  if (err) {
-    console.log('error during disconnection', err.stack)
-  }
-})
+await client.end()
+console.log('client has disconnected')
 ```
-
-Calling end without a callback yields a promise:
-
-```js
-client
-  .end()
-  .then(() => console.log('client has disconnected'))
-  .catch((err) => console.error('error during disconnection', err.stack))
-```
-
-_note: end returning a promise is only available in pg7.0 and above_
 
 ## events
 
@@ -263,7 +172,7 @@ _note: end returning a promise is only available in pg7.0 and above_
 client.on('error', (err: Error) => void) => void
 ```
 
-When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and foward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` callback/promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
+When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and foward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
 
 ```js
 const client = new pg.Client()
@@ -300,7 +209,7 @@ type Notification {
 
 ```js
 const client = new pg.Client()
-client.connect()
+await client.connect()
 
 client.query('LISTEN foo')
 
