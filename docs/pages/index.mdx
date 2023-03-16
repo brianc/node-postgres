@@ -23,7 +23,7 @@ node-postgres strives to be compatible with all recent lts versions of node & th
 
 ## Getting started
 
-This is the simplest possible way to connect, query, and disconnect with async/await:
+The simplest possible way to connect, query, and disconnect is with async/await:
 
 ```js
 const { Client } = require('pg')
@@ -35,18 +35,19 @@ console.log(res.rows[0].message) // Hello world!
 await client.end()
 ```
 
-And here's the same thing with callbacks:
+However, if you prefer a callback-style approach to asynchronous programming, all async methods support an optional callback parameter as well:
 
 ```js
 const { Client } = require('pg')
 const client = new Client()
 
-client.connect()
-
-client.query('SELECT $1::text as message', ['Hello world!'], (err, res) => {
-  console.log(err ? err.stack : res.rows[0].message) // Hello World!
-  client.end()
+client.connect((err) => {
+   client.query('SELECT $1::text as message', ['Hello world!'], (err, res) => {
+     console.log(err ? err.stack : res.rows[0].message) // Hello World!
+     client.end()
+   })
 })
+
 ```
 
 Our real-world apps are almost always more complicated than that, and I urge you to read on!
