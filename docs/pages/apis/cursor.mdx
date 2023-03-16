@@ -48,7 +48,7 @@ type CursorQueryConfig {
 
 ## read
 
-### `cursor.read(rowCount: Number, callback: (err: Error, rows: Row[], result: pg.Result) => void) => void`
+### `cursor.read(rowCount: Number) => Promise<pg.Result>`
 
 Read `rowCount` rows from the cursor instance. The callback will be called when the rows are available, loaded into memory, parsed, and converted to JavaScript types.
 
@@ -63,19 +63,16 @@ const Cursor = require('pg-cursor')
 const pool = new Pool()
 const client = await pool.connect()
 const cursor = client.query(new Cursor('select * from generate_series(0, 5)'))
-cursor.read(100, (err, rows) => {
-  if (err) {
-    throw err
-  }
-  assert(rows.length == 6)
-  cursor.read(100, (err, rows) => {
-    assert(rows.length == 0)
-  })
-})
+
+let rows = await cursor.read(100)
+assert(rows.length == 6)
+
+rows = cursor.read(100)
+assert(rows.length == 0)
 ```
 
 ## close
 
-### `cursor.close(callback: () => void) => void`
+### `cursor.close() => Promise<void>`
 
 Used to close the cursor early. If you want to stop reading from the cursor before you get all of the rows returned, call this.
