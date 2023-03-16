@@ -18,8 +18,8 @@ $ npm install pg pg-cursor
 Instantiates a new Cursor. A cursor is an instance of `Submittable` and should be passed directly to the `client.query` method.
 
 ```js
-const { Pool } = require('pg')
-const Cursor = require('pg-cursor')
+import { Pool } from 'pg'
+import Cursor from 'pg-cursor';
 
 const pool = new Pool()
 const client = await pool.connect()
@@ -57,8 +57,8 @@ If the cursor has read to the end of the result sets all subsequent calls to cur
 Here is an example of reading to the end of a cursor:
 
 ```js
-const { Pool } = require('pg')
-const Cursor = require('pg-cursor')
+import { Pool } from 'pg'
+import Cursor from 'pg-cursor'
 
 const pool = new Pool()
 const client = await pool.connect()

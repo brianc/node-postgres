@@ -15,10 +15,11 @@ $ npm install pg pg-native
 Once `pg-native` is installed instead of requiring a `Client` or `Pool` constructor from `pg` you do the following:
 
 ```js
-const { Client, Pool } = require('pg').native
+import { native } from 'pg'
+const { Client, Pool } = native
 ```
 
-When you access the `.native` property on `require('pg')` it will automatically require the `pg-native` package and wrap it in the same API.
+When you access the `.native` property on `'pg'` it will automatically require the `pg-native` package and wrap it in the same API.
 
 <div class='alert alert-warning'>
   Care has been taken to normalize between the two, but there might still be edge cases where things behave subtly differently due to the nature of using libpq over handling the binary protocol directly in JavaScript, so it's recommended you chose to either use the JavaScript driver or the native bindings both in development and production.  For what its worth: I use the pure JavaScript driver because the JavaScript driver is more portable (doesn't need a compiler), and the pure JavaScript driver is <em>plenty</em> fast.

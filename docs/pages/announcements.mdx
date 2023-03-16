@@ -116,7 +116,7 @@ pg@7.1.2
 To demonstrate the issue & see if you are vunerable execute the following in node:
 
 ```js
-const { Client } = require('pg')
+import { Client } from 'pg'
 const client = new Client()
 client.connect()
 

@@ -102,7 +102,7 @@ If you do **not** pass a callback `client.query` will return an instance of a `P
 `client.query` has always accepted any object that has a `.submit` method on it. In this scenario the client calls `.submit` on the object, delegating execution responsibility to it. In this situation the client also **returns the instance it was passed**. This is how [pg-cursor](https://github.com/brianc/node-pg-cursor) and [pg-query-stream](https://github.com/brianc/node-pg-query-stream) work. So, if you need the event emitter functionality on your queries for some reason, it is still possible because `Query` is an instance of `Submittable`:
 
 ```js
-const { Client, Query } = require('pg')
+import { Client, Query } from 'pg'
 const query = client.query(new Query('SELECT NOW()'))
 query.on('row', row => {})
 query.on('end', res => {})
