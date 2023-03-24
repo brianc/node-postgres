@@ -1,6 +1,3 @@
-import { QueryResult } from "pg"
-import Result from "pg/lib/result"
-
 const assert = require('assert')
 const BatchQuery = require('../')
 const pg = require('pg')
@@ -39,7 +36,6 @@ describe('batch query', function () {
         ],
         name: 'optional'
     })).execute()
-    console.log(responses)
     for ( const response of responses) {
       assert.strictEqual(response.rowCount, 1)
     }
