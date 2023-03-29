@@ -18,7 +18,7 @@ const BatchQuery = require('pg-batch-query')
 
 const batch = new BatchQuery({
   name: 'optional',
-  text: 'INSERT INTO foo (bar) VALUES ($1)',
+  text: 'SELECT from foo where bar = $1',
   values: [
     ['first'],
     ['second']
