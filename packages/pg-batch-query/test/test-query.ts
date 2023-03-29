@@ -1,6 +1,6 @@
-const assert = require('assert')
-const BatchQuery = require('../')
-const pg = require('pg')
+import assert from 'assert'
+import BatchQuery from '../'
+import pg from 'pg'
 
 describe('batch query', function () {
   beforeEach(async function () {

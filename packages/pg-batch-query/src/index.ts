@@ -10,7 +10,7 @@ interface BatchQueryConfig {
   values?: string[][] 
 }
 
-class BatchQuery extends EventEmitter implements Submittable  {
+class BatchQuery implements Submittable  {
 
   name: string | null
   text: string
@@ -19,9 +19,10 @@ class BatchQuery extends EventEmitter implements Submittable  {
   _portal: string | null
   _result: typeof Result | null
   _results: typeof Result[]
+  callback: Function | null
+  _canceledDueToError: Boolean
 
   public constructor(batchQuery: BatchQueryConfig) {
-    super()
     const { name, values, text } = batchQuery
 
     this.name = name
@@ -31,6 +32,8 @@ class BatchQuery extends EventEmitter implements Submittable  {
     this._portal = null
     this._result = new Result()
     this._results = []
+    this.callback = null
+    this._canceledDueToError = false
 
     for (const row of values) {
       if (!Array.isArray(values)) {
@@ -60,6 +63,7 @@ class BatchQuery extends EventEmitter implements Submittable  {
         portal: this._portal
       }, true)
 
+      // maybe we could avoid this for non-select queries
       this.connection.describe({
         type: 'P',
         name: this._portal,
@@ -72,27 +76,17 @@ class BatchQuery extends EventEmitter implements Submittable  {
   }
 
   execute(): Promise<QueryResult[]> {
-    let promise
-
-    // TODO: handle if there is a callback provided?
-    if (!this.callback) {
-      promise = new Promise((resolve, reject) => {
-        this.callback = (err, rows) => (err ? reject(err) : resolve(rows))
-      })
-    }
-
-    // Return the promise (or undefined)
-    return promise
+    return new Promise((resolve, reject) => {
+      this.callback = (err, rows) => (err ? reject(err) : resolve(rows))
+    })
   }
 
   handleError(err, connection) {
     console.log(err)
+    this.connection.sync()
   }
 
   handleReadyForQuery(con) {
-    if (this._canceledDueToError) {
-      return this.handleError(this._canceledDueToError, con)
-    }
     if (this.callback) {
       try {
         this.callback(null, this._results)
@@ -103,7 +97,6 @@ class BatchQuery extends EventEmitter implements Submittable  {
         })
       }
     }
-    this.emit('end', this._results)
   }
 
   handleRowDescription(msg) {
