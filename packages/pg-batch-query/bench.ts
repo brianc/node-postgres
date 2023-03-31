@@ -1,5 +1,5 @@
 import pg from 'pg'
-import BatchQuery from './dist'
+import BatchQuery from './src'
 
 const insert = (value) => ({
   text: 'INSERT INTO foobar(name, age) VALUES ($1, $2)',
