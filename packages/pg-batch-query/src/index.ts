@@ -82,7 +82,6 @@ class BatchQuery implements Submittable  {
   }
 
   handleError(err, connection) {
-    console.log(err)
     this.connection.sync()
   }
 
