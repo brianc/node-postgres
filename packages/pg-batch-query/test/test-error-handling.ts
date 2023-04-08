@@ -47,7 +47,6 @@ describe('BatchQuery error handling', function () {
             assert.equal(e.message, 'invalid input syntax for integer: "xxx"')
         }
         const response = await this.client.query('Select sum(value) from foo')
-        console.log(response)
         assert.equal(response.rows[0]['sum'], null)
     })
 
