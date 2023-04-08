@@ -20,7 +20,6 @@ class BatchQuery implements Submittable  {
   _result: typeof Result | null
   _results: typeof Result[]
   callback: Function | null
-  _canceledDueToError: Boolean
 
   public constructor(batchQuery: BatchQueryConfig) {
     const { name, values, text } = batchQuery
@@ -33,7 +32,6 @@ class BatchQuery implements Submittable  {
     this._result = new Result()
     this._results = []
     this.callback = null
-    this._canceledDueToError = false
 
     for (const row of values) {
       if (!Array.isArray(values)) {
@@ -82,7 +80,10 @@ class BatchQuery implements Submittable  {
   }
 
   handleError(err, connection) {
-    this.connection.sync()
+    this.connection.flush()
+    if (this.callback) {
+      this.callback(err)
+    }
   }
 
   handleReadyForQuery(con) {
@@ -91,9 +92,7 @@ class BatchQuery implements Submittable  {
         this.callback(null, this._results)
       }
       catch(err) {
-        process.nextTick(() => {
           throw err
-        })
       }
     }
   }
