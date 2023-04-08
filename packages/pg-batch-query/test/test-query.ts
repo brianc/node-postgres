@@ -40,4 +40,18 @@ describe('batch query', function () {
       assert.strictEqual(response.rowCount, 1)
     }
   })
+
+  it('batch insert with non string values', async function () {
+    await this.client.query('CREATE TEMP TABLE bar(value INT, id SERIAL PRIMARY KEY)')
+    const batchInsert = new BatchQuery({
+        text: 'INSERT INTO bar (value) VALUES ($1)',
+        values: [
+            ['1'],
+            ['2']
+        ]
+    })
+    await this.client.query(batchInsert).execute()
+    const resp = await this.client.query('SELECT SUM(value) from bar')
+    assert.strictEqual(resp.rows[0]['sum'], '3')
+  })
 })
