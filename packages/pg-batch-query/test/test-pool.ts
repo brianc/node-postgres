@@ -1,11 +1,10 @@
 import assert from 'assert'
-import BatchQuery from '../'
+import BatchQuery from '../src'
 import pg from 'pg'
 
 describe('batch pool query', function () {
   beforeEach(async function () {
     this.pool = new pg.Pool({ max: 1 })
-    // await this.pool.query('CREATE TEMP TABLE foo(name TEXT, id SERIAL PRIMARY KEY)')
   })
 
   afterEach(function () {
