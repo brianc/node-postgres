@@ -44,7 +44,7 @@ describe('BatchQuery error handling', function () {
         try {
             await this.client.query(batch).execute()
         } catch (e) {
-            assert.equal(e.message, 'invalid input syntax for type integer: "xxx"')
+            assert.equal(e.message, 'invalid input syntax for integer: "xxx"')
         }
         const response = await this.client.query('Select sum(value) from foo')
         console.log(response)
@@ -65,7 +65,7 @@ describe('BatchQuery error handling', function () {
         try {
             await this.client.query(batch).execute()
         } catch (e) {
-            assert.equal(e.message, 'invalid input syntax for type integer: "xxx"')
+            assert.equal(e.message, 'invalid input syntax for integer: "xxx"')
         }
     })
 })
