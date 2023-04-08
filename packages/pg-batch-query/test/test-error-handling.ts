@@ -40,7 +40,7 @@ describe('BatchQuery error handling', function () {
                 ['xxx']
             ],
         })
-        // fails since xyz is not an int
+        // fails since xxx is not an int
         try {
             await this.client.query(batch).execute()
         } catch (e) {
