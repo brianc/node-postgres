@@ -1,6 +1,7 @@
 ---
 title: pg.Client
 ---
+import { Alert } from '/components/alert.tsx'
 
 ## new Client
 
@@ -255,6 +256,44 @@ client
 ```
 
 _note: end returning a promise is only available in pg7.0 and above_
+
+## client.escapeIdentifier
+
+Escapes a string as a [SQL identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS). There are two ways of using this method: 
+
+First, this can be used on an existing instance of `Client`:
+```js
+const escpaedIdentifier = client.escapeIdentifier('FooIdentifier')
+console.log(escpaedIdentifier) // '"FooIdentifier"'
+```
+
+Alternatively, this can be used via `Client.prototype`:
+```js
+const { Client } = require('pg')
+const escpaedIdentifier = Client.prototype.escapeIdentifier('Bar"Identifier')
+console.log(escpaedIdentifier) // '"Bar""Identifier"'
+```
+
+## client.escapeLiteral
+
+Escapes a string as a [SQL literal](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-CONSTANTS). There are two ways of using this method:
+
+<Alert>
+  **Note**: Instead of manually escaping SQL literals, it is recommended to use parameterized queries. Refer to [parameterized queries](/features/queries#parameterized-query) and the [client.query](#clientquery) API for more information.
+</Alert>
+
+First, this can be used on an existing instance of `Client`:
+```js
+const escapedLiteral = client.escapeLiteral("hello 'world'")
+console.log(escapedLiteral) // "Hello ''world''"
+```
+
+Alternatively, this can be used via `Client.prototype`:
+```js
+const { Client } = require('pg')
+const escapedLiteral = Client.prototype.escapeLiteral("hello \\ ' world")
+console.log(escapedLiteral) // " E'hello \\\\ '' world'"
+```
 
 ## events
 
