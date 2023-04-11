@@ -175,6 +175,38 @@ const postgresMd5PasswordHash = function (user, password, salt) {
   return 'md5' + outer
 }
 
+// Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
+const escapeIdentifier = function (str) {
+  return '"' + str.replace(/"/g, '""') + '"'
+}
+
+const escapeLiteral = function (str) {
+  var hasBackslash = false
+  var escaped = "'"
+
+  for (var i = 0; i < str.length; i++) {
+    var c = str[i]
+    if (c === "'") {
+      escaped += c + c
+    } else if (c === '\\') {
+      escaped += c + c
+      hasBackslash = true
+    } else {
+      escaped += c
+    }
+  }
+
+  escaped += "'"
+
+  if (hasBackslash === true) {
+    escaped = ' E' + escaped
+  }
+
+  return escaped
+}
+
+
+
 module.exports = {
   prepareValue: function prepareValueWrapper(value) {
     // this ensures that extra arguments do not get passed into prepareValue
@@ -184,4 +216,6 @@ module.exports = {
   normalizeQueryConfig,
   postgresMd5PasswordHash,
   md5,
+  escapeIdentifier,
+  escapeLiteral
 }

@@ -456,37 +456,6 @@ class Client extends EventEmitter {
     return this._types.getTypeParser(oid, format)
   }
 
-  // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
-  escapeIdentifier(str) {
-    return '"' + str.replace(/"/g, '""') + '"'
-  }
-
-  // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
-  escapeLiteral(str) {
-    var hasBackslash = false
-    var escaped = "'"
-
-    for (var i = 0; i < str.length; i++) {
-      var c = str[i]
-      if (c === "'") {
-        escaped += c + c
-      } else if (c === '\\') {
-        escaped += c + c
-        hasBackslash = true
-      } else {
-        escaped += c
-      }
-    }
-
-    escaped += "'"
-
-    if (hasBackslash === true) {
-      escaped = ' E' + escaped
-    }
-
-    return escaped
-  }
-
   _pulseQueryQueue() {
     if (this.readyForQuery === true) {
       this.activeQuery = this.queryQueue.shift()
