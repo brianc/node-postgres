@@ -263,15 +263,15 @@ Escapes a string as a [SQL identifier](https://www.postgresql.org/docs/current/s
 
 First, this can be used on an existing instance of `Client`:
 ```js
-const escpaedIdentifier = client.escapeIdentifier('FooIdentifier')
-console.log(escpaedIdentifier) // '"FooIdentifier"'
+const escapedIdentifier = client.escapeIdentifier('FooIdentifier')
+console.log(escapedIdentifier) // '"FooIdentifier"'
 ```
 
 Alternatively, this can be used via `Client.prototype`:
 ```js
 const { Client } = require('pg')
-const escpaedIdentifier = Client.prototype.escapeIdentifier('Bar"Identifier')
-console.log(escpaedIdentifier) // '"Bar""Identifier"'
+const escapedIdentifier = Client.prototype.escapeIdentifier('Bar"Identifier')
+console.log(escapedIdentifier) // '"Bar""Identifier"'
 ```
 
 ## client.escapeLiteral
@@ -285,7 +285,7 @@ Escapes a string as a [SQL literal](https://www.postgresql.org/docs/current/sql-
 First, this can be used on an existing instance of `Client`:
 ```js
 const escapedLiteral = client.escapeLiteral("hello 'world'")
-console.log(escapedLiteral) // "Hello ''world''"
+console.log(escapedLiteral) // "'hello ''world'''"
 ```
 
 Alternatively, this can be used via `Client.prototype`:
