@@ -119,6 +119,48 @@ export class Parser {
     }
   }
 
+  async* splitMessagesTransform(stream: NodeJS.ReadableStream) {
+    for await(const buffer of stream) {
+      this.mergeBuffer(buffer as Buffer)
+      const bufferFullLength = this.bufferOffset + this.bufferLength
+      let offset = this.bufferOffset
+      while (offset + HEADER_LENGTH <= bufferFullLength) {
+        // code is 1 byte long - it identifies the message type
+        const code = this.buffer[offset]
+        // length is 1 Uint32BE - it is the length of the message EXCLUDING the code
+        const length = this.buffer.readUInt32BE(offset + CODE_LENGTH)
+        const fullMessageLength = CODE_LENGTH + length
+        if (fullMessageLength + offset <= bufferFullLength) {
+          yield {
+            offset: offset + HEADER_LENGTH,
+            code,
+            length,
+            bytes: this.buffer
+          };
+          offset += fullMessageLength
+        } else {
+          break
+        }
+      }
+      if (offset === bufferFullLength) {
+        // No more use for the buffer
+        this.buffer = emptyBuffer
+        this.bufferLength = 0
+        this.bufferOffset = 0
+      } else {
+        // Adjust the cursors of remainingBuffer
+        this.bufferLength = bufferFullLength - offset
+        this.bufferOffset = offset
+      }
+    }
+  }
+
+  async* convertToMessageTransform(stream: NodeJS.ReadableStream) {
+    for await(const rawMessage of stream) {
+      yield this.handlePacket((rawMessage as any).offset, (rawMessage as any).code, (rawMessage as any).length, (rawMessage as any).bytes);
+    }
+  }
+
   private mergeBuffer(buffer: Buffer): void {
     if (this.bufferLength > 0) {
       const newLength = this.bufferLength + buffer.byteLength
