@@ -1,7 +1,5 @@
 'use strict'
 
-const crypto = require('crypto')
-
 const defaults = require('./defaults')
 
 function escapeElement(elementRepresentation) {
@@ -164,17 +162,6 @@ function normalizeQueryConfig(config, values, callback) {
   return config
 }
 
-const md5 = function (string) {
-  return crypto.createHash('md5').update(string, 'utf-8').digest('hex')
-}
-
-// See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
-const postgresMd5PasswordHash = function (user, password, salt) {
-  var inner = md5(password + user)
-  var outer = md5(Buffer.concat([Buffer.from(inner), salt]))
-  return 'md5' + outer
-}
-
 // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
 const escapeIdentifier = function (str) {
   return '"' + str.replace(/"/g, '""') + '"'
@@ -205,8 +192,6 @@ const escapeLiteral = function (str) {
   return escaped
 }
 
-
-
 module.exports = {
   prepareValue: function prepareValueWrapper(value) {
     // this ensures that extra arguments do not get passed into prepareValue
@@ -214,8 +199,6 @@ module.exports = {
     return prepareValue(value)
   },
   normalizeQueryConfig,
-  postgresMd5PasswordHash,
-  md5,
   escapeIdentifier,
-  escapeLiteral
+  escapeLiteral,
 }
