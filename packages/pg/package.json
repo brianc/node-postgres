@@ -34,6 +34,9 @@
     "co": "4.6.0",
     "pg-copy-streams": "0.3.0"
   },
+  "optionalDependencies": {
+    "pg-cloudflare": "1.x"
+  },
   "peerDependencies": {
     "pg-native": ">=3.0.1"
   },

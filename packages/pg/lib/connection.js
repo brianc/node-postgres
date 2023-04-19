@@ -4,6 +4,7 @@ var net = require('net')
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('pg-protocol')
+const { getStream, getSecureStream } = require('./stream')
 
 const flushBuffer = serialize.flush()
 const syncBuffer = serialize.sync()
@@ -15,7 +16,7 @@ class Connection extends EventEmitter {
     super()
     config = config || {}
 
-    this.stream = config.stream || new net.Socket()
+    this.stream = config.stream || getStream(config.ssl)
     if (typeof this.stream === 'function') {
       this.stream = this.stream(config)
     }
@@ -79,7 +80,6 @@ class Connection extends EventEmitter {
           self.stream.end()
           return self.emit('error', new Error('There was an error establishing an SSL connection'))
       }
-      var tls = require('tls')
       const options = {
         socket: self.stream,
       }
@@ -97,7 +97,7 @@ class Connection extends EventEmitter {
         options.servername = host
       }
       try {
-        self.stream = tls.connect(options)
+        self.stream = getSecureStream(options)
       } catch (err) {
         return self.emit('error', err)
       }
