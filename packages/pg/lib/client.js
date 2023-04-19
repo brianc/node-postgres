@@ -2,13 +2,14 @@
 
 var EventEmitter = require('events').EventEmitter
 var utils = require('./utils')
-var sasl = require('./sasl')
+var sasl = require('./crypto/sasl')
 var TypeOverrides = require('./type-overrides')
 
 var ConnectionParameters = require('./connection-parameters')
 var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
+const crypto = require('./crypto/utils')
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -257,9 +258,13 @@ class Client extends EventEmitter {
   }
 
   _handleAuthMD5Password(msg) {
-    this._checkPgPass(() => {
-      const hashedPassword = utils.postgresMd5PasswordHash(this.user, this.password, msg.salt)
-      this.connection.password(hashedPassword)
+    this._checkPgPass(async () => {
+      try {
+        const hashedPassword = await crypto.postgresMd5PasswordHash(this.user, this.password, msg.salt)
+        this.connection.password(hashedPassword)
+      } catch (e) {
+        this.emit('error', e)
+      }
     })
   }
 
@@ -274,9 +279,9 @@ class Client extends EventEmitter {
     })
   }
 
-  _handleAuthSASLContinue(msg) {
+  async _handleAuthSASLContinue(msg) {
     try {
-      sasl.continueSession(this.saslSession, this.password, msg.data)
+      await sasl.continueSession(this.saslSession, this.password, msg.data)
       this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
     } catch (err) {
       this.connection.emit('error', err)

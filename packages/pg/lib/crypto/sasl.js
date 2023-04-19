@@ -1,5 +1,5 @@
 'use strict'
-const crypto = require('crypto')
+const crypto = require('./utils')
 
 function startSession(mechanisms) {
   if (mechanisms.indexOf('SCRAM-SHA-256') === -1) {
@@ -16,7 +16,7 @@ function startSession(mechanisms) {
   }
 }
 
-function continueSession(session, password, serverData) {
+async function continueSession(session, password, serverData) {
   if (session.message !== 'SASLInitialResponse') {
     throw new Error('SASL: Last message was not SASLInitialResponse')
   }
@@ -38,29 +38,22 @@ function continueSession(session, password, serverData) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce is too short')
   }
 
-  var saltBytes = Buffer.from(sv.salt, 'base64')
-
-  var saltedPassword = crypto.pbkdf2Sync(password, saltBytes, sv.iteration, 32, 'sha256')
-
-  var clientKey = hmacSha256(saltedPassword, 'Client Key')
-  var storedKey = sha256(clientKey)
-
   var clientFirstMessageBare = 'n=*,r=' + session.clientNonce
   var serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
-
   var clientFinalMessageWithoutProof = 'c=biws,r=' + sv.nonce
-
   var authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
-  var clientSignature = hmacSha256(storedKey, authMessage)
-  var clientProofBytes = xorBuffers(clientKey, clientSignature)
-  var clientProof = clientProofBytes.toString('base64')
-
-  var serverKey = hmacSha256(saltedPassword, 'Server Key')
-  var serverSignatureBytes = hmacSha256(serverKey, authMessage)
+  var saltBytes = Buffer.from(sv.salt, 'base64')
+  var saltedPassword = await crypto.deriveKey(password, saltBytes, sv.iteration)
+  var clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
+  var storedKey = await crypto.sha256(clientKey)
+  var clientSignature = await crypto.hmacSha256(storedKey, authMessage)
+  var clientProof = xorBuffers(Buffer.from(clientKey), Buffer.from(clientSignature)).toString('base64')
+  var serverKey = await crypto.hmacSha256(saltedPassword, 'Server Key')
+  var serverSignatureBytes = await crypto.hmacSha256(serverKey, authMessage)
 
   session.message = 'SASLResponse'
-  session.serverSignature = serverSignatureBytes.toString('base64')
+  session.serverSignature = Buffer.from(serverSignatureBytes).toString('base64')
   session.response = clientFinalMessageWithoutProof + ',p=' + clientProof
 }
 
@@ -184,14 +177,6 @@ function xorBuffers(a, b) {
     throw new Error('Buffers cannot be empty')
   }
   return Buffer.from(a.map((_, i) => a[i] ^ b[i]))
-}
-
-function sha256(text) {
-  return crypto.createHash('sha256').update(text).digest()
-}
-
-function hmacSha256(key, msg) {
-  return crypto.createHmac('sha256', key).update(msg).digest()
 }
 
 module.exports = {

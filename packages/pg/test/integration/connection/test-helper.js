@@ -3,6 +3,7 @@ var net = require('net')
 var helper = require('../test-helper')
 var Connection = require('../../../lib/connection')
 var utils = require('../../../lib/utils')
+const crypto = require('../../../lib/crypto/utils')
 var connect = function (callback) {
   var username = helper.args.user
   var database = helper.args.database
@@ -20,8 +21,8 @@ var connect = function (callback) {
     con.once('authenticationCleartextPassword', function () {
       con.password(helper.args.password)
     })
-    con.once('authenticationMD5Password', function (msg) {
-      con.password(utils.postgresMd5PasswordHash(helper.args.user, helper.args.password, msg.salt))
+    con.once('authenticationMD5Password', async function (msg) {
+      con.password(await crypto.postgresMd5PasswordHash(helper.args.user, helper.args.password, msg.salt))
     })
     con.once('readyForQuery', function () {
       con.query('create temp table ids(id integer)')
