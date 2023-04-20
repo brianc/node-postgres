@@ -458,6 +458,9 @@ class Client extends EventEmitter {
 
   // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
   escapeIdentifier(str) {
+    if (str.includes('\0'))  {
+      throw new Error('Identifier contains \\0, which is not allowed in PostgreSQL identifiers')
+    }
     return '"' + str.replace(/"/g, '""') + '"'
   }
 
@@ -473,6 +476,8 @@ class Client extends EventEmitter {
       } else if (c === '\\') {
         escaped += c + c
         hasBackslash = true
+      } else if (c === '\0') {
+        throw new Error('Literal contains \\0, which is not allowed in PostgreSQL strings')
       } else {
         escaped += c
       }
