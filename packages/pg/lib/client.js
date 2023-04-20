@@ -456,6 +456,13 @@ class Client extends EventEmitter {
     return this._types.getTypeParser(oid, format)
   }
 
+  // escapeIdentifier and escapeLiteral moved to utility functions & exported
+  // on PG 
+  // re-exported here for backwards compatibility
+  escapeIdentifier = utils.escapeIdentifier
+
+  escapeLiteral = utils.escapeLiteral
+
   _pulseQueryQueue() {
     if (this.readyForQuery === true) {
       this.activeQuery = this.queryQueue.shift()
