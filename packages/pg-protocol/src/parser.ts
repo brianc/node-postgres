@@ -28,6 +28,7 @@ import {
 } from './messages'
 import { BufferReader } from './buffer-reader'
 import assert from 'assert'
+import { PgErrorCode, POSTGRES_ERRORS_BY_CODE } from './postgres-error-codes'
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1
@@ -369,7 +370,8 @@ export class Parser {
       name === 'notice' ? new NoticeMessage(length, messageValue) : new DatabaseError(messageValue, length, name)
 
     message.severity = fields.S
-    message.code = fields.C
+    message.code = fields.C as PgErrorCode
+    message.condition = POSTGRES_ERRORS_BY_CODE[message.code]
     message.detail = fields.D
     message.hint = fields.H
     message.position = fields.P

@@ -1,3 +1,5 @@
+import { PgErrorCode, PgErrorCondition } from './postgres-error-codes'
+
 export type Mode = 'text' | 'binary'
 
 export type MessageName =
@@ -77,7 +79,8 @@ export const copyDone: BackendMessage = {
 interface NoticeOrError {
   message: string | undefined
   severity: string | undefined
-  code: string | undefined
+  code: PgErrorCode | undefined
+  condition: PgErrorCondition | undefined
   detail: string | undefined
   hint: string | undefined
   position: string | undefined
@@ -95,21 +98,73 @@ interface NoticeOrError {
 }
 
 export class DatabaseError extends Error implements NoticeOrError {
+  /**
+   * The field contents are ERROR, FATAL, or PANIC (in an error message), or WARNING, NOTICE, DEBUG, INFO, or LOG (in a notice message), or a localized translation of one of these.
+   */
   public severity: string | undefined
-  public code: string | undefined
+  /**
+   * The SQLSTATE code for the error. See [PostgreSQL Error Codes](https://www.postgresql.org/docs/current/errcodes-appendix.html)
+   */
+  public code: PgErrorCode | undefined
+  /**
+   * The condition name matching the code from [PostgreSQL Error Codes](https://www.postgresql.org/docs/current/errcodes-appendix.html)
+   */
+  public condition: PgErrorCondition | undefined
+  /**
+   * An optional secondary error message carrying more detail about the problem
+   */
   public detail: string | undefined
+  /**
+   * An optional suggestion what to do about the problem. This is intended to differ from Detail in that it offers advice (potentially inappropriate) rather than hard facts
+   */
   public hint: string | undefined
+  /**
+   * Indicates an error cursor position as an index into the original query string. The first character has index 1
+   */
   public position: string | undefined
+  /**
+   * Same as the position field, but it is used when the cursor position refers to an internally generated command rather than the one submitted by the client
+   */
   public internalPosition: string | undefined
+  /**
+   * The text of a failed internally-generated command. This could be, for example, a SQL query issued by a PL/pgSQL function
+   */
   public internalQuery: string | undefined
+  /**
+   * An indication of the context in which the error occurred. Presently this includes a call stack traceback of active procedural language functions and internally-generated queries
+   */
   public where: string | undefined
+  /**
+   * If the error was associated with a specific database object, the name of the schema containing that object, if any
+   */
   public schema: string | undefined
+  /**
+   * If the error was associated with a specific table, the name of the table
+   */
   public table: string | undefined
+  /**
+   * If the error was associated with a specific table column, the name of the column
+   */
   public column: string | undefined
+  /**
+   * If the error was associated with a specific data type, the name of the data type
+   */
   public dataType: string | undefined
+  /**
+   * If the error was associated with a specific constraint, the name of the constraint
+   */
   public constraint: string | undefined
+  /**
+   * The file name of the source-code location where the error was reported
+   */
   public file: string | undefined
+  /**
+   * The line number of the source-code location where the error was reported
+   */
   public line: string | undefined
+  /**
+   * The name of the source-code routine reporting the error
+   */
   public routine: string | undefined
   constructor(message: string, public readonly length: number, public readonly name: MessageName) {
     super(message)
@@ -212,7 +267,8 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
   constructor(public readonly length: number, public readonly message: string | undefined) {}
   public readonly name = 'notice'
   public severity: string | undefined
-  public code: string | undefined
+  public code: PgErrorCode | undefined
+  public condition: PgErrorCondition | undefined
   public detail: string | undefined
   public hint: string | undefined
   public position: string | undefined
