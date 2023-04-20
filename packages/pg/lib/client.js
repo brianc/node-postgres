@@ -459,9 +459,13 @@ class Client extends EventEmitter {
   // escapeIdentifier and escapeLiteral moved to utility functions & exported
   // on PG 
   // re-exported here for backwards compatibility
-  escapeIdentifier = utils.escapeIdentifier
+  escapeIdentifier(str) {
+    return utils.escapeIdentifier(str)
+  }
 
-  escapeLiteral = utils.escapeLiteral
+  escapeLiteral(str) {
+    return utils.escapeLiteral(str)
+  }
 
   _pulseQueryQueue() {
     if (this.readyForQuery === true) {
