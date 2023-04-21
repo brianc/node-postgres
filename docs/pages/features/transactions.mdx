@@ -20,8 +20,8 @@ To execute a transaction with node-postgres you simply execute `BEGIN / COMMIT /
 Things are considerably more straightforward if you're using async/await:
 
 ```js
-const { Pool } = require('pg')
-const pool = new Pool()
+const { Client } = require('pg')
+const client = new Client()
 
 // note: we don't try/catch this because if connecting throws an exception
 // we don't need to dispose of the client (it will be undefined)
@@ -49,10 +49,10 @@ try {
 node-postgres is a very old library, and still has an optional callback API. Here's an example of doing the same code above, but with callbacks:
 
 ```js
-const { Pool } = require('pg')
-const pool = new Pool()
+const { Client } = require('pg')
+const client = new Client()
 
-pool.connect((err, client, done) => {
+client.connect((err, client, done) => {
   const shouldAbort = (err) => {
     if (err) {
       console.error('Error in transaction', err.stack)
@@ -60,7 +60,7 @@ pool.connect((err, client, done) => {
         if (err) {
           console.error('Error rolling back client', err.stack)
         }
-        // release the client back to the pool
+        // release the client back to the client
         done()
       })
     }
