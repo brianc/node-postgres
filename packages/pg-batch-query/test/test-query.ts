@@ -1,5 +1,5 @@
 import assert from 'assert'
-import BatchQuery from '../'
+import BatchQuery from '../src'
 import pg from 'pg'
 
 describe('batch query', function () {
@@ -54,4 +54,20 @@ describe('batch query', function () {
     const resp = await this.client.query('SELECT SUM(value) from bar')
     assert.strictEqual(resp.rows[0]['sum'], '3')
   })
+
+  it('If query is for an array', async function() {
+    await this.client.query('INSERT INTO foo (name) VALUES ($1)', ['first'])
+    await this.client.query('INSERT INTO foo (name) VALUES ($1)', ['second'])
+    const responses = await this.client.query(new BatchQuery({
+      text: `SELECT * from foo where name = ANY($1)`,
+      values: [
+          [['first', 'third']],
+          [['second', 'fourth']]
+      ],
+      name: 'optional'
+  })).execute()
+  assert.equal(responses.length, 2)
+  for ( const response of responses) {
+    assert.strictEqual(response.rowCount, 1)
+  }})
 })

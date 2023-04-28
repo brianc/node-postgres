@@ -1,13 +1,12 @@
 import { Submittable, Connection, QueryResult } from 'pg'
 const Result = require('pg/lib/result.js')
-const EventEmitter = require('events').EventEmitter
-
+const utils = require('pg/lib/utils.js')
 let nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
 
 interface BatchQueryConfig {
   name?: string
   text: string
-  values?: string[][] 
+  values?: any[][] 
 }
 
 class BatchQuery implements Submittable  {
@@ -58,7 +57,8 @@ class BatchQuery implements Submittable  {
       this.connection.bind({
         statement: this.name,
         values: val,
-        portal: this._portal
+        portal: this._portal,
+        valueMapper: utils.prepareValue,
       }, true)
 
       // maybe we could avoid this for non-select queries
