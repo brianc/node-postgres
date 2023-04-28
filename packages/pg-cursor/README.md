@@ -10,7 +10,7 @@ $ npm install pg-cursor
 ```
 ___note___: this depends on _either_ `npm install pg` or `npm install pg.js`, but you __must__ be using the pure JavaScript client.  This will __not work__ with the native bindings.
 
-### :star: [Documentation](https://node-postgres.com/api/cursor) :star:
+### :star: [Documentation](https://node-postgres.com/apis/cursor) :star:
 
 ### license
 
