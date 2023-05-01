@@ -68,17 +68,20 @@ describe('events', function () {
       expect(client).to.be.ok()
       releaseCount++
     })
+    const promises = []
     for (let i = 0; i < 10; i++) {
       pool.connect(function (err, client, release) {
         if (err) return done(err)
         release()
       })
-      pool.query('SELECT now()')
+      promises.push(pool.query('SELECT now()'))
     }
-    setTimeout(function () {
-      expect(releaseCount).to.be(20)
-      pool.end(done)
-    }, 100)
+    Promise.all(promises).then(() => {
+      pool.end(() => {
+        expect(releaseCount).to.be(20)
+        done()
+      })
+    })
   })
 
   it('emits release with an error if client is released due to an error', function (done) {
@@ -87,7 +90,6 @@ describe('events', function () {
       expect(err).to.equal(undefined)
       const releaseError = new Error('problem')
       pool.once('release', function (err, errClient) {
-        console.log(err, errClient)
         expect(err).to.equal(releaseError)
         expect(errClient).to.equal(client)
         pool.end(done)
