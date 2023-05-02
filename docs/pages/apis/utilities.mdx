@@ -1,0 +1,30 @@
+---
+title: Utilities
+---
+import { Alert } from '/components/alert.tsx'
+
+## Utility Functions
+### pg.escapeIdentifier
+
+Escapes a string as a [SQL identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS).
+
+```js
+const { escapeIdentifier } = require('pg')
+const escapedIdentifier = escapeIdentifier('FooIdentifier')
+console.log(escapedIdentifier) // '"FooIdentifier"'
+```
+
+
+### pg.escapeLiteral
+
+<Alert>
+  **Note**: Instead of manually escaping SQL literals, it is recommended to use parameterized queries. Refer to [parameterized queries](/features/queries#parameterized-query) and the [client.query](/apis/client#clientquery) API for more information.
+</Alert>
+
+Escapes a string as a [SQL literal](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-CONSTANTS).
+
+```js
+const { escapeLiteral } = require('pg')
+const escapedLiteral = escapeLiteral("hello 'world'")
+console.log(escapedLiteral) // "'hello ''world'''"
+```

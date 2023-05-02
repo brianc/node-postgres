@@ -3,5 +3,6 @@
   "pool": "pg.Pool",
   "result": "pg.Result",
   "types": "pg.Types",
-  "cursor": "Cursor"
+  "cursor": "Cursor",
+  "utilities": "Utilities"
 }
