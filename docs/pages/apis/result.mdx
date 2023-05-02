@@ -37,9 +37,9 @@ await client.end()
 
 The command type last executed: `INSERT` `UPDATE` `CREATE` `SELECT` etc.
 
-### `result.rowCount: int`
+### `result.rowCount: int | null`
 
-The number of rows processed by the last command. 
+The number of rows processed by the last command. Can be `null` for commands that never affect rows, such as the `LOCK`-command. More specifically, some commands, including `LOCK`, only return a command tag of the form `COMMAND`, without any `[ROWS]`-field to parse. For such commands `rowCount` will be `null`.
 
 _note: this does not reflect the number of rows __returned__ from a query.  e.g. an update statement could update many rows (so high `result.rowCount` value) but `result.rows.length` would be zero.  To check for an empty query reponse on a `SELECT` query use `result.rows.length === 0`_.
 
