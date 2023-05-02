@@ -239,3 +239,56 @@ test('prepareValue: can safely be used to map an array of values including those
   var out = values.map(utils.prepareValue)
   assert.deepEqual(out, [1, 'test', 'zomgcustom!'])
 })
+
+var testEscapeLiteral = function (testName, input, expected) {
+  test(testName, function () {
+    var actual = utils.escapeLiteral(input)
+    assert.equal(expected, actual)
+  })
+}
+testEscapeLiteral('escapeLiteral: no special characters', 'hello world', "'hello world'")
+
+testEscapeLiteral('escapeLiteral: contains double quotes only', 'hello " world', "'hello \" world'")
+
+testEscapeLiteral('escapeLiteral: contains single quotes only', "hello ' world", "'hello '' world'")
+
+testEscapeLiteral('escapeLiteral: contains backslashes only', 'hello \\ world', " E'hello \\\\ world'")
+
+testEscapeLiteral('escapeLiteral: contains single quotes and double quotes', 'hello \' " world', "'hello '' \" world'")
+
+testEscapeLiteral('escapeLiteral: contains double quotes and backslashes', 'hello \\ " world', " E'hello \\\\ \" world'")
+
+testEscapeLiteral('escapeLiteral: contains single quotes and backslashes', "hello \\ ' world", " E'hello \\\\ '' world'")
+
+testEscapeLiteral(
+  'escapeLiteral: contains single quotes, double quotes, and backslashes',
+  'hello \\ \' " world',
+  " E'hello \\\\ '' \" world'"
+)
+
+var testEscapeIdentifier = function (testName, input, expected) {
+  test(testName, function () {
+    var actual = utils.escapeIdentifier(input)
+    assert.equal(expected, actual)
+  })
+}
+
+testEscapeIdentifier('escapeIdentifier: no special characters', 'hello world', '"hello world"')
+
+testEscapeIdentifier('escapeIdentifier: contains double quotes only', 'hello " world', '"hello "" world"')
+
+testEscapeIdentifier('escapeIdentifier: contains single quotes only', "hello ' world", '"hello \' world"')
+
+testEscapeIdentifier('escapeIdentifier: contains backslashes only', 'hello \\ world', '"hello \\ world"')
+
+testEscapeIdentifier('escapeIdentifier: contains single quotes and double quotes', 'hello \' " world', '"hello \' "" world"')
+
+testEscapeIdentifier('escapeIdentifier: contains double quotes and backslashes', 'hello \\ " world', '"hello \\ "" world"')
+
+testEscapeIdentifier('escapeIdentifier: contains single quotes and backslashes', "hello \\ ' world", '"hello \\ \' world"')
+
+testEscapeIdentifier(
+  'escapeIdentifier: contains single quotes, double quotes, and backslashes',
+  'hello \\ \' " world',
+  '"hello \\ \' "" world"'
+)

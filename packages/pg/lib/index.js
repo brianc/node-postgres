@@ -5,6 +5,7 @@ var defaults = require('./defaults')
 var Connection = require('./connection')
 var Pool = require('pg-pool')
 const { DatabaseError } = require('pg-protocol')
+const { escapeIdentifier, escapeLiteral } = require('./utils')
 
 const poolFactory = (Client) => {
   return class BoundPool extends Pool {
@@ -23,6 +24,8 @@ var PG = function (clientConstructor) {
   this.Connection = Connection
   this.types = require('pg-types')
   this.DatabaseError = DatabaseError
+  this.escapeIdentifier = escapeIdentifier
+  this.escapeLiteral = escapeLiteral
 }
 
 if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
