@@ -106,7 +106,7 @@ const pool = new Pool()
 
 const client = await pool.connect()
 await client.query('SELECT NOW()')
-await client.release()
+client.release()
 ```
 
 ### releasing clients
