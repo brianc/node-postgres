@@ -30,9 +30,9 @@ console.log('connected')
 await client.end()
 
 const pool = new Pool(config)
-await pool.connect()
+const pooledClient = await pool.connect()
 console.log('connected')
-await client.release()
+pooledClient.release()
 await pool.end()
 ```
 
