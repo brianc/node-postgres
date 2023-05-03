@@ -64,7 +64,7 @@ const pool = new Pool({
   port: 3211,
 })
 
-await pool.query('SELECT NOW()');
+console.log(await pool.query('SELECT NOW()'))
 
 const client = new Client({
   user: 'dbuser',
