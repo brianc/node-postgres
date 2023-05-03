@@ -76,9 +76,9 @@ const client = new Client({
 
 await client.connect()
 
-await client.query('SELECT NOW()');
+console.log(await client.query('SELECT NOW()'))
 
-await client.end();
+await client.end()
 ```
 
 Many cloud providers include alternative methods for connecting to database instances using short-lived authentication tokens. node-postgres supports dynamic passwords via a callback function, either synchronous or asynchronous. The callback function must resolve to a string.
