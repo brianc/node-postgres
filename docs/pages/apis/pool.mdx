@@ -126,7 +126,7 @@ const pool = new Pool()
 const client = await pool.connect()
 
 // release the client
-await client.release()
+client.release()
 ```
 
 ```js
