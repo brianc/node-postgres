@@ -67,7 +67,7 @@ const cursor = client.query(new Cursor('select * from generate_series(0, 5)'))
 let rows = await cursor.read(100)
 assert(rows.length == 6)
 
-rows = cursor.read(100)
+rows = await cursor.read(100)
 assert(rows.length == 0)
 ```
 
