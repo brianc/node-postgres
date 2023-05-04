@@ -17,7 +17,7 @@ help:
 
 test: test-unit
 
-test-all: test-missing-native test-unit test-integration test-native
+test-all: test-missing-native test-unit test-integration test-native test-worker
 
 
 update-npm:
@@ -59,3 +59,7 @@ test-binary: test-connection
 
 test-pool:
 	@find test/integration/connection-pool -name "*.js" | $(node-command) binary
+
+test-worker:
+	@echo "***Testing Cloudflare Worker support***"
+	@node test/worker/src/index.test.js
