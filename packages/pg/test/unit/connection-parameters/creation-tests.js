@@ -320,7 +320,7 @@ suite.test('ssl is set on client', function () {
   var Client = require('../../../lib/client')
   var defaults = require('../../../lib/defaults')
   defaults.ssl = true
-  var c = new Client('postgres://user@password:host/database')
+  var c = new Client('postgres://user:password@host/database')
   assert(c.ssl, 'Client should have ssl enabled via defaults')
 })
 
