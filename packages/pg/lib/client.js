@@ -3,7 +3,6 @@
 var EventEmitter = require('events').EventEmitter
 var utils = require('./utils')
 var sasl = require('./sasl')
-var pgPass = require('pgpass')
 var TypeOverrides = require('./type-overrides')
 
 var ConnectionParameters = require('./connection-parameters')
@@ -237,12 +236,17 @@ class Client extends EventEmitter {
     } else if (this.password !== null) {
       cb()
     } else {
-      pgPass(this.connectionParameters, (pass) => {
-        if (undefined !== pass) {
-          this.connectionParameters.password = this.password = pass
-        }
-        cb()
-      })
+      try {
+        const pgPass = require('pgpass')
+        pgPass(this.connectionParameters, (pass) => {
+          if (undefined !== pass) {
+            this.connectionParameters.password = this.password = pass
+          }
+          cb()
+        })
+      } catch (e) {
+        this.emit('error', e)
+      }
     }
   }
 
@@ -484,7 +488,7 @@ class Client extends EventEmitter {
   }
 
   // escapeIdentifier and escapeLiteral moved to utility functions & exported
-  // on PG 
+  // on PG
   // re-exported here for backwards compatibility
   escapeIdentifier(str) {
     return utils.escapeIdentifier(str)
