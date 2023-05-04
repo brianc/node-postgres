@@ -1,0 +1,5 @@
+name = "pg-cf-test"
+main = "src/index.ts"
+compatibility_date = "2023-04-04"
+compatibility_flags = ["tcp_sockets_support"]
+node_compat = true
