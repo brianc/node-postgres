@@ -168,7 +168,7 @@ describe('parse', function () {
     subject.database.should.equal('%2Fdbname')
   })
 
-  it('configuration parameter host treats encoded socket as part of the db name', function () {
+  it('configuration parameter host treats encoded host as part of the db name', function () {
     var subject = parse('pg://user:pass@%2Funix%2Fsocket/dbname?host=localhost')
     subject.user.should.equal('user')
     subject.password.should.equal('pass')
