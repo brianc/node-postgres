@@ -92,7 +92,8 @@ class Connection extends EventEmitter {
         }
       }
 
-      if (net.isIP(host) === 0) {
+      var net = require('net')
+      if (net.isIP && net.isIP(host) === 0) {
         options.servername = host
       }
       try {
