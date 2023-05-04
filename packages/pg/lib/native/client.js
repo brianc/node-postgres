@@ -1,7 +1,13 @@
 'use strict'
 
 // eslint-disable-next-line
-var Native = require('pg-native')
+var Native
+try {
+  // Wrap this `require()` in a try-catch to avoid upstream bundlers from complaining that this might not be available since it is an optional import
+  Native = require('pg-native')
+} catch (e) {
+  throw e
+}
 var TypeOverrides = require('../type-overrides')
 var EventEmitter = require('events').EventEmitter
 var util = require('util')
