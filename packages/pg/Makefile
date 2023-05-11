@@ -35,19 +35,14 @@ test-connection:
 
 test-missing-native:
 	@echo "***Testing optional native install***"
-	@rm -rf node_modules/pg-native
-	@rm -rf node_modules/libpq
 	@node test/native/missing-native.js
-	@rm -rf node_modules/pg-native
-	@rm -rf node_modules/libpq
 
-node_modules/pg-native/index.js:
-	@npm i --no-save pg-native
-
-test-native: node_modules/pg-native/index.js test-connection
+test-native: test-connection
 	@echo "***Testing native bindings***"
+	@npm i --no-save pg-native
 	@find test/native -name "*-tests.js" | $(node-command)
 	@find test/integration -name "*-tests.js" | $(node-command) native
+	@npm uninstall pg-native
 
 test-integration: test-connection
 	@echo "***Testing Pure Javascript***"
