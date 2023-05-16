@@ -49,7 +49,7 @@ function parse(str) {
   if (!config.host) {
     // Only set the host if there is no equivalent query param.
     config.host = decodeURIComponent(hostname)
-  } else if (hostname) {
+  } else if (hostname && /^%2f/i.test(hostname)) {
     result.pathname = hostname + result.pathname
   }
 
