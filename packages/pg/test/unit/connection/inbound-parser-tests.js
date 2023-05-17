@@ -177,7 +177,7 @@ test('Connection', function () {
   testForMessage(plainPasswordBuffer, expectedPlainPasswordMessage)
   var msgMD5 = testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
   test('md5 has right salt', function () {
-    assert.equalBuffers(msgMD5.salt, Buffer.from([1, 2, 3, 4]))
+    assert.deepStrictEqual(msgMD5.salt, Buffer.from([1, 2, 3, 4]))
   })
 
   var msgSASL = testForMessage(SASLBuffer, expectedSASLMessage)

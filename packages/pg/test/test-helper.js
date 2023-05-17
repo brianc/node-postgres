@@ -49,19 +49,6 @@ assert.emits = function (item, eventName, callback, message) {
   })
 }
 
-assert.equalBuffers = function (actual, expected) {
-  if (actual.length != expected.length) {
-    spit(actual, expected)
-    assert.equal(actual.length, expected.length)
-  }
-  for (var i = 0; i < actual.length; i++) {
-    if (actual[i] != expected[i]) {
-      spit(actual, expected)
-    }
-    assert.equal(actual[i], expected[i])
-  }
-}
-
 assert.empty = function (actual) {
   assert.lengthIs(actual, 0)
 }

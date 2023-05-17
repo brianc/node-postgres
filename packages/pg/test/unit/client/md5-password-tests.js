@@ -15,7 +15,7 @@ test('md5 authentication', async function () {
       test('should have correct encrypted data', async function () {
         var password = await crypto.postgresMd5PasswordHash(client.user, client.password, salt)
         // how do we want to test this?
-        assert.equalBuffers(client.connection.stream.packets[0], new BufferList().addCString(password).join(true, 'p'))
+        assert.deepStrictEqual(client.connection.stream.packets[0], new BufferList().addCString(password).join(true, 'p'))
       })
     })
   )

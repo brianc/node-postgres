@@ -12,7 +12,7 @@ test('cleartext password authentication', function () {
     var packets = client.connection.stream.packets
     assert.lengthIs(packets, 1)
     var packet = packets[0]
-    assert.equalBuffers(packet, [0x70, 0, 0, 0, 6, 33, 0])
+    assert.deepStrictEqual(packet, Buffer.from([0x70, 0, 0, 0, 6, 33, 0]))
   })
 
   test('does not crash with null password using pg-pass', function () {
