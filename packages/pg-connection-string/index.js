@@ -50,6 +50,7 @@ function parse(str) {
     // Only set the host if there is no equivalent query param.
     config.host = decodeURIComponent(hostname)
   } else if (hostname && /^%2f/i.test(hostname)) {
+    // Only prepend the hostname to the pathname if it is not a URL encoded Unix socket host.
     result.pathname = hostname + result.pathname
   }
 
