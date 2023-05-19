@@ -1,6 +1,12 @@
 # pg-batch-query
 
+Batches queries by using the [Extended query protocol](https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY).
+Essentially we do the following
+- send a single PARSE command to create a named statement.
+- send a pair of BIND and EXECUTE commands
+- Finally send a SYNC to close the current transaction.
 
+As [per benchmark tests](./bench.ts), number of queries per seconds gets tripled using batched queries.
 
 ## installation
 
@@ -30,7 +36,7 @@ pool.connect((err, client, done) => {
   const result = client.query(batch).execute()
   for (const res of result) {
     for (const row of res) {
-      consolel.log(row)
+      console.log(row)
     }
   }
 })

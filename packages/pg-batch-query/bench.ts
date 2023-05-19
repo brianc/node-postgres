@@ -3,12 +3,13 @@ import BatchQuery from './src'
 
 const insert = (value) => ({
   text: 'INSERT INTO foobar(name, age) VALUES ($1, $2)',
-  values: ['brian', value],
+  values: ['joe' + value, value],
 })
 
-const seq = {
-  text: 'SELECT * FROM generate_series(1, 1000)',
-}
+const select = (value) => ({
+  text: 'SELECT FROM foobar where name = $1 and age = $2',
+  values: ['joe' + value, value],
+})
 
 let counter = 0
 
@@ -28,11 +29,11 @@ const batchExec = async (client, getQuery, count) => {
     name: 'optional'+ counter++,
     text: query.text,
     values: [
-      ['brian1', '1'],
-      ['brian2', '1'],
-      ['brian3', '1'],
-      ['brian4', '1'],
-      ['brian5', '1']
+      ['joe1', count],
+      ['joe2', count],
+      ['joe3', count],
+      ['joe4', count],
+      ['joe5', count]
     ]
   })
   await client.query(batchQuery).execute()
@@ -63,13 +64,25 @@ const run = async () => {
     console.log('')
     console.log('insert queries:', queries)
     console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 12467 qps')
+    console.log('on my laptop best so far seen 16115.4 qps')
 
     queries = await bench(client, batchExec, insert, 5 * 1000)
     console.log('')
     console.log('insert batch queries:', queries * 5)
     console.log('qps', queries * 5 / seconds)
-    console.log('on my laptop best so far seen 28796 qps')
+    console.log('on my laptop best so far seen 42646 qps')
+
+    queries = await bench(client, simpleExec, select, 5 * 1000)
+    console.log('')
+    console.log('select queries:', queries)
+    console.log('qps', queries / seconds)
+    console.log('on my laptop best so far seen 18579.8 qps')
+
+    queries = await bench(client, batchExec, select, 5 * 1000)
+    console.log('')
+    console.log('select batch queries:', queries * 5)
+    console.log('qps', queries * 5 / seconds)
+    console.log('on my laptop best so far seen 44887 qps')
   }
 
   await client.end()
