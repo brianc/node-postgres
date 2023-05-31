@@ -79,7 +79,7 @@ _If you find `pg` valuable to you or your business please consider [supporting](
 
 After a _very_ long time on my todo list I've ported the docs from my old hand-rolled webapp running on route53 + elb + ec2 + dokku (I know, I went overboard!) to [gatsby](https://www.gatsbyjs.org/) hosted on [netlify](https://www.netlify.com/) which is _so_ much easier to manage. I've released the code at [https://github.com/brianc/node-postgres-docs](https://github.com/brianc/node-postgres-docs) and invite your contributions! Let's make this documentation better together. Any time changes are merged to master on the documentation repo it will automatically deploy.
 
-If you see an error in the docs, big or small, use the "edit on github" button to edit the page & submit a pull request right there. I'll get a new version out ASAP with your changes! If you want to add new pages of documentation open an issue if you need guidance, and I'll help you get started.
+If you see an error in the docs, big or small, use the "edit on GitHub" button to edit the page & submit a pull request right there. I'll get a new version out ASAP with your changes! If you want to add new pages of documentation open an issue if you need guidance, and I'll help you get started.
 
 I want to extend a special **thank you** to all the [supporters](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md) and [contributors](https://github.com/brianc/node-postgres/graphs/contributors) to the project that have helped keep me going through times of burnout or life "getting in the way." ❤️
 
@@ -116,7 +116,7 @@ pg@7.1.2
 To demonstrate the issue & see if you are vunerable execute the following in node:
 
 ```js
-const { Client } = require('pg')
+import { Client } from 'pg'
 const client = new Client()
 client.connect()
 
