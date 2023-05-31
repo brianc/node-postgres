@@ -35,6 +35,7 @@ var Client = (module.exports = function (config) {
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
   var cp = (this.connectionParameters = new ConnectionParameters(config))
+  if (config.nativeConnectionString) cp.nativeConnectionString = config.nativeConnectionString
   this.user = cp.user
 
   // "hiding" the password so it doesn't show up in stack traces
@@ -88,6 +89,7 @@ Client.prototype._connect = function (cb) {
   this._connecting = true
 
   this.connectionParameters.getLibpqConnectionString(function (err, conString) {
+    if (self.connectionParameters.nativeConnectionString) conString = self.connectionParameters.nativeConnectionString
     if (err) return cb(err)
     self.native.connect(conString, function (err) {
       if (err) {
