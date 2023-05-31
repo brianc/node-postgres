@@ -3,27 +3,14 @@ title: Queries
 slug: /features/queries
 ---
 
-The api for executing queries supports both callbacks and promises. I'll provide an example for both _styles_ here. For the sake of brevity I am using the `client.query` method instead of the `pool.query` method - both methods support the same API. In fact, `pool.query` delegates directly to `client.query` internally.
+For the sake of brevity I am using the `client.query` method instead of the `pool.query` method - both methods support the same API. In fact, `pool.query` delegates directly to `client.query` internally.
 
 ## Text only
 
 If your query has no parameters you do not need to include them to the query method:
 
 ```js
-// callback
-client.query('SELECT NOW() as now', (err, res) => {
-  if (err) {
-    console.log(err.stack)
-  } else {
-    console.log(res.rows[0])
-  }
-})
-
-// promise
-client
-  .query('SELECT NOW() as now')
-  .then(res => console.log(res.rows[0]))
-  .catch(e => console.error(e.stack))
+await client.query('SELECT NOW() as now')
 ```
 
 ## Parameterized query
@@ -34,33 +21,9 @@ If you are passing parameters to your queries you will want to avoid string conc
 const text = 'INSERT INTO users(name, email) VALUES($1, $2) RETURNING *'
 const values = ['brianc', 'brian.m.carlson@gmail.com']
 
-// callback
-client.query(text, values, (err, res) => {
-  if (err) {
-    console.log(err.stack)
-  } else {
-    console.log(res.rows[0])
-    // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
-  }
-})
-
-// promise
-client
-  .query(text, values)
-  .then(res => {
-    console.log(res.rows[0])
-    // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
-  })
-  .catch(e => console.error(e.stack))
-
-// async/await
-try {
-  const res = await client.query(text, values)
-  console.log(res.rows[0])
-  // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
-} catch (err) {
-  console.log(err.stack)
-}
+const res = await client.query(text, values)
+console.log(res.rows[0])
+// { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
 ```
 
 <div class="alert alert-warning">
@@ -112,20 +75,8 @@ const query = {
   values: ['brianc', 'brian.m.carlson@gmail.com'],
 }
 
-// callback
-client.query(query, (err, res) => {
-  if (err) {
-    console.log(err.stack)
-  } else {
-    console.log(res.rows[0])
-  }
-})
-
-// promise
-client
-  .query(query)
-  .then(res => console.log(res.rows[0]))
-  .catch(e => console.error(e.stack))
+const res = await client.query(query)
+console.log(res.rows[0])
 ```
 
 The query config object allows for a few more advanced scenarios:
@@ -142,20 +93,8 @@ const query = {
   values: [1],
 }
 
-// callback
-client.query(query, (err, res) => {
-  if (err) {
-    console.log(err.stack)
-  } else {
-    console.log(res.rows[0])
-  }
-})
-
-// promise
-client
-  .query(query)
-  .then(res => console.log(res.rows[0]))
-  .catch(e => console.error(e.stack))
+const res = await client.query(query)
+console.log(res.rows[0])
 ```
 
 In the above example the first time the client sees a query with the name `'fetch-user'` it will send a 'parse' request to the PostgreSQL server & execute the query as normal. The second time, it will skip the 'parse' request and send the _name_ of the query to the PostgreSQL server.
@@ -177,24 +116,9 @@ const query = {
   rowMode: 'array',
 }
 
-// callback
-client.query(query, (err, res) => {
-  if (err) {
-    console.log(err.stack)
-  } else {
-    console.log(res.fields.map(field => field.name)) // ['first_name', 'last_name']
-    console.log(res.rows[0]) // ['Brian', 'Carlson']
-  }
-})
-
-// promise
-client
-  .query(query)
-  .then(res => {
-    console.log(res.fields.map(field => field.name)) // ['first_name', 'last_name']
-    console.log(res.rows[0]) // ['Brian', 'Carlson']
-  })
-  .catch(e => console.error(e.stack))
+const res = await client.query(query)
+console.log(res.fields.map(field => field.name)) // ['first_name', 'last_name']
+console.log(res.rows[0]) // ['Brian', 'Carlson']
 ```
 
 ### Types

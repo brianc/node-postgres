@@ -15,7 +15,7 @@ $ npm install pg
 
 node-postgres continued development and support is made possible by the many [supporters](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
 
-If you or your company would like to sponsor node-postgres stop by [github sponsors](https://github.com/sponsors/brianc) and sign up or feel free to [email me](mailto:brian@pecanware.com) if you want to add your logo to the documentation or discuss higher tiers of sponsorship!
+If you or your company would like to sponsor node-postgres stop by [GitHub Sponsors](https://github.com/sponsors/brianc) and sign up or feel free to [email me](mailto:brian@pecanware.com) if you want to add your logo to the documentation or discuss higher tiers of sponsorship!
 
 # Version compatibility
 
@@ -23,10 +23,10 @@ node-postgres strives to be compatible with all recent lts versions of node & th
 
 ## Getting started
 
-This is the simplest possible way to connect, query, and disconnect with async/await:
+The simplest possible way to connect, query, and disconnect is with async/await:
 
 ```js
-const { Client } = require('pg')
+import { Client } from 'pg'
 const client = new Client()
 await client.connect()
 
@@ -35,18 +35,40 @@ console.log(res.rows[0].message) // Hello world!
 await client.end()
 ```
 
-And here's the same thing with callbacks:
+### Error Handling
+
+For the sake of simplicity, these docs will assume that the methods are successful. In real life use, make sure to properly handle errors thrown in the methods. A `try/catch` block is a great way to do so:
+
+```ts
+import { Client } from 'pg'
+const client = new Client()
+await client.connect()
+
+try {
+   const res = await client.query('SELECT $1::text as message', ['Hello world!'])
+   console.log(res.rows[0].message) // Hello world!
+} catch (err) {
+   console.error(err);
+} finally {
+   await client.end()
+}
+```
+
+### Callbacks
+
+If you prefer a callback-style approach to asynchronous programming, all async methods support an optional callback parameter as well:
 
 ```js
-const { Client } = require('pg')
+import { Client } from 'pg'
 const client = new Client()
 
-client.connect()
-
-client.query('SELECT $1::text as message', ['Hello world!'], (err, res) => {
-  console.log(err ? err.stack : res.rows[0].message) // Hello World!
-  client.end()
+client.connect((err) => {
+   client.query('SELECT $1::text as message', ['Hello world!'], (err, res) => {
+     console.log(err ? err.stack : res.rows[0].message) // Hello World!
+     client.end()
+   })
 })
+
 ```
 
 Our real-world apps are almost always more complicated than that, and I urge you to read on!

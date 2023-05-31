@@ -28,7 +28,7 @@ The client pool allows you to have a reusable pool of clients you can check out,
 ### Checkout, use, and return
 
 ```js
-const { Pool } = require('pg')
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -39,46 +39,11 @@ pool.on('error', (err, client) => {
   process.exit(-1)
 })
 
-// callback - checkout a client
-pool.connect((err, client, done) => {
-  if (err) throw err
-  client.query('SELECT * FROM users WHERE id = $1', [1], (err, res) => {
-    done()
+const client = await pool.connect()
+const res = await client.query('SELECT * FROM users WHERE id = $1', [1])
+console.log(res.rows[0])
 
-    if (err) {
-      console.log(err.stack)
-    } else {
-      console.log(res.rows[0])
-    }
-  })
-})
-
-// promise - checkout a client
-pool.connect().then((client) => {
-  return client
-    .query('SELECT * FROM users WHERE id = $1', [1])
-    .then((res) => {
-      client.release()
-      console.log(res.rows[0])
-    })
-    .catch((err) => {
-      client.release()
-      console.log(err.stack)
-    })
-})
-
-// async/await - check out a client
-;(async () => {
-  const client = await pool.connect()
-  try {
-    const res = await client.query('SELECT * FROM users WHERE id = $1', [1])
-    console.log(res.rows[0])
-  } catch (err) {
-    console.log(err.stack)
-  } finally {
-    client.release()
-  }
-})()
+await client.release()
 ```
 
 <Alert>
@@ -95,44 +60,12 @@ pool.connect().then((client) => {
 If you don't need a transaction or you just need to run a single query, the pool has a convenience method to run a query on any available client in the pool. This is the preferred way to query with node-postgres if you can as it removes the risk of leaking a client.
 
 ```js
-const { Pool } = require('pg')
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
-pool.query('SELECT * FROM users WHERE id = $1', [1], (err, res) => {
-  if (err) {
-    throw err
-  }
-
-  console.log('user:', res.rows[0])
-})
-```
-
-node-postgres also has built-in support for promises throughout all of its async APIs.
-
-```js
-const { Pool } = require('pg')
-
-const pool = new Pool()
-
-pool
-  .query('SELECT * FROM users WHERE id = $1', [1])
-  .then((res) => console.log('user:', res.rows[0]))
-  .catch((err) =>
-    setImmediate(() => {
-      throw err
-    })
-  )
-```
-
-Promises allow us to use `async`/`await` in node v8.0 and above (or earlier if you're using babel).
-
-```js
-const { Pool } = require('pg')
-const pool = new Pool()
-
-const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [1])
-console.log('user:', rows[0])
+const res = await pool.query('SELECT * FROM users WHERE id = $1', [1])
+console.log('user:', res.rows[0])
 ```
 
 ### Shutdown
@@ -140,7 +73,7 @@ console.log('user:', rows[0])
 To shut down a pool call `pool.end()` on the pool. This will wait for all checked-out clients to be returned and then shut down all the clients and the pool timers.
 
 ```js
-const { Pool } = require('pg')
+import { Pool } from 'pg'
 const pool = new Pool()
 
 console.log('starting async query')
