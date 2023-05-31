@@ -149,6 +149,7 @@ describe('parse', function () {
 
   it('configuration parameter host overrides url host', function () {
     var subject = parse('pg://user:pass@localhost/dbname?host=/unix/socket')
+    subject.database.should.equal('dbname')
     subject.host.should.equal('/unix/socket')
   })
 
