@@ -56,9 +56,9 @@
   integrity sha512-lbPIvpdd3j0V1Y8jOgnDiYgGrKFzm6IEXPCvG/ZPnQfYT3oGb/nkZ2aSGVQUVZUgaRMbTWPegdIzTmn1OvRVMA==
 
 "@cloudflare/workers-types@^4.20230404.0":
-  version "4.20230404.0"
-  resolved "https://registry.npmjs.org/@cloudflare/workers-types/-/workers-types-4.20230404.0.tgz"
-  integrity sha512-fG3oaJX1icfsGV74nhx1+AC6opvZsGqnpx6FvrcVqQaBmCNkjKNqDRFrpasXWFiOIvysBXHKQAzsAJkBZgnM+A==
+  version "4.20230518.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workers-types/-/workers-types-4.20230518.0.tgz#de1b0f71d68e2eac1b546542968ea2b837cb967e"
+  integrity sha512-A0w1V+5SUawGaaPRlhFhSC/SCDT9oQG8TMoWOKFLA4qbqagELqEAFD4KySBIkeVOvCBLT1DZSYBMCxbXddl0kw==
 
 "@esbuild-plugins/node-globals-polyfill@^0.1.1":
   version "0.1.1"
