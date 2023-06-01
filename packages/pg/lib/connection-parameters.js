@@ -1,6 +1,7 @@
 'use strict'
 
 var dns = require('dns')
+const _ = require('lodash')
 
 var defaults = require('./defaults')
 
@@ -18,7 +19,7 @@ var val = function (key, config, envVar) {
   return config[key] || envVar || defaults[key]
 }
 
-var readSSLConfigFromEnvironment = function () {
+var readSSLModeFromEnvironment = function () {
   switch (process.env.PGSSLMODE) {
     case 'disable':
       return false
@@ -31,6 +32,27 @@ var readSSLConfigFromEnvironment = function () {
       return { rejectUnauthorized: false }
   }
   return defaults.ssl
+}
+
+var fillInSSLVariablesFromEnvironment = function(existingSsl) {
+  var caFileName = val('sslrootcert', existingSsl)
+  var crtFileName = val('sslcert', existingSsl)
+  var keyFileName = val('sslkey', existingSsl)
+
+  // Only try to load fs if we expect to read from the disk
+  const fs = caFileName || crtFileName || keyFileName ? require('fs') : null
+  var result = {}
+  if (caFileName) {
+    result.ca = fs.readFileSync(caFileName).toString()
+  }
+  if (crtFileName) {
+    result.cert = fs.readFileSync(crtFileName).toString()
+  }
+  if (keyFileName) {
+    result.key = fs.readFileSync(keyFileName).toString()
+  }
+  
+  return result
 }
 
 // Convert arg to a string, surround in single quotes, and escape single quotes and backslashes
@@ -78,7 +100,7 @@ class ConnectionParameters {
     this.binary = val('binary', config)
     this.options = val('options', config)
 
-    this.ssl = typeof config.ssl === 'undefined' ? readSSLConfigFromEnvironment() : config.ssl
+    this.ssl = typeof config.ssl === 'undefined' ? readSSLModeFromEnvironment() : config.ssl
 
     if (typeof this.ssl === 'string') {
       if (this.ssl === 'true') {
@@ -89,6 +111,23 @@ class ConnectionParameters {
     if (this.ssl === 'no-verify') {
       this.ssl = { rejectUnauthorized: false }
     }
+
+    // Fill in possibly missing SSL config parameters from environment variables. 
+    // This lets you mix SSL definitions between connection string, config object and environment variables.
+    if (this.ssl === true) {
+      var sslCandidate = fillInSSLVariablesFromEnvironment({})
+      
+      // Change the type of this.ssl from boolean to object only if relevant environment variables were defined
+      if (!_.isEmpty(sslCandidate)) {
+        this.ssl = sslCandidate
+      }
+    } else if (typeof this.ssl === 'object') {
+      var sslCandidate = fillInSSLVariablesFromEnvironment({})
+      this.ssl = Object.assign(this.ssl, sslCandidate)
+    }
+
+    // "hiding" the private key so it doesn't show up in stack traces
+    // or if the client is console.logged
     if (this.ssl && this.ssl.key) {
       Object.defineProperty(this.ssl, 'key', {
         enumerable: false,
