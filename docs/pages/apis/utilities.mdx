@@ -14,6 +14,9 @@ const escapedIdentifier = escapeIdentifier('FooIdentifier')
 console.log(escapedIdentifier) // '"FooIdentifier"'
 ```
 
+<Alert>
+  **Note**: When using an identifier that is the result of this function in an operation like `CREATE TABLE ${escapedIdentifier(identifier)}`, the table that is created will be CASE SENSITIVE. If you use any capital letters in the escaped identifier, you must always refer to the created table like `SELECT * from "MyCaseSensitiveTable"`; queries like `SELECT * FROM MyCaseSensitiveTable` will result in a "Non-existent table" error since case information is stripped from the query.
+</Alert>
 
 ### pg.escapeLiteral
 
