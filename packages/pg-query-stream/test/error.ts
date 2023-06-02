@@ -143,4 +143,43 @@ describe('error recovery', () => {
 
     await pool.end();
   })
+
+  it.only('should work after cancelling query', async () => {
+    const pool = new Pool();
+    const conn = await pool.connect();
+
+    // Get connection PID for sake of pg_cancel_backend() call
+    const result = await conn.query('SELECT pg_backend_pid() AS pid;');
+    const { pid } = result.rows[0];
+
+    const stream = conn.query(new QueryStream('SELECT pg_sleep(10);'));
+    stream.on('data', (chunk) => {
+      // Switches stream into readableFlowing === true mode
+    });
+    stream.on('error', (err) => {
+      // Errors are expected due to pg_cancel_backend() call
+    });
+
+    // Create a promise that is resolved when the stream is closed
+    const closed = new Promise((res) => {
+      stream.on('close', res);
+    });
+
+    // Wait 100ms before cancelling the query
+    await new Promise((res) => setTimeout(res, 100));
+
+    // Cancel pg_sleep(10) query
+    await pool.query('SELECT pg_cancel_backend($1);', [pid]);
+
+    // Destroy stream and wait for it to be closed
+    stream.destroy();
+    await closed;
+
+    // Subsequent query on same connection should succeed
+    const res = await conn.query('SELECT 1 AS a;');
+    assert.deepStrictEqual(res.rows, [ { a:1 } ]);
+
+    conn.release()
+    await pool.end()
+  })
 })
