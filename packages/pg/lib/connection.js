@@ -84,19 +84,20 @@ class Connection extends EventEmitter {
         socket: self.stream,
       }
 
-      if (self.ssl !== true) {
-        Object.assign(options, self.ssl)
-
-        if ('key' in self.ssl) {
-          options.key = self.ssl.key
-        }
-      }
-
-      var net = require('net')
-      if (net.isIP && net.isIP(host) === 0) {
-        options.servername = host
-      }
       try {
+        if (self.ssl !== true) {
+          Object.assign(options, self.ssl)
+
+          if ('key' in self.ssl) {
+            options.key = self.ssl.key
+          }
+        }
+
+        var net = require('net')
+        if (net.isIP && net.isIP(host) === 0) {
+          options.servername = host
+        }
+
         self.stream = getSecureStream(options)
       } catch (err) {
         return self.emit('error', err)
