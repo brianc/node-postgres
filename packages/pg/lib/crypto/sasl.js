@@ -1,5 +1,13 @@
 'use strict'
-const crypto = require('./utils')
+
+let crypto
+const useLegacyCrypto = parseInt(process.versions && process.versions.node && process.versions.node.split('.')[0]) < 15
+
+if (useLegacyCrypto) {
+  crypto = require('./utils-legacy')
+} else {
+  crypto = require('./utils')
+}
 
 function startSession(mechanisms) {
   if (mechanisms.indexOf('SCRAM-SHA-256') === -1) {
