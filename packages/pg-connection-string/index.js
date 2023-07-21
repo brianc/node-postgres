@@ -38,7 +38,6 @@ function parse(str) {
   config.user = config.user || decodeURIComponent(result.username)
   config.password = config.password || decodeURIComponent(result.password)
 
-  config.port = result.port
   if (result.protocol == 'socket:') {
     config.host = decodeURI(result.pathname)
     config.database = result.searchParams.get('db')
@@ -52,6 +51,10 @@ function parse(str) {
   } else if (hostname && /^%2f/i.test(hostname)) {
     // Only prepend the hostname to the pathname if it is not a URL encoded Unix socket host.
     result.pathname = hostname + result.pathname
+  }
+  if (!config.port) {
+    // Only set the port if there is no equivalent query param.
+    config.port = result.port
   }
 
   const pathname = result.pathname.slice(1) || null
