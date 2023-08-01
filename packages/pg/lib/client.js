@@ -114,16 +114,28 @@ class Client extends EventEmitter {
     }
 
     // once connection is established send startup message
-    con.on('connect', function () {
+    con.on('connect', async function () {
       if (self.ssl) {
         con.requestSsl()
       } else {
-        con.startup(self.getStartupConf())
+        try {
+          const conf = await self.getStartupConf()
+          con.startup(conf)
+        }
+        catch(err) {
+          con.stream.destroy(err)
+        }
       }
     })
 
-    con.on('sslconnect', function () {
-      con.startup(self.getStartupConf())
+    con.on('sslconnect', async function () {
+      try {
+        const conf = await self.getStartupConf()
+        con.startup(conf)
+      }
+      catch(err) {
+        con.stream.destroy(err)
+      }
     })
 
     this._attachListeners(con)
@@ -407,11 +419,26 @@ class Client extends EventEmitter {
     this.emit('notice', msg)
   }
 
-  getStartupConf() {
+  async getStartupConf() {
     var params = this.connectionParameters
 
+    var user = params.user
+    if (typeof this.user === 'function') {
+      user = await this.user()
+
+      if (user !== undefined) {
+        if (typeof user !== 'string') {
+          throw new TypeError('User must be a string')
+          return
+        }
+        this.connectionParameters.user = this.user = user
+      } else {
+        this.connectionParameters.user = this.user = null
+      }
+    }
+
     var data = {
-      user: params.user,
+      user: user,
       database: params.database,
     }
 
