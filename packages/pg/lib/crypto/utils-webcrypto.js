@@ -1,5 +1,3 @@
-const nodeCrypto = require('crypto')
-
 module.exports = {
   postgresMd5PasswordHash,
   randomBytes,
@@ -13,7 +11,7 @@ module.exports = {
  * The Web Crypto API - grabbed from the Node.js library or the global
  * @type Crypto
  */
-const webCrypto = nodeCrypto.webcrypto || globalThis.crypto
+const webCrypto = globalThis.crypto || require('crypto').webcrypto
 /**
  * The SubtleCrypto API for low level crypto operations.
  * @type SubtleCrypto
@@ -32,7 +30,7 @@ function randomBytes(length) {
 
 async function md5(string) {
   try {
-    return nodeCrypto.createHash('md5').update(string, 'utf-8').digest('hex')
+    return require('crypto').createHash('md5').update(string, 'utf-8').digest('hex')
   } catch (e) {
     // `createHash()` failed so we are probably not in Node.js, use the WebCrypto API instead.
     // Note that the MD5 algorithm on WebCrypto is not available in Node.js.
