@@ -61,9 +61,6 @@ class Result {
   }
 
   parseRow(rowData) {
-    if (!this._prebuiltEmptyResultObject) {
-      this._createPrebuiltEmptyResultObject()
-    }
     var row = { ... this._prebuiltEmptyResultObject }
     for (var i = 0, len = rowData.length; i < len; i++) {
       var rawValue = rowData[i]
@@ -96,6 +93,7 @@ class Result {
         this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       }
     }
+    this._createPrebuiltEmptyResultObject()
   }
   _createPrebuiltEmptyResultObject() {
     var row = {};
