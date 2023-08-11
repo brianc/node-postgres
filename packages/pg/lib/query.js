@@ -24,13 +24,14 @@ class Query extends EventEmitter {
     if (process.domain && config.callback) {
       this.callback = process.domain.bind(config.callback)
     }
+    this.usePrebuiltEmptyResultObjects = config.usePrebuiltEmptyResultObjects == true
     this._result = new Result(this._rowMode, this.types)
-
     // potential for multiple results
     this._results = this._result
     this.isPreparedStatement = false
     this._canceledDueToError = false
     this._promise = null
+    this._prebuiltEmptyResultObject = null
   }
 
   requiresPreparation() {
@@ -64,6 +65,7 @@ class Query extends EventEmitter {
       }
       this._result = new Result(this._rowMode, this.types)
       this._results.push(this._result)
+      this._prebuiltEmptyResultObject = null
     }
   }
 
@@ -83,8 +85,12 @@ class Query extends EventEmitter {
       return
     }
 
+    if (this.usePrebuiltEmptyResultObjects && !this._prebuiltEmptyResultObject) {
+      this._createPrebuiltEmptyResultObject()
+    }
+
     try {
-      row = this._result.parseRow(msg.fields)
+      row = this._result.parseRow(msg.fields, this.usePrebuiltEmptyResultObjects ? { ... this._prebuiltEmptyResultObject } : {})
     } catch (err) {
       this._canceledDueToError = err
       return
@@ -138,7 +144,7 @@ class Query extends EventEmitter {
       try {
         this.callback(null, this._results)
       }
-      catch(err) {
+      catch (err) {
         process.nextTick(() => {
           throw err
         })
@@ -235,6 +241,13 @@ class Query extends EventEmitter {
   // eslint-disable-next-line no-unused-vars
   handleCopyData(msg, connection) {
     // noop
+  }
+  _createPrebuiltEmptyResultObject() {
+    var row = {};
+    for (var i = 0; i < this._result.fields.length; i++) {
+      row[this._result.fields[i].name] = null
+    }
+    this._prebuiltEmptyResultObject = row
   }
 }
 

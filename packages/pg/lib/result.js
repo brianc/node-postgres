@@ -59,8 +59,7 @@ class Result {
     return row
   }
 
-  parseRow(rowData) {
-    var row = {}
+  parseRow(rowData, row = {}) {
     for (var i = 0, len = rowData.length; i < len; i++) {
       var rawValue = rowData[i]
       var field = this.fields[i].name
