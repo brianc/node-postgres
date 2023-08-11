@@ -31,7 +31,6 @@ class Query extends EventEmitter {
     this.isPreparedStatement = false
     this._canceledDueToError = false
     this._promise = null
-    this._prebuiltEmptyResultObject = null
   }
 
   requiresPreparation() {
@@ -65,7 +64,6 @@ class Query extends EventEmitter {
       }
       this._result = new Result(this._rowMode, this.types)
       this._results.push(this._result)
-      this._prebuiltEmptyResultObject = null
     }
   }
 
@@ -85,12 +83,8 @@ class Query extends EventEmitter {
       return
     }
 
-    if (!this._prebuiltEmptyResultObject) {
-      this._createPrebuiltEmptyResultObject()
-    }
-
     try {
-      row = this._result.parseRow(msg.fields, { ... this._prebuiltEmptyResultObject })
+      row = this._result.parseRow(msg.fields)
     } catch (err) {
       this._canceledDueToError = err
       return
@@ -241,13 +235,6 @@ class Query extends EventEmitter {
   // eslint-disable-next-line no-unused-vars
   handleCopyData(msg, connection) {
     // noop
-  }
-  _createPrebuiltEmptyResultObject() {
-    var row = {};
-    for (var i = 0; i < this._result.fields.length; i++) {
-      row[this._result.fields[i].name] = null
-    }
-    this._prebuiltEmptyResultObject = row
   }
 }
 
