@@ -25,6 +25,7 @@ class Query extends EventEmitter {
       this.callback = process.domain.bind(config.callback)
     }
     this._result = new Result(this._rowMode, this.types)
+
     // potential for multiple results
     this._results = this._result
     this.isPreparedStatement = false
