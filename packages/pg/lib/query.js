@@ -24,7 +24,6 @@ class Query extends EventEmitter {
     if (process.domain && config.callback) {
       this.callback = process.domain.bind(config.callback)
     }
-    this.usePrebuiltEmptyResultObjects = config.usePrebuiltEmptyResultObjects == true
     this._result = new Result(this._rowMode, this.types)
     // potential for multiple results
     this._results = this._result
@@ -85,12 +84,12 @@ class Query extends EventEmitter {
       return
     }
 
-    if (this.usePrebuiltEmptyResultObjects && !this._prebuiltEmptyResultObject) {
+    if (!this._prebuiltEmptyResultObject) {
       this._createPrebuiltEmptyResultObject()
     }
 
     try {
-      row = this._result.parseRow(msg.fields, this.usePrebuiltEmptyResultObjects ? { ... this._prebuiltEmptyResultObject } : {})
+      row = this._result.parseRow(msg.fields, { ... this._prebuiltEmptyResultObject })
     } catch (err) {
       this._canceledDueToError = err
       return
@@ -144,7 +143,7 @@ class Query extends EventEmitter {
       try {
         this.callback(null, this._results)
       }
-      catch (err) {
+      catch(err) {
         process.nextTick(() => {
           throw err
         })
