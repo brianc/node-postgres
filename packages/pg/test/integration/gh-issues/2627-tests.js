@@ -16,8 +16,8 @@ const options = {
 // Those were captured with the `mysql:8.0.33` docker image.
 const MySqlHandshake = Buffer.from(
   'SgAAAAo4LjAuMjgAHwAAAB4dKyUJZ2p6AP///wIA/98VAAAAAAAAAAAA' +
-  'AAo1YiNJajgKKGkpfgBjYWNoaW5nX3NoYTJfcGFzc3dvcmQAIQAAAf+EBC' +
-  'MwOFMwMUdvdCBwYWNrZXRzIG91dCBvZiBvcmRlcg==',
+    'AAo1YiNJajgKKGkpfgBjYWNoaW5nX3NoYTJfcGFzc3dvcmQAIQAAAf+EBC' +
+    'MwOFMwMUdvdCBwYWNrZXRzIG91dCBvZiBvcmRlcg==',
   'base64'
 )
 
@@ -29,7 +29,6 @@ const serverWithInvalidResponse = (port, callback) => {
 
     // This server sends an invalid response which should throw in pg-protocol
     sockets.add(socket)
-
   })
 
   let closing = false
@@ -46,7 +45,6 @@ const serverWithInvalidResponse = (port, callback) => {
   server.listen(port, options.host, () => callback(closeServer))
 }
 
-
 suite.test('client should fail to connect', (done) => {
   serverWithInvalidResponse(options.port, (closeServer) => {
     const client = new helper.Client(options)
@@ -58,8 +56,8 @@ suite.test('client should fail to connect', (done) => {
       })
       .catch((err) => {
         assert(err)
-        assert.strictEqual(err.message, 'invalid database response')
+        assert(err.message.includes('invalid response'))
         closeServer(done)
       })
   })
-});
+})

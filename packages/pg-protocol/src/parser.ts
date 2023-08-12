@@ -199,7 +199,7 @@ export class Parser {
       case MessageCodes.CopyData:
         return this.parseCopyData(offset, length, bytes)
       default:
-        return new DatabaseError('invalid database response', length, 'error')
+        return new DatabaseError('received invalid response: ' + code.toString(16), length, 'error')
     }
   }
 
