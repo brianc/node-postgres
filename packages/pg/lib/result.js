@@ -96,11 +96,11 @@ class Result {
     this._createPrebuiltEmptyResultObject()
   }
   _createPrebuiltEmptyResultObject() {
-    var row = {};
+    var row = {}
     for (var i = 0; i < this.fields.length; i++) {
       row[this.fields[i].name] = null
     }
-    this._prebuiltEmptyResultObject = row
+    this._prebuiltEmptyResultObject = { ... row }
   }
 }
 
