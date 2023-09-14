@@ -67,6 +67,8 @@ class Result {
       var field = this.fields[i].name
       if (rawValue !== null) {
         row[field] = this._parsers[i](rawValue)
+      } else {
+        row[field] = null
       }
     }
     return row
