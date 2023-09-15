@@ -199,7 +199,7 @@ export class Parser {
       case MessageCodes.CopyData:
         return this.parseCopyData(offset, length, bytes)
       default:
-        assert.fail(`unknown message code: ${code.toString(16)}`)
+        return new DatabaseError('received invalid response: ' + code.toString(16), length, 'error')
     }
   }
 
