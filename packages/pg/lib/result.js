@@ -61,7 +61,7 @@ class Result {
   }
 
   parseRow(rowData) {
-    var row = { ... this._prebuiltEmptyResultObject }
+    var row = { ...this._prebuiltEmptyResultObject }
     for (var i = 0, len = rowData.length; i < len; i++) {
       var rawValue = rowData[i]
       var field = this.fields[i].name
@@ -87,22 +87,20 @@ class Result {
     if (this.fields.length) {
       this._parsers = new Array(fieldDescriptions.length)
     }
+
+    var row = {}
+
     for (var i = 0; i < fieldDescriptions.length; i++) {
       var desc = fieldDescriptions[i]
+      row[desc.name] = null
+
       if (this._types) {
         this._parsers[i] = this._types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       } else {
         this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       }
     }
-    this._createPrebuiltEmptyResultObject()
-  }
-  _createPrebuiltEmptyResultObject() {
-    var row = {}
-    for (var i = 0; i < this.fields.length; i++) {
-      row[this.fields[i].name] = null
-    }
-    this._prebuiltEmptyResultObject = { ... row }
+    this._prebuiltEmptyResultObject = { ...row }
   }
 }
 
