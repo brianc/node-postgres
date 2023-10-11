@@ -256,9 +256,17 @@ testEscapeLiteral('escapeLiteral: contains backslashes only', 'hello \\ world', 
 
 testEscapeLiteral('escapeLiteral: contains single quotes and double quotes', 'hello \' " world', "'hello '' \" world'")
 
-testEscapeLiteral('escapeLiteral: contains double quotes and backslashes', 'hello \\ " world', " E'hello \\\\ \" world'")
+testEscapeLiteral(
+  'escapeLiteral: contains double quotes and backslashes',
+  'hello \\ " world',
+  " E'hello \\\\ \" world'"
+)
 
-testEscapeLiteral('escapeLiteral: contains single quotes and backslashes', "hello \\ ' world", " E'hello \\\\ '' world'")
+testEscapeLiteral(
+  'escapeLiteral: contains single quotes and backslashes',
+  "hello \\ ' world",
+  " E'hello \\\\ '' world'"
+)
 
 testEscapeLiteral(
   'escapeLiteral: contains single quotes, double quotes, and backslashes',
@@ -281,11 +289,23 @@ testEscapeIdentifier('escapeIdentifier: contains single quotes only', "hello ' w
 
 testEscapeIdentifier('escapeIdentifier: contains backslashes only', 'hello \\ world', '"hello \\ world"')
 
-testEscapeIdentifier('escapeIdentifier: contains single quotes and double quotes', 'hello \' " world', '"hello \' "" world"')
+testEscapeIdentifier(
+  'escapeIdentifier: contains single quotes and double quotes',
+  'hello \' " world',
+  '"hello \' "" world"'
+)
 
-testEscapeIdentifier('escapeIdentifier: contains double quotes and backslashes', 'hello \\ " world', '"hello \\ "" world"')
+testEscapeIdentifier(
+  'escapeIdentifier: contains double quotes and backslashes',
+  'hello \\ " world',
+  '"hello \\ "" world"'
+)
 
-testEscapeIdentifier('escapeIdentifier: contains single quotes and backslashes', "hello \\ ' world", '"hello \\ \' world"')
+testEscapeIdentifier(
+  'escapeIdentifier: contains single quotes and backslashes',
+  "hello \\ ' world",
+  '"hello \\ \' world"'
+)
 
 testEscapeIdentifier(
   'escapeIdentifier: contains single quotes, double quotes, and backslashes',

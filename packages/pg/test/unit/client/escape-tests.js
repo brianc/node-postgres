@@ -20,8 +20,7 @@ var testLit = function (testName, input, expected) {
     var actual = Client.prototype.escapeLiteral(input)
     assert.equal(expected, actual)
   })
-  
-  
+
   test('utils.' + testName, function () {
     var actual = utils.escapeLiteral(input)
     assert.equal(expected, actual)
@@ -39,8 +38,7 @@ var testIdent = function (testName, input, expected) {
     var actual = Client.prototype.escapeIdentifier(input)
     assert.equal(expected, actual)
   })
-  
-  
+
   test('utils.' + testName, function () {
     var actual = utils.escapeIdentifier(input)
     assert.equal(expected, actual)

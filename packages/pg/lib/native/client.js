@@ -174,9 +174,9 @@ Client.prototype.query = function (config, values, callback) {
       result = new this._Promise((resolve, reject) => {
         resolveOut = resolve
         rejectOut = reject
-      }).catch(err => {
-        Error.captureStackTrace(err);
-        throw err;
+      }).catch((err) => {
+        Error.captureStackTrace(err)
+        throw err
       })
       query.callback = (err, res) => (err ? rejectOut(err) : resolveOut(res))
     }

@@ -137,8 +137,7 @@ class Query extends EventEmitter {
     if (this.callback) {
       try {
         this.callback(null, this._results)
-      }
-      catch(err) {
+      } catch (err) {
         process.nextTick(() => {
           throw err
         })

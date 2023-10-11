@@ -5,5 +5,5 @@ if (useLegacyCrypto) {
   // We are on an old version of Node.js that requires legacy crypto utilities.
   module.exports = require('./utils-legacy')
 } else {
-  module.exports = require('./utils-webcrypto');
+  module.exports = require('./utils-webcrypto')
 }

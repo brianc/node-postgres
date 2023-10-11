@@ -30,7 +30,10 @@ export default {
   head: (
     <>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta name="description" content="node-postgres is a collection of node.js modules for interfacing with your PostgreSQL database." />
+      <meta
+        name="description"
+        content="node-postgres is a collection of node.js modules for interfacing with your PostgreSQL database."
+      />
       <meta name="og:title" content="node-postgres" />
       <script async src="https://www.googletagmanager.com/gtag/js?id=UA-100138145-1"></script>
       <script
