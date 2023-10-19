@@ -39,11 +39,11 @@ function promisify(Promise, callback) {
   const result = new Promise(function (resolve, reject) {
     res = resolve
     rej = reject
-  }).catch(err => {
+  }).catch((err) => {
     // replace the stack trace that leads to `TCP.onStreamRead` with one that leads back to the
     // application that created the query
-    Error.captureStackTrace(err);
-    throw err;
+    Error.captureStackTrace(err)
+    throw err
   })
   return { callback: cb, result: result }
 }

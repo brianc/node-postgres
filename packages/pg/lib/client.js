@@ -520,11 +520,11 @@ class Client extends EventEmitter {
       if (!query.callback) {
         result = new this._Promise((resolve, reject) => {
           query.callback = (err, res) => (err ? reject(err) : resolve(res))
-        }).catch(err => {
+        }).catch((err) => {
           // replace the stack trace that leads to `TCP.onStreamRead` with one that leads back to the
           // application that created the query
-          Error.captureStackTrace(err);
-          throw err;
+          Error.captureStackTrace(err)
+          throw err
         })
       }
     }
