@@ -18,6 +18,7 @@ jobs:
           node-version: 18
           cache: yarn
       - run: yarn install
+      - run: cat /home/runner/work/node-postgres/node-postgres/packages/pg-cloudflare/dist/empty.d.ts
       - run: yarn lint
   build:
     needs: lint
