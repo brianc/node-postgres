@@ -18,7 +18,6 @@ jobs:
           node-version: 18
           cache: yarn
       - run: yarn install
-      - run: git status
       - run: yarn lint
   build:
     needs: lint
