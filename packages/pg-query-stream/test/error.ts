@@ -94,7 +94,7 @@ describe('error recovery', () => {
     const pool = new Pool({ max: 1, connectionTimeoutMillis: 400, statement_timeout: 400 })
 
     const res1 = await pool.query('SELECT 1 AS a')
-    assert.deepStrictEqual(res1.rows, [ { a:1 } ])
+    assert.deepStrictEqual(res1.rows, [{ a: 1 }])
 
     const query = new QueryStream('SELECT 2 AS b')
     const client = await pool.connect()
@@ -106,16 +106,16 @@ describe('error recovery', () => {
     await client.release()
 
     const res2 = await pool.query('SELECT 4 AS d')
-    assert.deepStrictEqual(res2.rows, [ { d:4 } ])
+    assert.deepStrictEqual(res2.rows, [{ d: 4 }])
 
     await pool.end()
   })
 
   it('should work if used after syntax error', async () => {
-    const pool = new Pool({ max: 1, statement_timeout: 100 }); // statement_timeout is required here, so maybe this is just another timeout error?
+    const pool = new Pool({ max: 1, statement_timeout: 100 }) // statement_timeout is required here, so maybe this is just another timeout error?
 
     const res1 = await pool.query('SELECT 1 AS a')
-    assert.deepStrictEqual(res1.rows, [ { a:1 } ])
+    assert.deepStrictEqual(res1.rows, [{ a: 1 }])
 
     const query = new QueryStream('SELECT 2 AS b')
     const client = await pool.connect()
@@ -127,7 +127,7 @@ describe('error recovery', () => {
     await client.release()
 
     const res2 = await pool.query('SELECT 4 AS d')
-    assert.deepStrictEqual(res2.rows, [ { d:4 } ])
+    assert.deepStrictEqual(res2.rows, [{ d: 4 }])
 
     await pool.end()
   })
@@ -165,7 +165,7 @@ describe('error recovery', () => {
 
     // Subsequent query on same connection should succeed
     const res = await conn.query('SELECT 1 AS a;')
-    assert.deepStrictEqual(res.rows, [ { a:1 } ])
+    assert.deepStrictEqual(res.rows, [{ a: 1 }])
 
     conn.release()
     await pool.end()
