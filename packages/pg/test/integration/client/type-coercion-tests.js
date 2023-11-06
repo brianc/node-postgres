@@ -108,7 +108,7 @@ var types = [
   },
   {
     name: 'double precision',
-    values: [-101.3, -1.2, 0, 1.2, 101.1, null],
+    values: [-101.3, -1.2, 0, 1.2, 101.1, Number.MAX_SAFE_INTEGER, null],
   },
   {
     name: 'timestamptz',
