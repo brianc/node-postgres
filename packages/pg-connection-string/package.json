@@ -30,7 +30,7 @@
     "chai": "^4.1.1",
     "coveralls": "^3.0.4",
     "istanbul": "^0.4.5",
-    "mocha": "^7.1.2"
+    "mocha": "^10.2.0"
   },
   "files": [
     "index.js",
