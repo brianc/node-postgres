@@ -226,8 +226,8 @@ const describe = (msg: PortalOpts): Buffer => {
   return msg.name
     ? cstringMessage(code.describe, `${msg.type}${msg.name || ''}`)
     : msg.type === 'P'
-    ? emptyDescribePortal
-    : emptyDescribeStatement
+      ? emptyDescribePortal
+      : emptyDescribeStatement
 }
 
 const close = (msg: PortalOpts): Buffer => {
