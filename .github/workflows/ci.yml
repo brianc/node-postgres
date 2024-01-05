@@ -21,7 +21,6 @@ jobs:
       - run: yarn lint
   build:
     needs: lint
-    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:11
@@ -35,9 +34,16 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        node: ['10', '12', '14', '16', '18']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        node:
+          - '10'
+          - '12'
+          - '14'
+          - '16'
+          - '18'
+        os:
+          - ubuntu-latest
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     env:
         PGUSER: postgres
         PGHOST: localhost
@@ -47,6 +53,9 @@ jobs:
         SCRAM_TEST_PGUSER: scram_test
         SCRAM_TEST_PGPASSWORD: test4scram
     steps:
+      - name: Show OS
+        run: |
+          uname -a
       - run: |
           psql \
             -c "SET password_encryption = 'scram-sha-256'" \
