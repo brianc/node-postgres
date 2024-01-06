@@ -165,7 +165,7 @@ pool.connect((err, client, done) => {
   client.query('SELECT $1::text as name', ['pg-pool'], (err, res) => {
     done()
     if (err) {
-      return console.error('query error', e.message, e.stack)
+      return console.error('query error', err.message, err.stack)
     }
     console.log('hello from', res.rows[0].name)
   })
