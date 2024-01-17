@@ -107,6 +107,68 @@ function parse(str) {
   return config
 }
 
+// convert pg-connection-string ssl config to a ClientConfig.ConnectionOptions
+function toConnectionOptions(sslConfig) {
+  const connectionOptions = Object.entries(sslConfig).reduce((c, [key, value]) => {
+    // we explicitly check for undefined and null instead of `if (value)` because some
+    // options accept falsy values. Example: `ssl.rejectUnauthorized = false`
+    if (value !== undefined && value !== null) {
+      c[key] = value
+    }
+
+    return c
+  }, {})
+
+  return connectionOptions
+}
+
+// convert pg-connection-string config to a ClientConfig
+function toClientConfig(config) {
+  const poolConfig = Object.entries(config).reduce((c, [key, value]) => {
+    if (key === 'ssl') {
+      const sslConfig = value
+
+      if (typeof sslConfig === 'boolean') {
+        c[key] = sslConfig
+      }
+      // else path is taken. multiple tests produce a sslConfig that is an object
+      // and we can console.log to see that we take this path
+      //
+      // see https://github.com/istanbuljs/babel-plugin-istanbul/issues/186#issuecomment-1137765139
+      // istanbul ignore else
+      else if (typeof sslConfig === 'object') {
+        c[key] = toConnectionOptions(sslConfig)
+      }
+    } else if (value !== undefined && value !== null) {
+      if (key === 'port') {
+        // when port is not specified, it is converted into an empty string
+        // we want to avoid NaN or empty string as a values in ClientConfig
+        if (value !== '') {
+          const v = parseInt(value, 10)
+          if (isNaN(v)) {
+            throw new Error(`Invalid ${key}: ${value}`)
+          }
+
+          c[key] = v
+        }
+      } else {
+        c[key] = value
+      }
+    }
+
+    return c
+  }, {})
+
+  return poolConfig
+}
+
+// parses a connection string into ClientConfig
+function parseIntoClientConfig(str) {
+  return toClientConfig(parse(str))
+}
+
 module.exports = parse
 
 parse.parse = parse
+parse.toClientConfig = toClientConfig
+parse.parseIntoClientConfig = parseIntoClientConfig
