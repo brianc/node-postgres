@@ -173,7 +173,7 @@ console.log('client has disconnected')
 client.on('error', (err: Error) => void) => void
 ```
 
-When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and foward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
+When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and forward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
 
 ```js
 const client = new pg.Client()
