@@ -125,7 +125,7 @@ export class CopyDataMessage {
   constructor(
     public readonly length: number,
     public readonly chunk: Buffer
-  ) { }
+  ) {}
 }
 
 export class CopyResponse {
@@ -149,7 +149,7 @@ export class Field {
     public readonly dataTypeSize: number,
     public readonly dataTypeModifier: number,
     public readonly format: Mode
-  ) { }
+  ) {}
 }
 
 export class RowDescriptionMessage {
@@ -180,7 +180,7 @@ export class ParameterStatusMessage {
     public readonly length: number,
     public readonly parameterName: string,
     public readonly parameterValue: string
-  ) { }
+  ) {}
 }
 
 export class AuthenticationMD5Password implements BackendMessage {
@@ -188,7 +188,7 @@ export class AuthenticationMD5Password implements BackendMessage {
   constructor(
     public readonly length: number,
     public readonly salt: Buffer
-  ) { }
+  ) {}
 }
 
 export class BackendKeyDataMessage {
@@ -197,7 +197,7 @@ export class BackendKeyDataMessage {
     public readonly length: number,
     public readonly processID: number,
     public readonly secretKey: number
-  ) { }
+  ) {}
 }
 
 export class NotificationResponseMessage {
@@ -207,7 +207,7 @@ export class NotificationResponseMessage {
     public readonly processId: number,
     public readonly channel: string,
     public readonly payload: string
-  ) { }
+  ) {}
 }
 
 export class ReadyForQueryMessage {
@@ -215,7 +215,7 @@ export class ReadyForQueryMessage {
   constructor(
     public readonly length: number,
     public readonly status: string
-  ) { }
+  ) {}
 }
 
 export class CommandCompleteMessage {
@@ -223,7 +223,7 @@ export class CommandCompleteMessage {
   constructor(
     public readonly length: number,
     public readonly text: string
-  ) { }
+  ) {}
 }
 
 export class DataRowMessage {
@@ -241,7 +241,7 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
   constructor(
     public readonly length: number,
     public readonly message: string | undefined
-  ) { }
+  ) {}
   public readonly name = 'notice'
   public severity: string | undefined
   public code: string | undefined
