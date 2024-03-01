@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230404.0",
-    "async": "2.6.4",
+    "async": "3.2.5",
     "bluebird": "3.5.2",
     "co": "4.6.0",
     "pg-copy-streams": "0.3.0",
