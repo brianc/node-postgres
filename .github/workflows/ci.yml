@@ -7,6 +7,7 @@ permissions:
 
 jobs:
   lint:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,9 +18,10 @@ jobs:
         with:
           node-version: 18
           cache: yarn
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       - run: yarn lint
   build:
+    timeout-minutes: 10
     needs: lint
     services:
       postgres:
@@ -69,6 +71,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       # TODO(bmc): get ssl tests working in ci
       - run: yarn test
