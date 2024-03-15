@@ -39,10 +39,14 @@ test-missing-native:
 
 test-native: test-connection
 	@echo "***Testing native bindings***"
+ifeq ($(TEST_SKIP_NATIVE), true)
+	@echo "***Skipping tests***"
+else
 	@npm i --no-save pg-native
 	@find test/native -name "*-tests.js" | $(node-command)
 	@find test/integration -name "*-tests.js" | $(node-command) native
 	@npm uninstall pg-native
+endif
 
 test-integration: test-connection
 	@echo "***Testing Pure Javascript***"

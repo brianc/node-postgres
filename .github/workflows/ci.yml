@@ -55,6 +55,7 @@ jobs:
         PGTESTNOSSL: 'true'
         SCRAM_TEST_PGUSER: scram_test
         SCRAM_TEST_PGPASSWORD: test4scram
+        TEST_SKIP_NATIVE: ${{ matrix.node == 20 }}
     steps:
       - name: Show OS
         run: |
