@@ -167,7 +167,7 @@ Client.prototype.query = function (config, values, callback) {
       config.callback = values
     }
   } else {
-    readTimeout = this.connectionParameters.query_timeout
+    readTimeout = config.query_timeout || this.connectionParameters.query_timeout
     query = new NativeQuery(config, values, callback)
     if (!query.callback) {
       let resolveOut, rejectOut
