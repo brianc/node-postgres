@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 18
           cache: yarn
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       - run: yarn lint
   build:
     needs: lint
@@ -68,6 +68,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       # TODO(bmc): get ssl tests working in ci
       - run: yarn test
