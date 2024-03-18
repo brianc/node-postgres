@@ -24,6 +24,10 @@ class Result {
     this._prebuiltEmptyResultObject = null
   }
 
+  [Symbol.iterator]() {
+    return this.rows.values()
+  }
+  
   // adds a command complete message
   addCommandComplete(msg) {
     var match
