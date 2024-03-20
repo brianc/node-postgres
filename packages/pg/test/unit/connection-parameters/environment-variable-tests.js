@@ -117,9 +117,9 @@ testVal('', false)
 testVal('disable', false)
 testVal('allow', false)
 testVal('prefer', true)
-testVal('require', true)
-testVal('verify-ca', true)
-testVal('verify-full', true)
+testVal('require', { ca: undefined, cert: undefined, key: undefined })
+testVal('verify-ca', { ca: undefined, cert: undefined, key: undefined })
+testVal('verify-full', { ca: undefined, cert: undefined, key: undefined })
 testVal('no-verify', { rejectUnauthorized: false })
 
 // restore process.env
