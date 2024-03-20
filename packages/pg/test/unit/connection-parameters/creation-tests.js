@@ -187,6 +187,30 @@ suite.testAsync('builds simple string', async function () {
   })
 })
 
+suite.testAsync('builds simple string with pw function', async function () {
+  var config = {
+    user: 'brian',
+    password: () => 'xyz',
+    port: 888,
+    host: 'localhost',
+    database: 'bam',
+  }
+  var subject = new ConnectionParameters(config)
+  const dnsHost = await getDNSHost(config.host)
+  return new Promise((resolve) => {
+    subject.getLibpqConnectionString(function (err, constring) {
+      assert(!err)
+      var parts = constring.split(' ')
+      checkForPart(parts, "user='brian'")
+      checkForPart(parts, "password='xyz'")
+      checkForPart(parts, "port='888'")
+      checkForPart(parts, `hostaddr='${dnsHost}'`)
+      checkForPart(parts, "dbname='bam'")
+      resolve()
+    })
+  })
+})
+
 suite.test('builds dns string', async function () {
   var config = {
     user: 'brian',
