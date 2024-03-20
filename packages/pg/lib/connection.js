@@ -82,6 +82,7 @@ class Connection extends EventEmitter {
       }
       const options = {
         socket: self.stream,
+        host,
       }
 
       if (self.ssl !== true) {
