@@ -28,7 +28,6 @@ class Query extends EventEmitter {
 
     // potential for multiple results
     this._results = this._result
-    this.isPreparedStatement = false
     this._canceledDueToError = false
   }
 
@@ -189,10 +188,6 @@ class Query extends EventEmitter {
 
   // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
   prepare(connection) {
-    // prepared statements need sync to be called after each command
-    // complete or when an error is encountered
-    this.isPreparedStatement = true
-
     // TODO refactor this poor encapsulation
     if (!this.hasBeenParsed(connection)) {
       connection.parse({
