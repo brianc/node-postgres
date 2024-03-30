@@ -20,8 +20,6 @@
   "author": "Brian Carlson <brian.m.carlson@gmail.com>",
   "main": "./lib",
   "dependencies": {
-    "buffer-writer": "2.0.0",
-    "packet-reader": "1.0.0",
     "pg-connection-string": "^2.6.2",
     "pg-pool": "^3.6.1",
     "pg-protocol": "^1.6.0",
