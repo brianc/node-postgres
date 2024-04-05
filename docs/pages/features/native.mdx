@@ -15,7 +15,8 @@ $ npm install pg pg-native
 Once `pg-native` is installed instead of requiring a `Client` or `Pool` constructor from `pg` you do the following:
 
 ```js
-import { native } from 'pg'
+import pg from 'pg'
+const { native } = pg
 const { Client, Pool } = native
 ```
 

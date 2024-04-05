@@ -22,11 +22,12 @@ That's the same structure I used in the [project structure](/guides/project-stru
 My `db/index.js` file usually starts out like this:
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
-export const query = (text, params) => pool.query(text, params);
+export const query = (text, params) => pool.query(text, params)
 ```
 
 Then I will install [express-promise-router](https://www.npmjs.com/package/express-promise-router) and use it to define my routes. Here is my `routes/user.js` file:
