@@ -18,7 +18,8 @@ Every result will have a rows array. If no rows are returned the array will be e
 Every result will have a fields array. This array contains the `name` and `dataTypeID` of each field in the result. These fields are ordered in the same order as the columns if you are using `arrayMode` for the query:
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
