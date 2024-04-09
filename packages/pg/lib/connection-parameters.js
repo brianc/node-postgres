@@ -156,11 +156,7 @@ class ConnectionParameters {
     if (this.client_encoding) {
       params.push('client_encoding=' + quoteParamValue(this.client_encoding))
     }
-    dns.lookup(this.host, function (err, address) {
-      if (err) return cb(err, null)
-      params.push('hostaddr=' + quoteParamValue(address))
-      return cb(null, params.join(' '))
-    })
+    return cb(null, params.join(' '))
   }
 }
 
