@@ -31,10 +31,10 @@ To run the above program and specify which database to connect to we can invoke 
 
 ```sh
 $ PGUSER=dbuser \
-  PGHOST=database.server.com \
   PGPASSWORD=secretpassword \
-  PGDATABASE=mydb \
+  PGHOST=database.server.com \
   PGPORT=3211 \
+  PGDATABASE=mydb \
   node script.js
 ```
 
@@ -43,11 +43,11 @@ This allows us to write our programs without having to specify connection inform
 The default values for the environment variables used are:
 
 ```
-PGHOST=localhost
 PGUSER=process.env.USER
-PGDATABASE=process.env.USER
 PGPASSWORD=null
+PGHOST=localhost
 PGPORT=5432
+PGDATABASE=process.env.USER
 ```
 
 ## Programmatic
@@ -60,20 +60,20 @@ const { Pool, Client } = pg
 
 const pool = new Pool({
   user: 'dbuser',
-  host: 'database.server.com',
-  database: 'mydb',
   password: 'secretpassword',
+  host: 'database.server.com',
   port: 3211,
+  database: 'mydb',
 })
 
 console.log(await pool.query('SELECT NOW()'))
 
 const client = new Client({
   user: 'dbuser',
-  host: 'database.server.com',
-  database: 'mydb',
   password: 'secretpassword',
+  host: 'database.server.com',
   port: 3211,
+  database: 'mydb',
 })
 
 await client.connect()
@@ -106,11 +106,11 @@ const signer = new RDS.Signer()
 const getPassword = () => signer.getAuthToken(signerOptions)
 
 const pool = new Pool({
+  user: signerOptions.username,
+  password: getPassword,
   host: signerOptions.hostname,
   port: signerOptions.port,
-  user: signerOptions.username,
   database: 'my-db',
-  password: getPassword,
 })
 ```
 
@@ -122,9 +122,9 @@ Connections to unix sockets can also be made. This can be useful on distros like
 import pg from 'pg'
 const { Client } = pg
 client = new Client({
-  host: '/cloudsql/myproject:zone:mydb',
   user: 'username',
   password: 'password',
+  host: '/cloudsql/myproject:zone:mydb',
   database: 'database_name',
 })
 ```

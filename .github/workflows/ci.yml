@@ -29,8 +29,8 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ci_db_test
           POSTGRES_HOST_AUTH_METHOD: 'md5'
+          POSTGRES_DB: ci_db_test
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -50,8 +50,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
         PGUSER: postgres
-        PGHOST: localhost
         PGPASSWORD: postgres
+        PGHOST: localhost
         PGDATABASE: ci_db_test
         PGTESTNOSSL: 'true'
         SCRAM_TEST_PGUSER: scram_test

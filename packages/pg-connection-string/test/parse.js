@@ -63,8 +63,8 @@ describe('parse', function () {
     var sourceConfig = {
       user: 'brian',
       password: 'hello<ther>e',
-      port: 5432,
       host: 'localhost',
+      port: 5432,
       database: 'postgres',
     }
     var connectionString =
@@ -86,8 +86,8 @@ describe('parse', function () {
     var sourceConfig = {
       user: 'brian',
       password: 'hello:pass:world',
-      port: 5432,
       host: 'localhost',
+      port: 5432,
       database: 'postgres',
     }
     var connectionString =
