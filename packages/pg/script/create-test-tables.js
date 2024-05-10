@@ -32,10 +32,10 @@ var people = [
 ]
 
 var con = new pg.Client({
-  host: args.host,
-  port: args.port,
   user: args.user,
   password: args.password,
+  host: args.host,
+  port: args.port,
   database: args.database,
 })
 
