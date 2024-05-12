@@ -203,7 +203,7 @@ class Query extends EventEmitter {
     }
     if (this._cancelSignal) {
       if (this._cancelSignal.aborted) {
-        return this._cancelSignal.reason
+        return this._cancelSignal.reason || Object.assign(new Error(), { name: 'AbortError' })
       }
       this._cancellation = setupCancellation(this._cancelSignal, connection)
     }

@@ -94,10 +94,11 @@ suite.test('query can be canceled with abort signal', function (done) {
 
 suite.test('long abort signal timeout does not keep the query / connection going', function (done) {
   const client = new Client()
-  const signal = AbortSignal.timeout(10_000)
+  const ac = new AbortController()
+  setTimeout(() => ac.abort(), 10000).unref()
 
   client.query(
-    new pg.Query({ text: 'SELECT pg_sleep(0.1)', signal }),
+    new pg.Query({ text: 'SELECT pg_sleep(0.1)', signal: ac.signal }),
     assert.success((result) => {
       assert.equal(result.rows[0].pg_sleep, '')
       client.end(done)
