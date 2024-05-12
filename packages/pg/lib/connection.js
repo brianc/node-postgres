@@ -16,6 +16,15 @@ class Connection extends EventEmitter {
     super()
     config = config || {}
 
+    // As with Password, make SSL->Key (the private key) non-enumerable.
+    // It won't show up in stack traces
+    // or if the client is console.logged
+    if (config.ssl && config.ssl.key) {
+      Object.defineProperty(config.ssl, 'key', {
+        enumerable: false,
+      })
+    }
+
     this.stream = config.stream || getStream(config.ssl)
     if (typeof this.stream === 'function') {
       this.stream = this.stream(config)
@@ -47,7 +56,11 @@ class Connection extends EventEmitter {
       if (self._keepAlive) {
         self.stream.setKeepAlive(true, self._keepAliveInitialDelayMillis)
       }
-      self.emit('connect')
+      if (self.ssl) {
+        self.requestSsl()
+      } else {
+        self.emit('connect')
+      }
     })
 
     const reportStreamError = function (error) {
@@ -104,7 +117,7 @@ class Connection extends EventEmitter {
       self.attachListeners(self.stream)
       self.stream.on('error', reportStreamError)
 
-      self.emit('sslconnect')
+      self.emit('connect')
     })
   }
 

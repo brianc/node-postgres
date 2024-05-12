@@ -56,15 +56,8 @@ class Client extends EventEmitter {
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
+    // TODO: remove in next major release?
     this.ssl = this.connectionParameters.ssl || false
-    // As with Password, make SSL->Key (the private key) non-enumerable.
-    // It won't show up in stack traces
-    // or if the client is console.logged
-    if (this.ssl && this.ssl.key) {
-      Object.defineProperty(this.ssl, 'key', {
-        enumerable: false,
-      })
-    }
 
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
   }
@@ -115,14 +108,6 @@ class Client extends EventEmitter {
 
     // once connection is established send startup message
     con.on('connect', function () {
-      if (self.ssl) {
-        con.requestSsl()
-      } else {
-        con.startup(self.getStartupConf())
-      }
-    })
-
-    con.on('sslconnect', function () {
       con.startup(self.getStartupConf())
     })
 
