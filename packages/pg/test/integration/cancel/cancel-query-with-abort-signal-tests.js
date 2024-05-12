@@ -5,7 +5,7 @@ const Client = pg.Client
 const DatabaseError = pg.DatabaseError
 
 if (!global.AbortController) {
-  // skip these tests on node < 15
+  // Skip these tests if AbortController is not available
   return
 }
 
@@ -27,6 +27,11 @@ suite.test('query with signal succeeds if not aborted', function (done) {
     })
   )
 })
+
+if (helper.config.native) {
+  // Skip these tests if native bindings are enabled
+  return
+}
 
 suite.test('query with signal is not submitted if the signal is already aborted', function (done) {
   const client = new Client()
@@ -78,7 +83,7 @@ suite.test('query can be canceled with abort signal', function (done) {
     new pg.Query({ text: 'SELECT pg_sleep(0.5)', signal }),
     assert.calls((err) => {
       assert(err instanceof DatabaseError)
-      assert(err.code === '57014')
+      assert.equal(err.code, '57014')
       client.end(done)
     })
   )
