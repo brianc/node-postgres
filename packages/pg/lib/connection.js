@@ -1,6 +1,5 @@
 'use strict'
 
-var net = require('net')
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('pg-protocol')
@@ -43,11 +42,40 @@ class Connection extends EventEmitter {
         self._emitMessage = true
       }
     })
+
+    this._config = config
+    this._backendData = null
+    this._remote = null
+  }
+
+  cancelWithClone() {
+    const config = this._config
+    const Promise = config.Promise || global.Promise
+
+    return new Promise((resolve, reject) => {
+      const { processID, secretKey } = this._backendData
+      let { host, port, notIP } = this._remote
+      if (host && notIP && config.ssl && this.stream.remoteAddress) {
+        if (config.ssl === true) {
+          config.ssl = {}
+        }
+        config.ssl.servername = host
+        host = this.stream.remoteAddress
+      }
+
+      const con = new Connection(config)
+      con
+        .on('connect', () => con.cancel(processID, secretKey))
+        .on('error', reject)
+        .on('end', resolve)
+        .connect(port, host)
+    })
   }
 
   connect(port, host) {
     var self = this
 
+    this._remote = { host, port }
     this._connecting = true
     this.stream.setNoDelay(true)
     this.stream.connect(port, host)
@@ -108,6 +136,7 @@ class Connection extends EventEmitter {
       var net = require('net')
       if (net.isIP && net.isIP(host) === 0) {
         options.servername = host
+        self._remote.notIP = true
       }
       try {
         self.stream = getSecureStream(options)
@@ -128,6 +157,9 @@ class Connection extends EventEmitter {
         this.emit('message', msg)
       }
       this.emit(eventName, msg)
+      if (msg.name === 'backendKeyData') {
+        this._backendData = msg
+      }
     })
   }
 

@@ -5,6 +5,31 @@ const { EventEmitter } = require('events')
 const Result = require('./result')
 const utils = require('./utils')
 
+function setupCancellation(cancelSignal, connection) {
+  let cancellation = null
+
+  function cancelRequest() {
+    cancellation = connection.cancelWithClone().catch(() => {
+      // We could still have a cancel request in flight targeting this connection.
+      // Better safe than sorry?
+      connection.stream.destroy()
+    })
+  }
+
+  cancelSignal.addEventListener('abort', cancelRequest, { once: true })
+
+  return {
+    cleanup() {
+      if (cancellation) {
+        // Must wait out connection.cancelWithClone
+        return cancellation
+      }
+      cancelSignal.removeEventListener('abort', cancelRequest)
+      return Promise.resolve()
+    },
+  }
+}
+
 class Query extends EventEmitter {
   constructor(config, values, callback) {
     super()
@@ -29,6 +54,8 @@ class Query extends EventEmitter {
     // potential for multiple results
     this._results = this._result
     this._canceledDueToError = false
+
+    this._cancelSignal = config.signal
   }
 
   requiresPreparation() {
@@ -114,34 +141,53 @@ class Query extends EventEmitter {
     }
   }
 
+  _handleQueryComplete(fn) {
+    if (!this._cancellation) {
+      fn()
+      return
+    }
+    this._cancellation
+      .cleanup()
+      .then(fn)
+      .finally(() => {
+        this._cancellation = null
+      })
+  }
+
   handleError(err, connection) {
     // need to sync after error during a prepared statement
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
     }
-    // if callback supplied do not emit error event as uncaught error
-    // events will bubble up to node process
-    if (this.callback) {
-      return this.callback(err)
-    }
-    this.emit('error', err)
+
+    this._handleQueryComplete(() => {
+      // if callback supplied do not emit error event as uncaught error
+      // events will bubble up to node process
+      if (this.callback) {
+        return this.callback(err)
+      }
+      this.emit('error', err)
+    })
   }
 
   handleReadyForQuery(con) {
     if (this._canceledDueToError) {
       return this.handleError(this._canceledDueToError, con)
     }
-    if (this.callback) {
-      try {
-        this.callback(null, this._results)
-      } catch (err) {
-        process.nextTick(() => {
-          throw err
-        })
+
+    this._handleQueryComplete(() => {
+      if (this.callback) {
+        try {
+          this.callback(null, this._results)
+        } catch (err) {
+          process.nextTick(() => {
+            throw err
+          })
+        }
       }
-    }
-    this.emit('end', this._results)
+      this.emit('end', this._results)
+    })
   }
 
   submit(connection) {
@@ -154,6 +200,12 @@ class Query extends EventEmitter {
     }
     if (this.values && !Array.isArray(this.values)) {
       return new Error('Query values must be an array')
+    }
+    if (this._cancelSignal) {
+      if (this._cancelSignal.aborted) {
+        return this._cancelSignal.reason
+      }
+      this._cancellation = setupCancellation(this._cancelSignal, connection)
     }
     if (this.requiresPreparation()) {
       this.prepare(connection)

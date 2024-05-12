@@ -51,6 +51,7 @@ class Client extends EventEmitter {
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
+        Promise: this._Promise,
       })
     this.queryQueue = []
     this.binary = c.binary || defaults.binary
