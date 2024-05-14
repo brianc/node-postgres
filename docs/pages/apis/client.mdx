@@ -75,6 +75,10 @@ type QueryConfig {
 
   // custom type parsers just for this query result
   types?: Types;
+
+  // force extended query usage - prevents multiple statements in a
+  // single query
+  forcePreparation?: boolean;
 }
 ```
 

@@ -16,6 +16,7 @@ class Query extends EventEmitter {
     this.rows = config.rows
     this.types = config.types
     this.name = config.name
+    this.forcePreparation = config.forcePreparation
     this.binary = config.binary
     // use unique portal name each time
     this.portal = config.portal || ''
@@ -32,6 +33,11 @@ class Query extends EventEmitter {
   }
 
   requiresPreparation() {
+    // preparation has been requested
+    if (this.forcePreparation) {
+      return true
+    }
+
     // named queries must always be prepared
     if (this.name) {
       return true
