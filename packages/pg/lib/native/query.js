@@ -10,7 +10,7 @@ var NativeQuery = (module.exports = function (config, values, callback) {
   this.text = config.text
   this.values = config.values
   this.name = config.name
-  this.forcePreparation = config.forcePreparation
+  this.queryMode = config.forcePreparation
   this.callback = config.callback
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
@@ -160,7 +160,7 @@ NativeQuery.prototype.submit = function (client) {
     }
     var vals = this.values.map(utils.prepareValue)
     client.native.query(this.text, vals, after)
-  } else if (this.forcePreparation) {
+  } else if (this.queryMode === 'extended') {
     client.native.query(this.text, [], after)
   } else {
     client.native.query(this.text, after)
