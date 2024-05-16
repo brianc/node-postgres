@@ -10,7 +10,7 @@ var NativeQuery = (module.exports = function (config, values, callback) {
   this.text = config.text
   this.values = config.values
   this.name = config.name
-  this.queryMode = config.forcePreparation
+  this.queryMode = config.queryMode
   this.callback = config.callback
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
