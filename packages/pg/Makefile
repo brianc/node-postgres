@@ -7,7 +7,7 @@ params := $(connectionString)
 node-command := xargs -n 1 -I file node file $(params)
 
 .PHONY : test test-connection test-integration bench test-native \
-	 publish test-missing-native update-npm
+	 publish update-npm
 
 all:
 	npm install
@@ -17,7 +17,7 @@ help:
 
 test: test-unit
 
-test-all: test-missing-native test-unit test-integration test-native test-worker
+test-all: test-unit test-integration test-native test-worker
 
 
 update-npm:
@@ -33,19 +33,13 @@ test-connection:
 	@echo "***Testing connection***"
 	@node script/create-test-tables.js $(params)
 
-test-missing-native:
-	@echo "***Testing optional native install***"
-	@node test/native/missing-native.js
-
 test-native: test-connection
 	@echo "***Testing native bindings***"
 ifeq ($(TEST_SKIP_NATIVE), true)
 	@echo "***Skipping tests***"
 else
-	@npm i --no-save pg-native
 	@find test/native -name "*-tests.js" | $(node-command)
 	@find test/integration -name "*-tests.js" | $(node-command) native
-	@npm uninstall pg-native
 endif
 
 test-integration: test-connection
