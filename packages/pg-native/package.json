@@ -38,6 +38,7 @@
     "generic-pool": "^2.1.1",
     "lodash": "^2.4.1",
     "mocha": "3.4.2",
+    "node-gyp": ">=10.x",
     "okay": "^0.3.0",
     "pg": "*",
     "semver": "^4.1.0"
