@@ -1,42 +1,42 @@
-var Duplex = require("stream").Duplex;
-var Writable = require("stream").Writable;
-var util = require("util");
+var Duplex = require('stream').Duplex
+var Writable = require('stream').Writable
+var util = require('util')
 
 var CopyStream = (module.exports = function (pq, options) {
-  Duplex.call(this, options);
-  this.pq = pq;
-  this._reading = false;
-});
+  Duplex.call(this, options)
+  this.pq = pq
+  this._reading = false
+})
 
-util.inherits(CopyStream, Duplex);
+util.inherits(CopyStream, Duplex)
 
 // writer methods
 CopyStream.prototype._write = function (chunk, encoding, cb) {
-  var result = this.pq.putCopyData(chunk);
+  var result = this.pq.putCopyData(chunk)
 
   // sent successfully
-  if (result === 1) return cb();
+  if (result === 1) return cb()
 
   // error
-  if (result === -1) return cb(new Error(this.pq.errorMessage()));
+  if (result === -1) return cb(new Error(this.pq.errorMessage()))
 
   // command would block. wait for writable and call again.
-  var self = this;
+  var self = this
   this.pq.writable(function () {
-    self._write(chunk, encoding, cb);
-  });
-};
+    self._write(chunk, encoding, cb)
+  })
+}
 
 CopyStream.prototype.end = function () {
-  var args = Array.prototype.slice.call(arguments, 0);
-  var self = this;
+  var args = Array.prototype.slice.call(arguments, 0)
+  var self = this
 
-  var callback = args.pop();
+  var callback = args.pop()
 
   if (args.length) {
-    this.write(args[0]);
+    this.write(args[0])
   }
-  var result = this.pq.putCopyEnd();
+  var result = this.pq.putCopyEnd()
 
   // sent successfully
   if (result === 1) {
@@ -44,19 +44,19 @@ CopyStream.prototype.end = function () {
     // "parent" writable class so we can emit 'finish' and
     // all that jazz
     return consumeResults(this.pq, function (err, res) {
-      Writable.prototype.end.call(self);
+      Writable.prototype.end.call(self)
 
       // handle possible passing of callback to end method
       if (callback) {
-        callback(err);
+        callback(err)
       }
-    });
+    })
   }
 
   // error
   if (result === -1) {
-    var err = new Error(this.pq.errorMessage());
-    return this.emit("error", err);
+    var err = new Error(this.pq.errorMessage())
+    return this.emit('error', err)
   }
 
   // command would block. wait for writable and call end again
@@ -64,92 +64,92 @@ CopyStream.prototype.end = function () {
   // we already sent them to possible this.write the first time
   // we called end
   return this.pq.writable(function () {
-    return self.end.apply(self, callback);
-  });
-};
+    return self.end.apply(self, callback)
+  })
+}
 
 // reader methods
 CopyStream.prototype._consumeBuffer = function (cb) {
-  var result = this.pq.getCopyData(true);
+  var result = this.pq.getCopyData(true)
   if (result instanceof Buffer) {
     return setImmediate(function () {
-      cb(null, result);
-    });
+      cb(null, result)
+    })
   }
   if (result === -1) {
     // end of stream
-    return cb(null, null);
+    return cb(null, null)
   }
   if (result === 0) {
-    var self = this;
-    this.pq.once("readable", function () {
-      self.pq.stopReader();
-      self.pq.consumeInput();
-      self._consumeBuffer(cb);
-    });
-    return this.pq.startReader();
+    var self = this
+    this.pq.once('readable', function () {
+      self.pq.stopReader()
+      self.pq.consumeInput()
+      self._consumeBuffer(cb)
+    })
+    return this.pq.startReader()
   }
-  cb(new Error("Unrecognized read status: " + result));
-};
+  cb(new Error('Unrecognized read status: ' + result))
+}
 
 CopyStream.prototype._read = function (size) {
-  if (this._reading) return;
-  this._reading = true;
+  if (this._reading) return
+  this._reading = true
   // console.log('read begin');
-  var self = this;
+  var self = this
   this._consumeBuffer(function (err, buffer) {
-    self._reading = false;
+    self._reading = false
     if (err) {
-      return self.emit("error", err);
+      return self.emit('error', err)
     }
     if (buffer === false) {
       // nothing to read for now, return
-      return;
+      return
     }
-    self.push(buffer);
-  });
-};
+    self.push(buffer)
+  })
+}
 
 var consumeResults = function (pq, cb) {
   var cleanup = function () {
-    pq.removeListener("readable", onReadable);
-    pq.stopReader();
-  };
+    pq.removeListener('readable', onReadable)
+    pq.stopReader()
+  }
 
   var readError = function (message) {
-    cleanup();
-    return cb(new Error(message || pq.errorMessage()));
-  };
+    cleanup()
+    return cb(new Error(message || pq.errorMessage()))
+  }
 
   var onReadable = function () {
     // read waiting data from the socket
     // e.g. clear the pending 'select'
     if (!pq.consumeInput()) {
-      return readError();
+      return readError()
     }
 
     // check if there is still outstanding data
     // if so, wait for it all to come in
     if (pq.isBusy()) {
-      return;
+      return
     }
 
     // load our result object
-    pq.getResult();
+    pq.getResult()
 
     // "read until results return null"
     // or in our case ensure we only have one result
-    if (pq.getResult() && pq.resultStatus() !== "PGRES_COPY_OUT") {
-      return readError("Only one result at a time is accepted");
+    if (pq.getResult() && pq.resultStatus() !== 'PGRES_COPY_OUT') {
+      return readError('Only one result at a time is accepted')
     }
 
-    if (pq.resultStatus() === "PGRES_FATAL_ERROR") {
-      return readError();
+    if (pq.resultStatus() === 'PGRES_FATAL_ERROR') {
+      return readError()
     }
 
-    cleanup();
-    return cb(null);
-  };
-  pq.on("readable", onReadable);
-  pq.startReader();
-};
+    cleanup()
+    return cb(null)
+  }
+  pq.on('readable', onReadable)
+  pq.startReader()
+}

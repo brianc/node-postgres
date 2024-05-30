@@ -29,21 +29,11 @@
   "devDependencies": {
     "async": "^0.9.0",
     "concat-stream": "^1.4.6",
-    "eslint": "4.2.0",
-    "eslint-config-standard": "10.2.1",
-    "eslint-plugin-import": "2.7.0",
-    "eslint-plugin-node": "5.1.0",
-    "eslint-plugin-promise": "3.5.0",
-    "eslint-plugin-standard": "3.0.1",
     "generic-pool": "^2.1.1",
     "lodash": "^2.4.1",
     "mocha": "3.4.2",
     "node-gyp": ">=10.x",
     "okay": "^0.3.0",
-    "pg": "*",
     "semver": "^4.1.0"
-  },
-  "prettier": {
-    "printWidth": 200
   }
 }
