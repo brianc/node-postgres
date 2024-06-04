@@ -5,13 +5,15 @@ describe('cancel query', function () {
   it('works', function (done) {
     var client = new Client()
     client.connectSync()
-    client.query('SELECT pg_sleep(100);', function (err) {
+    client.query('SELECT pg_sleep(1000);', function (err) {
       assert(err instanceof Error)
       client.end(done)
     })
-    client.cancel(function (err) {
-      assert.ifError(err)
-    })
+    setTimeout(() => {
+      client.cancel(function (err) {
+        assert.ifError(err)
+      })
+    }, 100)
   })
 
   it('does not raise error if no active query', function (done) {
