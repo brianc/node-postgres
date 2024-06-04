@@ -57,7 +57,7 @@ Client.prototype.query = function (text, values, cb) {
     cb = values
   }
 
-  if (Array.isArray(values) && values.length > 0) {
+  if (Array.isArray(values)) {
     queryFn = function () {
       return self.pq.sendQueryParams(text, values)
     }
