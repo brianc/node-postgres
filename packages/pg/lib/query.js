@@ -16,6 +16,7 @@ class Query extends EventEmitter {
     this.rows = config.rows
     this.types = config.types
     this.name = config.name
+    this.queryMode = config.queryMode
     this.binary = config.binary
     // use unique portal name each time
     this.portal = config.portal || ''
@@ -28,12 +29,14 @@ class Query extends EventEmitter {
 
     // potential for multiple results
     this._results = this._result
-    this.isPreparedStatement = false
     this._canceledDueToError = false
-    this._promise = null
   }
 
   requiresPreparation() {
+    if (this.queryMode === 'extended') {
+      return true
+    }
+
     // named queries must always be prepared
     if (this.name) {
       return true
@@ -190,10 +193,6 @@ class Query extends EventEmitter {
 
   // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
   prepare(connection) {
-    // prepared statements need sync to be called after each command
-    // complete or when an error is encountered
-    this.isPreparedStatement = true
-
     // TODO refactor this poor encapsulation
     if (!this.hasBeenParsed(connection)) {
       connection.parse({

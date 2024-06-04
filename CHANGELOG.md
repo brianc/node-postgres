@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.12.0
+
+- Add `queryMode` config option to [force use of the extended query protocol](https://github.com/brianc/node-postgres/pull/3214) on queries without any parameters.
+
 ## pg-pool@8.10.0
 
 - Emit `release` event when client is returned to [the pool](https://github.com/brianc/node-postgres/pull/2845).

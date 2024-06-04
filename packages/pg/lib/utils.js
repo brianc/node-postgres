@@ -21,8 +21,17 @@ function arrayString(val) {
       result = result + 'NULL'
     } else if (Array.isArray(val[i])) {
       result = result + arrayString(val[i])
-    } else if (val[i] instanceof Buffer) {
-      result += '\\\\x' + val[i].toString('hex')
+    } else if (ArrayBuffer.isView(val[i])) {
+      var item = val[i]
+      if (!(item instanceof Buffer)) {
+        var buf = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
+        if (buf.length === item.byteLength) {
+          item = buf
+        } else {
+          item = buf.slice(item.byteOffset, item.byteOffset + item.byteLength)
+        }
+      }
+      result += '\\\\x' + item.toString('hex')
     } else {
       result += escapeElement(prepareValue(val[i]))
     }
