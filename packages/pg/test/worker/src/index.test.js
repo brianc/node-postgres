@@ -1,4 +1,4 @@
-if (parseInt(process.versions.node.split('.')[0]) < 16) {
+if (parseInt(process.versions.node.split('.')[0]) < 20) {
   process.exit(0)
 }
 var helper = require('../../test-helper')

@@ -38,25 +38,22 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - '10'
-          - '12'
-          - '14'
           - '16'
           - '18'
           - '20'
+          - '22'
         os:
           - ubuntu-latest
     name: Node.js ${{ matrix.node }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     env:
-        PGUSER: postgres
-        PGPASSWORD: postgres
-        PGHOST: localhost
-        PGDATABASE: ci_db_test
-        PGTESTNOSSL: 'true'
-        SCRAM_TEST_PGUSER: scram_test
-        SCRAM_TEST_PGPASSWORD: test4scram
-        TEST_SKIP_NATIVE: ${{ matrix.node == 20 }}
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGDATABASE: ci_db_test
+      PGTESTNOSSL: 'true'
+      SCRAM_TEST_PGUSER: scram_test
+      SCRAM_TEST_PGPASSWORD: test4scram
     steps:
       - name: Show OS
         run: |
