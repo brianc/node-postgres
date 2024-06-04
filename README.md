@@ -12,6 +12,7 @@ This repo is a monorepo which contains the core [pg](https://github.com/brianc/n
 
 - [pg](https://github.com/brianc/node-postgres/tree/master/packages/pg)
 - [pg-pool](https://github.com/brianc/node-postgres/tree/master/packages/pg-pool)
+- [pg-native](https://github.com/brianc/node-postgres/tree/master/packages/pg-native)
 - [pg-cursor](https://github.com/brianc/node-postgres/tree/master/packages/pg-cursor)
 - [pg-query-stream](https://github.com/brianc/node-postgres/tree/master/packages/pg-query-stream)
 - [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string)
