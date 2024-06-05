@@ -2,13 +2,6 @@
 var helper = require('./test-helper')
 var utils = require('../../../lib/utils')
 
-function createClient(callback) {
-  var client = new Client(helper.config)
-  client.connect(function (err) {
-    return callback(client)
-  })
-}
-
 var testLit = function (testName, input, expected) {
   test(testName, function () {
     var client = new Client(helper.config)
