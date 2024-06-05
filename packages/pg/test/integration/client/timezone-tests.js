@@ -1,6 +1,5 @@
 'use strict'
 var helper = require('./../test-helper')
-var exec = require('child_process').exec
 
 var oldTz = process.env.TZ
 process.env.TZ = 'Europe/Berlin'

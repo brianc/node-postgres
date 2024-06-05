@@ -1,6 +1,5 @@
 'use strict'
 
-var net = require('net')
 var EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('pg-protocol')

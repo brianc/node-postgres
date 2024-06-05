@@ -1,5 +1,4 @@
 'use strict'
-var helper = require('./test-helper')
 var net = require('net')
 var pg = require('../../../lib/index.js')
 

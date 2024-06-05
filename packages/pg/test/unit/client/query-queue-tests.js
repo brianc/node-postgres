@@ -1,5 +1,4 @@
 'use strict'
-var helper = require('./test-helper')
 var Connection = require('../../../lib/connection')
 
 test('drain', function () {
