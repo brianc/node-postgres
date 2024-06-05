@@ -1,7 +1,7 @@
 var Client = require('../')
 var assert = require('assert')
 
-describe('query sync', function (done) {
+describe('query sync', function () {
   before(function () {
     this.client = Client()
     this.client.connectSync()
