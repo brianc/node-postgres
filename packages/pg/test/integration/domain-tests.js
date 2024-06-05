@@ -1,5 +1,4 @@
 'use strict'
-var async = require('async')
 
 var helper = require('./test-helper')
 var Query = helper.pg.Query

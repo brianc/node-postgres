@@ -1,5 +1,4 @@
 'use strict'
-var helper = require('../test-helper')
 const Suite = require('../../suite')
 
 var assert = require('assert')
