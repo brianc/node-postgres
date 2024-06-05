@@ -6,7 +6,7 @@ var checkDomain = function (domain, when) {
   assert.strictEqual(process.domain, domain, 'Domain switched after ' + when)
 }
 
-describe('domains', function (done) {
+describe('domains', function () {
   it('remains bound after a query', function (done) {
     var domain = require('domain').create() // eslint-disable-line
     domain.run(function () {
