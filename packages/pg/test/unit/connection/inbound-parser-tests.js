@@ -3,9 +3,6 @@ require('./test-helper')
 const BufferList = require('../../buffer-list')
 var Connection = require('../../../lib/connection')
 var buffers = require('../../test-buffers')
-var PARSE = function (buffer) {
-  return new Parser(buffer).parse()
-}
 
 var authOkBuffer = buffers.authenticationOk()
 var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
@@ -15,17 +12,6 @@ var commandCompleteBuffer = buffers.commandComplete('SELECT 3')
 var parseCompleteBuffer = buffers.parseComplete()
 var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
-
-var addRow = function (bufferList, name, offset) {
-  return bufferList
-    .addCString(name) // field name
-    .addInt32(offset++) // table id
-    .addInt16(offset++) // attribute of column number
-    .addInt32(offset++) // objectId of field's data type
-    .addInt16(offset++) // datatype size
-    .addInt32(offset++) // type modifier
-    .addInt16(0) // format code, 0 => text
-}
 
 var row1 = {
   name: 'id',
@@ -289,7 +275,7 @@ test('Connection', function () {
 
   test('error messages', function () {
     test('with no fields', function () {
-      var msg = testForMessage(buffers.error(), {
+      testForMessage(buffers.error(), {
         name: 'error',
       })
     })
