@@ -1,7 +1,6 @@
 'use strict'
 
 var chai = require('chai')
-var expect = chai.expect
 chai.should()
 
 var parse = require('../').parse
