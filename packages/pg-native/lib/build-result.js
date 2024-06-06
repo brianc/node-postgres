@@ -28,9 +28,10 @@ class Result {
 
   consumeRows(pq) {
     const tupleCount = pq.ntuples()
+    this.rows = new Array(tupleCount);
     for (var i = 0; i < tupleCount; i++) {
       const row = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
-      this.rows.push(row)
+      this.rows[i] = row;
     }
   }
 
@@ -44,10 +45,10 @@ class Result {
   }
 
   consumeRowAsArray(pq, rowIndex) {
-    const row = []
+    const row = new Array(this.fields.length)
     for (var j = 0; j < this.fields.length; j++) {
       const value = this.readValue(pq, rowIndex, j)
-      row.push(value)
+      row[j] = value;
     }
     return row
   }
