@@ -183,7 +183,6 @@ test('prepareValue: Uint8Array array prepared properly', function () {
 })
 
 test('prepareValue: objects with complex toPostgres prepared properly', function () {
-  var buf = Buffer.from('zomgcustom!')
   var customType = {
     toPostgres: function () {
       return [1, 2]
@@ -214,7 +213,6 @@ test('prepareValue: objects with toPostgres receive prepareValue', function () {
 })
 
 test('prepareValue: objects with circular toPostgres rejected', function () {
-  var buf = Buffer.from('zomgcustom!')
   var customType = {
     toPostgres: function () {
       return {

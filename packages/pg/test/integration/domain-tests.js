@@ -29,7 +29,7 @@ suite.test('with domain', function (cb) {
       assert.success(function (client, done) {
         assert(process.domain, 'no domain exists in connect callback')
         assert.equal(startingDomain, process.domain, 'domain was lost when checking out a client')
-        var query = client.query(
+        client.query(
           'SELECT NOW()',
           assert.success(function () {
             assert(process.domain, 'no domain exists in query callback')

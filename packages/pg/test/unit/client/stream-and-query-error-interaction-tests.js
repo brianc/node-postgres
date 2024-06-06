@@ -1,5 +1,5 @@
 'use strict'
-var helper = require('./test-helper')
+require('./test-helper')
 var Connection = require('../../../lib/connection')
 var Client = require('../../../lib/client')
 

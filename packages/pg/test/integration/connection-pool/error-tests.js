@@ -18,7 +18,6 @@ suite.test('errors emitted on checked-out clients', (cb) => {
       client.query('SELECT NOW()', function () {
         pool.connect(
           assert.success(function (client2, done2) {
-            var pidColName = 'procpid'
             helper.versionGTE(
               client2,
               90200,

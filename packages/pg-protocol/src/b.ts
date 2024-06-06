@@ -1,13 +1,10 @@
 // file for microbenchmarking
 
-import { Writer } from './buffer-writer'
-import { serialize } from './index'
 import { BufferReader } from './buffer-reader'
 
 const LOOPS = 1000
 let count = 0
 let start = Date.now()
-const writer = new Writer()
 
 const reader = new BufferReader()
 const buffer = Buffer.from([33, 33, 33, 33, 33, 33, 33, 0])

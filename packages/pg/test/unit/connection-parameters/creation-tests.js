@@ -344,7 +344,6 @@ suite.test('ssl is set on client', function () {
       sslrootcert: '/path/root.crt',
     },
   }
-  var Client = require('../../../lib/client')
   var defaults = require('../../../lib/defaults')
   defaults.ssl = true
   var c = new ConnectionParameters(sourceConfig)

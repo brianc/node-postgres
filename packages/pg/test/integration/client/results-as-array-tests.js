@@ -23,7 +23,7 @@ test('returns results as array', function () {
         values: ['hai'],
         rowMode: 'array',
       }
-      var query = client.query(
+      client.query(
         config,
         assert.success(function (result) {
           assert.equal(result.rows.length, 1)

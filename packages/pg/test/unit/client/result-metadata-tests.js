@@ -6,7 +6,7 @@ var testForTag = function (tagText, callback) {
     var client = helper.client()
     client.connection.emit('readyForQuery')
 
-    var query = client.query(
+    client.query(
       'whatever',
       assert.calls((err, result) => {
         assert.ok(result != null, 'should pass something to this event')

@@ -18,6 +18,7 @@ test('simple query interface', function () {
   query.once('row', function (row) {
     test('Can iterate through columns', function () {
       var columnCount = 0
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for (var column in row) {
         columnCount++
       }

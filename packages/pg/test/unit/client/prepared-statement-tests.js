@@ -90,9 +90,7 @@ test('bound command', function () {
 
 var portalClient = helper.client()
 var portalCon = portalClient.connection
-var portalParseArg = null
 portalCon.parse = function (arg) {
-  portalParseArg = arg
   process.nextTick(function () {
     portalCon.emit('parseComplete')
   })

@@ -9,7 +9,6 @@ var suite = new helper.Suite()
   client.on('drain', client.end.bind(client))
 
   var queryName = 'user by age and like name'
-  var parseCount = 0
 
   suite.test('first named prepared statement', function (done) {
     var query = client.query(
@@ -89,7 +88,7 @@ var suite = new helper.Suite()
   var client2 = helper.client()
 
   suite.test('client 1 execution', function (done) {
-    var query = client1.query(
+    client1.query(
       {
         name: statementName,
         text: statement1,
