@@ -53,10 +53,8 @@ class Result {
 
   readValue(pq, rowIndex, colIndex) {
     var rawValue = pq.getvalue(rowIndex, colIndex)
-    if (rawValue === '') {
-      if (pq.getisnull(rowIndex, colIndex)) {
-        return null
-      }
+    if (rawValue === '' && pq.getisnull(rowIndex, colIndex)) {
+      return null
     }
     const dataTypeId = this.fields[colIndex].dataTypeID
     return this._types.getTypeParser(dataTypeId)(rawValue)
