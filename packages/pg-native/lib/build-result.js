@@ -18,11 +18,12 @@ class Result {
 
   consumeFields(pq) {
     const nfields = pq.nfields()
+    this.fields = new Array(nfields);
     for (var x = 0; x < nfields; x++) {
-      this.fields.push({
+      this.fields[x] = {
         name: pq.fname(x),
         dataTypeID: pq.ftype(x),
-      })
+      };
     }
   }
 
