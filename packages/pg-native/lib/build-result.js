@@ -31,16 +31,14 @@ class Result {
     const tupleCount = pq.ntuples()
     this.rows = new Array(tupleCount);
     for (var i = 0; i < tupleCount; i++) {
-      const row = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
-      this.rows[i] = row;
+      this.rows[i] = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
     }
   }
 
   consumeRowAsObject(pq, rowIndex) {
     const row = {}
     for (var j = 0; j < this.fields.length; j++) {
-      const value = this.readValue(pq, rowIndex, j)
-      row[this.fields[j].name] = value
+      row[this.fields[j].name] = this.readValue(pq, rowIndex, j)
     }
     return row
   }
@@ -48,8 +46,7 @@ class Result {
   consumeRowAsArray(pq, rowIndex) {
     const row = new Array(this.fields.length)
     for (var j = 0; j < this.fields.length; j++) {
-      const value = this.readValue(pq, rowIndex, j)
-      row[j] = value;
+      row[j] = this.readValue(pq, rowIndex, j);
     }
     return row
   }
