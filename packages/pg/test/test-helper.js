@@ -72,11 +72,11 @@ assert.UTCDate = function (actual, year, month, day, hours, min, sec, milisecond
   assert.equal(actualMili, milisecond, 'expected milisecond ' + milisecond + ' but got ' + actualMili)
 }
 
-var spit = function(actual, expected) {
-  console.log("");
-  console.log("actual " + sys.inspect(actual));
-  console.log("expect " + sys.inspect(expected));
-  console.log("");
+const spit = function (actual, expected) {
+  console.log('')
+  console.log('actual ' + sys.inspect(actual))
+  console.log('expect ' + sys.inspect(expected))
+  console.log('')
 }
 
 assert.equalBuffers = function (actual, expected) {
