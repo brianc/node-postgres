@@ -18,18 +18,18 @@ class Result {
 
   consumeFields(pq) {
     const nfields = pq.nfields()
-    this.fields = new Array(nfields);
+    this.fields = new Array(nfields)
     for (var x = 0; x < nfields; x++) {
       this.fields[x] = {
         name: pq.fname(x),
-        dataTypeID: pq.ftype(x),
-      };
+        dataTypeID: pq.ftype(x)
+      }
     }
   }
 
   consumeRows(pq) {
     const tupleCount = pq.ntuples()
-    this.rows = new Array(tupleCount);
+    this.rows = new Array(tupleCount)
     for (var i = 0; i < tupleCount; i++) {
       this.rows[i] = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
     }
@@ -46,7 +46,7 @@ class Result {
   consumeRowAsArray(pq, rowIndex) {
     const row = new Array(this.fields.length)
     for (var j = 0; j < this.fields.length; j++) {
-      row[j] = this.readValue(pq, rowIndex, j);
+      row[j] = this.readValue(pq, rowIndex, j)
     }
     return row
   }
