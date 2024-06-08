@@ -36,11 +36,13 @@ services:
       - db
 
   db:
-    image: postgres
+    image: postgres:14-alpine
     restart: unless-stopped
     ports: 
       - 5432:5432
+    command: postgres -c password_encryption=md5
     environment:
+      POSTGRES_INITDB_ARGS: "--auth-local=md5"
       POSTGRES_PASSWORD: pass
       POSTGRES_USER: user
       POSTGRES_DB: data
