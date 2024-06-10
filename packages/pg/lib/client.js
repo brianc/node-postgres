@@ -267,12 +267,14 @@ class Client extends EventEmitter {
   }
 
   async _handleAuthSASLContinue(msg) {
-    try {
-      await sasl.continueSession(this.saslSession, this.password, msg.data)
-      this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
-    } catch (err) {
-      this.connection.emit('error', err)
-    }
+    this._checkPgPass(async () => {
+      try {
+        await sasl.continueSession(this.saslSession, this.password, msg.data)
+        this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+      } catch (err) {
+        this.connection.emit('error', err)
+      }
+    })
   }
 
   _handleAuthSASLFinal(msg) {
