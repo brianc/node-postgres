@@ -1,37 +1,54 @@
-let isCloudflareRuntime
+const { getStream, getSecureStream } = getStreamFuncs()
+
+module.exports = {
+  /**
+   * Get a socket stream compatible with the current runtime environment.
+   * @returns {Duplex}
+   */
+  getStream,
+  /**
+   * Get a TLS secured socket, compatible with the current environment,
+   * using the socket and other settings given in `options`.
+   * @returns {Duplex}
+   */
+  getSecureStream,
+}
 
 /**
- * Get a socket stream compatible with the current runtime environment.
- * @returns {Duplex}
+ * The stream functions that work in Node.js
  */
-module.exports.getStream = function getStream(ssl) {
-  if (isCloudflareRuntime === undefined) {
-    isCloudflareRuntime = computeIsCloudflareRuntime()
-  }
-  if (isCloudflareRuntime) {
-    const { CloudflareSocket } = require('pg-cloudflare')
-    return new CloudflareSocket(ssl)
-  } else {
+function getNodejsStreamFuncs() {
+  function getStream(ssl) {
     const net = require('net')
     return new net.Socket()
+  }
+
+  function getSecureStream(options) {
+    var tls = require('tls')
+    return tls.connect(options)
+  }
+  return {
+    getStream,
+    getSecureStream,
   }
 }
 
 /**
- * Get a TLS secured socket, compatible with the current environment,
- * using the socket and other settings given in `options`.
- * @returns {Duplex}
+ * The stream functions that work in Cloudflare Workers
  */
-module.exports.getSecureStream = function getSecureStream(options) {
-  if (isCloudflareRuntime === undefined) {
-    isCloudflareRuntime = computeIsCloudflareRuntime()
+function getCloudflareStreamFuncs() {
+  function getStream(ssl) {
+    const { CloudflareSocket } = require('pg-cloudflare')
+    return new CloudflareSocket(ssl)
   }
-  if (isCloudflareRuntime) {
+
+  function getSecureStream(options) {
     options.socket.startTls(options)
     return options.socket
-  } else {
-    var tls = require('tls')
-    return tls.connect(options)
+  }
+  return {
+    getStream,
+    getSecureStream,
   }
 }
 
@@ -40,7 +57,7 @@ module.exports.getSecureStream = function getSecureStream(options) {
  *
  * @returns true if the code is currently running inside a Cloudflare Worker.
  */
-function computeIsCloudflareRuntime() {
+function isCloudflareRuntime() {
   // Since 2022-03-21 the `global_navigator` compatibility flag is on for Cloudflare Workers
   // which means that `navigator.userAgent` will be defined.
   if (typeof navigator === 'object' && navigator !== null && typeof navigator.userAgent === 'string') {
@@ -54,4 +71,11 @@ function computeIsCloudflareRuntime() {
     }
   }
   return false
+}
+
+function getStreamFuncs() {
+  if (isCloudflareRuntime()) {
+    return getCloudflareStreamFuncs()
+  }
+  return getNodejsStreamFuncs()
 }
