@@ -167,10 +167,10 @@ class Pool extends EventEmitter {
     client.end(() => {
       this.emit('remove', client)
 
-      if (typeof callback === "function") {
+      if (typeof callback === 'function') {
         callback()
       }
-    }) 
+    })
   }
 
   connect(cb) {
@@ -348,7 +348,7 @@ class Pool extends EventEmitter {
         this.log('remove expended client')
       }
 
-      return  this._remove(client, this._pulseQueue.bind(this))
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     const isExpired = this._expired.has(client)
