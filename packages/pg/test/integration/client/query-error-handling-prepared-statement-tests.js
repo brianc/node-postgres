@@ -1,7 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = helper.pg.Query
-var util = require('util')
 
 var suite = new helper.Suite()
 

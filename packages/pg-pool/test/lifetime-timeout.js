@@ -4,7 +4,6 @@ const expect = require('expect.js')
 
 const describe = require('mocha').describe
 const it = require('mocha').it
-const path = require('path')
 
 const Pool = require('../')
 

@@ -26,7 +26,8 @@ node-postgres strives to be compatible with all recent LTS versions of node & th
 The simplest possible way to connect, query, and disconnect is with async/await:
 
 ```js
-import { Client } from 'pg'
+import pg from 'pg'
+const { Client } = pg
 const client = new Client()
 await client.connect()
 
@@ -40,7 +41,8 @@ await client.end()
 For the sake of simplicity, these docs will assume that the methods are successful. In real life use, make sure to properly handle errors thrown in the methods. A `try/catch` block is a great way to do so:
 
 ```ts
-import { Client } from 'pg'
+import pg from 'pg'
+const { Client } = pg
 const client = new Client()
 await client.connect()
 
@@ -59,7 +61,8 @@ try {
 If you prefer a callback-style approach to asynchronous programming, all async methods support an optional callback parameter as well:
 
 ```js
-import { Client } from 'pg'
+import pg from 'pg'
+const { Client } = pg
 const client = new Client()
 
 client.connect((err) => {

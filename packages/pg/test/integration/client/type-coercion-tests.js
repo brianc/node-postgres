@@ -141,7 +141,7 @@ types.forEach(function (type) {
   testForTypeCoercion(type)
 })
 
-suite.test('timestampz round trip', function (cb) {
+suite.test('timestamptz round trip', function (cb) {
   var now = new Date()
   var client = helper.client()
   client.query('create temp table date_tests(name varchar(10), tstz timestamptz(3))')
