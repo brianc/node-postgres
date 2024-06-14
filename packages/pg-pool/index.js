@@ -169,8 +169,9 @@ class Pool extends EventEmitter {
     }
 
     this._clients = this._clients.filter((c) => c !== client)
+    const context = this
     client.end(() => {
-      this.emit('remove', client)
+      context.emit('remove', client)
 
       if (typeof callback === 'function') {
         callback()
