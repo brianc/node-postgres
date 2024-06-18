@@ -2,7 +2,6 @@
 var net = require('net')
 var helper = require('../test-helper')
 var Connection = require('../../../lib/connection')
-var utils = require('../../../lib/utils')
 const crypto = require('../../../lib/crypto/utils')
 var connect = function (callback) {
   var username = helper.args.user

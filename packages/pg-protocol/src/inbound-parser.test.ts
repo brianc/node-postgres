@@ -14,17 +14,6 @@ var parseCompleteBuffer = buffers.parseComplete()
 var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
 
-var addRow = function (bufferList: BufferList, name: string, offset: number) {
-  return bufferList
-    .addCString(name) // field name
-    .addInt32(offset++) // table id
-    .addInt16(offset++) // attribute of column number
-    .addInt32(offset++) // objectId of field's data type
-    .addInt16(offset++) // datatype size
-    .addInt32(offset++) // type modifier
-    .addInt16(0) // format code, 0 => text
-}
-
 var row1 = {
   name: 'id',
   tableID: 1,

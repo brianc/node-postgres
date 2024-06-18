@@ -33,7 +33,7 @@ suite.test(
 
     // TODO should be text or sql?
     try {
-      const results = yield client.query({
+      yield client.query({
         text: `SELECT 'foo'::text as name; SELECT 'bar'::text as baz`,
         queryMode: 'extended',
       })

@@ -27,7 +27,6 @@ function getAppName(conf, cb) {
 }
 
 suite.test('No default appliation_name ', function (done) {
-  var conf = getConInfo()
   getAppName({}, function (res) {
     assert.strictEqual(res, '')
     done()
