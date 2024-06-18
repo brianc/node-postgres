@@ -50,7 +50,7 @@ describe('idle timeout', () => {
       try {
         yield Promise.race([removal, timeout])
       } finally {
-        pool.end()
+        yield pool.end()
       }
     })
   )

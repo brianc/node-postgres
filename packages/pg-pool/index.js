@@ -365,8 +365,7 @@ class Pool extends EventEmitter {
     if (isExpired) {
       this.log('remove expired client')
       this._expired.delete(client)
-      this._remove(client, this._pulseQueue.bind(this))
-      return
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     // idle timeout
@@ -374,7 +373,7 @@ class Pool extends EventEmitter {
     if (this.options.idleTimeoutMillis && this._isAboveMin()) {
       tid = setTimeout(() => {
         this.log('remove idle client')
-        this._remove(client)
+        this._remove(client, this._pulseQueue.bind(this))
       }, this.options.idleTimeoutMillis)
 
       if (this.options.allowExitOnIdle) {
