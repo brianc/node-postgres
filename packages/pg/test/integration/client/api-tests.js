@@ -106,7 +106,7 @@ suite.test('query with timeout on query basis', (cb) => {
   const pool = new pg.Pool()
   pool.connect().then((client) => {
     client.query(
-      {text: 'SELECT pg_sleep(20)', query_timeout: 1000},
+      { text: 'SELECT pg_sleep(20)', query_timeout: 1000 },
       assert.calls(function (err, result) {
         assert(err)
         assert(err.message === 'Query read timeout')
