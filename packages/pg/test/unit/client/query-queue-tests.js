@@ -1,5 +1,6 @@
 'use strict'
-require('./test-helper')
+const helper = require('./test-helper')
+const { Client } = helper
 var Connection = require('../../../lib/connection')
 const assert = require('assert')
 

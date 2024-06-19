@@ -1,5 +1,6 @@
 'use strict'
-require('./test-helper')
+const helper = require('./test-helper')
+const { Client } = helper
 var assert = require('assert')
 
 var pguser = process.env['PGUSER'] || process.env.USER

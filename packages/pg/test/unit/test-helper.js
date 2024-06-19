@@ -3,6 +3,7 @@ var EventEmitter = require('events').EventEmitter
 
 var helper = require('../test-helper')
 var Connection = require('../../lib/connection')
+const { Client } = helper
 
 global.MemoryStream = function () {
   EventEmitter.call(this)

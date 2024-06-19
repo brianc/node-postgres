@@ -7,7 +7,7 @@ var sys = require('util')
 const Suite = require('./suite')
 const args = require('./cli')
 
-global.Client = require('./../lib').Client
+const Client = require('./../lib').Client
 
 process.on('uncaughtException', function (d) {
   if ('stack' in d && 'message' in d) {
