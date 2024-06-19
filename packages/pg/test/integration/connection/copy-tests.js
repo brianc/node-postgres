@@ -1,8 +1,9 @@
 'use strict'
 var helper = require('./test-helper')
 var assert = require('assert')
+const suite = new helper.Suite()
 
-test('COPY FROM events check', function () {
+suite.test('COPY FROM events check', function () {
   helper.connect(function (con) {
     con.query('COPY person FROM STDIN')
     con.on('copyInResponse', function () {
@@ -26,7 +27,8 @@ test('COPY FROM events check', function () {
     )
   })
 })
-test('COPY TO events check', function () {
+
+suite.test('COPY TO events check', function () {
   helper.connect(function (con) {
     con.query('COPY person TO STDOUT')
     assert.emits(con, 'copyOutResponse', function () {}, 'backend should emit copyOutResponse after COPY TO query')

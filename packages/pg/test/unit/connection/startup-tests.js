@@ -1,7 +1,9 @@
 'use strict'
-require('./test-helper')
+const helper = require('./test-helper')
 const assert = require('assert')
 var Connection = require('../../../lib/connection')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 test('connection can take existing stream', function () {
   var stream = new MemoryStream()
   var con = new Connection({ stream: stream })

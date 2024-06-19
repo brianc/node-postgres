@@ -1,11 +1,12 @@
 'use strict'
 var helper = require('./test-helper')
 var assert = require('assert')
+const suite = new helper.Suite()
 
 var rows = []
 // testing the low level 1-1 mapping api of client to postgres messages
 // it's cumbersome to use the api this way
-test('simple query', function () {
+suite.test('simple query', function () {
   helper.connect(function (con) {
     con.query('select * from ids')
     assert.emits(con, 'dataRow')

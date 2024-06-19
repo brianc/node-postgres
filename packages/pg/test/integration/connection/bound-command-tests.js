@@ -1,9 +1,10 @@
 'use strict'
 var helper = require('./test-helper')
 const assert = require('assert')
+const suite = new helper.Suite()
 // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
 
-test('flushing once', function () {
+suite.test('flushing once', function () {
   helper.connect(function (con) {
     con.parse({
       text: 'select * from ids',
@@ -25,7 +26,7 @@ test('flushing once', function () {
   })
 })
 
-test('sending many flushes', function () {
+suite.test('sending many flushes', function () {
   helper.connect(function (con) {
     assert.emits(con, 'parseComplete', function () {
       con.bind()

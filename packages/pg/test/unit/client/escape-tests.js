@@ -2,7 +2,9 @@
 var helper = require('./test-helper')
 var utils = require('../../../lib/utils')
 const assert = require('assert')
-const { Client } = helper
+const { Client, Suite } = helper
+const suite = new Suite()
+const test = suite.test.bind(suite)
 
 var testLit = function (testName, input, expected) {
   test(testName, function () {

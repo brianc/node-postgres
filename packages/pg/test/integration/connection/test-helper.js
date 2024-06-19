@@ -36,5 +36,6 @@ var connect = function (callback) {
 }
 
 module.exports = {
+  ...helper,
   connect: connect,
 }
