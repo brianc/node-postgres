@@ -109,18 +109,6 @@ test('executing query', function () {
         text: 'INSERT 31 1',
       })
     })
-
-    test('removes itself after another readyForQuery message', function () {
-      return false
-      assert.emits(query, 'end', function (msg) {
-        // TODO do we want to check the complete messages?
-      })
-      con.emit('readyForQuery')
-      // this would never actually happen
-      ;['dataRow', 'rowDescription', 'commandComplete'].forEach(function (msg) {
-        assert.equal(con.emit(msg), false, "Should no longer be picking up '" + msg + "' messages")
-      })
-    })
   })
 
   test('handles errors', function () {
