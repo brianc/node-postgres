@@ -102,6 +102,21 @@ suite.test('query no timeout', (cb) => {
   })
 })
 
+suite.test('query with timeout on query basis', (cb) => {
+  const pool = new pg.Pool()
+  pool.connect().then((client) => {
+    client.query(
+      {text: 'SELECT pg_sleep(20)', query_timeout: 1000},
+      assert.calls(function (err, result) {
+        assert(err)
+        assert(err.message === 'Query read timeout')
+        client.release()
+        pool.end(cb)
+      })
+    )
+  })
+})
+
 suite.test('callback API', (done) => {
   const client = new helper.Client()
   client.query('CREATE TEMP TABLE peep(name text)')
