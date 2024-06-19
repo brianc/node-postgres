@@ -25,7 +25,7 @@ jobs:
     needs: lint
     services:
       postgres:
-        image: postgres:11
+        image: ghcr.io/railwayapp-templates/postgres-ssl:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
