@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
 
+const assert = require('assert')
 var client = helper.client()
 var con = client.connection
 var parseArg = null

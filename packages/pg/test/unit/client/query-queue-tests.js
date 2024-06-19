@@ -1,6 +1,7 @@
 'use strict'
 require('./test-helper')
 var Connection = require('../../../lib/connection')
+const assert = require('assert')
 
 test('drain', function () {
   var con = new Connection({ stream: 'NO' })

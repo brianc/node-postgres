@@ -1,6 +1,7 @@
 'use strict'
 // make assert a global...
-global.assert = require('assert')
+// global.assert = require('assert')
+const assert = require('assert')
 var sys = require('util')
 
 const Suite = require('./suite')

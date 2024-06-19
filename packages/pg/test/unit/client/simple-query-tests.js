@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
+const assert = require('assert')
 
 test('executing query', function () {
   test('queing query', function () {

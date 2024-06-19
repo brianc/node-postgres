@@ -2,6 +2,7 @@
 require('./test-helper')
 var Connection = require('../../../lib/connection')
 var Client = require('../../../lib/client')
+const assert = require('assert')
 
 test('emits end when not in query', function () {
   var stream = new (require('events').EventEmitter)()

@@ -3,6 +3,7 @@
 var helper = require('../test-helper')
 var pg = helper.pg
 const suite = new helper.Suite()
+const assert = require('assert')
 
 const pool = new pg.Pool(helper.config)
 suite.test('ability to turn on and off parser', function () {

@@ -1,5 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
+const assert = require('assert')
 // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
 
 test('flushing once', function () {

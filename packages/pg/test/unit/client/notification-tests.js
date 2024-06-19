@@ -1,5 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
+const assert = require('assert')
 
 test('passes connection notification', function () {
   var client = helper.client()

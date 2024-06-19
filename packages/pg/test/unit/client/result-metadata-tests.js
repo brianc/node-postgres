@@ -1,5 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
+const assert = require('assert')
 
 var testForTag = function (tagText, callback) {
   test('includes command tag data for tag ' + tagText, function () {

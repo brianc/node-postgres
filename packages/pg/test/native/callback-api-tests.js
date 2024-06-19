@@ -3,6 +3,7 @@ var domain = require('domain')
 var helper = require('./../test-helper')
 var Client = require('./../../lib/native')
 const suite = new helper.Suite()
+const assert = require('assert')
 
 suite.test('fires callback with results', function (done) {
   var client = new Client(helper.config)

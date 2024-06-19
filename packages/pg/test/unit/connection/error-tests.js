@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var Connection = require('../../../lib/connection')
 var net = require('net')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 

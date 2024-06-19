@@ -2,6 +2,7 @@
 var buffers = require('../../test-buffers')
 var helper = require('./test-helper')
 var suite = new helper.Suite()
+const assert = require('assert')
 
 var net = require('net')
 

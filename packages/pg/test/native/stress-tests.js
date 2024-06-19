@@ -2,6 +2,7 @@
 var helper = require('../test-helper')
 var Client = require('../../lib/native')
 var Query = Client.Query
+const assert = require('assert')
 
 test('many rows', function () {
   var client = new Client(helper.config)

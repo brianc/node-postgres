@@ -2,6 +2,7 @@
 
 const helper = require('./test-helper')
 const createClient = require('./test-helper').createClient
+const assert = require('assert')
 
 test('cleartext password authentication', function () {
   test('responds with password', function () {

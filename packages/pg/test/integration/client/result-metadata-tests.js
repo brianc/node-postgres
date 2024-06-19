@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 var pg = helper.pg
+const assert = require('assert')
 
 const pool = new pg.Pool()
 new helper.Suite().test('should return insert metadata', function () {

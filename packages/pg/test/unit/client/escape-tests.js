@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 var utils = require('../../../lib/utils')
+const assert = require('assert')
 
 var testLit = function (testName, input, expected) {
   test(testName, function () {

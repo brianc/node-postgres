@@ -1,5 +1,6 @@
 'use strict'
 require('./test-helper')
+const assert = require('assert')
 const BufferList = require('../../buffer-list')
 var Connection = require('../../../lib/connection')
 var buffers = require('../../test-buffers')

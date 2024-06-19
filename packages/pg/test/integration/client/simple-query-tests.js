@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = helper.pg.Query
+const assert = require('assert')
 
 // before running this test make sure you run the script create-test-tables
 test('simple query interface', function () {

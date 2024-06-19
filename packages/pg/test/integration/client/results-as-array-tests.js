@@ -1,6 +1,7 @@
 'use strict'
 var util = require('util')
 var helper = require('./test-helper')
+const assert = require('assert')
 
 var Client = helper.Client
 

@@ -1,5 +1,6 @@
 'use strict'
 require('./test-helper')
+const assert = require('assert')
 var Connection = require('../../../lib/connection')
 test('connection can take existing stream', function () {
   var stream = new MemoryStream()

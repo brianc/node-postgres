@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var Query = helper.pg.Query
 var DatabaseError = helper.pg.DatabaseError
+const assert = require('assert')
 
 test('error during query execution', function () {
   var client = new Client(helper.args)

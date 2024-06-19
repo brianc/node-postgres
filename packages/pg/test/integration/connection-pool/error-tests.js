@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 const pg = helper.pg
 const native = helper.args.native
+const assert = require('assert')
 
 const suite = new helper.Suite()
 suite.test('connecting to invalid port', (cb) => {

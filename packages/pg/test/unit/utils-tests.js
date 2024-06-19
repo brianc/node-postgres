@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var utils = require('./../../lib/utils')
 var defaults = require('./../../lib').defaults
+const assert = require('assert')
 
 test('ensure types is exported on root object', function () {
   var pg = require('../../lib')
