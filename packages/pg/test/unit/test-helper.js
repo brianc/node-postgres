@@ -5,7 +5,7 @@ var helper = require('../test-helper')
 var Connection = require('../../lib/connection')
 const { Client } = helper
 
-global.MemoryStream = function () {
+const MemoryStream = function () {
   EventEmitter.call(this)
   this.packets = []
 }
@@ -46,4 +46,5 @@ const createClient = function () {
 
 module.exports = Object.assign({}, helper, {
   createClient: createClient,
+  MemoryStream: MemoryStream,
 })

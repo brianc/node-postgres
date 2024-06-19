@@ -4,6 +4,7 @@ const helper = require('./test-helper')
 const createClient = require('./test-helper').createClient
 const assert = require('assert')
 const suite = new helper.Suite()
+const { MemoryStream } = helper
 
 suite.test('cleartext password auth responds with password', function () {
   var client = createClient()

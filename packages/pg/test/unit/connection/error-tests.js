@@ -5,6 +5,7 @@ var net = require('net')
 const assert = require('assert')
 
 const suite = new helper.Suite()
+const { MemoryStream } = helper
 
 suite.test('connection emits stream errors', function (done) {
   var con = new Connection({ stream: new MemoryStream() })
