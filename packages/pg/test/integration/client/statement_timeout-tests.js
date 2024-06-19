@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var Client = helper.Client
 
+const assert = require('assert')
 var suite = new helper.Suite()
 
 var conInfo = helper.config

@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
 var types = require('pg-types')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 

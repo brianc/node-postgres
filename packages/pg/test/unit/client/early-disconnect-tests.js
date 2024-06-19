@@ -2,6 +2,7 @@
 require('./test-helper')
 var net = require('net')
 var pg = require('../../../lib/index.js')
+const assert = require('assert')
 
 /* console.log() messages show up in `make test` output. TODO: fix it. */
 var server = net.createServer(function (c) {

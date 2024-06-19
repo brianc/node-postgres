@@ -1,5 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
+const assert = require('assert')
 
 new helper.Suite().test('idle timeout', function () {
   const config = Object.assign({}, helper.config, { idleTimeoutMillis: 50 })

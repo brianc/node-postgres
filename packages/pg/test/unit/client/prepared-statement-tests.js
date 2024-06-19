@@ -1,8 +1,11 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
-
+const assert = require('assert')
 var client = helper.client()
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
+
 var con = client.connection
 var parseArg = null
 con.parse = function (arg) {

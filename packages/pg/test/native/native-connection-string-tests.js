@@ -2,6 +2,7 @@
 var helper = require('../test-helper')
 var Client = require('../../lib/native')
 const suite = new helper.Suite()
+const assert = require('assert')
 
 suite.test('respects nativeConnectionString in config', function (done) {
   const realPort = helper.config.port

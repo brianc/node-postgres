@@ -4,6 +4,7 @@ var helper = require('./test-helper')
 var Query = helper.pg.Query
 var suite = new helper.Suite()
 
+const assert = require('assert')
 const Pool = helper.pg.Pool
 
 suite.test('no domain', function (cb) {

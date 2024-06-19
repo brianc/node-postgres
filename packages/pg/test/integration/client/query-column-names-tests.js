@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('../test-helper')
 var pg = helper.pg
+const assert = require('assert')
 
 new helper.Suite().test('support for complex column names', function () {
   const pool = new pg.Pool()
