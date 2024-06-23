@@ -7,7 +7,7 @@ describe('connection', function () {
   })
 
   it('connects with args', function (done) {
-    Client().connect('host=db', done)
+    Client().connect('host=localhost', done)
   })
 
   it('errors out with bad connection args', function (done) {
