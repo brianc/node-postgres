@@ -38,9 +38,6 @@ services:
     links:
       - db:db
 
-    networks:
-      - pgnetwork
-
   db:
     image: postgres:14-alpine
     restart: unless-stopped
@@ -53,9 +50,3 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_USER: user
       POSTGRES_DB: data
-    networks:
-      - pgnetwork
- 
-networks:
-  pgnetwork:
-    driver: bridge
