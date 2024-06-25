@@ -23,7 +23,7 @@
     "pg-connection-string": "^2.6.4",
     "pg-pool": "^3.6.2",
     "pg-protocol": "^1.6.1",
-    "pg-types": "^2.1.0",
+    "pg-types": "^4.0.2",
     "pgpass": "1.x"
   },
   "devDependencies": {
