@@ -174,6 +174,10 @@ class Client extends EventEmitter {
   }
 
   _attachListeners(con) {
+    // kerberos
+    con.on('GSSInit', this._handleGSSInit.bind(this))
+    con.on('GSSContinue', this._handleGSSContinue.bind(this))
+
     // password request handling
     con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
@@ -196,6 +200,39 @@ class Client extends EventEmitter {
     con.on('copyInResponse', this._handleCopyInResponse.bind(this))
     con.on('copyData', this._handleCopyData.bind(this))
     con.on('notification', this._handleNotification.bind(this))
+  }
+
+  async _handleGSSInit(msg) {
+    try {
+      // TODO: Below needs to be parameterized
+      this.client = await kerberos.initializeClient('postgres@pg.US-WEST-2.COMPUTE.INTERNAL', {
+        mechOID: kerberos.GSS_MECH_OID_SPNEGO,
+      })
+
+      // TODO: below this might need to be a recursive loop to step multiple times.
+      const token = await this.client.step('')
+
+      const buf = Buffer.from(token, 'base64')
+      this.connection.sendBinaryPassword(buf)
+    } catch (e) {
+      this.emit('error', e)
+    }
+  }
+
+  async _handleGSSContinue(msg) {
+    try {
+      const inToken = msg.inToken
+      const token = await this.client.step(inToken)
+
+      // TODO: probably a better way to handle this.
+      if (token == null) {
+        return
+      }
+      const buf = Buffer.from(token, 'base64')
+      this.connection.sendBinaryPassword(buf)
+    } catch (e) {
+      this.emit('error', e)
+    }
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function

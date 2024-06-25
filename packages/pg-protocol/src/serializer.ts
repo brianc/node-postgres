@@ -239,6 +239,10 @@ const copyData = (chunk: Buffer): Buffer => {
   return writer.add(chunk).flush(code.copyFromChunk)
 }
 
+const sendBinaryPassword = (chunk: Buffer): Buffer => {
+  return writer.add(chunk).flush(code.startup)
+}
+
 const copyFail = (message: string): Buffer => {
   return cstringMessage(code.copyFail, message)
 }
@@ -266,6 +270,7 @@ const serialize = {
   sync: () => syncBuffer,
   end: () => endBuffer,
   copyData,
+  sendBinaryPassword,
   copyDone: () => copyDoneBuffer,
   copyFail,
   cancel,
