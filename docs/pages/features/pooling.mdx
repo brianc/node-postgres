@@ -28,7 +28,8 @@ The client pool allows you to have a reusable pool of clients you can check out,
 ### Checkout, use, and return
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
@@ -60,7 +61,8 @@ client.release()
 If you don't need a transaction or you just need to run a single query, the pool has a convenience method to run a query on any available client in the pool. This is the preferred way to query with node-postgres if you can as it removes the risk of leaking a client.
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
@@ -73,7 +75,8 @@ console.log('user:', res.rows[0])
 To shut down a pool call `pool.end()` on the pool. This will wait for all checked-out clients to be returned and then shut down all the clients and the pool timers.
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 const pool = new Pool()
 
 console.log('starting async query')

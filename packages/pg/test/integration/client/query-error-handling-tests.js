@@ -1,10 +1,12 @@
 'use strict'
 var helper = require('./test-helper')
-var util = require('util')
 var Query = helper.pg.Query
 var DatabaseError = helper.pg.DatabaseError
+const assert = require('assert')
+const { Client } = helper
+const suite = new helper.Suite()
 
-test('error during query execution', function () {
+suite.test('error during query execution', function () {
   var client = new Client(helper.args)
   client.connect(
     assert.success(function () {
@@ -61,7 +63,7 @@ if (helper.config.native) {
   return
 }
 
-test('9.3 column error fields', function () {
+suite.test('9.3 column error fields', function () {
   var client = new Client(helper.args)
   client.connect(
     assert.success(function () {
@@ -90,7 +92,7 @@ test('9.3 column error fields', function () {
   )
 })
 
-test('9.3 constraint error fields', function () {
+suite.test('9.3 constraint error fields', function () {
   var client = new Client(helper.args)
   client.connect(
     assert.success(function () {

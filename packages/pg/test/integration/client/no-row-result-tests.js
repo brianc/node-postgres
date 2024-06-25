@@ -3,6 +3,7 @@ var helper = require('./test-helper')
 var pg = helper.pg
 const suite = new helper.Suite()
 const pool = new pg.Pool()
+const assert = require('assert')
 
 suite.test('can access results when no rows are returned', function (done) {
   var checkResult = function (result) {

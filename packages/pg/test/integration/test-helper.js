@@ -1,5 +1,7 @@
 'use strict'
 var helper = require('./../test-helper')
+let { Client } = helper
+const assert = require('assert')
 
 if (helper.args.native) {
   Client = require('./../../lib/native')

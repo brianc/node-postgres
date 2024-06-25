@@ -2,6 +2,7 @@
 
 const helper = require('./test-helper')
 const pg = helper.pg
+const assert = require('assert')
 
 const suite = new helper.Suite()
 

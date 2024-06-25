@@ -47,11 +47,11 @@ new Client({
 
 - drop support for versions of node older than 8.0
 
-Node@6.0 has been out of LTS for quite some time now, and I've removed it from our test matrix. `pg@8.0` _may_ still work on older versions of node, but it isn't a goal of the project anymore. Node@8.0 is actually no longer in the LTS support line, but pg will continue to test against and support 8.0 until there is a compelling reason to drop support for it. Any security vulnerability issues which come up I will back-port fixes to the `pg@7.x` line and do a release, but any other fixes or improvments will not be back ported.
+Node@6.0 has been out of LTS for quite some time now, and I've removed it from our test matrix. `pg@8.0` _may_ still work on older versions of node, but it isn't a goal of the project anymore. Node@8.0 is actually no longer in the LTS support line, but pg will continue to test against and support 8.0 until there is a compelling reason to drop support for it. Any security vulnerability issues which come up I will back-port fixes to the `pg@7.x` line and do a release, but any other fixes or improvements will not be back ported.
 
 - prevent password from being logged accidentally
 
-`pg@8.0` makes the password field on the pool and client non-enumerable. This means when you do `console.log(client)` you wont have your database password printed out unintenionally. You can still do `console.log(client.password)` if you really want to see it!
+`pg@8.0` makes the password field on the pool and client non-enumerable. This means when you do `console.log(client)` you wont have your database password printed out unintentionally. You can still do `console.log(client.password)` if you really want to see it!
 
 - make `pg.native` non-enumerable
 
@@ -113,10 +113,11 @@ pg@7.1.2
 
 ### Example
 
-To demonstrate the issue & see if you are vunerable execute the following in node:
+To demonstrate the issue & see if you are vulnerable execute the following in node:
 
 ```js
-import { Client } from 'pg'
+import pg from 'pg'
+const { Client } = pg
 const client = new Client()
 client.connect()
 

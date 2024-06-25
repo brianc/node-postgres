@@ -1,13 +1,10 @@
 'use strict'
 var helper = require('./test-helper')
 var utils = require('../../../lib/utils')
-
-function createClient(callback) {
-  var client = new Client(helper.config)
-  client.connect(function (err) {
-    return callback(client)
-  })
-}
+const assert = require('assert')
+const { Client, Suite } = helper
+const suite = new Suite()
+const test = suite.test.bind(suite)
 
 var testLit = function (testName, input, expected) {
   test(testName, function () {

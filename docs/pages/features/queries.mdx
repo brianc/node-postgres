@@ -27,7 +27,7 @@ console.log(res.rows[0])
 ```
 
 <div class="alert alert-warning">
-  PostgreSQL does not support parameters for identifiers. If you need to have dynamic database, schema, table, or column names (e.g. in DDL statements) use <a href="https://www.npmjs.com/package/pg-format">pg-format</a> package for handling escaping these values to ensure you do not have SQL injection!
+  PostgreSQL does not support parameters for identifiers. If you need to have dynamic database, schema, table, or column names (e.g. in DDL statements) use [pg-format](https://www.npmjs.com/package/pg-format) package for handling escaping these values to ensure you do not have SQL injection!
 </div>
 
 Parameters passed as the second argument to `query()` will be converted to raw data types using the following rules:
@@ -123,7 +123,7 @@ console.log(res.rows[0]) // ['Brian', 'Carlson']
 
 ### Types
 
-You can pass in a custom set of type parsers to use when parsing the results of a particular query. The `types` property must conform to the [Types](/api/types) API. Here is an example in which every value is returned as a string:
+You can pass in a custom set of type parsers to use when parsing the results of a particular query. The `types` property must conform to the [Types](/apis/types) API. Here is an example in which every value is returned as a string:
 
 ```js
 const query = {

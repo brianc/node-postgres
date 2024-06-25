@@ -27,7 +27,8 @@ The location doesn't really matter - I've found it usually ends up being somewha
 Typically I'll start out my `db/index.js` file like so:
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
@@ -41,7 +42,7 @@ That's it. But now everywhere else in my application instead of requiring `pg` d
 ```js
 // notice here I'm requiring my database adapter file
 // and not requiring node-postgres directly
-import * as db from '../db.js'
+import * as db from '../db/index.js'
 
 app.get('/:id', async (req, res, next) => {
   const result = await db.query('SELECT * FROM users WHERE id = $1', [req.params.id])
@@ -54,7 +55,8 @@ app.get('/:id', async (req, res, next) => {
 Imagine we have lots of routes scattered throughout many files under our `routes/` directory. We now want to go back and log every single query that's executed, how long it took, and the number of rows it returned. If we had required node-postgres directly in every route file we'd have to go edit every single route - that would take forever & be really error prone! But thankfully we put our data access into `db/index.js`. Let's go add some logging:
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
@@ -74,7 +76,8 @@ _note: I didn't log the query parameters. Depending on your application you migh
 Now what if we need to check out a client from the pool to run several queries in a row in a transaction? We can add another method to our `db/index.js` file when we need to do this:
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
@@ -85,13 +88,13 @@ export const query = async (text, params) => {
   console.log('executed query', { text, duration, rows: res.rowCount })
   return res
 }
-  
+
 export const getClient = () => {
   return pool.connect()
 }
 ```
 
-Okay. Great - the simplest thing that could possibly work. It seems like one of our routes that checks out a client to run a transaction is forgetting to call `done` in some situation! Oh no! We are leaking a client & have hundreds of these routes to go audit. Good thing we have all our client access going through this single file. Lets add some deeper diagnostic information here to help us track down where the client leak is happening.
+Okay. Great - the simplest thing that could possibly work. It seems like one of our routes that checks out a client to run a transaction is forgetting to call `release` in some situation! Oh no! We are leaking a client & have hundreds of these routes to go audit. Good thing we have all our client access going through this single file. Lets add some deeper diagnostic information here to help us track down where the client leak is happening.
 
 ```js
 export const query = async (text, params) => {

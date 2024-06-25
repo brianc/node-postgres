@@ -3,6 +3,7 @@ const helper = require('./../test-helper')
 const pg = helper.pg
 const suite = new helper.Suite()
 const { native } = helper.args
+const assert = require('assert')
 
 /**
  * This test only executes if the env variables SCRAM_TEST_PGUSER and

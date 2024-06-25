@@ -2,6 +2,7 @@
 var helper = require('./../test-helper')
 var pg = helper.pg
 var native = helper.args.native
+const assert = require('assert')
 
 var pool = new pg.Pool()
 

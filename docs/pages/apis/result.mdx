@@ -1,6 +1,6 @@
 ---
 title: pg.Result
-slug: /api/result
+slug: /apis/result
 ---
 
 The `pg.Result` shape is returned for every successful query.
@@ -18,7 +18,8 @@ Every result will have a rows array. If no rows are returned the array will be e
 Every result will have a fields array. This array contains the `name` and `dataTypeID` of each field in the result. These fields are ordered in the same order as the columns if you are using `arrayMode` for the query:
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 
 const pool = new Pool()
 
@@ -41,7 +42,7 @@ The command type last executed: `INSERT` `UPDATE` `CREATE` `SELECT` etc.
 
 The number of rows processed by the last command. Can be `null` for commands that never affect rows, such as the `LOCK`-command. More specifically, some commands, including `LOCK`, only return a command tag of the form `COMMAND`, without any `[ROWS]`-field to parse. For such commands `rowCount` will be `null`.
 
-_note: this does not reflect the number of rows __returned__ from a query.  e.g. an update statement could update many rows (so high `result.rowCount` value) but `result.rows.length` would be zero.  To check for an empty query reponse on a `SELECT` query use `result.rows.length === 0`_.
+_note: this does not reflect the number of rows __returned__ from a query.  e.g. an update statement could update many rows (so high `result.rowCount` value) but `result.rows.length` would be zero.  To check for an empty query response on a `SELECT` query use `result.rows.length === 0`_.
 
 [@sehrope](https://github.com/brianc/node-postgres/issues/2182#issuecomment-620553915) has a good explanation:
 

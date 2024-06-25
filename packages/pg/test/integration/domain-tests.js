@@ -1,10 +1,10 @@
 'use strict'
-var async = require('async')
 
 var helper = require('./test-helper')
 var Query = helper.pg.Query
 var suite = new helper.Suite()
 
+const assert = require('assert')
 const Pool = helper.pg.Pool
 
 suite.test('no domain', function (cb) {
@@ -30,7 +30,7 @@ suite.test('with domain', function (cb) {
       assert.success(function (client, done) {
         assert(process.domain, 'no domain exists in connect callback')
         assert.equal(startingDomain, process.domain, 'domain was lost when checking out a client')
-        var query = client.query(
+        client.query(
           'SELECT NOW()',
           assert.success(function () {
             assert(process.domain, 'no domain exists in query callback')

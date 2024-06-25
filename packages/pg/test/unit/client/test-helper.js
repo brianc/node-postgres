@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('../test-helper')
 var Connection = require('../../../lib/connection')
+const { Client } = helper
 
 var makeClient = function () {
   var connection = new Connection({ stream: 'no' })

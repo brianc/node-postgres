@@ -1,4 +1,4 @@
-import { BackendMessage, DatabaseError } from './messages'
+import { DatabaseError } from './messages'
 import { serialize } from './serializer'
 import { Parser, MessageCallback } from './parser'
 

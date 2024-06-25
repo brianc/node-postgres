@@ -167,8 +167,8 @@ suite.testAsync('builds simple string', async function () {
   var config = {
     user: 'brian',
     password: 'xyz',
-    port: 888,
     host: 'localhost',
+    port: 888,
     database: 'bam',
   }
   var subject = new ConnectionParameters(config)
@@ -179,8 +179,8 @@ suite.testAsync('builds simple string', async function () {
       var parts = constring.split(' ')
       checkForPart(parts, "user='brian'")
       checkForPart(parts, "password='xyz'")
-      checkForPart(parts, "port='888'")
       checkForPart(parts, `hostaddr='${dnsHost}'`)
+      checkForPart(parts, "port='888'")
       checkForPart(parts, "dbname='bam'")
       resolve()
     })
@@ -191,8 +191,8 @@ suite.test('builds dns string', async function () {
   var config = {
     user: 'brian',
     password: 'asdf',
-    port: 5432,
     host: 'localhost',
+    port: 5432,
   }
   var subject = new ConnectionParameters(config)
   const dnsHost = await getDNSHost(config.host)
@@ -211,8 +211,8 @@ suite.test('error when dns fails', function () {
   var config = {
     user: 'brian',
     password: 'asf',
-    port: 5432,
     host: 'asdlfkjasldfkksfd#!$!!!!..com',
+    port: 5432,
   }
   var subject = new ConnectionParameters(config)
   subject.getLibpqConnectionString(
@@ -227,8 +227,8 @@ suite.test('connecting to unix domain socket', function () {
   var config = {
     user: 'brian',
     password: 'asf',
-    port: 5432,
     host: '/tmp/',
+    port: 5432,
   }
   var subject = new ConnectionParameters(config)
   subject.getLibpqConnectionString(
@@ -245,8 +245,8 @@ suite.test('config contains quotes and backslashes', function () {
   var config = {
     user: 'not\\brian',
     password: "bad'chars",
-    port: 5432,
     host: '/tmp/',
+    port: 5432,
   }
   var subject = new ConnectionParameters(config)
   subject.getLibpqConnectionString(
@@ -277,8 +277,8 @@ suite.test('password contains  < and/or >  characters', function () {
   var sourceConfig = {
     user: 'brian',
     password: 'hello<ther>e',
-    port: 5432,
     host: 'localhost',
+    port: 5432,
     database: 'postgres',
   }
   var connectionString =
@@ -333,8 +333,8 @@ suite.test('ssl is set on client', function () {
   var sourceConfig = {
     user: 'brian',
     password: 'hello<ther>e',
-    port: 5432,
     host: 'localhost',
+    port: 5432,
     database: 'postgres',
     ssl: {
       sslmode: 'verify-ca',
@@ -344,7 +344,6 @@ suite.test('ssl is set on client', function () {
       sslrootcert: '/path/root.crt',
     },
   }
-  var Client = require('../../../lib/client')
   var defaults = require('../../../lib/defaults')
   defaults.ssl = true
   var c = new ConnectionParameters(sourceConfig)

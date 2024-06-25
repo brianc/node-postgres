@@ -2,8 +2,10 @@
 var helper = require('../test-helper')
 var Client = require('../../lib/native')
 var Query = Client.Query
+const assert = require('assert')
+const suite = new helper.Suite()
 
-test('many rows', function () {
+suite.test('many rows', function () {
   var client = new Client(helper.config)
   client.connect()
   var q = client.query(new Query('SELECT * FROM person'))
@@ -17,7 +19,7 @@ test('many rows', function () {
   })
 })
 
-test('many queries', function () {
+suite.test('many queries', function () {
   var client = new Client(helper.config)
   client.connect()
   var count = 0
@@ -34,7 +36,7 @@ test('many queries', function () {
   })
 })
 
-test('many clients', function () {
+suite.test('many clients', function () {
   var clients = []
   for (var i = 0; i < 10; i++) {
     clients.push(new Client(helper.config))

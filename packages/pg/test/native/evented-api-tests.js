@@ -2,6 +2,9 @@
 var helper = require('../test-helper')
 var Client = require('../../lib/native')
 var Query = Client.Query
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 var setupClient = function () {
   var client = new Client(helper.config)

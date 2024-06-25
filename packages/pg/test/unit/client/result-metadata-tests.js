@@ -1,12 +1,15 @@
 'use strict'
 var helper = require('./test-helper')
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 var testForTag = function (tagText, callback) {
   test('includes command tag data for tag ' + tagText, function () {
     var client = helper.client()
     client.connection.emit('readyForQuery')
 
-    var query = client.query(
+    client.query(
       'whatever',
       assert.calls((err, result) => {
         assert.ok(result != null, 'should pass something to this event')

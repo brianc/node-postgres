@@ -1,6 +1,9 @@
 'use strict'
-require('./test-helper')
+const helper = require('./test-helper')
+const { Client } = helper
 var assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 var pguser = process.env['PGUSER'] || process.env.USER
 var pgdatabase = process.env['PGDATABASE'] || process.env.USER
@@ -99,21 +102,21 @@ test('initializing from a config string', function () {
   test('when not including all values the environment variables are used', function () {
     var envUserDefined = process.env['PGUSER'] !== undefined
     var envPasswordDefined = process.env['PGPASSWORD'] !== undefined
-    var envDBDefined = process.env['PGDATABASE'] !== undefined
     var envHostDefined = process.env['PGHOST'] !== undefined
     var envPortDefined = process.env['PGPORT'] !== undefined
+    var envDBDefined = process.env['PGDATABASE'] !== undefined
 
     var savedEnvUser = process.env['PGUSER']
     var savedEnvPassword = process.env['PGPASSWORD']
-    var savedEnvDB = process.env['PGDATABASE']
     var savedEnvHost = process.env['PGHOST']
     var savedEnvPort = process.env['PGPORT']
+    var savedEnvDB = process.env['PGDATABASE']
 
     process.env['PGUSER'] = 'utUser1'
     process.env['PGPASSWORD'] = 'utPass1'
-    process.env['PGDATABASE'] = 'utDB1'
     process.env['PGHOST'] = 'utHost1'
     process.env['PGPORT'] = 5464
+    process.env['PGDATABASE'] = 'utDB1'
 
     var client = new Client('postgres://host1')
     assert.equal(client.user, process.env['PGUSER'])

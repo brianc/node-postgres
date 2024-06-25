@@ -2,6 +2,7 @@
 const helper = require('./test-helper')
 const Client = helper.pg.Client
 const suite = new helper.Suite()
+const assert = require('assert')
 
 const customTypes = {
   getTypeParser: () => () => 'okay!',

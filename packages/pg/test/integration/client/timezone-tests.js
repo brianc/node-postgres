@@ -1,6 +1,6 @@
 'use strict'
 var helper = require('./../test-helper')
-var exec = require('child_process').exec
+const assert = require('assert')
 
 var oldTz = process.env.TZ
 process.env.TZ = 'Europe/Berlin'
@@ -19,6 +19,11 @@ pool.connect(function (err, client, done) {
       assert.equal(result.rows[0].val.getTime(), date.getTime())
       cb()
     })
+  })
+
+  suite.testAsync('date comes out as a date', async function () {
+    const { rows } = await client.query('SELECT NOW()::DATE AS date')
+    assert(rows[0].date instanceof Date)
   })
 
   suite.test('timestamp with time zone', function (cb) {

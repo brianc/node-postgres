@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 var pg = helper.pg
+const assert = require('assert')
 
 const pool = new pg.Pool()
 new helper.Suite().test('should return insert metadata', function () {
@@ -19,7 +20,7 @@ new helper.Suite().test('should return insert metadata', function () {
               assert.equal(result.oid, null)
               assert.equal(result.command, 'CREATE')
 
-              var q = client.query(
+              client.query(
                 "INSERT INTO zugzug(name) VALUES('more work?')",
                 assert.calls(function (err, result) {
                   assert(!err)

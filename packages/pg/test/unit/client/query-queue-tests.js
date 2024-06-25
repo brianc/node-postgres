@@ -1,6 +1,10 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
+const { Client } = helper
 var Connection = require('../../../lib/connection')
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 test('drain', function () {
   var con = new Connection({ stream: 'NO' })
@@ -19,34 +23,16 @@ test('drain', function () {
   client.query('hello')
   client.query('sup')
   client.query('boom')
+  assert.equal(raisedDrain, false)
+  con.emit('readyForQuery')
 
-  test('with pending queries', function () {
-    test('does not emit drain', function () {
-      assert.equal(raisedDrain, false)
-    })
-  })
+  assert.equal(raisedDrain, false)
+  con.emit('readyForQuery')
+  con.emit('readyForQuery')
+  assert.equal(raisedDrain, false)
+  con.emit('readyForQuery')
 
-  test('after some queries executed', function () {
-    con.emit('readyForQuery')
-    test('does not emit drain', function () {
-      assert.equal(raisedDrain, false)
-    })
-  })
-
-  test('when all queries are sent', function () {
-    con.emit('readyForQuery')
-    con.emit('readyForQuery')
-    test('does not emit drain', function () {
-      assert.equal(raisedDrain, false)
-    })
-  })
-
-  test('after last query finishes', function () {
-    con.emit('readyForQuery')
-    test('emits drain', function () {
-      process.nextTick(function () {
-        assert.ok(raisedDrain)
-      })
-    })
+  process.nextTick(function () {
+    assert.ok(raisedDrain)
   })
 })
