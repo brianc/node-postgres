@@ -10,6 +10,7 @@ var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 const crypto = require('./crypto/utils')
+const kerberos = require('kerberos').Kerberos
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -20,6 +21,7 @@ class Client extends EventEmitter {
     this.database = this.connectionParameters.database
     this.port = this.connectionParameters.port
     this.host = this.connectionParameters.host
+    this.principal = this.connectionParameters.principal
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
@@ -204,8 +206,7 @@ class Client extends EventEmitter {
 
   async _handleGSSInit(msg) {
     try {
-      // TODO: Below needs to be parameterized
-      this.client = await kerberos.initializeClient('postgres@pg.US-WEST-2.COMPUTE.INTERNAL', {
+      this.client = await kerberos.initializeClient(`${this.principal}@${this.host}`, {
         mechOID: kerberos.GSS_MECH_OID_SPNEGO,
       })
 
@@ -226,7 +227,7 @@ class Client extends EventEmitter {
 
       // TODO: probably a better way to handle this.
       if (token == null) {
-        return
+        this.emit('error', 'Received null GSSAPI token on continue')
       }
       const buf = Buffer.from(token, 'base64')
       this.connection.sendBinaryPassword(buf)
