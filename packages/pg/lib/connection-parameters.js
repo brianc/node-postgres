@@ -65,6 +65,8 @@ class ConnectionParameters {
 
     this.port = parseInt(val('port', config), 10)
     this.host = val('host', config)
+    // Kerberos/GSSAPI service principal
+    this.principal = val('principal', config)
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
