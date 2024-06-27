@@ -223,10 +223,13 @@ class Client extends EventEmitter {
   async _handleGSSContinue(msg) {
     try {
       const inToken = msg.inToken
-      const token = await this.client.step(inToken)
+      if (inToken === 'oRQwEqADCgEAoQsGCSqGSIb3EgECAg==') { 	// spnegoNegTokenRespKRBAcceptCompleted - The response on successful authentication always has this header.
+        return; // negotiation successful, no need to do anything further.
+      }
 
+      const token = await this.client.step(inToken)
       // TODO: probably a better way to handle this.
-      if (token == null) {
+      if (!token) {
         this.emit('error', 'Received null GSSAPI token on continue')
       }
       const buf = Buffer.from(token, 'base64')
