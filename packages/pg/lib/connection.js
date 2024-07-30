@@ -15,6 +15,15 @@ class Connection extends EventEmitter {
     super()
     config = config || {}
 
+    // As with Password, make SSL->Key (the private key) non-enumerable.
+    // It won't show up in stack traces
+    // or if the client is console.logged
+    if (config.ssl && config.ssl.key) {
+      Object.defineProperty(config.ssl, 'key', {
+        enumerable: false,
+      })
+    }
+
     this.stream = config.stream || getStream(config.ssl)
     if (typeof this.stream === 'function') {
       this.stream = this.stream(config)
@@ -33,11 +42,40 @@ class Connection extends EventEmitter {
         self._emitMessage = true
       }
     })
+
+    this._config = config
+    this._backendData = null
+    this._remote = null
+  }
+
+  cancelWithClone() {
+    const config = this._config
+    const Promise = config.Promise || global.Promise
+
+    return new Promise((resolve, reject) => {
+      const { processID, secretKey } = this._backendData
+      let { host, port, notIP } = this._remote
+      if (host && notIP && config.ssl && this.stream.remoteAddress) {
+        if (config.ssl === true) {
+          config.ssl = {}
+        }
+        config.ssl.servername = host
+        host = this.stream.remoteAddress
+      }
+
+      const con = new Connection(config)
+      con
+        .on('connect', () => con.cancel(processID, secretKey))
+        .on('error', reject)
+        .on('end', resolve)
+        .connect(port, host)
+    })
   }
 
   connect(port, host) {
     var self = this
 
+    this._remote = { host, port }
     this._connecting = true
     this.stream.setNoDelay(true)
     this.stream.connect(port, host)
@@ -46,7 +84,11 @@ class Connection extends EventEmitter {
       if (self._keepAlive) {
         self.stream.setKeepAlive(true, self._keepAliveInitialDelayMillis)
       }
-      self.emit('connect')
+      if (self.ssl) {
+        self.requestSsl()
+      } else {
+        self.emit('connect')
+      }
     })
 
     const reportStreamError = function (error) {
@@ -94,6 +136,7 @@ class Connection extends EventEmitter {
       var net = require('net')
       if (net.isIP && net.isIP(host) === 0) {
         options.servername = host
+        self._remote.notIP = true
       }
       try {
         self.stream = getSecureStream(options)
@@ -103,7 +146,7 @@ class Connection extends EventEmitter {
       self.attachListeners(self.stream)
       self.stream.on('error', reportStreamError)
 
-      self.emit('sslconnect')
+      self.emit('connect')
     })
   }
 
@@ -114,6 +157,9 @@ class Connection extends EventEmitter {
         this.emit('message', msg)
       }
       this.emit(eventName, msg)
+      if (msg.name === 'backendKeyData') {
+        this._backendData = msg
+      }
     })
   }
 
