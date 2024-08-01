@@ -381,7 +381,11 @@ class Client extends EventEmitter {
     this.activeQuery.handleCommandComplete(msg, this.connection)
   }
 
-  _handleParseComplete(msg) {
+  _handleParseComplete() {
+    if (this.activeQuery == null) {
+      this.emit('error', new Error('Received parseComplete when not in parsing state'))
+      return
+    }
     // if a prepared statement has a name and properly parses
     // we track that its already been executed so we don't parse
     // it again on the same client
