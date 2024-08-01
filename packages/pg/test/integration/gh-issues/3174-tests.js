@@ -120,9 +120,9 @@ suite.testAsync('Out of order parseComplete on extended query is catchable', asy
   })
 
   await client.query('SELECT $1', ['foo'])
-  // await client.end()
-  await delay(100)
+  await delay(40)
   assert(cli.native || errorHit)
+  await client.end()
 
   await closeServer()
 })
