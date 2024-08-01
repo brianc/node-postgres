@@ -21,7 +21,8 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn lint
   build:
-    timeout-minutes: 10
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
     needs: lint
     services:
       postgres:
