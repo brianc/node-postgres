@@ -95,14 +95,12 @@ suite.testAsync('Out of order parseComplete on simple query is catchable', async
     errorHit = true
   })
 
-  await client.query('SELECT NOW')
+  await client.query('SELECT NOW()')
   await delay(50)
-  await client.query('SELECT NOW')
-  await delay(50)
-  await client.query('SELECT NOW')
-  await delay(50)
-  await client.end()
   assert(cli.native || errorHit)
+
+  // further queries on the client should fail since its in an invalid state
+  await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
 
   await closeServer()
 })
@@ -122,6 +120,10 @@ suite.testAsync('Out of order parseComplete on extended query is catchable', asy
   await client.query('SELECT $1', ['foo'])
   await delay(40)
   assert(cli.native || errorHit)
+
+  // further queries on the client should fail since its in an invalid state
+  await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+
   await client.end()
 
   await closeServer()
@@ -141,6 +143,9 @@ suite.testAsync('Out of order parseComplete on pool is catchable', async () => {
   await pool.query('SELECT $1', ['foo'])
   await delay(100)
   assert(cli.native || errorHit)
+
+  assert.strictEqual(pool.idleCount, 0, 'Pool should have no idle clients')
+  assert.strictEqual(pool.totalCount, 0, 'Pool should have no connected clients')
 
   await pool.end()
   await closeServer()

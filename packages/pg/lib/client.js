@@ -383,7 +383,8 @@ class Client extends EventEmitter {
 
   _handleParseComplete() {
     if (this.activeQuery == null) {
-      this.emit('error', new Error('Received parseComplete when not in parsing state'))
+      const error =new Error('Received parseComplete when not in parsing state') 
+      this._handleErrorEvent(error)
       return
     }
     // if a prepared statement has a name and properly parses
