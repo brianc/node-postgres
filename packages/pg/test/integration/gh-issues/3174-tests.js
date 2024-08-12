@@ -84,75 +84,73 @@ const delay = (ms) =>
   })
 
 const testErrorBuffer = (bufferName, errorBuffer) => {
+  suite.testAsync(`Out of order ${bufferName} on simple query is catchable`, async () => {
+    const closeServer = await new Promise((resolve, reject) => {
+      return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
+    })
+    const client = new helper.Client(options)
+    await client.connect()
 
-suite.testAsync(`Out of order ${bufferName} on simple query is catchable`, async () => {
-  const closeServer = await new Promise((resolve, reject) => {
-    return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
-  })
-  const client = new helper.Client(options)
-  await client.connect()
+    let errorHit = false
+    client.on('error', () => {
+      errorHit = true
+    })
 
-  let errorHit = false
-  client.on('error', () => {
-    errorHit = true
-  })
+    await client.query('SELECT NOW()')
+    await delay(50)
+    assert(cli.native || errorHit)
 
-  await client.query('SELECT NOW()')
-  await delay(50)
-  assert(cli.native || errorHit)
+    // further queries on the client should fail since its in an invalid state
+    await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
 
-  // further queries on the client should fail since its in an invalid state
-  await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
-
-  await closeServer()
-})
-
-suite.testAsync(`Out of order ${bufferName} on extended query is catchable`, async () => {
-  const closeServer = await new Promise((resolve, reject) => {
-    return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
-  })
-  const client = new helper.Client(options)
-  await client.connect()
-
-  let errorHit = false
-  client.on('error', () => {
-    errorHit = true
+    await closeServer()
   })
 
-  await client.query('SELECT $1', ['foo'])
-  await delay(40)
-  assert(cli.native || errorHit)
+  suite.testAsync(`Out of order ${bufferName} on extended query is catchable`, async () => {
+    const closeServer = await new Promise((resolve, reject) => {
+      return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
+    })
+    const client = new helper.Client(options)
+    await client.connect()
 
-  // further queries on the client should fail since its in an invalid state
-  await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+    let errorHit = false
+    client.on('error', () => {
+      errorHit = true
+    })
 
-  await client.end()
+    await client.query('SELECT $1', ['foo'])
+    await delay(40)
+    assert(cli.native || errorHit)
 
-  await closeServer()
-})
+    // further queries on the client should fail since its in an invalid state
+    await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
 
-suite.testAsync(`Out of order ${bufferName} on pool is catchable`, async () => {
-  const closeServer = await new Promise((resolve, reject) => {
-    return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
+    await client.end()
+
+    await closeServer()
   })
-  const pool = new helper.pg.Pool(options)
 
-  let errorHit = false
-  pool.on('error', () => {
-    errorHit = true
+  suite.testAsync(`Out of order ${bufferName} on pool is catchable`, async () => {
+    const closeServer = await new Promise((resolve, reject) => {
+      return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
+    })
+    const pool = new helper.pg.Pool(options)
+
+    let errorHit = false
+    pool.on('error', () => {
+      errorHit = true
+    })
+
+    await pool.query('SELECT $1', ['foo'])
+    await delay(100)
+    assert(cli.native || errorHit)
+
+    assert.strictEqual(pool.idleCount, 0, 'Pool should have no idle clients')
+    assert.strictEqual(pool.totalCount, 0, 'Pool should have no connected clients')
+
+    await pool.end()
+    await closeServer()
   })
-
-  await pool.query('SELECT $1', ['foo'])
-  await delay(100)
-  assert(cli.native || errorHit)
-
-  assert.strictEqual(pool.idleCount, 0, 'Pool should have no idle clients')
-  assert.strictEqual(pool.totalCount, 0, 'Pool should have no connected clients')
-
-  await pool.end()
-  await closeServer()
-})
-
 }
 
 testErrorBuffer('parseComplete', buffers.parseComplete())

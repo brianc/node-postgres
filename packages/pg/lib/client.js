@@ -378,7 +378,7 @@ class Client extends EventEmitter {
 
   _handleCommandComplete(msg) {
     if (this.activeQuery == null) {
-      const error = new Error('Received unexpected commandComplete message from backend.') 
+      const error = new Error('Received unexpected commandComplete message from backend.')
       this._handleErrorEvent(error)
       return
     }
@@ -388,7 +388,7 @@ class Client extends EventEmitter {
 
   _handleParseComplete() {
     if (this.activeQuery == null) {
-      const error = new Error('Received unexpected parseComplete message from backend.') 
+      const error = new Error('Received unexpected parseComplete message from backend.')
       this._handleErrorEvent(error)
       return
     }
