@@ -156,7 +156,6 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
       assert.strictEqual(pool.totalCount, 0, 'Pool should have no connected clients')
     }
 
-
     await pool.end()
     await closeServer()
   })
