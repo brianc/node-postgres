@@ -14,7 +14,7 @@ const options = {
   database: 'existing',
 }
 
-const startMockServer = (port, timeout, callback) => {
+const startMockServer = (port, badBuffer, callback) => {
   const sockets = new Set()
 
   const server = net.createServer((socket) => {
@@ -48,7 +48,7 @@ const startMockServer = (port, timeout, callback) => {
           socket.write(buffers.readyForQuery())
           // this message is invalid, but sometimes sent out of order when using proxies or pg-bouncer
           setImmediate(() => {
-            socket.write(buffers.parseComplete())
+            socket.write(badBuffer)
           })
           break
         case 'Q':
@@ -58,7 +58,7 @@ const startMockServer = (port, timeout, callback) => {
           socket.write(buffers.readyForQuery())
           // this message is invalid, but sometimes sent out of order when using proxies or pg-bouncer
           setImmediate(() => {
-            socket.write(buffers.parseComplete())
+            socket.write(badBuffer)
           })
         default:
         // console.log('got code', code)
@@ -83,9 +83,11 @@ const delay = (ms) =>
     setTimeout(resolve, ms)
   })
 
-suite.testAsync('Out of order parseComplete on simple query is catchable', async () => {
+const testErrorBuffer = (bufferName, errorBuffer) => {
+
+suite.testAsync(`Out of order ${bufferName} on simple query is catchable`, async () => {
   const closeServer = await new Promise((resolve, reject) => {
-    return startMockServer(options.port, 0, (closeServer) => resolve(closeServer))
+    return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
   })
   const client = new helper.Client(options)
   await client.connect()
@@ -105,9 +107,9 @@ suite.testAsync('Out of order parseComplete on simple query is catchable', async
   await closeServer()
 })
 
-suite.testAsync('Out of order parseComplete on extended query is catchable', async () => {
+suite.testAsync(`Out of order ${bufferName} on extended query is catchable`, async () => {
   const closeServer = await new Promise((resolve, reject) => {
-    return startMockServer(options.port, 0, (closeServer) => resolve(closeServer))
+    return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
   })
   const client = new helper.Client(options)
   await client.connect()
@@ -129,9 +131,9 @@ suite.testAsync('Out of order parseComplete on extended query is catchable', asy
   await closeServer()
 })
 
-suite.testAsync('Out of order parseComplete on pool is catchable', async () => {
+suite.testAsync(`Out of order ${bufferName} on pool is catchable`, async () => {
   const closeServer = await new Promise((resolve, reject) => {
-    return startMockServer(options.port, 0, (closeServer) => resolve(closeServer))
+    return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
   })
   const pool = new helper.pg.Pool(options)
 
@@ -150,3 +152,8 @@ suite.testAsync('Out of order parseComplete on pool is catchable', async () => {
   await pool.end()
   await closeServer()
 })
+
+}
+
+testErrorBuffer('parseComplete', buffers.parseComplete())
+testErrorBuffer('commandComplete', buffers.commandComplete('f'))

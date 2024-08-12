@@ -377,13 +377,18 @@ class Client extends EventEmitter {
   }
 
   _handleCommandComplete(msg) {
+    if (this.activeQuery == null) {
+      const error = new Error('Received unexpected commandComplete message from backend.') 
+      this._handleErrorEvent(error)
+      return
+    }
     // delegate commandComplete to active query
     this.activeQuery.handleCommandComplete(msg, this.connection)
   }
 
   _handleParseComplete() {
     if (this.activeQuery == null) {
-      const error =new Error('Received parseComplete when not in parsing state') 
+      const error = new Error('Received unexpected parseComplete message from backend.') 
       this._handleErrorEvent(error)
       return
     }
