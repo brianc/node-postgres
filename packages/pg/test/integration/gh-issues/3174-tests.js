@@ -98,10 +98,13 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
 
     await client.query('SELECT NOW()')
     await delay(50)
-    assert(cli.native || errorHit)
 
-    // further queries on the client should fail since its in an invalid state
-    await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+    // the native client only emits a notice message and keeps on its merry way
+    if (!cli.native) {
+      assert(errorHit)
+      // further queries on the client should fail since its in an invalid state
+      await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+    }
 
     await closeServer()
   })
@@ -120,10 +123,13 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
 
     await client.query('SELECT $1', ['foo'])
     await delay(40)
-    assert(cli.native || errorHit)
 
-    // further queries on the client should fail since its in an invalid state
-    await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+    // the native client only emits a notice message and keeps on its merry way
+    if (!cli.native) {
+      assert(errorHit)
+      // further queries on the client should fail since its in an invalid state
+      await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+    }
 
     await client.end()
 
@@ -143,10 +149,13 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
 
     await pool.query('SELECT $1', ['foo'])
     await delay(100)
-    assert(cli.native || errorHit)
 
-    assert.strictEqual(pool.idleCount, 0, 'Pool should have no idle clients')
-    assert.strictEqual(pool.totalCount, 0, 'Pool should have no connected clients')
+    if (!cli.native) {
+      assert(errorHit)
+      assert.strictEqual(pool.idleCount, 0, 'Pool should have no idle clients')
+      assert.strictEqual(pool.totalCount, 0, 'Pool should have no connected clients')
+    }
+
 
     await pool.end()
     await closeServer()
