@@ -1823,17 +1823,7 @@ blake3-wasm@^2.1.5:
   resolved "https://registry.npmjs.org/blake3-wasm/-/blake3-wasm-2.1.5.tgz"
   integrity sha512-F1+K8EbfOZE49dtoPtmxUQrpXaBIl3ICvasLh+nJta0xkz+9kF/7uet9fLnwKqhDrmj6g+6K3Tw9yQPUg2ka5g==
 
-bluebird@3.4.1:
-  version "3.4.1"
-  resolved "https://registry.npmjs.org/bluebird/-/bluebird-3.4.1.tgz"
-  integrity sha1-tzHd9I4t077awudeEhWhG8uR+gc=
-
-bluebird@3.5.2:
-  version "3.5.2"
-  resolved "https://registry.npmjs.org/bluebird/-/bluebird-3.5.2.tgz"
-  integrity sha512-dhHTWMI7kMx5whMQntl7Vr9C6BvV10lFXDAasnqnrMYhXVCzzk6IO9Fo2L75jXHT07WrOngL1WDXOp+yYS91Yg==
-
-bluebird@^3.5.1, bluebird@^3.5.3, bluebird@^3.5.5:
+bluebird@3.7.2, bluebird@^3.5.1, bluebird@^3.5.3, bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.npmjs.org/bluebird/-/bluebird-3.7.2.tgz"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
