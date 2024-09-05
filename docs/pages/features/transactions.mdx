@@ -35,6 +35,6 @@ try {
   await client.query('ROLLBACK')
   throw e
 } finally {
-  client.release()
+  await client.end()
 }
 ```
