@@ -6,7 +6,7 @@ var bytes = require('crypto').pseudoRandomBytes
 describe('many connections', function () {
   describe('async', function () {
     var test = function (count, times) {
-      it('connecting ' + count + ' clients ' + times, function (done) {
+      it(`connecting ${count} clients ${times} times`, function (done) {
         this.timeout(200000)
 
         var connectClient = function (n, cb) {
@@ -38,20 +38,9 @@ describe('many connections', function () {
     }
 
     test(1, 1)
-    test(1, 1)
-    test(1, 1)
-    test(5, 5)
-    test(5, 5)
-    test(5, 5)
     test(5, 5)
     test(10, 10)
-    test(10, 10)
-    test(10, 10)
     test(20, 20)
-    test(20, 20)
-    test(20, 20)
-    test(30, 10)
-    test(30, 10)
     test(30, 10)
   })
 })
