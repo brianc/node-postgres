@@ -161,5 +161,7 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
   })
 }
 
-testErrorBuffer('parseComplete', buffers.parseComplete())
-testErrorBuffer('commandComplete', buffers.commandComplete('f'))
+if (!helper.args.native) {
+  testErrorBuffer('parseComplete', buffers.parseComplete())
+  testErrorBuffer('commandComplete', buffers.commandComplete('f'))
+}
