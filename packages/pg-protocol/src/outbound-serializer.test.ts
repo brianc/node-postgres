@@ -264,6 +264,14 @@ describe('serializer', () => {
     })
   })
 
+  describe('send binary password', function () {
+    it('builds sendBinaryPassword', () => {
+      const actual = serialize.sendBinaryPassword(Buffer.from([1, 2, 3]))
+      const expected = new BufferList().add(Buffer.from([1, 2, 3])).join(true, 'p')
+      assert.deepEqual(actual, expected)
+    })
+  })
+
   it('builds cancel message', () => {
     const actual = serialize.cancel(3, 4)
     const expected = new BufferList().addInt16(1234).addInt16(5678).addInt32(3).addInt32(4).join(true)

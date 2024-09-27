@@ -28,6 +28,7 @@ suite.test('ConnectionParameters initialized from environment variables', functi
   process.env['PGPORT'] = 7890
   process.env['PGDATABASE'] = 'allyerbase'
   process.env['PGPASSWORD'] = 'open'
+  process.env['PGPRINCIPAL'] = 'postgres'
 
   var subject = new ConnectionParameters()
   assert.equal(subject.host, 'local', 'env host')
@@ -35,6 +36,7 @@ suite.test('ConnectionParameters initialized from environment variables', functi
   assert.equal(subject.port, 7890, 'env port')
   assert.equal(subject.database, 'allyerbase', 'env database')
   assert.equal(subject.password, 'open', 'env password')
+  assert.equal(subject.principal, 'postgres', 'env principal')
 })
 
 suite.test('ConnectionParameters initialized from mix', function () {
@@ -49,12 +51,14 @@ suite.test('ConnectionParameters initialized from mix', function () {
   var subject = new ConnectionParameters({
     user: 'testing',
     database: 'zugzug',
+    principal: 'postgres',
   })
   assert.equal(subject.host, 'local', 'env host')
   assert.equal(subject.user, 'testing', 'config user')
   assert.equal(subject.port, 7890, 'env port')
   assert.equal(subject.database, 'zugzug', 'config database')
   assert.equal(subject.password, defaults.password, 'defaults password')
+  assert.equal(subject.principal, 'postgres', 'config principal')
 })
 
 suite.test('connection string parsing', function () {

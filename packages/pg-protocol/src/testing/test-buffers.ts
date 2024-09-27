@@ -21,6 +21,14 @@ const buffers = {
       .join(true, 'R')
   },
 
+  authenticationGSSInit: function () {
+    return new BufferList().addInt32(7).join(true, 'R')
+  },
+
+  authenticationGSSContinue: function () {
+    return new BufferList().addInt32(8).addString('data').join(true, 'R')
+  },
+
   authenticationSASL: function () {
     return new BufferList().addInt32(10).addCString('SCRAM-SHA-256').addCString('').join(true, 'R')
   },

@@ -83,6 +83,7 @@ suite.test('ConnectionParameters initializing from config', function () {
     lock_timeout: 15000,
     idle_in_transaction_session_timeout: 15000,
     options: '-c geqo=off',
+    principal: 'postgres',
   }
   var subject = new ConnectionParameters(config)
   compare(subject, config, 'config')

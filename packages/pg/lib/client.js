@@ -179,7 +179,6 @@ class Client extends EventEmitter {
     // kerberos
     con.on('GSSInit', this._handleGSSInit.bind(this))
     con.on('GSSContinue', this._handleGSSContinue.bind(this))
-
     // password request handling
     con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
@@ -206,12 +205,12 @@ class Client extends EventEmitter {
 
   async _handleGSSInit(msg) {
     try {
-      this.client = await kerberos.initializeClient(`${this.principal}@${this.host}`, {
+      this.kclient = await kerberos.initializeClient(`${this.principal}@${this.host}`, {
         mechOID: kerberos.GSS_MECH_OID_SPNEGO,
       })
 
       // TODO: below this might need to be a recursive loop to step multiple times.
-      const token = await this.client.step('')
+      const token = await this.kclient.step('')
 
       const buf = Buffer.from(token, 'base64')
       this.connection.sendBinaryPassword(buf)
@@ -223,7 +222,7 @@ class Client extends EventEmitter {
   async _handleGSSContinue(msg) {
     try {
       const inToken = msg.inToken
-      const token = await this.client.step(inToken)
+      const token = await this.kclient.step(inToken)
 
       // TODO: probably a better way to handle this.
       if (token == null) {
