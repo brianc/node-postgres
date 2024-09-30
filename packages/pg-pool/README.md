@@ -331,6 +331,20 @@ var bluebirdPool = new Pool({
 
 __please note:__ in node `<=0.12.x` the pool will throw if you do not provide a promise constructor in one of the two ways mentioned above.  In node `>=4.0.0` the pool will use the native promise implementation by default; however, the two methods above still allow you to "bring your own."
 
+## error management
+
+Errors throwed by the pool are instances of `PoolError`. Each `PoolError` has a message (short description of the exception) and a structured code composed of 5 characters string starting with letter `Z`.
+The following table list the existing `PoolError`s and their code:
+
+| Code  | Message                                                                  |
+| ----- | ------------------------------------------------------------------------ |
+| Z0001 | Cannot use a pool after calling end on the pool                          |
+| Z0002 | Passing a function as the first parameter to pool.query is not supported |
+| Z0003 | Release called on client which has already been released to the pool     |
+| Z0004 | Called end on pool more than once                                        |
+| Z0005 | Timeout exceeded when trying to connect                                  |
+| Z0009 | Unexpected condition                                                     |
+
 ## maxUses and read-replica autoscaling (e.g. AWS Aurora)
 
 The maxUses config option can help an application instance rebalance load against a replica set that has been auto-scaled after the connection pool is already full of healthy connections.
