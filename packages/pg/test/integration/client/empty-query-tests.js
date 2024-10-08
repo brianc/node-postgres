@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 const suite = new helper.Suite()
+const assert = require('assert')
 
 suite.test('empty query message handling', function (done) {
   const client = helper.client()

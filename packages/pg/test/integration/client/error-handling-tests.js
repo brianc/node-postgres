@@ -3,6 +3,7 @@
 var helper = require('./test-helper')
 
 var pg = helper.pg
+const assert = require('assert')
 const Client = pg.Client
 const DatabaseError = pg.DatabaseError
 

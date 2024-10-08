@@ -2,6 +2,7 @@
 var async = require('async')
 var helper = require('../test-helper')
 const suite = new helper.Suite()
+const assert = require('assert')
 
 var db = helper.client()
 

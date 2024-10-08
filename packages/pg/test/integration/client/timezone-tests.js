@@ -1,5 +1,6 @@
 'use strict'
 var helper = require('./../test-helper')
+const assert = require('assert')
 
 var oldTz = process.env.TZ
 process.env.TZ = 'Europe/Berlin'

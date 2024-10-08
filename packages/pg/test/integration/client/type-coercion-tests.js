@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var pg = helper.pg
 const suite = new helper.Suite()
+const assert = require('assert')
 
 var testForTypeCoercion = function (type) {
   const pool = new pg.Pool()

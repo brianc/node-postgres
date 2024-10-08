@@ -2,6 +2,7 @@
 var bluebird = require('bluebird')
 var helper = require('../test-helper')
 var pg = helper.pg
+const assert = require('assert')
 
 process.on('unhandledRejection', function (e) {
   console.error(e, e.stack)

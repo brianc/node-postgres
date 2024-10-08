@@ -75,10 +75,11 @@ If your change involves breaking backwards compatibility please please point tha
 ### Setting up for local development
 
 1. Clone the repo
-2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
-3. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
-4. Ensure you have the proper environment variables configured for connecting to the instance
-5. Run `yarn test` to run all the tests
+2. Ensure you have installed libpq-dev in your system.
+3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
+5. Ensure you have the proper environment variables configured for connecting to the instance
+6. Run `yarn test` to run all the tests
 
 ## Troubleshooting and FAQ
 

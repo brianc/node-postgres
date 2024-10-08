@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var Query = helper.pg.Query
 
+const assert = require('assert')
 var suite = new helper.Suite()
 
 ;(function () {

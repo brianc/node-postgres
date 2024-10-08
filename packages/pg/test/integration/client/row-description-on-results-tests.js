@@ -1,5 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
+const assert = require('assert')
+const suite = new helper.Suite()
 
 var Client = helper.Client
 
@@ -17,7 +19,7 @@ var checkResult = function (result) {
   assert.equal(fields[2].dataTypeID, 25)
 }
 
-test('row descriptions on result object', function () {
+suite.test('row descriptions on result object', function () {
   var client = new Client(conInfo)
   client.connect(
     assert.success(function () {
@@ -33,7 +35,7 @@ test('row descriptions on result object', function () {
   )
 })
 
-test('row description on no rows', function () {
+suite.test('row description on no rows', function () {
   var client = new Client(conInfo)
   client.connect(
     assert.success(function () {

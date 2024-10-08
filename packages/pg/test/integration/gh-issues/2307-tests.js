@@ -2,6 +2,7 @@
 
 const pg = require('../../../lib')
 const helper = require('../test-helper')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 

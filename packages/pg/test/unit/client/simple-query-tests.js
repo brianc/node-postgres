@@ -1,6 +1,9 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 test('executing query', function () {
   test('queing query', function () {

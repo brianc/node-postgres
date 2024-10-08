@@ -21,11 +21,11 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn lint
   build:
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: lint
     services:
       postgres:
-        image: postgres:11
+        image: ghcr.io/railwayapp-templates/postgres-ssl
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -44,8 +44,8 @@ jobs:
           - '22'
         os:
           - ubuntu-latest
-    name: Node.js ${{ matrix.node }} (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Node.js ${{ matrix.node }}
+    runs-on: ubuntu-latest
     env:
       PGUSER: postgres
       PGPASSWORD: postgres
@@ -71,5 +71,4 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
       - run: yarn install --frozen-lockfile
-      # TODO(bmc): get ssl tests working in ci
       - run: yarn test
