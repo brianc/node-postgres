@@ -28,7 +28,7 @@
   "devDependencies": {
     "async": "^0.9.0",
     "concat-stream": "^1.4.6",
-    "generic-pool": "^2.1.1",
+    "generic-pool": "^3.9.0",
     "lodash": "^2.4.1",
     "mocha": "10.5.2",
     "node-gyp": ">=10.x",
