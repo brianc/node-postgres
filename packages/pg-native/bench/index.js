@@ -19,7 +19,7 @@ var warmup = function (fn, cb) {
 var native = Native()
 native.connectSync()
 
-var queryText = 'SELECT generate_series(0, 1000)'
+var queryText = 'SELECT generate_series(0, 1000) as X, generate_series(0, 1000) as Y, generate_series(0, 1000) as Z'
 var client = new pg.Client()
 client.connect(function () {
   var pure = function (cb) {
@@ -36,12 +36,12 @@ client.connect(function () {
   }
 
   var run = function () {
-    var start = Date.now()
+    console.time('pure')
     warmup(pure, function () {
-      console.log('pure done', Date.now() - start)
-      start = Date.now()
+      console.timeEnd('pure')
+      console.time('native')
       warmup(nativeQuery, function () {
-        console.log('native done', Date.now() - start)
+        console.timeEnd('native')
       })
     })
   }
