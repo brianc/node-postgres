@@ -65,7 +65,7 @@ class Query extends EventEmitter {
       if (!Array.isArray(this._results)) {
         this._results = [this._result]
       }
-      this._result = new Result(this._rowMode, this.types)
+      this._result = new Result(this._rowMode, this._result._types)
       this._results.push(this._result)
     }
   }

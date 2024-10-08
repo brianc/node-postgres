@@ -22,6 +22,21 @@ suite.test('custom type parser in client config', (done) => {
   })
 })
 
+suite.test('custom type parser in client config with multiple results', (done) => {
+  const client = new Client({ types: customTypes })
+
+  client.connect().then(() => {
+    client.query(
+      `SELECT 'foo'::text as name; SELECT 'bar'::text as baz`,
+      assert.success(function (res) {
+        assert.equal(res[0].rows[0].name, 'okay!')
+        assert.equal(res[1].rows[0].baz, 'okay!')
+        client.end().then(done)
+      })
+    )
+  })
+})
+
 // Custom type-parsers per query are not supported in native
 if (!helper.args.native) {
   suite.test('custom type parser in query', (done) => {
