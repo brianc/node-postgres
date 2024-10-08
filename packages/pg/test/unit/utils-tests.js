@@ -2,29 +2,15 @@
 var helper = require('./test-helper')
 var utils = require('./../../lib/utils')
 var defaults = require('./../../lib').defaults
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 test('ensure types is exported on root object', function () {
   var pg = require('../../lib')
   assert(pg.types)
   assert(pg.types.getTypeParser)
   assert(pg.types.setTypeParser)
-})
-
-// this tests the monkey patching
-// to ensure comptability with older
-// versions of node
-test('EventEmitter.once', function (t) {
-  // an event emitter
-  var stream = new MemoryStream()
-
-  var callCount = 0
-  stream.once('single', function () {
-    callCount++
-  })
-
-  stream.emit('single')
-  stream.emit('single')
-  assert.equal(callCount, 1)
 })
 
 test('normalizing query configs', function () {
@@ -183,7 +169,6 @@ test('prepareValue: Uint8Array array prepared properly', function () {
 })
 
 test('prepareValue: objects with complex toPostgres prepared properly', function () {
-  var buf = Buffer.from('zomgcustom!')
   var customType = {
     toPostgres: function () {
       return [1, 2]
@@ -214,7 +199,6 @@ test('prepareValue: objects with toPostgres receive prepareValue', function () {
 })
 
 test('prepareValue: objects with circular toPostgres rejected', function () {
-  var buf = Buffer.from('zomgcustom!')
   var customType = {
     toPostgres: function () {
       return {

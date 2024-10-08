@@ -17,6 +17,6 @@ suite.testAsync('BoundPool can be subclassed', async () => {
 suite.test('calling pg.Pool without new throws', () => {
   const Pool = helper.pg.Pool
   assert.throws(() => {
-    const pool = Pool()
+    Pool()
   })
 })

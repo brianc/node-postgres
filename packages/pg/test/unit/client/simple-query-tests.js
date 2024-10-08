@@ -1,6 +1,9 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 test('executing query', function () {
   test('queing query', function () {
@@ -112,14 +115,6 @@ test('executing query', function () {
 
     test('removes itself after another readyForQuery message', function () {
       return false
-      assert.emits(query, 'end', function (msg) {
-        // TODO do we want to check the complete messages?
-      })
-      con.emit('readyForQuery')
-      // this would never actually happen
-      ;['dataRow', 'rowDescription', 'commandComplete'].forEach(function (msg) {
-        assert.equal(con.emit(msg), false, "Should no longer be picking up '" + msg + "' messages")
-      })
     })
   })
 

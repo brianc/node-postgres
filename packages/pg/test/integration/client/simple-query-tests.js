@@ -1,6 +1,9 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = helper.pg.Query
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 // before running this test make sure you run the script create-test-tables
 test('simple query interface', function () {
@@ -18,6 +21,7 @@ test('simple query interface', function () {
   query.once('row', function (row) {
     test('Can iterate through columns', function () {
       var columnCount = 0
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       for (var column in row) {
         columnCount++
       }

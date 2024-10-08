@@ -16,9 +16,11 @@ ARG USERNAME=node
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
+RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+
 # Configure apt and install packages
 RUN apt-get update \
-    && apt-get -y install --no-install-recommends apt-utils dialog 2>&1 \ 
+    && apt-get -y install --no-install-recommends dialog 2>&1 \ 
     #
     # Verify git and needed tools are installed
     && apt-get -y install git iproute2 procps \
@@ -33,6 +35,7 @@ RUN apt-get update \
     && echo "deb https://dl.yarnpkg.com/$(lsb_release -is | tr '[:upper:]' '[:lower:]')/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
     && apt-get update \
     && apt-get -y install --no-install-recommends yarn tmux locales postgresql \
+    && apt-get install libpq-dev g++ make \
     #
     # Install eslint globally
     && npm install -g eslint \
@@ -47,7 +50,6 @@ RUN apt-get update \
     && apt-get install -y sudo \
     && echo node ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
-    #
     # Clean up
     && apt-get autoremove -y \
     && apt-get clean -y \

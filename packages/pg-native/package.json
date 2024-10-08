@@ -1,6 +1,6 @@
 {
   "name": "pg-native",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "A slightly nicer interface to Postgres over node-libpq",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "concat-stream": "^1.4.6",
     "generic-pool": "^2.1.1",
     "lodash": "^2.4.1",
-    "mocha": "3.4.2",
+    "mocha": "10.5.2",
     "node-gyp": ">=10.x",
     "okay": "^0.3.0",
     "semver": "^4.1.0"

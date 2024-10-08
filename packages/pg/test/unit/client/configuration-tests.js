@@ -1,6 +1,9 @@
 'use strict'
-require('./test-helper')
+const helper = require('./test-helper')
+const { Client } = helper
 var assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 var pguser = process.env['PGUSER'] || process.env.USER
 var pgdatabase = process.env['PGDATABASE'] || process.env.USER

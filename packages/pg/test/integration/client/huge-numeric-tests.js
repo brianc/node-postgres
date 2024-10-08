@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 const pool = new helper.pg.Pool()
+const assert = require('assert')
 
 pool.connect(
   assert.success(function (client, done) {

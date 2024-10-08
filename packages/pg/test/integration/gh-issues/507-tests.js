@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('../test-helper')
 var pg = helper.pg
+const assert = require('assert')
 
 new helper.Suite().test('parsing array results', function (cb) {
   const pool = new pg.Pool()

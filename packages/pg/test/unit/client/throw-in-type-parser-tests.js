@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
 var types = require('pg-types')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 
@@ -32,7 +33,6 @@ const emitFakeEvents = (con) => {
 }
 
 suite.test('emits error', function (done) {
-  var handled
   var client = helper.client()
   var con = client.connection
   var query = client.query(new Query('whatever'))
@@ -45,14 +45,10 @@ suite.test('emits error', function (done) {
 })
 
 suite.test('calls callback with error', function (done) {
-  var handled
-
-  var callbackCalled = 0
-
   var client = helper.client()
   var con = client.connection
   emitFakeEvents(con)
-  var query = client.query('whatever', function (err) {
+  client.query('whatever', function (err) {
     assert.equal(err, typeParserError)
     done()
   })

@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 var Client = helper.Client
+const assert = require('assert')
 
 var suite = new helper.Suite()
 
@@ -27,7 +28,6 @@ function getAppName(conf, cb) {
 }
 
 suite.test('No default appliation_name ', function (done) {
-  var conf = getConInfo()
   getAppName({}, function (res) {
     assert.strictEqual(res, '')
     done()

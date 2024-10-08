@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('./test-helper')
 var co = require('co')
+const assert = require('assert')
 
 const pool = new helper.pg.Pool()
 new helper.Suite().test(

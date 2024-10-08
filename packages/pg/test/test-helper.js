@@ -1,12 +1,11 @@
 'use strict'
-// make assert a global...
-global.assert = require('assert')
+const assert = require('assert')
 var sys = require('util')
 
 const Suite = require('./suite')
 const args = require('./cli')
 
-global.Client = require('./../lib').Client
+const Client = require('./../lib').Client
 
 process.on('uncaughtException', function (d) {
   if ('stack' in d && 'message' in d) {
@@ -162,17 +161,6 @@ assert.calls = expect
 assert.isNull = function (item, message) {
   message = message || 'expected ' + item + ' to be null'
   assert.ok(item === null, message)
-}
-
-global.test = function (name, action) {
-  test.testCount++
-  test[name] = action
-  var result = test[name]()
-  if (result === false) {
-    process.stdout.write('?')
-  } else {
-    process.stdout.write('.')
-  }
 }
 
 // print out the filename

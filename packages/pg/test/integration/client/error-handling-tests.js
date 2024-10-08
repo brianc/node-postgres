@@ -1,9 +1,9 @@
 'use strict'
 
 var helper = require('./test-helper')
-var util = require('util')
 
 var pg = helper.pg
+const assert = require('assert')
 const Client = pg.Client
 const DatabaseError = pg.DatabaseError
 
@@ -113,7 +113,7 @@ var ensureFuture = function (testClient, done) {
 suite.test('when query is parsing', (done) => {
   var client = createErorrClient()
 
-  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
+  client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
   // this query wont parse since there isn't a table named bang
   var query = client.query(
@@ -131,7 +131,7 @@ suite.test('when query is parsing', (done) => {
 suite.test('when a query is binding', function (done) {
   var client = createErorrClient()
 
-  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
+  client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
   var query = client.query(
     new pg.Query({
