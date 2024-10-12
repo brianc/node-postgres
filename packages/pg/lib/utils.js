@@ -60,6 +60,9 @@ var prepareValue = function (val, seen) {
     return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
   }
   if (val instanceof Date) {
+    if (isNaN(val.getTime())) {
+      throw new Error('Query parameter value cannot be an invalid date.');
+    }
     if (defaults.parseInputDatesAsUTC) {
       return dateToStringUTC(val)
     } else {
