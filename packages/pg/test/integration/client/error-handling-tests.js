@@ -258,24 +258,17 @@ suite.test('cannot pass non-string values to query as text', (done) => {
   })
 })
 
-
 if (!helper.args.native) {
   suite.test('when a query has an invalid date binding', function (done) {
     var client = createErorrClient()
     var calledDone = false
 
-    client.query(
-      new pg.Query({
-        text: 'SELECT $1::timestamp',
-        values: [new Date(undefined)],
-      }),
-      function (err, res) {
-        if (!calledDone) {
-          calledDone = true
-          assert.equal(err.message, 'Query parameter value cannot be an invalid date.')
-          client.end(done)
-        }
+    client.query(new pg.Query({ text: 'SELECT $1::timestamp', values: [new Date(undefined)] }), function (err, res) {
+      if (!calledDone) {
+        calledDone = true
+        assert.equal(err.message, 'Query parameter value cannot be an invalid date.')
+        client.end(done)
       }
-    )
+    })
   })
 }

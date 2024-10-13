@@ -61,7 +61,7 @@ var prepareValue = function (val, seen) {
   }
   if (val instanceof Date) {
     if (isNaN(val.getTime())) {
-      throw new Error('Query parameter value cannot be an invalid date.');
+      throw new Error('Query parameter value cannot be an invalid date.')
     }
     if (defaults.parseInputDatesAsUTC) {
       return dateToStringUTC(val)
