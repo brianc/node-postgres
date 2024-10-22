@@ -110,7 +110,7 @@ class ConnectionParameters {
     this.dns_cache = val('dns_cache', config, {
       enable: true,
       ttl: 300,
-      cachesize: 1000
+      cachesize: 1000,
     })
 
     if (config.connectionTimeoutMillis === undefined) {
@@ -133,7 +133,7 @@ class ConnectionParameters {
       this.dnsLookup = dnscache({
         enable: this.dns_cache.enable,
         ttl: this.dns_cache.ttl,
-        cachesize: this.dns_cache.cachesize
+        cachesize: this.dns_cache.cachesize,
       }).lookup
     } else {
       this.dnsLookup = dns.lookup

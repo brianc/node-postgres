@@ -22,8 +22,8 @@ suite.test('DNS caching settings can be customized', function () {
     dns_cache: {
       enable: true,
       ttl: 600,
-      cachesize: 2000
-    }
+      cachesize: 2000,
+    },
   })
   assert.strictEqual(client.connectionParameters.dns_cache.enable, true)
   assert.strictEqual(client.connectionParameters.dns_cache.ttl, 600)
@@ -63,8 +63,8 @@ suite.test('DNS cache respects TTL', function (done) {
     dns_cache: {
       enable: true,
       ttl: 1, // Set TTL to 1 second for testing
-      cachesize: 1000
-    }
+      cachesize: 1000,
+    },
   })
   const originalLookup = dns.lookup
   let lookupCount = 0
