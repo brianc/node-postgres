@@ -1,6 +1,7 @@
 'use strict'
 
 var dns = require('dns')
+var dnscache = require('dnscache')
 
 var defaults = require('./defaults')
 
@@ -106,6 +107,11 @@ class ConnectionParameters {
     this.lock_timeout = val('lock_timeout', config, false)
     this.idle_in_transaction_session_timeout = val('idle_in_transaction_session_timeout', config, false)
     this.query_timeout = val('query_timeout', config, false)
+    this.dns_cache = val('dns_cache', config, {
+      enable: true,
+      ttl: 300,
+      cachesize: 1000
+    })
 
     if (config.connectionTimeoutMillis === undefined) {
       this.connect_timeout = process.env.PGCONNECT_TIMEOUT || 0
@@ -121,6 +127,16 @@ class ConnectionParameters {
 
     if (typeof config.keepAliveInitialDelayMillis === 'number') {
       this.keepalives_idle = Math.floor(config.keepAliveInitialDelayMillis / 1000)
+    }
+
+    if (this.dns_cache) {
+      this.dnsLookup = dnscache({
+        enable: this.dns_cache.enable,
+        ttl: this.dns_cache.ttl,
+        cachesize: this.dns_cache.cachesize
+      }).lookup
+    } else {
+      this.dnsLookup = dns.lookup
     }
   }
 
@@ -156,7 +172,7 @@ class ConnectionParameters {
     if (this.client_encoding) {
       params.push('client_encoding=' + quoteParamValue(this.client_encoding))
     }
-    dns.lookup(this.host, function (err, address) {
+    this.dnsLookup(this.host, (err, address) => {
       if (err) return cb(err, null)
       params.push('hostaddr=' + quoteParamValue(address))
       return cb(null, params.join(' '))
