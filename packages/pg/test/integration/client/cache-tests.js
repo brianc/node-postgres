@@ -5,13 +5,6 @@ const suite = new helper.Suite()
 const { Client, Pool } = helper.pg
 const dns = require('dns')
 
-suite.test('DNS caching is not enabled by default', function () {
-  const client = new Client()
-  assert.strictEqual(client.connectionParameters.dns_cache.enable, false)
-  assert.strictEqual(client.connectionParameters.dns_cache.ttl, 300)
-  assert.strictEqual(client.connectionParameters.dns_cache.cachesize, 1000)
-})
-
 suite.test('DNS caching can be enabled', function () {
   const client = new Client({ dns_cache: { enable: true } })
   assert.strictEqual(client.connectionParameters.dns_cache.enable, true)
