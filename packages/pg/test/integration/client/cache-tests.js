@@ -5,16 +5,16 @@ const suite = new helper.Suite()
 const { Client, Pool } = helper.pg
 const dns = require('dns')
 
-suite.test('DNS caching is enabled by default', function () {
+suite.test('DNS caching is not enabled by default', function () {
   const client = new Client()
-  assert.strictEqual(client.connectionParameters.dns_cache.enable, true)
+  assert.strictEqual(client.connectionParameters.dns_cache.enable, false)
   assert.strictEqual(client.connectionParameters.dns_cache.ttl, 300)
   assert.strictEqual(client.connectionParameters.dns_cache.cachesize, 1000)
 })
 
-suite.test('DNS caching can be disabled', function () {
-  const client = new Client({ dns_cache: { enable: false } })
-  assert.strictEqual(client.connectionParameters.dns_cache.enable, false)
+suite.test('DNS caching can be enabled', function () {
+  const client = new Client({ dns_cache: { enable: true } })
+  assert.strictEqual(client.connectionParameters.dns_cache.enable, true)
 })
 
 suite.test('DNS caching settings can be customized', function () {
@@ -30,7 +30,7 @@ suite.test('DNS caching settings can be customized', function () {
   assert.strictEqual(client.connectionParameters.dns_cache.cachesize, 2000)
 })
 
-suite.test('DNS lookup is cached', function (done) {
+suite.test('DNS lookup is not cached by default', function (done) {
   const pool = new Pool({ host: 'localhost' })
   const originalLookup = dns.lookup
   let lookupCount = 0
@@ -46,7 +46,7 @@ suite.test('DNS lookup is cached', function (done) {
 
     pool.connect(function (err, client, release) {
       assert(!err)
-      assert.equal(lookupCount, 1)
+      assert.equal(lookupCount, 2)
 
       dns.lookup = originalLookup
       release()
@@ -57,7 +57,7 @@ suite.test('DNS lookup is cached', function (done) {
   })
 })
 
-suite.test('DNS cache respects TTL', function (done) {
+suite.test('DNS cache can be enabled and respects TTL', function (done) {
   const pool = new Pool({
     host: 'localhost',
     dns_cache: {
