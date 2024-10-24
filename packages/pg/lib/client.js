@@ -10,7 +10,6 @@ var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 const crypto = require('./crypto/utils')
-const kerberos = require('kerberos').Kerberos
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -204,6 +203,7 @@ class Client extends EventEmitter {
   }
 
   async _handleGSSInit(msg) {
+    const kerberos = require('kerberos').Kerberos
     try {
       this.kclient = await kerberos.initializeClient(`${this.principal}@${this.host}`, {
         mechOID: kerberos.GSS_MECH_OID_SPNEGO,
