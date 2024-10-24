@@ -133,6 +133,10 @@ class Connection extends EventEmitter {
     this._send(serialize.password(password))
   }
 
+  sendBinaryPassword(password) {
+    this._send(serialize.sendBinaryPassword(password))
+  }
+
   sendSASLInitialResponseMessage(mechanism, initialResponse) {
     this._send(serialize.sendSASLInitialResponseMessage(mechanism, initialResponse))
   }
