@@ -64,7 +64,7 @@ function parse(str) {
     config.ssl = true
   }
 
-  if (config.ssl === '0') {
+  if (config.ssl === 'false' || config.ssl === '0') {
     config.ssl = false
   }
 
