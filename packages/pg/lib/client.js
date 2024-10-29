@@ -377,11 +377,21 @@ class Client extends EventEmitter {
   }
 
   _handleCommandComplete(msg) {
+    if (this.activeQuery == null) {
+      const error = new Error('Received unexpected commandComplete message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // delegate commandComplete to active query
     this.activeQuery.handleCommandComplete(msg, this.connection)
   }
 
-  _handleParseComplete(msg) {
+  _handleParseComplete() {
+    if (this.activeQuery == null) {
+      const error = new Error('Received unexpected parseComplete message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // if a prepared statement has a name and properly parses
     // we track that its already been executed so we don't parse
     // it again on the same client
@@ -514,7 +524,7 @@ class Client extends EventEmitter {
         query.callback = query.callback || values
       }
     } else {
-      readTimeout = this.connectionParameters.query_timeout
+      readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       query = new Query(config, values, callback)
       if (!query.callback) {
         result = new this._Promise((resolve, reject) => {

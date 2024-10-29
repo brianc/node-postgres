@@ -1,8 +1,11 @@
 'use strict'
 var helper = require('./test-helper')
 var Query = require('../../../lib/query')
-
+const assert = require('assert')
 var client = helper.client()
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
+
 var con = client.connection
 var parseArg = null
 con.parse = function (arg) {
@@ -90,9 +93,7 @@ test('bound command', function () {
 
 var portalClient = helper.client()
 var portalCon = portalClient.connection
-var portalParseArg = null
 portalCon.parse = function (arg) {
-  portalParseArg = arg
   process.nextTick(function () {
     portalCon.emit('parseComplete')
   })

@@ -1,12 +1,14 @@
 'use strict'
 var util = require('util')
 var helper = require('./test-helper')
+const assert = require('assert')
+const suite = new helper.Suite()
 
 var Client = helper.Client
 
 var conInfo = helper.config
 
-test('returns results as array', function () {
+suite.test('returns results as array', function () {
   var client = new Client(conInfo)
   var checkRow = function (row) {
     assert(util.isArray(row), 'row should be an array')
@@ -23,7 +25,7 @@ test('returns results as array', function () {
         values: ['hai'],
         rowMode: 'array',
       }
-      var query = client.query(
+      client.query(
         config,
         assert.success(function (result) {
           assert.equal(result.rows.length, 1)

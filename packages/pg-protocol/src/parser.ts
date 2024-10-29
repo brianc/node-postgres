@@ -27,7 +27,6 @@ import {
   NoticeMessage,
 } from './messages'
 import { BufferReader } from './buffer-reader'
-import assert from 'assert'
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1

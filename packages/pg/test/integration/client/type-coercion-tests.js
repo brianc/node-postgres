@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 var pg = helper.pg
 const suite = new helper.Suite()
+const assert = require('assert')
 
 var testForTypeCoercion = function (type) {
   const pool = new pg.Pool()
@@ -14,7 +15,7 @@ var testForTypeCoercion = function (type) {
           assert(!err)
 
           type.values.forEach(function (val) {
-            var insertQuery = client.query(
+            client.query(
               'insert into test_type(col) VALUES($1)',
               [val],
               assert.calls(function (err, result) {
@@ -134,8 +135,6 @@ if (helper.config.binary) {
     return !(type.name in { real: 1, timetz: 1, time: 1, numeric: 1, bigint: 1 })
   })
 }
-
-var valueCount = 0
 
 types.forEach(function (type) {
   testForTypeCoercion(type)

@@ -1,5 +1,6 @@
 'use strict'
 var helper = require('./test-helper')
+const assert = require('assert')
 
 function testTypeParser(client, expectedResult, done) {
   var boolValue = true

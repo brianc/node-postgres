@@ -6,6 +6,7 @@ const path = require('path')
 const { unstable_dev } = require('wrangler')
 
 var suite = new helper.Suite()
+const assert = require('assert')
 
 suite.testAsync('Can run in Cloudflare Worker?', test())
 
