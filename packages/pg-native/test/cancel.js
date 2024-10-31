@@ -1,9 +1,9 @@
-var Client = require('../')
-var assert = require('assert')
+const Client = require('../')
+const assert = require('assert')
 
 describe('cancel query', function () {
   it('works', function (done) {
-    var client = new Client()
+    const client = new Client()
     client.connectSync()
     client.query('SELECT pg_sleep(1000);', function (err) {
       assert(err instanceof Error)
@@ -17,7 +17,7 @@ describe('cancel query', function () {
   })
 
   it('does not raise error if no active query', function (done) {
-    var client = new Client()
+    const client = new Client()
     client.connectSync()
     client.cancel(function (err) {
       assert.ifError(err)

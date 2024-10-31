@@ -1,14 +1,14 @@
 'use strict'
-var helper = require('./test-helper')
-var pg = helper.pg
+const helper = require('./test-helper')
+const pg = helper.pg
 const assert = require('assert')
 const { Client } = helper
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
 // clear process.env
-var realEnv = {}
-for (var key in process.env) {
+const realEnv = {}
+for (const key in process.env) {
   realEnv[key] = process.env[key]
   if (!key.indexOf('PG')) delete process.env[key]
 }
@@ -30,7 +30,7 @@ suite.test('default values are used in new clients', function () {
     parseInputDatesAsUTC: false,
   })
 
-  var client = new pg.Client()
+  const client = new pg.Client()
   assert.same(client, {
     user: process.env.USER,
     password: null,
@@ -46,7 +46,7 @@ suite.test('modified values are passed to created clients', function () {
   pg.defaults.port = 1234
   pg.defaults.database = 'pow'
 
-  var client = new Client()
+  const client = new Client()
   assert.same(client, {
     user: 'boom',
     password: 'zap',
@@ -80,7 +80,7 @@ suite.test('database defaults to user when user is non-default', () => {
 
 suite.test('cleanup', () => {
   // restore process.env
-  for (var key in realEnv) {
+  for (const key in realEnv) {
     process.env[key] = realEnv[key]
   }
 })

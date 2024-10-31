@@ -38,19 +38,19 @@ async function continueSession(session, password, serverData) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce is too short')
   }
 
-  var clientFirstMessageBare = 'n=*,r=' + session.clientNonce
-  var serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
-  var clientFinalMessageWithoutProof = 'c=biws,r=' + sv.nonce
-  var authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
+  const clientFirstMessageBare = 'n=*,r=' + session.clientNonce
+  const serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
+  const clientFinalMessageWithoutProof = 'c=biws,r=' + sv.nonce
+  const authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
-  var saltBytes = Buffer.from(sv.salt, 'base64')
-  var saltedPassword = await crypto.deriveKey(password, saltBytes, sv.iteration)
-  var clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
-  var storedKey = await crypto.sha256(clientKey)
-  var clientSignature = await crypto.hmacSha256(storedKey, authMessage)
-  var clientProof = xorBuffers(Buffer.from(clientKey), Buffer.from(clientSignature)).toString('base64')
-  var serverKey = await crypto.hmacSha256(saltedPassword, 'Server Key')
-  var serverSignatureBytes = await crypto.hmacSha256(serverKey, authMessage)
+  const saltBytes = Buffer.from(sv.salt, 'base64')
+  const saltedPassword = await crypto.deriveKey(password, saltBytes, sv.iteration)
+  const clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
+  const storedKey = await crypto.sha256(clientKey)
+  const clientSignature = await crypto.hmacSha256(storedKey, authMessage)
+  const clientProof = xorBuffers(Buffer.from(clientKey), Buffer.from(clientSignature)).toString('base64')
+  const serverKey = await crypto.hmacSha256(saltedPassword, 'Server Key')
+  const serverSignatureBytes = await crypto.hmacSha256(serverKey, authMessage)
 
   session.message = 'SASLResponse'
   session.serverSignature = Buffer.from(serverSignatureBytes).toString('base64')

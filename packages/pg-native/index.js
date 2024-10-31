@@ -1,12 +1,12 @@
-var Libpq = require('libpq')
-var EventEmitter = require('events').EventEmitter
-var util = require('util')
-var assert = require('assert')
-var types = require('pg-types')
-var buildResult = require('./lib/build-result')
-var CopyStream = require('./lib/copy-stream')
+const Libpq = require('libpq')
+const EventEmitter = require('events').EventEmitter
+const util = require('util')
+const assert = require('assert')
+const types = require('pg-types')
+const buildResult = require('./lib/build-result')
+const CopyStream = require('./lib/copy-stream')
 
-var Client = (module.exports = function (config) {
+const Client = (module.exports = function (config) {
   if (!(this instanceof Client)) {
     return new Client(config)
   }
@@ -51,7 +51,7 @@ Client.prototype.connectSync = function (params) {
 }
 
 Client.prototype.query = function (text, values, cb) {
-  var queryFn
+  let queryFn
 
   if (typeof values === 'function') {
     cb = values
@@ -67,7 +67,7 @@ Client.prototype.query = function (text, values, cb) {
     }
   }
 
-  var self = this
+  const self = this
 
   self._dispatchQuery(self.pq, queryFn, function (err) {
     if (err) return cb(err)
@@ -77,8 +77,8 @@ Client.prototype.query = function (text, values, cb) {
 }
 
 Client.prototype.prepare = function (statementName, text, nParams, cb) {
-  var self = this
-  var fn = function () {
+  const self = this
+  const fn = function () {
     return self.pq.sendPrepare(statementName, text, nParams)
   }
 
@@ -89,9 +89,9 @@ Client.prototype.prepare = function (statementName, text, nParams, cb) {
 }
 
 Client.prototype.execute = function (statementName, parameters, cb) {
-  var self = this
+  const self = this
 
-  var fn = function () {
+  const fn = function () {
     return self.pq.sendQueryPrepared(statementName, parameters)
   }
 
@@ -111,7 +111,7 @@ Client.prototype.getCopyStream = function () {
 Client.prototype.cancel = function (cb) {
   assert(cb, 'Callback is required')
   // result is either true or a string containing an error
-  var result = this.pq.cancel()
+  const result = this.pq.cancel()
   return setImmediate(function () {
     cb(result === true ? undefined : new Error(result))
   })
@@ -158,7 +158,7 @@ Client.prototype.end = function (cb) {
 }
 
 Client.prototype._readError = function (message) {
-  var err = new Error(message || this.pq.errorMessage())
+  const err = new Error(message || this.pq.errorMessage())
   this.emit('error', err)
 }
 
@@ -174,7 +174,7 @@ Client.prototype._consumeQueryResults = function (pq) {
 }
 
 Client.prototype._emitResult = function (pq) {
-  var status = pq.resultStatus()
+  const status = pq.resultStatus()
   switch (status) {
     case 'PGRES_FATAL_ERROR':
       this._queryError = new Error(this.pq.resultErrorMessage())
@@ -201,7 +201,7 @@ Client.prototype._emitResult = function (pq) {
 
 // called when libpq is readable
 Client.prototype._read = function () {
-  var pq = this.pq
+  const pq = this.pq
   // read waiting data from the socket
   // e.g. clear the pending 'select'
   if (!pq.consumeInput()) {
@@ -236,7 +236,7 @@ Client.prototype._read = function () {
 
   this.emit('readyForQuery')
 
-  var notice = this.pq.notifies()
+  let notice = this.pq.notifies()
   while (notice) {
     this.emit('notification', notice)
     notice = this.pq.notifies()
@@ -252,8 +252,8 @@ Client.prototype._startReading = function () {
   this.pq.startReader()
 }
 
-var throwIfError = function (pq) {
-  var err = pq.resultErrorMessage() || pq.errorMessage()
+const throwIfError = function (pq) {
+  const err = pq.resultErrorMessage() || pq.errorMessage()
   if (err) {
     throw new Error(err)
   }
@@ -266,7 +266,7 @@ Client.prototype._awaitResult = function (cb) {
 
 // wait for the writable socket to drain
 Client.prototype._waitForDrain = function (pq, cb) {
-  var res = pq.flush()
+  const res = pq.flush()
   // res of 0 is success
   if (res === 0) return cb()
 
@@ -275,7 +275,7 @@ Client.prototype._waitForDrain = function (pq, cb) {
 
   // otherwise outgoing message didn't flush to socket
   // wait for it to flush and try again
-  var self = this
+  const self = this
   // you cannot read & write on a socket at the same time
   return pq.writable(function () {
     self._waitForDrain(pq, cb)
@@ -286,9 +286,9 @@ Client.prototype._waitForDrain = function (pq, cb) {
 // finish writing query text to the socket
 Client.prototype._dispatchQuery = function (pq, fn, cb) {
   this._stopReading()
-  var success = pq.setNonBlocking(true)
+  const success = pq.setNonBlocking(true)
   if (!success) return cb(new Error('Unable to set non-blocking to true'))
-  var sent = fn()
+  const sent = fn()
   if (!sent) return cb(new Error(pq.errorMessage() || 'Something went wrong dispatching the query'))
   this._waitForDrain(pq, cb)
 }

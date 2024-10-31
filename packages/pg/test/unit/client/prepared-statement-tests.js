@@ -1,13 +1,13 @@
 'use strict'
-var helper = require('./test-helper')
-var Query = require('../../../lib/query')
+const helper = require('./test-helper')
+const Query = require('../../../lib/query')
 const assert = require('assert')
-var client = helper.client()
+const client = helper.client()
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
 
-var con = client.connection
-var parseArg = null
+const con = client.connection
+let parseArg = null
 con.parse = function (arg) {
   parseArg = arg
   process.nextTick(function () {
@@ -15,7 +15,7 @@ con.parse = function (arg) {
   })
 }
 
-var bindArg = null
+let bindArg = null
 con.bind = function (arg) {
   bindArg = arg
   process.nextTick(function () {
@@ -23,7 +23,7 @@ con.bind = function (arg) {
   })
 }
 
-var executeArg = null
+let executeArg = null
 con.execute = function (arg) {
   executeArg = arg
   process.nextTick(function () {
@@ -32,7 +32,7 @@ con.execute = function (arg) {
   })
 }
 
-var describeArg = null
+let describeArg = null
 con.describe = function (arg) {
   describeArg = arg
   process.nextTick(function () {
@@ -40,7 +40,7 @@ con.describe = function (arg) {
   })
 }
 
-var syncCalled = false
+let syncCalled = false
 con.flush = function () {}
 con.sync = function () {
   syncCalled = true
@@ -53,7 +53,7 @@ test('bound command', function () {
   test('simple, unnamed bound command', function () {
     assert.ok(client.connection.emit('readyForQuery'))
 
-    var query = client.query(
+    const query = client.query(
       new Query({
         text: 'select * from X where name = $1',
         values: ['hi'],
@@ -91,15 +91,15 @@ test('bound command', function () {
   })
 })
 
-var portalClient = helper.client()
-var portalCon = portalClient.connection
+const portalClient = helper.client()
+const portalCon = portalClient.connection
 portalCon.parse = function (arg) {
   process.nextTick(function () {
     portalCon.emit('parseComplete')
   })
 }
 
-var portalBindArg = null
+let portalBindArg = null
 portalCon.bind = function (arg) {
   portalBindArg = arg
   process.nextTick(function () {
@@ -107,7 +107,7 @@ portalCon.bind = function (arg) {
   })
 }
 
-var portalExecuteArg = null
+let portalExecuteArg = null
 portalCon.execute = function (arg) {
   portalExecuteArg = arg
   process.nextTick(function () {
@@ -116,7 +116,7 @@ portalCon.execute = function (arg) {
   })
 }
 
-var portalDescribeArg = null
+let portalDescribeArg = null
 portalCon.describe = function (arg) {
   portalDescribeArg = arg
   process.nextTick(function () {
@@ -134,7 +134,7 @@ portalCon.sync = function () {
 test('prepared statement with explicit portal', function () {
   assert.ok(portalClient.connection.emit('readyForQuery'))
 
-  var query = portalClient.query(
+  const query = portalClient.query(
     new Query({
       text: 'select * from X where name = $1',
       portal: 'myportal',

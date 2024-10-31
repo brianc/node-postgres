@@ -1,10 +1,10 @@
-var Client = require('../')
-var ok = require('okay')
-var assert = require('assert')
+const Client = require('../')
+const ok = require('okay')
+const assert = require('assert')
 
 describe('Custom type parser', function () {
   it('is used by client', function (done) {
-    var client = new Client({
+    const client = new Client({
       types: {
         getTypeParser: function () {
           return function () {
@@ -14,7 +14,7 @@ describe('Custom type parser', function () {
       },
     })
     client.connectSync()
-    var rows = client.querySync('SELECT NOW() AS when')
+    const rows = client.querySync('SELECT NOW() AS when')
     assert.equal(rows[0].when, 'blah')
     client.query(
       'SELECT NOW() as when',

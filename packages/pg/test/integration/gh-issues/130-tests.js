@@ -1,6 +1,6 @@
 'use strict'
-var helper = require('../test-helper')
-var exec = require('child_process').exec
+const helper = require('../test-helper')
+const exec = require('child_process').exec
 const assert = require('assert')
 
 helper.pg.defaults.poolIdleTimeout = 1000
@@ -14,8 +14,8 @@ pool.connect(function (err, client, done) {
   })
   client.query('SELECT pg_backend_pid()', function (err, result) {
     assert.ifError(err)
-    var pid = result.rows[0].pg_backend_pid
-    var psql = 'psql'
+    const pid = result.rows[0].pg_backend_pid
+    let psql = 'psql'
     if (helper.args.host) psql = psql + ' -h ' + helper.args.host
     if (helper.args.port) psql = psql + ' -p ' + helper.args.port
     if (helper.args.user) psql = psql + ' -U ' + helper.args.user

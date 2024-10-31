@@ -1,10 +1,10 @@
-var pg = require('pg').native
-var Native = require('../')
+const pg = require('pg').native
+const Native = require('../')
 
-var warmup = function (fn, cb) {
-  var count = 0
-  var max = 10
-  var run = function (err) {
+const warmup = function (fn, cb) {
+  let count = 0
+  const max = 10
+  const run = function (err) {
     if (err) return cb(err)
 
     if (max >= count++) {
@@ -16,27 +16,27 @@ var warmup = function (fn, cb) {
   run()
 }
 
-var native = Native()
+const native = Native()
 native.connectSync()
 
-var queryText = 'SELECT generate_series(0, 1000)'
-var client = new pg.Client()
+const queryText = 'SELECT generate_series(0, 1000)'
+const client = new pg.Client()
 client.connect(function () {
-  var pure = function (cb) {
+  const pure = function (cb) {
     client.query(queryText, function (err) {
       if (err) throw err
       cb(err)
     })
   }
-  var nativeQuery = function (cb) {
+  const nativeQuery = function (cb) {
     native.query(queryText, function (err) {
       if (err) throw err
       cb(err)
     })
   }
 
-  var run = function () {
-    var start = Date.now()
+  const run = function () {
+    let start = Date.now()
     warmup(pure, function () {
       console.log('pure done', Date.now() - start)
       start = Date.now()
