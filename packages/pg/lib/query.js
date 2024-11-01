@@ -161,7 +161,7 @@ class Query extends EventEmitter {
       return new Error('Query values must be an array')
     }
     if (this.requiresPreparation()) {
-      this.prepare(connection)
+      connection.queryWithPacketBatching(this, utils.prepareValue)
     } else {
       connection.query(this.text)
     }
