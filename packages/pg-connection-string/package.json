@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string",
   "devDependencies": {
-    "chai": "^4.1.1",
+    "chai": "^5.1.2",
     "coveralls": "^3.0.4",
     "istanbul": "^0.4.5",
     "mocha": "^10.5.2"
