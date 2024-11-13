@@ -3,6 +3,7 @@ const buffers = require('../../test-buffers')
 const helper = require('../test-helper')
 const assert = require('assert')
 const cli = require('../../cli')
+const Cursor = require('../../../../pg-cursor')
 
 const suite = new helper.Suite()
 
@@ -106,6 +107,18 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
       await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
     }
 
+    // Same run but using cursor
+    const cursor = await client.query(new Cursor('SELECT NOW()'))
+    cursor.read(100, () => {})
+    await cursor.close()
+    await delay(50)
+
+    if (!cli.native) {
+      assert(errorHit)
+      // further queries on the client should fail since its in an invalid state
+      await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+    }
+
     await closeServer()
   })
 
@@ -164,4 +177,6 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
 if (!helper.args.native) {
   testErrorBuffer('parseComplete', buffers.parseComplete())
   testErrorBuffer('commandComplete', buffers.commandComplete('f'))
+  testErrorBuffer('rowDescription', buffers.rowDescription())
+  testErrorBuffer('dataRow', buffers.dataRow())
 }
