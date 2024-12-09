@@ -1,17 +1,17 @@
 'use strict'
-var helper = require('./../test-helper')
+const helper = require('./../test-helper')
 
 //native bindings are only installed for native tests
 if (!helper.args.native) {
   return
 }
 
-var assert = require('assert')
-var pg = require('../../../lib')
-var native = require('../../../lib').native
+const assert = require('assert')
+const pg = require('../../../lib')
+const native = require('../../../lib').native
 
-var JsClient = require('../../../lib/client')
-var NativeClient = require('../../../lib/native')
+const JsClient = require('../../../lib/client')
+const NativeClient = require('../../../lib/native')
 
 assert(pg.Client === JsClient)
 assert(native.Client === NativeClient)

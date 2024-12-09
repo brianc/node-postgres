@@ -1,11 +1,11 @@
 if (parseInt(process.versions.node.split('.')[0]) < 20) {
   process.exit(0)
 }
-var helper = require('../../test-helper')
+const helper = require('../../test-helper')
 const path = require('path')
 const { unstable_dev } = require('wrangler')
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 const assert = require('assert')
 
 suite.testAsync('Can run in Cloudflare Worker?', test())

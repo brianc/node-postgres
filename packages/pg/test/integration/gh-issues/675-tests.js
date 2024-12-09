@@ -1,19 +1,19 @@
 'use strict'
-var helper = require('../test-helper')
-var assert = require('assert')
+const helper = require('../test-helper')
+const assert = require('assert')
 
 const pool = new helper.pg.Pool()
 pool.connect(function (err, client, done) {
   if (err) throw err
 
-  var c = 'CREATE TEMP TABLE posts (body TEXT)'
+  let c = 'CREATE TEMP TABLE posts (body TEXT)'
 
   client.query(c, function (err) {
     if (err) throw err
 
     c = 'INSERT INTO posts (body) VALUES ($1) RETURNING *'
 
-    var body = Buffer.from('foo')
+    let body = Buffer.from('foo')
     client.query(c, [body], function (err) {
       if (err) throw err
 

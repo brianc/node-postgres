@@ -10,8 +10,8 @@ function md5(string) {
 
 // See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
 function postgresMd5PasswordHash(user, password, salt) {
-  var inner = md5(password + user)
-  var outer = md5(Buffer.concat([Buffer.from(inner), salt]))
+  const inner = md5(password + user)
+  const outer = md5(Buffer.concat([Buffer.from(inner), salt]))
   return 'md5' + outer
 }
 

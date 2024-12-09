@@ -14,7 +14,7 @@ export default {
     const params = url.searchParams
     const ssl = params.has('ssl')
 
-    var client = new Client({
+    const client = new Client({
       user: env.PGUSER || env.USER,
       password: env.PGPASSWORD,
       ssl,

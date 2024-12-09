@@ -1,10 +1,10 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 const suite = new helper.Suite()
 const assert = require('assert')
 
 suite.test('noData message handling', function () {
-  var client = helper.client()
+  const client = helper.client()
 
   client.query({
     name: 'boom',
@@ -37,7 +37,7 @@ suite.test('noData message handling', function () {
       values: [101],
     },
     (err, res) => {
-      var row = res.rows[0]
+      const row = res.rows[0]
       assert.strictEqual(row.size, 100)
     }
   )

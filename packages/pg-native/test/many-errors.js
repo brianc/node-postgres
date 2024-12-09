@@ -1,14 +1,14 @@
-var Client = require('../')
-var async = require('async')
-var assert = require('assert')
+const Client = require('../')
+const async = require('async')
+const assert = require('assert')
 
 describe('many errors', function () {
   it('functions properly without segfault', function (done) {
-    var throwError = function (n, cb) {
-      var client = new Client()
+    const throwError = function (n, cb) {
+      const client = new Client()
       client.connectSync()
 
-      var doIt = function (n, cb) {
+      const doIt = function (n, cb) {
         client.query('select asdfiasdf', function (err) {
           assert(err, 'bad query should emit an error')
           cb(null)

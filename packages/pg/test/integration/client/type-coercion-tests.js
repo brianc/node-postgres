@@ -1,10 +1,10 @@
 'use strict'
-var helper = require('./test-helper')
-var pg = helper.pg
+const helper = require('./test-helper')
+const pg = helper.pg
 const suite = new helper.Suite()
 const assert = require('assert')
 
-var testForTypeCoercion = function (type) {
+const testForTypeCoercion = function (type) {
   const pool = new pg.Pool()
   suite.test(`test type coercion ${type.name}`, (cb) => {
     pool.connect(function (err, client, done) {
@@ -23,7 +23,7 @@ var testForTypeCoercion = function (type) {
               })
             )
 
-            var query = client.query(
+            const query = client.query(
               new pg.Query({
                 name: 'get type ' + type.name,
                 text: 'select col from test_type',
@@ -39,8 +39,8 @@ var testForTypeCoercion = function (type) {
               query,
               'row',
               function (row) {
-                var expected = val + ' (' + typeof val + ')'
-                var returned = row.col + ' (' + typeof row.col + ')'
+                const expected = val + ' (' + typeof val + ')'
+                const returned = row.col + ' (' + typeof row.col + ')'
                 assert.strictEqual(row.col, val, 'expected ' + type.name + ' of ' + expected + ' but got ' + returned)
               },
               'row should have been called for ' + type.name + ' of ' + val
@@ -59,7 +59,7 @@ var testForTypeCoercion = function (type) {
   })
 }
 
-var types = [
+let types = [
   {
     name: 'integer',
     values: [-2147483648, -1, 0, 1, 2147483647, null],
@@ -141,15 +141,15 @@ types.forEach(function (type) {
 })
 
 suite.test('timestamptz round trip', function (cb) {
-  var now = new Date()
-  var client = helper.client()
+  const now = new Date()
+  const client = helper.client()
   client.query('create temp table date_tests(name varchar(10), tstz timestamptz(3))')
   client.query({
     text: 'insert into date_tests(name, tstz)VALUES($1, $2)',
     name: 'add date',
     values: ['now', now],
   })
-  var result = client.query(
+  const result = client.query(
     new pg.Query({
       name: 'get date',
       text: 'select * from date_tests where name = $1',
@@ -158,7 +158,7 @@ suite.test('timestamptz round trip', function (cb) {
   )
 
   assert.emits(result, 'row', function (row) {
-    var date = row.tstz
+    const date = row.tstz
     assert.equal(date.getYear(), now.getYear())
     assert.equal(date.getMonth(), now.getMonth())
     assert.equal(date.getDate(), now.getDate())
@@ -196,7 +196,7 @@ suite.test('selecting nulls', (cb) => {
 })
 
 suite.test('date range extremes', function (done) {
-  var client = helper.client()
+  const client = helper.client()
 
   // Set the server timeszone to the same as used for the test,
   // otherwise (if server's timezone is ahead of GMT) in

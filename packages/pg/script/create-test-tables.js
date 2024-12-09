@@ -1,8 +1,8 @@
 'use strict'
-var args = require('../test/cli')
-var pg = require('../lib')
+const args = require('../test/cli')
+const pg = require('../lib')
 
-var people = [
+const people = [
   { name: 'Aaron', age: 10 },
   { name: 'Brian', age: 20 },
   { name: 'Chris', age: 30 },
@@ -32,7 +32,7 @@ var people = [
 ]
 
 async function run() {
-  var con = new pg.Client({
+  const con = new pg.Client({
     user: args.user,
     password: args.password,
     host: args.host,

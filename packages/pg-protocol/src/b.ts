@@ -4,7 +4,7 @@ import { BufferReader } from './buffer-reader'
 
 const LOOPS = 1000
 let count = 0
-let start = Date.now()
+const start = Date.now()
 
 const reader = new BufferReader()
 const buffer = Buffer.from([33, 33, 33, 33, 33, 33, 33, 0])
