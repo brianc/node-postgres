@@ -20,6 +20,7 @@
   "author": "Brian Carlson <brian.m.carlson@gmail.com>",
   "main": "./lib",
   "dependencies": {
+    "@peculiar/x509": "^1.12.3",
     "pg-connection-string": "^2.7.0",
     "pg-pool": "^3.7.0",
     "pg-protocol": "^1.7.0",

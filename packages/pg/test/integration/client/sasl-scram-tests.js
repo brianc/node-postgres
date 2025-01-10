@@ -45,12 +45,25 @@ if (!config.user || !config.password) {
   return
 }
 
-suite.testAsync('can connect using sasl/scram', async () => {
+suite.testAsync('can connect using sasl/scram (channel binding enabled)', async () => {
   const client = new pg.Client(config)
   let usingSasl = false
   client.connection.once('authenticationSASL', () => {
     usingSasl = true
   })
+  client.enableChannelBinding = true // default
+  await client.connect()
+  assert.ok(usingSasl, 'Should be using SASL for authentication')
+  await client.end()
+})
+
+suite.testAsync('can connect using sasl/scram (channel binding disabled)', async () => {
+  const client = new pg.Client(config)
+  let usingSasl = false
+  client.connection.once('authenticationSASL', () => {
+    usingSasl = true
+  })
+  client.enableChannelBinding = false
   await client.connect()
   assert.ok(usingSasl, 'Should be using SASL for authentication')
   await client.end()

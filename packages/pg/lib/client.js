@@ -20,6 +20,7 @@ class Client extends EventEmitter {
     this.database = this.connectionParameters.database
     this.port = this.connectionParameters.port
     this.host = this.connectionParameters.host
+    this.enableChannelBinding = true
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
@@ -258,7 +259,7 @@ class Client extends EventEmitter {
   _handleAuthSASL(msg) {
     this._checkPgPass(() => {
       try {
-        this.saslSession = sasl.startSession(msg.mechanisms)
+        this.saslSession = sasl.startSession(msg.mechanisms, this.enableChannelBinding && this.connection.stream)
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
       } catch (err) {
         this.connection.emit('error', err)
@@ -268,7 +269,7 @@ class Client extends EventEmitter {
 
   async _handleAuthSASLContinue(msg) {
     try {
-      await sasl.continueSession(this.saslSession, this.password, msg.data)
+      await sasl.continueSession(this.saslSession, this.password, msg.data, this.enableChannelBinding && this.connection.stream)
       this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
     } catch (err) {
       this.connection.emit('error', err)

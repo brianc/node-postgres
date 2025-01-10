@@ -19,6 +19,10 @@ function sha256(text) {
   return nodeCrypto.createHash('sha256').update(text).digest()
 }
 
+function hashByName(hashName, text) {
+  return nodeCrypto.createHash(hashName).update(text).digest()
+}
+
 function hmacSha256(key, msg) {
   return nodeCrypto.createHmac('sha256', key).update(msg).digest()
 }
@@ -32,6 +36,7 @@ module.exports = {
   randomBytes: nodeCrypto.randomBytes,
   deriveKey,
   sha256,
+  hashByName,
   hmacSha256,
   md5,
 }
