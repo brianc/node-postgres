@@ -143,7 +143,7 @@ const expectedTwoRowMessage = {
     },
   ],
 }
-var expectedBigOidMessage = {
+const expectedBigOidMessage = {
   name: 'rowDescription',
   length: 31,
   fieldCount: 1,
