@@ -51,7 +51,7 @@ suite.testAsync('can connect using sasl/scram (channel binding enabled)', async 
   client.connection.once('authenticationSASL', () => {
     usingSasl = true
   })
-  client.enableChannelBinding = true // default
+  client.enableChannelBinding = true
   await client.connect()
   assert.ok(usingSasl, 'Should be using SASL for authentication')
   await client.end()
@@ -63,7 +63,7 @@ suite.testAsync('can connect using sasl/scram (channel binding disabled)', async
   client.connection.once('authenticationSASL', () => {
     usingSasl = true
   })
-  client.enableChannelBinding = false
+  client.enableChannelBinding = false // default
   await client.connect()
   assert.ok(usingSasl, 'Should be using SASL for authentication')
   await client.end()
