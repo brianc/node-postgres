@@ -1,6 +1,7 @@
 'use strict'
 const crypto = require('./utils')
-const tls = require('tls');
+const tls = require('tls')
+const x509 = require('@peculiar/x509')
 
 function startSession(mechanisms, stream) {
   const candidates = ['SCRAM-SHA-256']
@@ -65,7 +66,6 @@ async function continueSession(session, password, serverData, stream) {
   // override if channel binding is in use:
   if (session.mechanism === 'SCRAM-SHA-256-PLUS') {
     const peerCert = stream.getPeerCertificate().raw
-    const x509 = await import('@peculiar/x509')
     const parsedCert = new x509.X509Certificate(peerCert)
     const sigAlgo = parsedCert.signatureAlgorithm
     if (!sigAlgo) {
