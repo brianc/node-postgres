@@ -7,13 +7,7 @@ function startSession(mechanisms, stream) {
   const candidates = ['SCRAM-SHA-256']
   if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
 
-  let mechanism
-  for (const candidate of candidates) {
-    if (mechanisms.indexOf(candidate) !== -1) {
-      mechanism = candidate
-      break
-    }
-  }
+  const mechanism = candidates.find(candidate => mechanisms.includes(candidate))
 
   if (!mechanism) {
     throw new Error('SASL: Only mechanisms ' + candidates.join(' and ') + ' are supported')
