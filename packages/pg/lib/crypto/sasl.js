@@ -1,21 +1,20 @@
 'use strict'
 const crypto = require('./utils')
-const tls = require('tls')
 const x509 = require('@peculiar/x509')
 
 function startSession(mechanisms, stream) {
   const candidates = ['SCRAM-SHA-256']
   if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
 
-  const mechanism = candidates.find(candidate => mechanisms.includes(candidate))
+  const mechanism = candidates.find((candidate) => mechanisms.includes(candidate))
 
   if (!mechanism) {
     throw new Error('SASL: Only mechanisms ' + candidates.join(' and ') + ' are supported')
   }
 
-  if (mechanism === 'SCRAM-SHA-256-PLUS' && !(stream instanceof tls.TLSSocket)) {
+  if (mechanism === 'SCRAM-SHA-256-PLUS' && typeof stream.getPeerCertificate !== 'function') {
     // this should never happen if we are really talking to a Postgres server
-    throw new Error('SASL: Mechanism SCRAM-SHA-256-PLUS requires a secure connection')
+    throw new Error('SASL: Mechanism SCRAM-SHA-256-PLUS requires a certificate')
   }
 
   const clientNonce = crypto.randomBytes(18).toString('base64')
