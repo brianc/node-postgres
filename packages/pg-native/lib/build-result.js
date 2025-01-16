@@ -22,7 +22,7 @@ class Result {
     for (var x = 0; x < nfields; x++) {
       this.fields[x] = {
         name: pq.fname(x),
-        dataTypeID: pq.ftype(x)
+        dataTypeID: pq.ftype(x),
       }
     }
   }
