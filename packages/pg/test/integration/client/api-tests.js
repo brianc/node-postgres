@@ -1,6 +1,7 @@
 'use strict'
 var helper = require('../test-helper')
 var pg = helper.pg
+const assert = require('assert')
 
 var suite = new helper.Suite()
 
@@ -95,6 +96,21 @@ suite.test('query no timeout', (cb) => {
       'SELECT pg_sleep(1)',
       assert.calls(function (err, result) {
         assert(!err)
+        client.release()
+        pool.end(cb)
+      })
+    )
+  })
+})
+
+suite.test('query with timeout on query basis', (cb) => {
+  const pool = new pg.Pool()
+  pool.connect().then((client) => {
+    client.query(
+      { text: 'SELECT pg_sleep(20)', query_timeout: 1000 },
+      assert.calls(function (err, result) {
+        assert(err)
+        assert(err.message === 'Query read timeout')
         client.release()
         pool.end(cb)
       })

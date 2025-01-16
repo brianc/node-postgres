@@ -265,7 +265,7 @@ pool
 
 #### acquire
 
-Fired whenever the a client is acquired from the pool
+Fired whenever a client is acquired from the pool
 
 Example:
 

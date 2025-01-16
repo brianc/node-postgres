@@ -1,9 +1,11 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 var Connection = require('../../../lib/connection')
 var Client = require('../../../lib/client')
+const assert = require('assert')
+const suite = new helper.Suite()
 
-test('emits end when not in query', function () {
+suite.test('emits end when not in query', function () {
   var stream = new (require('events').EventEmitter)()
   stream.setNoDelay = () => {}
   stream.connect = function () {

@@ -1,6 +1,6 @@
 {
   "name": "pg-connection-string",
-  "version": "2.6.4",
+  "version": "2.7.0",
   "description": "Functions for dealing with a PostgresSQL connection string",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -30,7 +30,7 @@
     "chai": "^4.1.1",
     "coveralls": "^3.0.4",
     "istanbul": "^0.4.5",
-    "mocha": "^7.1.2"
+    "mocha": "^10.5.2"
   },
   "files": [
     "index.js",

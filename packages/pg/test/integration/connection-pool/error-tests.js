@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 const pg = helper.pg
 const native = helper.args.native
+const assert = require('assert')
 
 const suite = new helper.Suite()
 suite.test('connecting to invalid port', (cb) => {
@@ -18,7 +19,6 @@ suite.test('errors emitted on checked-out clients', (cb) => {
       client.query('SELECT NOW()', function () {
         pool.connect(
           assert.success(function (client2, done2) {
-            var pidColName = 'procpid'
             helper.versionGTE(
               client2,
               90200,

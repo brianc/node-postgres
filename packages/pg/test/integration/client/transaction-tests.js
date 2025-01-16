@@ -2,6 +2,7 @@
 var helper = require('./test-helper')
 const suite = new helper.Suite()
 const pg = helper.pg
+const assert = require('assert')
 
 const client = new pg.Client()
 client.connect(

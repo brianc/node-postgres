@@ -18,6 +18,11 @@ This repo is a monorepo which contains the core [pg](https://github.com/brianc/n
 - [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string)
 - [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol)
 
+## Install
+```
+npm install pg
+```
+
 ## Documentation
 
 Each package in this repo should have its own readme more focused on how to develop/contribute. For overall documentation on the project and the related modules managed by this repo please see:
@@ -75,10 +80,11 @@ If your change involves breaking backwards compatibility please please point tha
 ### Setting up for local development
 
 1. Clone the repo
-2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
-3. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
-4. Ensure you have the proper environment variables configured for connecting to the instance
-5. Run `yarn test` to run all the tests
+2. Ensure you have installed libpq-dev in your system.
+3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
+5. Ensure you have the proper environment variables configured for connecting to the instance
+6. Run `yarn test` to run all the tests
 
 ## Troubleshooting and FAQ
 

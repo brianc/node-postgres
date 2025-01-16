@@ -27,7 +27,6 @@ import {
   NoticeMessage,
 } from './messages'
 import { BufferReader } from './buffer-reader'
-import assert from 'assert'
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1
@@ -259,9 +258,9 @@ export class Parser {
 
   private parseField(): Field {
     const name = this.reader.cstring()
-    const tableID = this.reader.int32()
+    const tableID = this.reader.uint32()
     const columnID = this.reader.int16()
-    const dataTypeID = this.reader.int32()
+    const dataTypeID = this.reader.uint32()
     const dataTypeSize = this.reader.int16()
     const dataTypeModifier = this.reader.int32()
     const mode = this.reader.int16() === 0 ? 'text' : 'binary'

@@ -14,17 +14,6 @@ var parseCompleteBuffer = buffers.parseComplete()
 var bindCompleteBuffer = buffers.bindComplete()
 var portalSuspendedBuffer = buffers.portalSuspended()
 
-var addRow = function (bufferList: BufferList, name: string, offset: number) {
-  return bufferList
-    .addCString(name) // field name
-    .addInt32(offset++) // table id
-    .addInt16(offset++) // attribute of column number
-    .addInt32(offset++) // objectId of field's data type
-    .addInt16(offset++) // datatype size
-    .addInt32(offset++) // type modifier
-    .addInt16(0) // format code, 0 => text
-}
-
 var row1 = {
   name: 'id',
   tableID: 1,
@@ -49,6 +38,17 @@ var twoRowBuf = buffers.rowDescription([
     formatCode: 0,
   },
 ])
+
+var rowWithBigOids = {
+  name: 'bigoid',
+  tableID: 3000000001,
+  attributeNumber: 2,
+  dataTypeID: 3000000003,
+  dataTypeSize: 4,
+  typeModifier: 5,
+  formatCode: 0,
+}
+var bigOidDescBuff = buffers.rowDescription([rowWithBigOids])
 
 var emptyRowFieldBuf = new BufferList().addInt16(0).join(true, 'D')
 
@@ -139,6 +139,22 @@ var expectedTwoRowMessage = {
       dataTypeID: 12,
       dataTypeSize: 13,
       dataTypeModifier: 14,
+      format: 'text',
+    },
+  ],
+}
+var expectedBigOidMessage = {
+  name: 'rowDescription',
+  length: 31,
+  fieldCount: 1,
+  fields: [
+    {
+      name: 'bigoid',
+      tableID: 3000000001,
+      columnID: 2,
+      dataTypeID: 3000000003,
+      dataTypeSize: 4,
+      dataTypeModifier: 5,
       format: 'text',
     },
   ],
@@ -272,6 +288,7 @@ describe('PgPacketStream', function () {
     testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage)
     testForMessage(oneRowDescBuff, expectedOneRowMessage)
     testForMessage(twoRowBuf, expectedTwoRowMessage)
+    testForMessage(bigOidDescBuff, expectedBigOidMessage)
   })
 
   describe('parameterDescription messages', function () {

@@ -2,6 +2,9 @@
 var helper = require('./test-helper')
 const BufferList = require('../../buffer-list')
 var crypto = require('../../../lib/crypto/utils')
+const assert = require('assert')
+const suite = new helper.Suite()
+const test = suite.test.bind(suite)
 
 test('md5 authentication', async function () {
   var client = helper.createClient()
