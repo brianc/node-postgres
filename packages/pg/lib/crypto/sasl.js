@@ -73,7 +73,7 @@ async function continueSession(session, password, serverData, stream) {
     if (!hashName) {
       throw new Error('Could not extract name from certificate signature algorithm hash')
     }
-    if (/^(md5)|(sha-?1)$/i.test(hashName)) hashName = 'SHA-256' // for MD5 and SHA-1, we substitute SHA-256
+    if (/^(md5|sha-?1)$/i.test(hashName)) hashName = 'SHA-256' // for MD5 and SHA-1, we substitute SHA-256
     const certHash = await crypto.hashByName(hashName, peerCert)
     const bindingData = Buffer.concat([Buffer.from('p=tls-server-end-point,,'), Buffer.from(certHash)])
     channelBinding = bindingData.toString('base64')
