@@ -18,46 +18,43 @@ class Result {
 
   consumeFields(pq) {
     const nfields = pq.nfields()
+    this.fields = new Array(nfields)
     for (var x = 0; x < nfields; x++) {
-      this.fields.push({
+      this.fields[x] = {
         name: pq.fname(x),
         dataTypeID: pq.ftype(x),
-      })
+      }
     }
   }
 
   consumeRows(pq) {
     const tupleCount = pq.ntuples()
+    this.rows = new Array(tupleCount)
     for (var i = 0; i < tupleCount; i++) {
-      const row = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
-      this.rows.push(row)
+      this.rows[i] = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
     }
   }
 
   consumeRowAsObject(pq, rowIndex) {
     const row = {}
     for (var j = 0; j < this.fields.length; j++) {
-      const value = this.readValue(pq, rowIndex, j)
-      row[this.fields[j].name] = value
+      row[this.fields[j].name] = this.readValue(pq, rowIndex, j)
     }
     return row
   }
 
   consumeRowAsArray(pq, rowIndex) {
-    const row = []
+    const row = new Array(this.fields.length)
     for (var j = 0; j < this.fields.length; j++) {
-      const value = this.readValue(pq, rowIndex, j)
-      row.push(value)
+      row[j] = this.readValue(pq, rowIndex, j)
     }
     return row
   }
 
   readValue(pq, rowIndex, colIndex) {
     var rawValue = pq.getvalue(rowIndex, colIndex)
-    if (rawValue === '') {
-      if (pq.getisnull(rowIndex, colIndex)) {
-        return null
-      }
+    if (rawValue === '' && pq.getisnull(rowIndex, colIndex)) {
+      return null
     }
     const dataTypeId = this.fields[colIndex].dataTypeID
     return this._types.getTypeParser(dataTypeId)(rawValue)
