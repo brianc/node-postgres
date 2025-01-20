@@ -14,7 +14,7 @@ suite.test('sasl/scram', function () {
           sasl.startSession([])
         },
         {
-          message: 'SASL: Only mechanism SCRAM-SHA-256 is currently supported',
+          message: 'SASL: Only mechanism(s) SCRAM-SHA-256 are supported',
         }
       )
     })

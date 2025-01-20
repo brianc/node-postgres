@@ -9,7 +9,7 @@ function startSession(mechanisms, stream) {
   const mechanism = candidates.find((candidate) => mechanisms.includes(candidate))
 
   if (!mechanism) {
-    throw new Error('SASL: Only mechanisms ' + candidates.join(' and ') + ' are supported')
+    throw new Error('SASL: Only mechanism(s) ' + candidates.join(' and ') + ' are supported')
   }
 
   if (mechanism === 'SCRAM-SHA-256-PLUS' && typeof stream.getPeerCertificate !== 'function') {
