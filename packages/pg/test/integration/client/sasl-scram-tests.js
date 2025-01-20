@@ -46,26 +46,24 @@ if (!config.user || !config.password) {
 }
 
 suite.testAsync('can connect using sasl/scram (channel binding enabled)', async () => {
-  const client = new pg.Client(config)
-  let usingSasl = false
-  client.connection.once('authenticationSASL', () => {
-    usingSasl = true
+  const client = new pg.Client({ ...config, enableChannelBinding: true })
+  let usingChannelBinding = false
+  client.connection.once('authenticationSASLContinue', () => {
+    usingChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256-PLUS'
   })
-  client.enableChannelBinding = true
   await client.connect()
-  assert.ok(usingSasl, 'Should be using SASL for authentication')
+  assert.ok(usingChannelBinding, 'Should be using SCRAM-SHA-256-PLUS for authentication')
   await client.end()
 })
 
 suite.testAsync('can connect using sasl/scram (channel binding disabled)', async () => {
-  const client = new pg.Client(config)
-  let usingSasl = false
-  client.connection.once('authenticationSASL', () => {
-    usingSasl = true
+  const client = new pg.Client({ ...config, enableChannelBinding: false })
+  let usingSASLWithoutChannelBinding = false
+  client.connection.once('authenticationSASLContinue', () => {
+    usingSASLWithoutChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256'
   })
-  client.enableChannelBinding = false // default
   await client.connect()
-  assert.ok(usingSasl, 'Should be using SASL for authentication')
+  assert.ok(usingSASLWithoutChannelBinding, 'Should be using SCRAM-SHA-256 (no channel binding) for authentication')
   await client.end()
 })
 

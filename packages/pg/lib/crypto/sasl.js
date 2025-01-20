@@ -1,6 +1,6 @@
 'use strict'
 const crypto = require('./utils')
-const x509 = require('@peculiar/x509')
+const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
 
 function startSession(mechanisms, stream) {
   const candidates = ['SCRAM-SHA-256']
@@ -59,20 +59,8 @@ async function continueSession(session, password, serverData, stream) {
   // override if channel binding is in use:
   if (session.mechanism === 'SCRAM-SHA-256-PLUS') {
     const peerCert = stream.getPeerCertificate().raw
-    const parsedCert = new x509.X509Certificate(peerCert)
-    const sigAlgo = parsedCert.signatureAlgorithm
-    if (!sigAlgo) {
-      throw new Error('Could not extract signature algorithm from certificate')
-    }
-    const hash = sigAlgo.hash
-    if (!hash) {
-      throw new Error('Could not extract hash from certificate signature algorithm')
-    }
-    let hashName = hash.name
-    if (!hashName) {
-      throw new Error('Could not extract name from certificate signature algorithm hash')
-    }
-    if (/^(md5|sha-?1)$/i.test(hashName)) hashName = 'SHA-256' // for MD5 and SHA-1, we substitute SHA-256
+    let hashName = signatureAlgorithmHashFromCertificate(peerCert)
+    if (hashName === 'MD5' || hashName === 'SHA-1') hashName = 'SHA-256'
     const certHash = await crypto.hashByName(hashName, peerCert)
     const bindingData = Buffer.concat([Buffer.from('p=tls-server-end-point,,'), Buffer.from(certHash)])
     channelBinding = bindingData.toString('base64')
