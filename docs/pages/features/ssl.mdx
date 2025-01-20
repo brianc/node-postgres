@@ -57,6 +57,11 @@ const config = {
 If the PostgreSQL server offers SCRAM-SHA-256-PLUS (i.e. channel binding) for TLS/SSL connections, you can enable this as follows:
 
 ```js
-const client = new Client(config)
-client.enableChannelBinding = true
+const client = new Client({ ...config, enableChannelBinding: true})
+```
+
+or
+
+```js
+const pool = new Pool({ ...config, enableChannelBinding: true})
 ```
