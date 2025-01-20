@@ -20,7 +20,6 @@ class Client extends EventEmitter {
     this.database = this.connectionParameters.database
     this.port = this.connectionParameters.port
     this.host = this.connectionParameters.host
-    this.enableChannelBinding = Boolean(config.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
@@ -44,6 +43,7 @@ class Client extends EventEmitter {
     this._connectionError = false
     this._queryable = true
 
+    this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.connection =
       c.connection ||
       new Connection({
