@@ -20,6 +20,7 @@ function sha256(text) {
 }
 
 function hashByName(hashName, text) {
+  hashName = hashName.replace(/(\D)-/, '$1') // e.g. SHA-256 -> SHA256
   return nodeCrypto.createHash(hashName).update(text).digest()
 }
 
