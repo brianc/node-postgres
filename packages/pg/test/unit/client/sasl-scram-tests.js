@@ -19,14 +19,34 @@ suite.test('sasl/scram', function () {
       )
     })
 
-    suite.test('returns expected session data', function () {
-      const session = sasl.startSession(['SCRAM-SHA-256'])
+    suite.test('returns expected session data for SCRAM-SHA-256 (channel binding disabled, offered)', function () {
+      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'])
 
       assert.equal(session.mechanism, 'SCRAM-SHA-256')
       assert.equal(String(session.clientNonce).length, 24)
       assert.equal(session.message, 'SASLInitialResponse')
 
-      assert(session.response.match(/^n,,n=\*,r=.{24}/))
+      assert(session.response.match(/^n,,n=\*,r=.{24}$/))
+    })
+
+    suite.test('returns expected session data for SCRAM-SHA-256 (channel binding enabled, not offered)', function () {
+      const session = sasl.startSession(['SCRAM-SHA-256'], { getPeerCertificate() {} })
+
+      assert.equal(session.mechanism, 'SCRAM-SHA-256')
+      assert.equal(String(session.clientNonce).length, 24)
+      assert.equal(session.message, 'SASLInitialResponse')
+
+      assert(session.response.match(/^y,,n=\*,r=.{24}$/))
+    })
+
+    suite.test('returns expected session data for SCRAM-SHA-256 (channel binding enabled, offered)', function () {
+      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'], { getPeerCertificate() {} })
+
+      assert.equal(session.mechanism, 'SCRAM-SHA-256-PLUS')
+      assert.equal(String(session.clientNonce).length, 24)
+      assert.equal(session.message, 'SASLInitialResponse')
+
+      assert(session.response.match(/^p=tls-server-end-point,,n=\*,r=.{24}$/))
     })
 
     suite.test('creates random nonces', function () {
