@@ -1,6 +1,6 @@
 'use strict'
-var helper = require('../test-helper')
-var Client = require('../../lib/native')
+const helper = require('../test-helper')
+const Client = require('../../lib/native')
 const suite = new helper.Suite()
 const assert = require('assert')
 
@@ -11,7 +11,7 @@ suite.test('respects nativeConnectionString in config', function (done) {
   // setting wrong port to make sure config is take from nativeConnectionString and not env
   helper.config.port = '90929'
 
-  var client = new Client({
+  const client = new Client({
     ...helper.config,
     nativeConnectionString,
   })
@@ -35,7 +35,7 @@ suite.test('respects nativeConnectionString in config', function (done) {
 suite.test('respects nativeConnectionString in config even when it is corrupted', function (done) {
   const nativeConnectionString = `foobar`
 
-  var client = new Client({
+  const client = new Client({
     nativeConnectionString,
   })
 

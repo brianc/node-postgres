@@ -1,21 +1,21 @@
 'use strict'
 const helper = require('./test-helper')
 const { Client } = helper
-var Connection = require('../../../lib/connection')
+const Connection = require('../../../lib/connection')
 const assert = require('assert')
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
 
 test('drain', function () {
-  var con = new Connection({ stream: 'NO' })
-  var client = new Client({ connection: con })
+  const con = new Connection({ stream: 'NO' })
+  const client = new Client({ connection: con })
   con.connect = function () {
     con.emit('connect')
   }
   con.query = function () {}
   client.connect()
 
-  var raisedDrain = false
+  let raisedDrain = false
   client.on('drain', function () {
     raisedDrain = true
   })

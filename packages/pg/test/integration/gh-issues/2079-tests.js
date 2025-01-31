@@ -1,11 +1,11 @@
 'use strict'
-var helper = require('./../test-helper')
-var assert = require('assert')
+const helper = require('./../test-helper')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 
 // makes a backend server that responds with a non 'S' ssl response buffer
-let makeTerminatingBackend = (byte) => {
+const makeTerminatingBackend = (byte) => {
   const { createServer } = require('net')
 
   const server = createServer((socket) => {

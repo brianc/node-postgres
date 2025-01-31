@@ -19,7 +19,7 @@ class Result {
   consumeFields(pq) {
     const nfields = pq.nfields()
     this.fields = new Array(nfields)
-    for (var x = 0; x < nfields; x++) {
+    for (let x = 0; x < nfields; x++) {
       this.fields[x] = {
         name: pq.fname(x),
         dataTypeID: pq.ftype(x),
@@ -30,14 +30,14 @@ class Result {
   consumeRows(pq) {
     const tupleCount = pq.ntuples()
     this.rows = new Array(tupleCount)
-    for (var i = 0; i < tupleCount; i++) {
+    for (let i = 0; i < tupleCount; i++) {
       this.rows[i] = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
     }
   }
 
   consumeRowAsObject(pq, rowIndex) {
     const row = {}
-    for (var j = 0; j < this.fields.length; j++) {
+    for (let j = 0; j < this.fields.length; j++) {
       row[this.fields[j].name] = this.readValue(pq, rowIndex, j)
     }
     return row
@@ -45,14 +45,14 @@ class Result {
 
   consumeRowAsArray(pq, rowIndex) {
     const row = new Array(this.fields.length)
-    for (var j = 0; j < this.fields.length; j++) {
+    for (let j = 0; j < this.fields.length; j++) {
       row[j] = this.readValue(pq, rowIndex, j)
     }
     return row
   }
 
   readValue(pq, rowIndex, colIndex) {
-    var rawValue = pq.getvalue(rowIndex, colIndex)
+    const rawValue = pq.getvalue(rowIndex, colIndex)
     if (rawValue === '' && pq.getisnull(rowIndex, colIndex)) {
       return null
     }

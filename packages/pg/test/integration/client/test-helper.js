@@ -1,4 +1,4 @@
 'use strict'
-var helper = require('./../test-helper')
+const helper = require('./../test-helper')
 
 module.exports = helper

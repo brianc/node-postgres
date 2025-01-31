@@ -1,6 +1,6 @@
 'use strict'
 const helper = require('../test-helper')
-var assert = require('assert')
+const assert = require('assert')
 const suite = new helper.Suite()
 
 // https://github.com/brianc/node-postgres/issues/3062
