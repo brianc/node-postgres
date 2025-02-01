@@ -40,50 +40,50 @@
   resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20240524.0.tgz#506ebc544d4677e2fe3819f182e949e4feadcb6d"
   integrity sha512-ATaXjefbTsrv4mpn4Fdua114RRDXcX5Ky+Mv+f4JTUllgalmqC4CYMN4jxRz9IpJU/fNMN8IEfvUyuJBAcl9Iw==
 
-"@cloudflare/workerd-darwin-64@1.20240529.0":
-  version "1.20240529.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20240529.0.tgz#a5988da0f1f8ec1be4b227392cb35c1d6749ab15"
-  integrity sha512-ZgfqH79KP26s2LeQqQjBk9mojpfMCZtUDka4QYBP5wWEgIcEx7rnktmkDqQVcNJV22MoCyj3X6KToIo/qZLwLg==
+"@cloudflare/workerd-darwin-64@1.20250129.0":
+  version "1.20250129.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20250129.0.tgz#bb7c018d3f36a01579a7b41f11fd6eaa68ffcb4e"
+  integrity sha512-M+xETVnl+xy2dfDDWmp0XXr2rttl70a6bljQygl0EmYmNswFTcYbQWCaBuNBo9kabU59rLKr4a/b3QZ07NoL/g==
 
 "@cloudflare/workerd-darwin-arm64@1.20240524.0":
   version "1.20240524.0"
   resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20240524.0.tgz#1001c1d77b02b8d714249f0569c95ba5898bdf90"
   integrity sha512-wnbsZI4CS0QPCd+wnBHQ40C28A/2Qo4ESi1YhE2735G3UNcc876MWksZhsubd+XH0XPIra6eNFqyw6wRMpQOXA==
 
-"@cloudflare/workerd-darwin-arm64@1.20240529.0":
-  version "1.20240529.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20240529.0.tgz#1f03a3b56d34f649812f678032161f41125ddae7"
-  integrity sha512-MNVLmFzsIfg7DM9qBafSH3PALIAw6WwwLZsvThkhkpJkpHW+t6OeybPst3Ddb7nAkSZz7rXDIOpgfEyyxrZepQ==
+"@cloudflare/workerd-darwin-arm64@1.20250129.0":
+  version "1.20250129.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20250129.0.tgz#89ba28fbbe32b4dd0227f1df64f3bd766f772c0b"
+  integrity sha512-c4PQUyIMp+bCMxZkAMBzXgTHjRZxeYCujDbb3staestqgRbenzcfauXsMd6np35ng+EE1uBgHNPV4+7fC0ZBfg==
 
 "@cloudflare/workerd-linux-64@1.20240524.0":
   version "1.20240524.0"
   resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20240524.0.tgz#f7cf44294b61a15eb5e98fd94cf17e61845e3d7f"
   integrity sha512-E8mj+HPBryKwaJAiNsYzXtVjKCL0KvUBZbtxJxlWM4mLSQhT+uwGT3nydb/hFY59rZnQgZslw0oqEWht5TEYiQ==
 
-"@cloudflare/workerd-linux-64@1.20240529.0":
-  version "1.20240529.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20240529.0.tgz#155df6fe1a01a5bfa22085abc231c9a4e3c52c47"
-  integrity sha512-DxcMw2UBIZXu18adN6QJAq3M7ePFSyptNIszOOwfEOulxV/6MrCUN60mST2tawqgxZ3yBNVN8NQg8Ufx4Szq9w==
+"@cloudflare/workerd-linux-64@1.20250129.0":
+  version "1.20250129.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20250129.0.tgz#6a800402c0ab9f7025517c5e19fa308f74d4fd6f"
+  integrity sha512-xJx8LwWFxsm5U3DETJwRuOmT5RWBqm4FmA4itYXvcEICca9pWJDB641kT4PnpypwDNmYOebhU7A+JUrCRucG0w==
 
 "@cloudflare/workerd-linux-arm64@1.20240524.0":
   version "1.20240524.0"
   resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20240524.0.tgz#46678255e98acd8f30d2a63415b7aeb7cd933e77"
   integrity sha512-/Fr1W671t2triNCDCBWdStxngnbUfZunZ/2e4kaMLzJDJLYDtYdmvOUCBDzUD4ssqmIMbn9RCQQ0U+CLEoqBqw==
 
-"@cloudflare/workerd-linux-arm64@1.20240529.0":
-  version "1.20240529.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20240529.0.tgz#234cf598906353e29a44fdcf2265864e23c36e4d"
-  integrity sha512-sDyeN1J3eYO9otDSI2YE7zXwtK7qYXb2YdAK/coa7PTxMglqFXJjndPXm56hwf35Hjyjrc1hEvT3n378IM/g9g==
+"@cloudflare/workerd-linux-arm64@1.20250129.0":
+  version "1.20250129.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20250129.0.tgz#f828e47ba5c219d4bbdfbe9b0cee64b5155f20b1"
+  integrity sha512-dR//npbaX5p323huBVNIy5gaWubQx6CC3aiXeK0yX4aD5ar8AjxQFb2U/Sgjeo65Rkt53hJWqC7IwRpK/eOxrA==
 
 "@cloudflare/workerd-windows-64@1.20240524.0":
   version "1.20240524.0"
   resolved "https://registry.yarnpkg.com/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20240524.0.tgz#aad79b9f6fd53a769355605903481d699a8789ce"
   integrity sha512-G+ThDEx57g9mAEKqhWnHaaJgpeGYtyhkmwM/BDpLqPks/rAY5YEfZbY4YL1pNk1kkcZDXGrwIsY8xe9Apf5JdA==
 
-"@cloudflare/workerd-windows-64@1.20240529.0":
-  version "1.20240529.0"
-  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20240529.0.tgz#70a3be94acd5992dab38705650454c33bd3ecbaa"
-  integrity sha512-Q68c2f9gPS2jN1Hvq7SG8l6BaDHAZfa4yVKlUE5RJLemDhWcVsrke8XmvqpwMc3tMkdt7domhCwgQOSmiPV1Aw==
+"@cloudflare/workerd-windows-64@1.20250129.0":
+  version "1.20250129.0"
+  resolved "https://registry.yarnpkg.com/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20250129.0.tgz#15b581c421064cf997f4eefef8a87286ac56469d"
+  integrity sha512-OeO+1nPj/ocAE3adFar/tRFGRkbCrBnrOYXq0FUBSpyNHpDdA9/U3PAw5CN4zvjfTnqXZfTxTFeqoruqzRzbtg==
 
 "@cloudflare/workers-types@^4.20230404.0":
   version "4.20230404.0"
@@ -5743,17 +5743,6 @@ pg-int8@1.0.1:
   resolved "https://registry.npmjs.org/pg-int8/-/pg-int8-1.0.1.tgz"
   integrity sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==
 
-pg-types@^1.12.1:
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/pg-types/-/pg-types-1.13.0.tgz#75f490b8a8abf75f1386ef5ec4455ecf6b345c63"
-  integrity sha512-lfKli0Gkl/+za/+b6lzENajczwZHc7D5kiUCZfgm914jipD2kIOIvEkAhZ8GrW3/TUoP9w8FHjwpPObBye5KQQ==
-  dependencies:
-    pg-int8 "1.0.1"
-    postgres-array "~1.0.0"
-    postgres-bytea "~1.0.0"
-    postgres-date "~1.0.0"
-    postgres-interval "^1.1.0"
-
 pg-types@^2.1.0:
   version "2.2.0"
   resolved "https://registry.npmjs.org/pg-types/-/pg-types-2.2.0.tgz"
@@ -5821,11 +5810,6 @@ posix-character-classes@^0.1.0:
   resolved "https://registry.npmjs.org/posix-character-classes/-/posix-character-classes-0.1.1.tgz"
   integrity sha1-AerA/jta9xoqbAL+q7jB/vfgDqs=
 
-postgres-array@~1.0.0:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/postgres-array/-/postgres-array-1.0.3.tgz#c561fc3b266b21451fc6555384f4986d78ec80f5"
-  integrity sha512-5wClXrAP0+78mcsNX3/ithQ5exKvCyK5lr5NEEEeGwwM6NJdQgzIJBVxLvRW+huFpX92F2QnZ5CcokH0VhK2qQ==
-
 postgres-array@~2.0.0:
   version "2.0.0"
   resolved "https://registry.npmjs.org/postgres-array/-/postgres-array-2.0.0.tgz"
@@ -5836,7 +5820,7 @@ postgres-bytea@~1.0.0:
   resolved "https://registry.npmjs.org/postgres-bytea/-/postgres-bytea-1.0.0.tgz"
   integrity sha1-AntTPAqokOJtFy1Hz5zOzFIazTU=
 
-postgres-date@~1.0.0, postgres-date@~1.0.4:
+postgres-date@~1.0.4:
   version "1.0.7"
   resolved "https://registry.npmjs.org/postgres-date/-/postgres-date-1.0.7.tgz"
   integrity sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==
@@ -7457,15 +7441,15 @@ workerd@1.20240524.0:
     "@cloudflare/workerd-windows-64" "1.20240524.0"
 
 workerd@^1.20230419.0:
-  version "1.20240529.0"
-  resolved "https://registry.yarnpkg.com/workerd/-/workerd-1.20240529.0.tgz#791310533f8253a0e0e6146108a9cf1553e425e2"
-  integrity sha512-6DGa2ruuvThMmybVJDj8FRK6Ya2IqCRLdAd9vO4m0a+QyQq29dGGvKrW4At/rPMYItLKM3VJgKThdSKgcrp00Q==
+  version "1.20250129.0"
+  resolved "https://registry.yarnpkg.com/workerd/-/workerd-1.20250129.0.tgz#319070f1fe0ce8be9866efac496b650e3901c401"
+  integrity sha512-Rprz8rxKTF4l6q/nYYI07lBetJnR19mGipx+u/a27GZOPKMG5SLIzA2NciZlJaB2Qd5YY+4p/eHOeKqo5keVWA==
   optionalDependencies:
-    "@cloudflare/workerd-darwin-64" "1.20240529.0"
-    "@cloudflare/workerd-darwin-arm64" "1.20240529.0"
-    "@cloudflare/workerd-linux-64" "1.20240529.0"
-    "@cloudflare/workerd-linux-arm64" "1.20240529.0"
-    "@cloudflare/workerd-windows-64" "1.20240529.0"
+    "@cloudflare/workerd-darwin-64" "1.20250129.0"
+    "@cloudflare/workerd-darwin-arm64" "1.20250129.0"
+    "@cloudflare/workerd-linux-64" "1.20250129.0"
+    "@cloudflare/workerd-linux-arm64" "1.20250129.0"
+    "@cloudflare/workerd-windows-64" "1.20250129.0"
 
 workerpool@6.2.1:
   version "6.2.1"
