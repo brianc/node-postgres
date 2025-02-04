@@ -9,6 +9,7 @@ class Result {
     this.rowCount = undefined
     this.fields = []
     this.rows = []
+    this._prebuiltEmptyResultObject = null
   }
 
   consumeCommand(pq) {
@@ -19,12 +20,16 @@ class Result {
   consumeFields(pq) {
     const nfields = pq.nfields()
     this.fields = new Array(nfields)
+    var row = {}
     for (var x = 0; x < nfields; x++) {
+      var name = pq.fname(x);
+      row[name] = null
       this.fields[x] = {
-        name: pq.fname(x),
+        name: name,
         dataTypeID: pq.ftype(x),
       }
     }
+    this._prebuiltEmptyResultObject = { ...row }
   }
 
   consumeRows(pq) {
@@ -36,7 +41,7 @@ class Result {
   }
 
   consumeRowAsObject(pq, rowIndex) {
-    const row = {}
+    const row = { ...this._prebuiltEmptyResultObject }
     for (var j = 0; j < this.fields.length; j++) {
       row[this.fields[j].name] = this.readValue(pq, rowIndex, j)
     }
