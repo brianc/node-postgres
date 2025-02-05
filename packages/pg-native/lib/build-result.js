@@ -22,7 +22,7 @@ class Result {
     this.fields = new Array(nfields)
     var row = {}
     for (var x = 0; x < nfields; x++) {
-      var name = pq.fname(x);
+      var name = pq.fname(x)
       row[name] = null
       this.fields[x] = {
         name: name,
