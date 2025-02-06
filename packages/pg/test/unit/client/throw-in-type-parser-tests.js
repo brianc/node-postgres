@@ -8,8 +8,17 @@ const suite = new helper.Suite()
 
 var typeParserError = new TypeError('TEST: Throw in type parsers')
 
-types.setTypeParser('special oid that will throw', function () {
-  throw typeParserError
+suite.test('special oid that will throw', function (done) {
+  try{
+    types.setTypeParser('special oid that will throw', function () {
+      throw typeParserError
+    })
+    assert.equal(true, false)
+  } catch(err) {
+    assert.equal(err, typeParserError)
+  } finally {
+    done()
+  }
 })
 
 const emitFakeEvents = (con) => {
