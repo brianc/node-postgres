@@ -6,12 +6,12 @@ const assert = require('assert')
 
 const suite = new helper.Suite()
 
-var typeParserError = new TypeError('TEST: Throw in type parsers')
+var typeParserError = new TypeError('oid must be an integer: special oid that will throw')
 
 suite.test('special oid that will throw', function (done) {
   try {
     types.setTypeParser('special oid that will throw', function () {
-      throw typeParserError
+      throw new Error('TEST: Throw in type parsers')
     })
     assert.equal(true, false)
   } catch (err) {
