@@ -9,7 +9,7 @@ const suite = new helper.Suite()
 var typeParserError = new TypeError('TEST: Throw in type parsers')
 
 suite.test('special oid that will throw', function (done) {
-  try{
+  try {
     types.setTypeParser('special oid that will throw', function () {
       throw typeParserError
     })
