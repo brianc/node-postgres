@@ -6,7 +6,7 @@ const assert = require('assert')
 
 const suite = new helper.Suite()
 
-var typeParserError = new Error('TEST: Throw in type parsers')
+var typeParserError = new TypeError('TEST: Throw in type parsers')
 
 types.setTypeParser('special oid that will throw', function () {
   throw typeParserError
