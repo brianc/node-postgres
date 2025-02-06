@@ -14,7 +14,7 @@ suite.test('special oid that will throw', function (done) {
       throw typeParserError
     })
     assert.equal(true, false)
-  } catch(err) {
+  } catch (err) {
     assert.equal(err, typeParserError)
   } finally {
     done()
