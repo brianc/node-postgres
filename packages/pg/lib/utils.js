@@ -70,7 +70,7 @@ var prepareValue = function (val, seen) {
     if (Array.isArray(val)) {
       return arrayString(val)
     }
-    
+
     return prepareObject(val, seen)
   }
   return val.toString()
