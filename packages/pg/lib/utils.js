@@ -66,7 +66,7 @@ var prepareValue = function (val, seen) {
       return dateToString(val)
     }
   }
-  if (Array.isArray(val)) {
+  if (Array.isArray(val) && val.toPostgres !== 'function') {
     return arrayString(val)
   }
   if (typeof val === 'object') {
