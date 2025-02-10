@@ -104,6 +104,29 @@ describe('parse', function () {
     subject.password.should.equal(sourceConfig.password)
   })
 
+  it('password contains foreslash', function () {
+    var sourceConfig = {
+      user: 'brian',
+      password: 'hello/passworld',
+      host: 'localhost',
+      port: 5432,
+      database: 'postgres',
+    }
+    var connectionString =
+      'postgres://' +
+      sourceConfig.user +
+      ':' +
+      sourceConfig.password +
+      '@' +
+      sourceConfig.host +
+      ':' +
+      sourceConfig.port +
+      '/' +
+      sourceConfig.database
+    var subject = parse(connectionString)
+    subject.password.should.equal(sourceConfig.password)
+  })
+
   it('username or password contains weird characters', function () {
     var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
     var subject = parse(strang)
