@@ -244,7 +244,7 @@ class Pool extends EventEmitter {
         // remove the dead client from our list of clients
         this._clients = this._clients.filter((c) => c !== client)
         if (timeoutHit) {
-          err = new Error('Connection terminated due to connection timeout', { cause: err } )
+          err = new Error('Connection terminated due to connection timeout', { cause: err })
         }
 
         // this client won’t be released, so move on immediately
