@@ -49,27 +49,28 @@ var prepareValue = function (val, seen) {
   if (val == null) {
     return null
   }
-  if (val instanceof Buffer) {
-    return val
-  }
-  if (ArrayBuffer.isView(val)) {
-    var buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
-    if (buf.length === val.byteLength) {
-      return buf
-    }
-    return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
-  }
-  if (val instanceof Date) {
-    if (defaults.parseInputDatesAsUTC) {
-      return dateToStringUTC(val)
-    } else {
-      return dateToString(val)
-    }
-  }
-  if (Array.isArray(val)) {
-    return arrayString(val)
-  }
   if (typeof val === 'object') {
+    if (val instanceof Buffer) {
+      return val
+    }
+    if (ArrayBuffer.isView(val)) {
+      var buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
+      if (buf.length === val.byteLength) {
+        return buf
+      }
+      return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
+    }
+    if (val instanceof Date) {
+      if (defaults.parseInputDatesAsUTC) {
+        return dateToStringUTC(val)
+      } else {
+        return dateToString(val)
+      }
+    }
+    if (Array.isArray(val)) {
+      return arrayString(val)
+    }
+
     return prepareObject(val, seen)
   }
   return val.toString()
