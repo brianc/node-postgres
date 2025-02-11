@@ -88,6 +88,8 @@ class Result {
       this._parsers = new Array(fieldDescriptions.length)
     }
 
+    this._prebuiltEmptyResultObject = {}
+
     for (var i = 0; i < fieldDescriptions.length; i++) {
       var desc = fieldDescriptions[i]
       this._prebuiltEmptyResultObject[desc.name] = null
