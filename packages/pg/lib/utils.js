@@ -166,7 +166,7 @@ function normalizeQueryConfig(config, values, callback) {
 
 // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
 const escapeIdentifier = function (str) {
-  return '"' + str.replace(/"/g, '""') + '"'
+  return '"' + str.replaceAll('"', '""') + '"'
 }
 
 const escapeLiteral = function (str) {
