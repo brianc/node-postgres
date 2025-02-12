@@ -20,15 +20,16 @@ class Result {
   consumeFields(pq) {
     const nfields = pq.nfields()
     this.fields = new Array(nfields)
-    this._prebuiltEmptyResultObject = {}
+    var row = {}
     for (var x = 0; x < nfields; x++) {
       var name = pq.fname(x)
-      this._prebuiltEmptyResultObject[name] = null
+      row[name] = null
       this.fields[x] = {
         name: name,
         dataTypeID: pq.ftype(x),
       }
     }
+    this._prebuiltEmptyResultObject = {...row}
   }
 
   consumeRows(pq) {
