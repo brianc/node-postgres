@@ -194,6 +194,10 @@ const escapeLiteral = function (str) {
   return escaped
 }
 
+// fast null object
+const nullObject = function() {}
+nullObject.prototype = Object.create(null)
+
 module.exports = {
   prepareValue: function prepareValueWrapper(value) {
     // this ensures that extra arguments do not get passed into prepareValue
@@ -203,4 +207,5 @@ module.exports = {
   normalizeQueryConfig,
   escapeIdentifier,
   escapeLiteral,
+  nullObject
 }
