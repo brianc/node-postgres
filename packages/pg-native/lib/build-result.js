@@ -29,7 +29,7 @@ class Result {
         dataTypeID: pq.ftype(x),
       }
     }
-    this._prebuiltEmptyResultObject = {...row}
+    this._prebuiltEmptyResultObject = { ...row }
   }
 
   consumeRows(pq) {
