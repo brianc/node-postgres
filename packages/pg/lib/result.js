@@ -89,7 +89,7 @@ class Result {
       this._parsers = new Array(fieldDescriptions.length)
     }
 
-    var row = utils.nullObject()
+    var row = new utils.nullObject()
 
     for (var i = 0; i < fieldDescriptions.length; i++) {
       var desc = fieldDescriptions[i]
