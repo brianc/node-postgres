@@ -1,6 +1,7 @@
 'use strict'
 
 var types = require('pg-types')
+var utils = require('./utils')
 
 var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
 
@@ -88,7 +89,7 @@ class Result {
       this._parsers = new Array(fieldDescriptions.length)
     }
 
-    var row = {}
+    var row = utils.nullObject()
 
     for (var i = 0; i < fieldDescriptions.length; i++) {
       var desc = fieldDescriptions[i]
