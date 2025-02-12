@@ -195,7 +195,9 @@ const escapeLiteral = function (str) {
 }
 
 // fast null object
-const nullObject = function() {}
+const nullObject = function() {
+  
+}
 
 nullObject.prototype = Object.create(null)
 
@@ -208,5 +210,5 @@ module.exports = {
   normalizeQueryConfig,
   escapeIdentifier,
   escapeLiteral,
-  nullObject
+  nullObject,
 }
