@@ -196,6 +196,7 @@ const escapeLiteral = function (str) {
 
 // fast null object
 const nullObject = function() {}
+
 nullObject.prototype = Object.create(null)
 
 module.exports = {
