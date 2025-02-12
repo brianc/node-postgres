@@ -101,7 +101,7 @@ class Result {
       }
     }
 
-    this._prebuiltEmptyResultObject = {...row}
+    this._prebuiltEmptyResultObject = { ...row }
   }
 }
 
