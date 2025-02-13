@@ -65,12 +65,4 @@ p.join = function (appendLength, char) {
   return result
 }
 
-BufferList.concat = function () {
-  var total = new BufferList()
-  for (var i = 0; i < arguments.length; i++) {
-    total.add(arguments[i])
-  }
-  return total.join()
-}
-
 module.exports = BufferList

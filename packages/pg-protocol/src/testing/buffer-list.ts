@@ -64,12 +64,4 @@ export default class BufferList {
     })
     return result
   }
-
-  public static concat(): Buffer {
-    var total = new BufferList()
-    for (var i = 0; i < arguments.length; i++) {
-      total.add(arguments[i])
-    }
-    return total.join()
-  }
 }
