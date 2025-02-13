@@ -88,11 +88,11 @@ class Result {
       this._parsers = new Array(fieldDescriptions.length)
     }
 
-    this._prebuiltEmptyResultObject = {}
+    var row = {}
 
     for (var i = 0; i < fieldDescriptions.length; i++) {
       var desc = fieldDescriptions[i]
-      this._prebuiltEmptyResultObject[desc.name] = null
+      row[desc.name] = null
 
       if (this._types) {
         this._parsers[i] = this._types.getTypeParser(desc.dataTypeID, desc.format || 'text')
@@ -100,6 +100,8 @@ class Result {
         this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       }
     }
+
+    this._prebuiltEmptyResultObject = { ...row }
   }
 }
 
