@@ -5,6 +5,7 @@ module.exports = {
   randomBytes,
   deriveKey,
   sha256,
+  hashByName,
   hmacSha256,
   md5,
 }
@@ -58,6 +59,10 @@ async function postgresMd5PasswordHash(user, password, salt) {
  */
 async function sha256(text) {
   return await subtleCrypto.digest('SHA-256', text)
+}
+
+async function hashByName(hashName, text) {
+  return await subtleCrypto.digest(hashName, text)
 }
 
 /**
