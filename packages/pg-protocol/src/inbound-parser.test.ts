@@ -503,17 +503,19 @@ describe('PgPacketStream', function () {
     }
 
     it('parses when split in the middle', function () {
-      testMessageReceivedAfterSplitAt(6)
+      return testMessageReceivedAfterSplitAt(6)
     })
 
     it('parses when split at end', function () {
-      testMessageReceivedAfterSplitAt(2)
+      return testMessageReceivedAfterSplitAt(2)
     })
 
     it('parses when split at beginning', function () {
-      testMessageReceivedAfterSplitAt(fullBuffer.length - 2)
-      testMessageReceivedAfterSplitAt(fullBuffer.length - 1)
-      testMessageReceivedAfterSplitAt(fullBuffer.length - 5)
+      return Promise.all([
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 2),
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 1),
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 5),
+      ])
     })
   })
 
