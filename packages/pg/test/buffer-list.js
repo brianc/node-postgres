@@ -14,10 +14,10 @@ p.addInt16 = function (val, front) {
   return this.add(Buffer.from([val >>> 8, val >>> 0]), front)
 }
 
-p.getByteLength = function (initial) {
+p.getByteLength = function () {
   return this.buffers.reduce(function (previous, current) {
     return previous + current.length
-  }, initial || 0)
+  }, 0)
 }
 
 p.addInt32 = function (val, first) {
