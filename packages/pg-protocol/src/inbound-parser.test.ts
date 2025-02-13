@@ -492,7 +492,7 @@ describe('PgPacketStream', function () {
       var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
       fullBuffer.copy(secondBuffer, 0, firstBuffer.length)
-      const messages = await parseBuffers([fullBuffer])
+      const messages = await parseBuffers([firstBuffer, secondBuffer])
       const message = messages[0] as any
       assert.equal(message.fields.length, 5)
       assert.equal(message.fields[0], null)
