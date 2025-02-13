@@ -10,4 +10,3 @@ dist
 /.eslintcache
 .vscode/
 manually-test-on-heroku.js
-* text=auto eol=lf
