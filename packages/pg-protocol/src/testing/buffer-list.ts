@@ -10,10 +10,10 @@ export default class BufferList {
     return this.add(Buffer.from([val >>> 8, val >>> 0]), front)
   }
 
-  public getByteLength(initial?: number) {
+  public getByteLength() {
     return this.buffers.reduce(function (previous, current) {
       return previous + current.length
-    }, initial || 0)
+    }, 0)
   }
 
   public addInt32(val: number, first?: boolean) {
@@ -63,13 +63,5 @@ export default class BufferList {
       index += buffer.length
     })
     return result
-  }
-
-  public static concat(): Buffer {
-    var total = new BufferList()
-    for (var i = 0; i < arguments.length; i++) {
-      total.add(arguments[i])
-    }
-    return total.join()
   }
 }
