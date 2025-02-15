@@ -3,7 +3,7 @@ const net = require('net')
 const buffers = require('../../test-buffers')
 const helper = require('./test-helper')
 const assert = require('assert')
-
+const { ConnectionTimeoutError } = require('../../../lib/utils')
 const suite = new helper.Suite()
 
 const options = {
@@ -68,22 +68,24 @@ suite.test('successful connection', (done) => {
 })
 
 suite.test('expired connection timeout', (done) => {
-  const opts = { ...options, port: options.port + 1 }
+  const opts = { ...options, port: options.port + 1 };
   serverWithConnectionTimeout(opts.port, opts.connectionTimeoutMillis * 2, (closeServer) => {
     const timeoutId = setTimeout(() => {
-      throw new Error('Client should have emitted an error but it did not.')
-    }, 3000)
+      done(new Error('Client should have emitted an error but it did not.'));
+    }, 3000);
 
-    const client = new helper.Client(opts)
+    const client = new helper.Client(opts);
     client
       .connect()
-      .then(() => client.end())
-      .then(() => closeServer(() => done(new Error('Connection timeout should have expired but it did not.'))))
-      .catch((err) => {
-        assert(err instanceof Error)
-        assert(/timeout expired\s*/.test(err.message))
-        closeServer(done)
+      .then(() => {
+        clearTimeout(timeoutId);
+        return client.end().then(() => closeServer(() => done(new Error('Connection timeout should have expired but it did not.'))));
       })
-      .then(() => clearTimeout(timeoutId))
-  })
-})
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        assert(err instanceof ConnectionTimeoutError);
+        assert.strictEqual(err.code, 'CONNECTION_TIMEOUT');
+        closeServer(done);
+      });
+  });
+});

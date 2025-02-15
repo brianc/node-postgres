@@ -10,6 +10,7 @@ var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 const crypto = require('./crypto/utils')
+const { ConnectionTimeoutError } = "./utils"
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -102,7 +103,7 @@ class Client extends EventEmitter {
     if (this._connectionTimeoutMillis > 0) {
       this.connectionTimeoutHandle = setTimeout(() => {
         con._ending = true
-        con.stream.destroy(new Error('timeout expired'))
+        con.stream.destroy(new ConnectionTimeoutError('timeout expired'))
       }, this._connectionTimeoutMillis)
     }
 
