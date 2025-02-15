@@ -68,24 +68,26 @@ suite.test('successful connection', (done) => {
 })
 
 suite.test('expired connection timeout', (done) => {
-  const opts = { ...options, port: options.port + 1 };
+  const opts = { ...options, port: options.port + 1 }
   serverWithConnectionTimeout(opts.port, opts.connectionTimeoutMillis * 2, (closeServer) => {
     const timeoutId = setTimeout(() => {
-      done(new Error('Client should have emitted an error but it did not.'));
-    }, 3000);
+      done(new Error('Client should have emitted an error but it did not.'))
+    }, 3000)
 
-    const client = new helper.Client(opts);
+    const client = new helper.Client(opts)
     client
       .connect()
       .then(() => {
-        clearTimeout(timeoutId);
-        return client.end().then(() => closeServer(() => done(new Error('Connection timeout should have expired but it did not.'))));
+        clearTimeout(timeoutId)
+        return client
+          .end()
+          .then(() => closeServer(() => done(new Error('Connection timeout should have expired but it did not.'))))
       })
       .catch((err) => {
-        clearTimeout(timeoutId);
-        assert(err instanceof ConnectionTimeoutError);
-        assert.strictEqual(err.code, 'CONNECTION_TIMEOUT');
-        closeServer(done);
-      });
-  });
-});
+        clearTimeout(timeoutId)
+        assert(err instanceof ConnectionTimeoutError)
+        assert.strictEqual(err.code, 'CONNECTION_TIMEOUT')
+        closeServer(done)
+      })
+  })
+})

@@ -196,12 +196,11 @@ const escapeLiteral = function (str) {
 
 class ConnectionTimeoutError extends Error {
   constructor(message) {
-    super(message);
-    this.name = 'ConnectionTimeoutError';
-    this.code = 'CONNECTION_TIMEOUT';
+    super(message)
+    this.name = 'ConnectionTimeoutError'
+    this.code = 'CONNECTION_TIMEOUT'
   }
 }
-
 
 module.exports = {
   prepareValue: function prepareValueWrapper(value) {
@@ -212,5 +211,5 @@ module.exports = {
   normalizeQueryConfig,
   escapeIdentifier,
   escapeLiteral,
-  ConnectionTimeoutError
+  ConnectionTimeoutError,
 }

@@ -10,7 +10,7 @@ var Query = require('./query')
 var defaults = require('./defaults')
 var Connection = require('./connection')
 const crypto = require('./crypto/utils')
-const { ConnectionTimeoutError } = "./utils"
+const { ConnectionTimeoutError } = './utils'
 
 class Client extends EventEmitter {
   constructor(config) {
