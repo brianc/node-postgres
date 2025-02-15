@@ -37,6 +37,7 @@
     "wrangler": "3.58.0"
   },
   "optionalDependencies": {
+    "kerberos": "^2.2.0",
     "pg-cloudflare": "^1.1.1"
   },
   "peerDependencies": {
