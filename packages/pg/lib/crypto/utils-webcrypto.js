@@ -1,5 +1,3 @@
-const nodeCrypto = require('crypto')
-
 module.exports = {
   postgresMd5PasswordHash,
   randomBytes,
@@ -13,7 +11,7 @@ module.exports = {
  * The Web Crypto API - grabbed from the Node.js library or the global
  * @type Crypto
  */
-const webCrypto = nodeCrypto.webcrypto || globalThis.crypto
+const webCrypto = globalThis.crypto ?? require('node:crypto').webcrypto
 /**
  * The SubtleCrypto API for low level crypto operations.
  * @type SubtleCrypto
@@ -31,18 +29,11 @@ function randomBytes(length) {
 }
 
 async function md5(string) {
-  try {
-    return nodeCrypto.createHash('md5').update(string, 'utf-8').digest('hex')
-  } catch (e) {
-    // `createHash()` failed so we are probably not in Node.js, use the WebCrypto API instead.
-    // Note that the MD5 algorithm on WebCrypto is not available in Node.js.
-    // This is why we cannot just use WebCrypto in all environments.
-    const data = typeof string === 'string' ? textEncoder.encode(string) : string
-    const hash = await subtleCrypto.digest('MD5', data)
-    return Array.from(new Uint8Array(hash))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('')
-  }
+  const data = typeof string === 'string' ? textEncoder.encode(string) : string
+  const hash = await subtleCrypto.digest('MD5', data)
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 // See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
