@@ -156,7 +156,7 @@ class Pool extends EventEmitter {
     throw new Error('unexpected condition')
   }
 
-  _remove(client) {
+  _remove(client, callback) {
     const removed = removeWhere(this._idle, (item) => item.client === client)
 
     if (removed !== undefined) {
@@ -164,8 +164,14 @@ class Pool extends EventEmitter {
     }
 
     this._clients = this._clients.filter((c) => c !== client)
-    client.end()
-    this.emit('remove', client)
+    const context = this
+    client.end(() => {
+      context.emit('remove', client)
+
+      if (typeof callback === 'function') {
+        callback()
+      }
+    })
   }
 
   connect(cb) {
@@ -342,18 +348,15 @@ class Pool extends EventEmitter {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
-      this._remove(client)
-      this._pulseQueue()
-      return
+
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     const isExpired = this._expired.has(client)
     if (isExpired) {
       this.log('remove expired client')
       this._expired.delete(client)
-      this._remove(client)
-      this._pulseQueue()
-      return
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     // idle timeout
@@ -361,7 +364,7 @@ class Pool extends EventEmitter {
     if (this.options.idleTimeoutMillis) {
       tid = setTimeout(() => {
         this.log('remove idle client')
-        this._remove(client)
+        this._remove(client, this._pulseQueue.bind(this))
       }, this.options.idleTimeoutMillis)
 
       if (this.options.allowExitOnIdle) {
