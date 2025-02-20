@@ -39,6 +39,17 @@ var twoRowBuf = buffers.rowDescription([
   },
 ])
 
+var rowWithBigOids = {
+  name: 'bigoid',
+  tableID: 3000000001,
+  attributeNumber: 2,
+  dataTypeID: 3000000003,
+  dataTypeSize: 4,
+  typeModifier: 5,
+  formatCode: 0,
+}
+var bigOidDescBuff = buffers.rowDescription([rowWithBigOids])
+
 var emptyRowFieldBuf = new BufferList().addInt16(0).join(true, 'D')
 
 var emptyRowFieldBuf = buffers.dataRow([])
@@ -132,6 +143,22 @@ var expectedTwoRowMessage = {
     },
   ],
 }
+var expectedBigOidMessage = {
+  name: 'rowDescription',
+  length: 31,
+  fieldCount: 1,
+  fields: [
+    {
+      name: 'bigoid',
+      tableID: 3000000001,
+      columnID: 2,
+      dataTypeID: 3000000003,
+      dataTypeSize: 4,
+      dataTypeModifier: 5,
+      format: 'text',
+    },
+  ],
+}
 
 var emptyParameterDescriptionBuffer = new BufferList()
   .addInt16(0) // number of parameters
@@ -163,7 +190,7 @@ var expectedTwoParameterMessage = {
 }
 
 var testForMessage = function (buffer: Buffer, expectedMessage: any) {
-  it('recieves and parses ' + expectedMessage.name, async () => {
+  it('receives and parses ' + expectedMessage.name, async () => {
     const messages = await parseBuffers([buffer])
     const [lastMessage] = messages
 
@@ -261,6 +288,7 @@ describe('PgPacketStream', function () {
     testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage)
     testForMessage(oneRowDescBuff, expectedOneRowMessage)
     testForMessage(twoRowBuf, expectedTwoRowMessage)
+    testForMessage(bigOidDescBuff, expectedBigOidMessage)
   })
 
   describe('parameterDescription messages', function () {
@@ -459,12 +487,12 @@ describe('PgPacketStream', function () {
       assert.equal(message.fields[4], '!')
     })
 
-    var testMessageRecievedAfterSpiltAt = async function (split: number) {
+    var testMessageReceivedAfterSplitAt = async function (split: number) {
       var firstBuffer = Buffer.alloc(fullBuffer.length - split)
       var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
       fullBuffer.copy(secondBuffer, 0, firstBuffer.length)
-      const messages = await parseBuffers([fullBuffer])
+      const messages = await parseBuffers([firstBuffer, secondBuffer])
       const message = messages[0] as any
       assert.equal(message.fields.length, 5)
       assert.equal(message.fields[0], null)
@@ -475,17 +503,19 @@ describe('PgPacketStream', function () {
     }
 
     it('parses when split in the middle', function () {
-      testMessageRecievedAfterSpiltAt(6)
+      return testMessageReceivedAfterSplitAt(6)
     })
 
     it('parses when split at end', function () {
-      testMessageRecievedAfterSpiltAt(2)
+      return testMessageReceivedAfterSplitAt(2)
     })
 
     it('parses when split at beginning', function () {
-      testMessageRecievedAfterSpiltAt(fullBuffer.length - 2)
-      testMessageRecievedAfterSpiltAt(fullBuffer.length - 1)
-      testMessageRecievedAfterSpiltAt(fullBuffer.length - 5)
+      return Promise.all([
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 2),
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 1),
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 5),
+      ])
     })
   })
 
@@ -512,7 +542,7 @@ describe('PgPacketStream', function () {
       })
     }
     // sanity check
-    it('recieves both messages when packet is not split', async function () {
+    it('receives both messages when packet is not split', async function () {
       const messages = await parseBuffers([fullBuffer])
       verifyMessages(messages)
     })
@@ -526,7 +556,7 @@ describe('PgPacketStream', function () {
       verifyMessages(messages)
     }
 
-    describe('recieves both messages when packet is split', function () {
+    describe('receives both messages when packet is split', function () {
       it('in the middle', function () {
         return splitAndVerifyTwoMessages(11)
       })

@@ -37,7 +37,7 @@ class Result {
     if (match) {
       this.command = match[1]
       if (match[3]) {
-        // COMMMAND OID ROWS
+        // COMMAND OID ROWS
         this.oid = parseInt(match[2], 10)
         this.rowCount = parseInt(match[3], 10)
       } else if (match[2]) {
@@ -100,6 +100,7 @@ class Result {
         this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       }
     }
+
     this._prebuiltEmptyResultObject = { ...row }
   }
 }

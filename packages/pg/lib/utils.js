@@ -49,27 +49,28 @@ var prepareValue = function (val, seen) {
   if (val == null) {
     return null
   }
-  if (val instanceof Buffer) {
-    return val
-  }
-  if (ArrayBuffer.isView(val)) {
-    var buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
-    if (buf.length === val.byteLength) {
-      return buf
-    }
-    return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
-  }
-  if (val instanceof Date) {
-    if (defaults.parseInputDatesAsUTC) {
-      return dateToStringUTC(val)
-    } else {
-      return dateToString(val)
-    }
-  }
-  if (Array.isArray(val)) {
-    return arrayString(val)
-  }
   if (typeof val === 'object') {
+    if (val instanceof Buffer) {
+      return val
+    }
+    if (ArrayBuffer.isView(val)) {
+      var buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
+      if (buf.length === val.byteLength) {
+        return buf
+      }
+      return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
+    }
+    if (val instanceof Date) {
+      if (defaults.parseInputDatesAsUTC) {
+        return dateToStringUTC(val)
+      } else {
+        return dateToString(val)
+      }
+    }
+    if (Array.isArray(val)) {
+      return arrayString(val)
+    }
+
     return prepareObject(val, seen)
   }
   return val.toString()
@@ -88,14 +89,6 @@ function prepareObject(val, seen) {
   return JSON.stringify(val)
 }
 
-function pad(number, digits) {
-  number = '' + number
-  while (number.length < digits) {
-    number = '0' + number
-  }
-  return number
-}
-
 function dateToString(date) {
   var offset = -date.getTimezoneOffset()
 
@@ -104,19 +97,19 @@ function dateToString(date) {
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
   var ret =
-    pad(year, 4) +
+    String(year).padStart(4, '0') +
     '-' +
-    pad(date.getMonth() + 1, 2) +
+    String(date.getMonth() + 1).padStart(2, '0') +
     '-' +
-    pad(date.getDate(), 2) +
+    String(date.getDate()).padStart(2, '0') +
     'T' +
-    pad(date.getHours(), 2) +
+    String(date.getHours()).padStart(2, '0') +
     ':' +
-    pad(date.getMinutes(), 2) +
+    String(date.getMinutes()).padStart(2, '0') +
     ':' +
-    pad(date.getSeconds(), 2) +
+    String(date.getSeconds()).padStart(2, '0') +
     '.' +
-    pad(date.getMilliseconds(), 3)
+    String(date.getMilliseconds()).padStart(3, '0')
 
   if (offset < 0) {
     ret += '-'
@@ -125,7 +118,7 @@ function dateToString(date) {
     ret += '+'
   }
 
-  ret += pad(Math.floor(offset / 60), 2) + ':' + pad(offset % 60, 2)
+  ret += String(Math.floor(offset / 60)).padStart(2, '0') + ':' + String(offset % 60).padStart(2, '0')
   if (isBCYear) ret += ' BC'
   return ret
 }
@@ -136,19 +129,19 @@ function dateToStringUTC(date) {
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
   var ret =
-    pad(year, 4) +
+    String(year).padStart(4, '0') +
     '-' +
-    pad(date.getUTCMonth() + 1, 2) +
+    String(date.getUTCMonth() + 1).padStart(2, '0') +
     '-' +
-    pad(date.getUTCDate(), 2) +
+    String(date.getUTCDate()).padStart(2, '0') +
     'T' +
-    pad(date.getUTCHours(), 2) +
+    String(date.getUTCHours()).padStart(2, '0') +
     ':' +
-    pad(date.getUTCMinutes(), 2) +
+    String(date.getUTCMinutes()).padStart(2, '0') +
     ':' +
-    pad(date.getUTCSeconds(), 2) +
+    String(date.getUTCSeconds()).padStart(2, '0') +
     '.' +
-    pad(date.getUTCMilliseconds(), 3)
+    String(date.getUTCMilliseconds()).padStart(3, '0')
 
   ret += '+00:00'
   if (isBCYear) ret += ' BC'

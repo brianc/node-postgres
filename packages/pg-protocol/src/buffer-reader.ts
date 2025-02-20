@@ -31,6 +31,12 @@ export class BufferReader {
     return result
   }
 
+  public uint32(): number {
+    const result = this.buffer.readUInt32BE(this.offset)
+    this.offset += 4
+    return result
+  }
+
   public string(length: number): string {
     const result = this.buffer.toString(this.encoding, this.offset, this.offset + length)
     this.offset += length
