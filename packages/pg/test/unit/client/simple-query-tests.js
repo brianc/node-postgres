@@ -112,6 +112,10 @@ test('executing query', function () {
         text: 'INSERT 31 1',
       })
     })
+
+    test('removes itself after another readyForQuery message', function () {
+      return false
+    })
   })
 
   test('handles errors', function () {
