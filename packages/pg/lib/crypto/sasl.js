@@ -1,22 +1,34 @@
 'use strict'
 const crypto = require('./utils')
+const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
 
-function startSession(mechanisms) {
-  if (mechanisms.indexOf('SCRAM-SHA-256') === -1) {
-    throw new Error('SASL: Only mechanism SCRAM-SHA-256 is currently supported')
+function startSession(mechanisms, stream) {
+  const candidates = ['SCRAM-SHA-256']
+  if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
+
+  const mechanism = candidates.find((candidate) => mechanisms.includes(candidate))
+
+  if (!mechanism) {
+    throw new Error('SASL: Only mechanism(s) ' + candidates.join(' and ') + ' are supported')
+  }
+
+  if (mechanism === 'SCRAM-SHA-256-PLUS' && typeof stream.getPeerCertificate !== 'function') {
+    // this should never happen if we are really talking to a Postgres server
+    throw new Error('SASL: Mechanism SCRAM-SHA-256-PLUS requires a certificate')
   }
 
   const clientNonce = crypto.randomBytes(18).toString('base64')
+  const gs2Header = mechanism === 'SCRAM-SHA-256-PLUS' ? 'p=tls-server-end-point' : stream ? 'y' : 'n'
 
   return {
-    mechanism: 'SCRAM-SHA-256',
+    mechanism,
     clientNonce,
-    response: 'n,,n=*,r=' + clientNonce,
+    response: gs2Header + ',,n=*,r=' + clientNonce,
     message: 'SASLInitialResponse',
   }
 }
 
-async function continueSession(session, password, serverData) {
+async function continueSession(session, password, serverData, stream) {
   if (session.message !== 'SASLInitialResponse') {
     throw new Error('SASL: Last message was not SASLInitialResponse')
   }
@@ -40,7 +52,21 @@ async function continueSession(session, password, serverData) {
 
   var clientFirstMessageBare = 'n=*,r=' + session.clientNonce
   var serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
-  var clientFinalMessageWithoutProof = 'c=biws,r=' + sv.nonce
+
+  // without channel binding:
+  let channelBinding = stream ? 'eSws' : 'biws' // 'y,,' or 'n,,', base64-encoded
+
+  // override if channel binding is in use:
+  if (session.mechanism === 'SCRAM-SHA-256-PLUS') {
+    const peerCert = stream.getPeerCertificate().raw
+    let hashName = signatureAlgorithmHashFromCertificate(peerCert)
+    if (hashName === 'MD5' || hashName === 'SHA-1') hashName = 'SHA-256'
+    const certHash = await crypto.hashByName(hashName, peerCert)
+    const bindingData = Buffer.concat([Buffer.from('p=tls-server-end-point,,'), Buffer.from(certHash)])
+    channelBinding = bindingData.toString('base64')
+  }
+
+  var clientFinalMessageWithoutProof = 'c=' + channelBinding + ',r=' + sv.nonce
   var authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
   var saltBytes = Buffer.from(sv.salt, 'base64')
