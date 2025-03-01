@@ -17,7 +17,7 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^10.5.2",
+    "mocha": "^11.1.0",
     "pg": "^8.13.3"
   },
   "peerDependencies": {
