@@ -111,7 +111,7 @@ class Pool extends EventEmitter {
     return this._clients.length >= this.options.max
   }
 
-  _pulseQueue() {
+  _pulseQueue(name) {
     this.log('pulse queue')
     if (this.ended) {
       this.log('pulse queue ended')
@@ -142,7 +142,10 @@ class Pool extends EventEmitter {
     }
     const pendingItem = this._pendingQueue.shift()
     if (this._idle.length) {
-      const idleItem = this._idle.pop()
+      let idleItem = name ? this._idle.find((item) => item.client.connection.parsedStatements[name]) : null
+      if (!idleItem) {
+        idleItem = this._idle.pop()
+      }
       clearTimeout(idleItem.timeoutId)
       const client = idleItem.client
       client.ref && client.ref()
@@ -168,7 +171,7 @@ class Pool extends EventEmitter {
     this.emit('remove', client)
   }
 
-  connect(cb) {
+  connect(cb, name) {
     if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
       return cb ? cb(err) : this.Promise.reject(err)
@@ -181,7 +184,7 @@ class Pool extends EventEmitter {
     if (this._isFull() || this._idle.length) {
       // if we have idle clients schedule a pulse immediately
       if (this._idle.length) {
-        process.nextTick(() => this._pulseQueue())
+        process.nextTick(() => this._pulseQueue(name))
       }
 
       if (!this.options.connectionTimeoutMillis) {
@@ -431,7 +434,7 @@ class Pool extends EventEmitter {
         client.release(err)
         return cb(err)
       }
-    })
+    }, text.name)
     return response.result
   }
 
