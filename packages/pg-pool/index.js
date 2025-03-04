@@ -434,7 +434,7 @@ class Pool extends EventEmitter {
         client.release(err)
         return cb(err)
       }
-    }, text.name)
+    }, text?.name)
     return response.result
   }
 
