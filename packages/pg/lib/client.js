@@ -105,7 +105,7 @@ class Client extends EventEmitter {
         con.stream.destroy(new Error('timeout expired'))
       }, this._connectionTimeoutMillis)
 
-      if(this.connectionTimeoutHandle.unref){
+      if (this.connectionTimeoutHandle.unref) {
         this.connectionTimeoutHandle.unref()
       }
     }
