@@ -26,5 +26,4 @@ describe('prioritizing prepared client', () => {
       pool.end()
     })
   )
-
 })
