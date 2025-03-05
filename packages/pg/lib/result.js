@@ -100,6 +100,7 @@ class Result {
         this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       }
     }
+
     this._prebuiltEmptyResultObject = { ...row }
   }
 }
