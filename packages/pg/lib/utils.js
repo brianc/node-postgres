@@ -54,7 +54,7 @@ const prepareValue = function (val, seen) {
       return val
     }
     if (ArrayBuffer.isView(val)) {
-      var buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
+      const buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
       if (buf.length === val.byteLength) {
         return buf
       }
