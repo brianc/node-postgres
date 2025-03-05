@@ -15,11 +15,11 @@ describe('prioritizing prepared client', () => {
 
       let res
 
-      res = yield pool.query({text: 'SELECT $1::text as name', values: ['hi'], name: 'foo'})
+      res = yield pool.query({ text: 'SELECT $1::text as name', values: ['hi'], name: 'foo' })
       expect(res.rows[0].name).to.equal('hi')
       expect(pool._idle.length).to.equal(1)
 
-      res = yield pool.query({text: 'SELECT $1::text as name', values: ['ho'], name: 'foo'})
+      res = yield pool.query({ text: 'SELECT $1::text as name', values: ['ho'], name: 'foo' })
       expect(res.rows[0].name).to.equal('ho')
       expect(pool._idle.length).to.equal(1)
 
