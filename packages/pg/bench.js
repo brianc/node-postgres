@@ -23,7 +23,7 @@ const exec = async (client, q) => {
 }
 
 const bench = async (client, q, time) => {
-  let start = Date.now()
+  const start = Date.now()
   let count = 0
   while (true) {
     await exec(client, q)

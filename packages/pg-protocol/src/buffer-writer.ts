@@ -9,12 +9,12 @@ export class Writer {
   }
 
   private ensure(size: number): void {
-    var remaining = this.buffer.length - this.offset
+    const remaining = this.buffer.length - this.offset
     if (remaining < size) {
-      var oldBuffer = this.buffer
+      const oldBuffer = this.buffer
       // exponential growth factor of around ~ 1.5
       // https://stackoverflow.com/questions/2269063/buffer-growth-strategy
-      var newSize = oldBuffer.length + (oldBuffer.length >> 1) + size
+      const newSize = oldBuffer.length + (oldBuffer.length >> 1) + size
       this.buffer = Buffer.allocUnsafe(newSize)
       oldBuffer.copy(this.buffer)
     }
@@ -40,7 +40,7 @@ export class Writer {
     if (!string) {
       this.ensure(1)
     } else {
-      var len = Buffer.byteLength(string)
+      const len = Buffer.byteLength(string)
       this.ensure(len + 1) // +1 for null terminator
       this.buffer.write(string, this.offset, 'utf-8')
       this.offset += len
@@ -51,7 +51,7 @@ export class Writer {
   }
 
   public addString(string: string = ''): Writer {
-    var len = Buffer.byteLength(string)
+    const len = Buffer.byteLength(string)
     this.ensure(len)
     this.buffer.write(string, this.offset)
     this.offset += len
@@ -76,7 +76,7 @@ export class Writer {
   }
 
   public flush(code?: number): Buffer {
-    var result = this.join(code)
+    const result = this.join(code)
     this.offset = 5
     this.headerPosition = 0
     this.buffer = Buffer.allocUnsafe(this.size)

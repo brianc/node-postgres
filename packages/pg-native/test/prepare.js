@@ -1,13 +1,13 @@
-var Client = require('../')
-var ok = require('okay')
-var async = require('async')
+const Client = require('../')
+const ok = require('okay')
+const async = require('async')
 
 describe('async prepare', function () {
-  var run = function (n, cb) {
-    var client = new Client()
+  const run = function (n, cb) {
+    const client = new Client()
     client.connectSync()
 
-    var exec = function (x, done) {
+    const exec = function (x, done) {
       client.prepare('get_now' + x, 'SELECT NOW()', 0, done)
     }
 
@@ -20,7 +20,7 @@ describe('async prepare', function () {
     )
   }
 
-  var t = function (n) {
+  const t = function (n) {
     it('works for ' + n + ' clients', function (done) {
       async.times(n, run, function (err) {
         done(err)
@@ -28,17 +28,17 @@ describe('async prepare', function () {
     })
   }
 
-  for (var i = 0; i < 10; i++) {
+  for (let i = 0; i < 10; i++) {
     t(i)
   }
 })
 
 describe('async execute', function () {
-  var run = function (n, cb) {
-    var client = new Client()
+  const run = function (n, cb) {
+    const client = new Client()
     client.connectSync()
     client.prepareSync('get_now', 'SELECT NOW()', 0)
-    var exec = function (x, cb) {
+    const exec = function (x, cb) {
       client.execute('get_now', [], cb)
     }
     async.timesSeries(
@@ -50,7 +50,7 @@ describe('async execute', function () {
     )
   }
 
-  var t = function (n) {
+  const t = function (n) {
     it('works for ' + n + ' clients', function (done) {
       async.times(n, run, function (err) {
         done(err)
@@ -58,7 +58,7 @@ describe('async execute', function () {
     })
   }
 
-  for (var i = 0; i < 10; i++) {
+  for (let i = 0; i < 10; i++) {
     t(i)
   }
 })
