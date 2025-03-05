@@ -142,7 +142,14 @@ class Pool extends EventEmitter {
     }
     const pendingItem = this._pendingQueue.shift()
     if (this._idle.length) {
-      let idleItem = name ? this._idle.find((item) => item.client.connection.parsedStatements[name]) : null
+      let idleItem = null
+      if (name) {
+        // find if there is a free client that already has cached prepared statements
+        const index = this._idle.findIndex((item) => item.client.connection.parsedStatements[name])
+        if (index > -1) {
+          idleItem = this._idle.splice(index, 1)[0]
+        }
+      } 
       if (!idleItem) {
         idleItem = this._idle.pop()
       }
