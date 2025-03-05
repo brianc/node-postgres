@@ -149,7 +149,7 @@ class Pool extends EventEmitter {
         if (index > -1) {
           idleItem = this._idle.splice(index, 1)[0]
         }
-      } 
+      }
       if (!idleItem) {
         idleItem = this._idle.pop()
       }
