@@ -23,7 +23,7 @@
   "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-native",
   "dependencies": {
     "libpq": "1.8.14",
-    "pg-types": "^2.1.0"
+    "pg-types": "^4.0.2"
   },
   "devDependencies": {
     "async": "^0.9.0",
