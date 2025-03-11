@@ -14,17 +14,17 @@ describe('prioritizing prepared client', () => {
       expect(pool.waitingCount).to.equal(0)
       expect(pool._idle.length).to.equal(0)
 
+      let res, firstClient, secondClient, firstPid, secondPid
+
       // force the creation of two client and release.
       // In this way we have two idle client
-      const firstClient = yield pool.connect()
+      firstClient = yield pool.connect()
       expect(pool._clients.length).to.equal(1)
-      const secondClient = yield pool.connect()
+      secondClient = yield pool.connect()
       expect(pool._clients.length).to.equal(2)
       firstClient.release()
       secondClient.release()
       expect(pool._idle.length).to.equal(2)
-
-      let res, firstPid, secondPid
 
       // check the same client with prepared query
 
@@ -39,6 +39,15 @@ describe('prioritizing prepared client', () => {
       secondPid = res.rows[0].pid
 
       expect(firstPid).to.equal(secondPid)
+
+      // check also connect with name, return same client
+
+      firstClient = yield pool.connect('foo')
+      res = yield firstClient.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['hi'] })
+      expect(res.rows[0].name).to.equal('hi')
+      expect(firstPid).to.not.equal(res.rows[0].pid)
+      firstClient.release()
+      expect(pool._idle.length).to.equal(2)
 
       pool.end()
     })

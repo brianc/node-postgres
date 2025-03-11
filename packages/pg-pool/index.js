@@ -179,6 +179,12 @@ class Pool extends EventEmitter {
   }
 
   connect(cb, name) {
+    // guard clause against passing a name as the first parameter
+    if (typeof cb === 'string') {
+      name = cb;
+      cb = undefined; 
+    }
+
     if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
       return cb ? cb(err) : this.Promise.reject(err)
