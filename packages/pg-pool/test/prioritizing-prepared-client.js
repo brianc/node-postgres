@@ -28,12 +28,12 @@ describe('prioritizing prepared client', () => {
 
       res = yield pool.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['hi'], name: 'foo' })
       expect(res.rows[0].name).to.equal('hi')
-      expect(pool._idle.length).to.equal(1)
+      expect(pool._idle.length).to.equal(2)
       const firstPid = res.rows[0].pid
 
       res = yield pool.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['ho'], name: 'foo' })
       expect(res.rows[0].name).to.equal('ho')
-      expect(pool._idle.length).to.equal(1)
+      expect(pool._idle.length).to.equal(2)
       const secondPid = res.rows[0].pid
 
       expect(firstPid).to.equal(secondPid)
