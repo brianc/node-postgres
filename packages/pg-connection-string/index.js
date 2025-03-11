@@ -93,13 +93,24 @@ function parse(str) {
       break
     }
     case 'prefer':
-    case 'require':
-    case 'verify-ca':
-    case 'verify-full': {
-      break
-    }
     case 'no-verify': {
       config.ssl.rejectUnauthorized = false
+      break
+    }
+    case 'require': {
+      if (config.sslrootcert) {
+        // If a root CA is specified, behavior of `sslmode=require` will be the same as that of `verify-ca`
+        config.ssl.checkServerIdentity = function () {}
+      } else {
+        config.ssl.rejectUnauthorized = false
+      }
+      break
+    }
+    case 'verify-ca': {
+      config.ssl.checkServerIdentity = function () {}
+      break
+    }
+    case 'verify-full': {
       break
     }
   }
