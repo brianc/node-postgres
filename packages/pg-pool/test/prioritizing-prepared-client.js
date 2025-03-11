@@ -24,19 +24,35 @@ describe('prioritizing prepared client', () => {
       secondClient.release()
       expect(pool._idle.length).to.equal(2)
 
-      let res
+      let res, firstPid, secondPid
+
+      // check the same client with prepared query
 
       res = yield pool.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['hi'], name: 'foo' })
       expect(res.rows[0].name).to.equal('hi')
       expect(pool._idle.length).to.equal(2)
-      const firstPid = res.rows[0].pid
+      firstPid = res.rows[0].pid
 
       res = yield pool.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['ho'], name: 'foo' })
       expect(res.rows[0].name).to.equal('ho')
       expect(pool._idle.length).to.equal(2)
-      const secondPid = res.rows[0].pid
+      secondPid = res.rows[0].pid
 
       expect(firstPid).to.equal(secondPid)
+
+      // not the same client without prepared query
+
+      res = yield pool.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['hi'] })
+      expect(res.rows[0].name).to.equal('hi')
+      expect(pool._idle.length).to.equal(2)
+      firstPid = res.rows[0].pid
+
+      res = yield pool.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['ho'] })
+      expect(res.rows[0].name).to.equal('ho')
+      expect(pool._idle.length).to.equal(2)
+      secondPid = res.rows[0].pid
+
+      expect(firstPid).to.not.equal(secondPid)
 
       pool.end()
     })
