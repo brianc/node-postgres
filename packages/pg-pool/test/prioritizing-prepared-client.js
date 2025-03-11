@@ -14,7 +14,7 @@ describe('prioritizing prepared client', () => {
       expect(pool.waitingCount).to.equal(0)
       expect(pool._idle.length).to.equal(0)
 
-      // force the creation of two client and release. 
+      // force the creation of two client and release.
       // In this way we have two idle client
       const firstClient = yield pool.connect()
       expect(pool._clients.length).to.equal(1)
