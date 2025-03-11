@@ -21,9 +21,9 @@ pool.connect(function (err, client, done) {
     })
   })
 
-  suite.testAsync('date comes out as a date', async function () {
+  suite.testAsync('date comes out as a string', async function () {
     const { rows } = await client.query('SELECT NOW()::DATE AS date')
-    assert(rows[0].date instanceof Date)
+    assert.equal(typeof rows[0].date, 'string')
   })
 
   suite.test('timestamp with time zone', function (cb) {

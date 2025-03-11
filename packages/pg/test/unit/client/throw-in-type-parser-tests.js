@@ -8,7 +8,10 @@ const suite = new helper.Suite()
 
 var typeParserError = new Error('TEST: Throw in type parsers')
 
-types.setTypeParser('special oid that will throw', function () {
+// when -1 becomes an actual type, replace it with something else
+var invalidTypeOid = -1
+
+types.setTypeParser(invalidTypeOid, function () {
   throw typeParserError
 })
 
@@ -20,7 +23,7 @@ const emitFakeEvents = (con) => {
       fields: [
         {
           name: 'boom',
-          dataTypeID: 'special oid that will throw',
+          dataTypeID: invalidTypeOid,
         },
       ],
     })
