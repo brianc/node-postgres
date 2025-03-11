@@ -43,9 +43,10 @@ describe('prioritizing prepared client', () => {
       // check also connect with name, return same client
 
       firstClient = yield pool.connect('foo')
+      expect(pool._idle.length).to.equal(1)
       res = yield firstClient.query({ text: 'SELECT $1::text as name, pg_backend_pid() as pid', values: ['hi'] })
       expect(res.rows[0].name).to.equal('hi')
-      expect(firstPid).to.not.equal(res.rows[0].pid)
+      expect(firstPid).to.equal(res.rows[0].pid)
       firstClient.release()
       expect(pool._idle.length).to.equal(2)
 
