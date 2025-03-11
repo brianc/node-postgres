@@ -181,8 +181,8 @@ class Pool extends EventEmitter {
   connect(cb, name) {
     // guard clause against passing a name as the first parameter
     if (typeof cb === 'string') {
-      name = cb;
-      cb = undefined; 
+      name = cb
+      cb = undefined
     }
 
     if (this.ending) {
