@@ -35,6 +35,27 @@ The resulting config contains a subset of the following properties:
   * `ca`
 * any other query parameters (for example, `application_name`) are preserved intact.
 
+### ClientConfig Compatibility for TypeScript
+
+The pg-connection-string `ConnectionOptions` interface is not compatible with the `ClientConfig` interface that [pg.Client](https://node-postgres.com/apis/client) expects. To remedy this, use the `parseIntoClientConfig` function instead of `parse`:
+
+```ts
+import { ClientConfig } from 'pg';
+import { parseIntoClientConfig } from 'pg-connection-string';
+
+const config: ClientConfig = parseIntoClientConfig('postgres://someuser:somepassword@somehost:381/somedatabase')
+```
+
+You can also use `toClientConfig` to convert an existing `ConnectionOptions` interface into a `ClientConfig` interface:
+
+```ts
+import { ClientConfig } from 'pg';
+import { parse, toClientConfig } from 'pg-connection-string';
+
+const config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
+const clientConfig: ClientConfig = toClientConfig(config)
+```
+
 ## Connection Strings
 
 The short summary of acceptable URLs is:
