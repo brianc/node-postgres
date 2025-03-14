@@ -158,30 +158,38 @@ class Connection extends EventEmitter {
     const packets = []
 
     if (!query.hasBeenParsed(this)) {
-      packets.push(serialize.parse({
-        text: query.text,
-        name: query.name,
-        types: query.types,
-      }))
+      packets.push(
+        serialize.parse({
+          text: query.text,
+          name: query.name,
+          types: query.types,
+        })
+      )
     }
 
-    packets.push(serialize.bind({
-      portal: query.portal,
-      statement: query.name,
-      values: query.values,
-      binary: query.binary,
-      valueMapper: valueMapper,
-    }))
+    packets.push(
+      serialize.bind({
+        portal: query.portal,
+        statement: query.name,
+        values: query.values,
+        binary: query.binary,
+        valueMapper: valueMapper,
+      })
+    )
 
-    packets.push(serialize.describe({
-      type: 'P',
-      name: query.portal || '',
-    }))
+    packets.push(
+      serialize.describe({
+        type: 'P',
+        name: query.portal || '',
+      })
+    )
 
-    packets.push(serialize.execute({
-      portal: query.portal,
-      rows: query.rows,
-    }))
+    packets.push(
+      serialize.execute({
+        portal: query.portal,
+        rows: query.rows,
+      })
+    )
 
     if (!query.rows) {
       packets.push(syncBuffer)
