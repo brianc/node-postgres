@@ -205,6 +205,10 @@ class Pool extends EventEmitter {
         response.callback(new Error('timeout exceeded when trying to connect'))
       }, this.options.connectionTimeoutMillis)
 
+      if (tid.unref) {
+        tid.unref()
+      }
+
       this._pendingQueue.push(pendingItem)
       return result
     }
@@ -244,7 +248,7 @@ class Pool extends EventEmitter {
         // remove the dead client from our list of clients
         this._clients = this._clients.filter((c) => c !== client)
         if (timeoutHit) {
-          err.message = 'Connection terminated due to connection timeout'
+          err = new Error('Connection terminated due to connection timeout', { cause: err })
         }
 
         // this client won’t be released, so move on immediately
