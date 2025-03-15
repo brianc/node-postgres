@@ -166,7 +166,7 @@ class Query extends EventEmitter {
       // the network stack writes each message separately instead of buffering them together
       // causing the client & network to send more slowly. Corking & uncorking the stream
       // allows node to buffer up the messages internally before sending them all off at once.
-      // note: we're checking for existence of cork/uncork because on some versions of streams
+      // note: we're checking for existence of cork/uncork because some versions of streams
       // might not have this (cloudflare?)
       connection.stream.cork && connection.stream.cork()
       try {
