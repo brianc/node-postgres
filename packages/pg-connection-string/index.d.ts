@@ -1,3 +1,5 @@
+import { ClientConfig } from 'pg'
+
 export function parse(connectionString: string): ConnectionOptions
 
 export interface ConnectionOptions {
@@ -13,3 +15,6 @@ export interface ConnectionOptions {
   fallback_application_name?: string
   options?: string
 }
+
+export function toClientConfig(config: ConnectionOptions): ClientConfig
+export function parseIntoClientConfig(connectionString: string): ClientConfig
