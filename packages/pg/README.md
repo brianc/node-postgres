@@ -21,11 +21,44 @@ $ npm install pg
 - Pure JavaScript client and native libpq bindings share _the same API_
 - Connection pooling
 - Extensible JS ↔ PostgreSQL data-type coercion
+- Memory safety with configurable result size limits
 - Supported PostgreSQL features
   - Parameterized queries
   - Named statements with query plan caching
   - Async notifications with `LISTEN/NOTIFY`
   - Bulk import & export with `COPY TO/COPY FROM`
+
+### Memory Safety with Result Size Limits
+
+To prevent out-of-memory errors when dealing with unexpectedly large query results, you can set a maximum result size:
+
+```js
+const { Client, Pool } = require('pg')
+
+// For a single client
+const client = new Client({
+  // other connection options
+  maxResultSize: 50 * 1024 * 1024 // 50MB limit
+})
+
+// Or with a pool
+const pool = new Pool({
+  // other connection options
+  maxResultSize: 10 * 1024 * 1024 // 10MB limit
+})
+
+// If a query result exceeds the limit, it will emit an error with code 'RESULT_SIZE_EXCEEDED'
+client.query('SELECT * FROM large_table').catch(err => {
+  if (err.code === 'RESULT_SIZE_EXCEEDED') {
+    console.error(`Query result exceeded size limit of ${err.maxResultSize} bytes`)
+    // Handle gracefully - perhaps use a cursor or add a LIMIT clause
+  } else {
+    // Handle other errors
+  }
+})
+```
+
+For large datasets, consider using [pg-cursor](https://github.com/brianc/node-postgres/tree/master/packages/pg-cursor) to process rows in batches.
 
 ### Extras
 

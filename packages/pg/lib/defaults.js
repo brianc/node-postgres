@@ -70,6 +70,8 @@ module.exports = {
   keepalives: 1,
 
   keepalives_idle: 0,
+  // maxResultSize limit of a request before erroring out
+  maxResultSize: undefined,
 }
 
 var pgTypes = require('pg-types')

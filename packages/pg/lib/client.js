@@ -52,6 +52,7 @@ class Client extends EventEmitter {
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
+        maxResultSize: c.maxResultSize
       })
     this.queryQueue = []
     this.binary = c.binary || defaults.binary
@@ -243,7 +244,7 @@ class Client extends EventEmitter {
     }
   }
 
-  _handleAuthCleartextPassword(msg) {
+  _handleAuthCleartextPassword(_msg) {
     this._checkPgPass(() => {
       this.connection.password(this.password)
     })
@@ -299,7 +300,7 @@ class Client extends EventEmitter {
     this.secretKey = msg.secretKey
   }
 
-  _handleReadyForQuery(msg) {
+  _handleReadyForQuery(_msg) {
     if (this._connecting) {
       this._connecting = false
       this._connected = true
@@ -376,12 +377,12 @@ class Client extends EventEmitter {
     this.activeQuery.handleDataRow(msg)
   }
 
-  _handlePortalSuspended(msg) {
+  _handlePortalSuspended(_msg) {
     // delegate portalSuspended to active query
     this.activeQuery.handlePortalSuspended(this.connection)
   }
 
-  _handleEmptyQuery(msg) {
+  _handleEmptyQuery(_msg) {
     // delegate emptyQuery to active query
     this.activeQuery.handleEmptyQuery(this.connection)
   }
@@ -410,7 +411,7 @@ class Client extends EventEmitter {
     }
   }
 
-  _handleCopyInResponse(msg) {
+  _handleCopyInResponse(_msg) {
     this.activeQuery.handleCopyInResponse(this.connection)
   }
 

@@ -27,6 +27,8 @@ class Connection extends EventEmitter {
     this.ssl = config.ssl || false
     this._ending = false
     this._emitMessage = false
+    this._maxResultSize = config.maxResultSize
+    this._currentResultSize = 0
     var self = this
     this.on('newListener', function (eventName) {
       if (eventName === 'message') {
@@ -108,6 +110,16 @@ class Connection extends EventEmitter {
   }
 
   attachListeners(stream) {
+    // Use the appropriate implementation based on whether maxResultSize is enabled
+    if (this._maxResultSize && this._maxResultSize > 0) {
+      this._attachListenersWithSizeLimit(stream)
+    } else {
+      this._attachListenersStandard(stream)
+    }
+  }
+
+  // Original implementation with no overhead
+  _attachListenersStandard(stream) {
     parse(stream, (msg) => {
       var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
       if (this._emitMessage) {
@@ -115,6 +127,59 @@ class Connection extends EventEmitter {
       }
       this.emit(eventName, msg)
     })
+  }
+
+  // Implementation with size limiting logic
+  _attachListenersWithSizeLimit(stream) {
+    parse(stream, (msg) => {
+      var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+      
+      // Only track data row messages for result size
+      if (msg.name === 'dataRow') {
+        // Approximate size by using message length
+        const msgSize = msg.length || this._getApproximateMessageSize(msg)
+        this._currentResultSize += msgSize
+        
+        // Check if we've exceeded the max result size
+        if (this._currentResultSize > this._maxResultSize) {
+          const error = new Error('Query result size exceeded the configured limit')
+          error.code = 'RESULT_SIZE_EXCEEDED'
+          error.resultSize = this._currentResultSize
+          error.maxResultSize = this._maxResultSize
+          this.emit('error', error)
+          this.end() // Terminate the connection
+          return
+        }
+      }
+      
+      // Reset counter on query completion
+      if (msg.name === 'readyForQuery') {
+        this._currentResultSize = 0
+      }
+      
+      if (this._emitMessage) {
+        this.emit('message', msg)
+      }
+      this.emit(eventName, msg)
+    })
+  }
+
+  // Helper method to approximate message size when length is not available
+  _getApproximateMessageSize(msg) {
+    let size = 0
+    if (msg.fields) {
+      // Sum up the sizes of field values
+      msg.fields.forEach(field => {
+        if (field && typeof field === 'string') {
+          size += field.length;
+        } else if (field && typeof field === 'object') {
+          size += JSON.stringify(field).length;
+        } else if (field !== null && field !== undefined) {
+          size += String(field).length;
+        }
+      });
+    }
+    return size > 0 ? size : 1024; // Default to 1KB if we can't determine size
   }
 
   requestSsl() {
