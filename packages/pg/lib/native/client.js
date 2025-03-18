@@ -26,6 +26,9 @@ var Client = (module.exports = function (config) {
     types: this._types,
   })
 
+  // Store maxResultSize configuration
+  this._maxResultSize = config.maxResultSize
+
   this._queryQueue = []
   this._ending = false
   this._connecting = false
@@ -99,6 +102,9 @@ Client.prototype._connect = function (cb) {
 
       // set internal states to connected
       self._connected = true
+
+      // Add a reference to the client for error bubbling
+      self.native.connection = self
 
       // handle connection errors from the native layer
       self.native.on('error', function (err) {
