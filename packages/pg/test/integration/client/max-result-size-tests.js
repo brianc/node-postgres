@@ -4,16 +4,6 @@ var assert = require('assert')
 const { Client } = helper.pg
 const suite = new helper.Suite()
 
-// Just verify the test infrastructure works
-suite.test('sanity check', function (done) {
-  var client = new Client(helper.args)
-  client.connect(assert.success(function () {
-    client.query('SELECT 1 as num', assert.success(function(result) {
-      assert.equal(result.rows.length, 1)
-      client.end(done)
-    }))
-  }))
-})
 
 // Basic test to check if the _maxResultSize property is passed to Connection
 suite.test('client passes maxResultSize to connection', function (done) {
@@ -82,7 +72,7 @@ suite.testAsync('large result triggers error', async () => {
   
   // Start the query but don't await it (it will error)
   const queryPromise = client.query('SELECT repeat(\'x\', 1000) as data FROM generate_series(1, 100)')
-    .catch(err => {
+    .catch(() => {
       // We expect this to error out, silence the rejection
       return null
     })
@@ -94,5 +84,5 @@ suite.testAsync('large result triggers error', async () => {
   await queryPromise
   
   // Clean up
-  await client.end().catch(() => {}) // Ignore errors during cleanup
+  await client.end().catch(() => {})
 }) 

@@ -52,7 +52,7 @@ class Client extends EventEmitter {
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
-        maxResultSize: c.maxResultSize
+        maxResultSize: c.maxResultSize,
       })
     this.queryQueue = []
     this.binary = c.binary || defaults.binary
@@ -244,7 +244,7 @@ class Client extends EventEmitter {
     }
   }
 
-  _handleAuthCleartextPassword(_msg) {
+  _handleAuthCleartextPassword(msg) {
     this._checkPgPass(() => {
       this.connection.password(this.password)
     })
@@ -300,7 +300,7 @@ class Client extends EventEmitter {
     this.secretKey = msg.secretKey
   }
 
-  _handleReadyForQuery(_msg) {
+  _handleReadyForQuery(msg) {
     if (this._connecting) {
       this._connecting = false
       this._connected = true
@@ -377,12 +377,12 @@ class Client extends EventEmitter {
     this.activeQuery.handleDataRow(msg)
   }
 
-  _handlePortalSuspended(_msg) {
+  _handlePortalSuspended(msg) {
     // delegate portalSuspended to active query
     this.activeQuery.handlePortalSuspended(this.connection)
   }
 
-  _handleEmptyQuery(_msg) {
+  _handleEmptyQuery(msg) {
     // delegate emptyQuery to active query
     this.activeQuery.handleEmptyQuery(this.connection)
   }
@@ -411,7 +411,7 @@ class Client extends EventEmitter {
     }
   }
 
-  _handleCopyInResponse(_msg) {
+  _handleCopyInResponse(msg) {
     this.activeQuery.handleCopyInResponse(this.connection)
   }
 
