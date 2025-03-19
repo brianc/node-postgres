@@ -22,7 +22,8 @@
   "exports": {
     ".": {
       "import": "./esm/index.js",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "default": "./lib/index.js"
     }
   },
   "dependencies": {

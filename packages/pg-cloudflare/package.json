@@ -13,11 +13,12 @@
     ".": {
       "import": "./esm/index.js",
       "require": "./dist/empty.js",
-      "types": "./dist/index.d.ts"
+      "default": "./dist/empty.js"
     },
     "./worker": {
       "import": "./esm/worker.js",
-      "require": "./dist/index.js"
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
