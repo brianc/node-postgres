@@ -114,7 +114,7 @@ class Connection extends EventEmitter {
     // if (this._maxResultSize && this._maxResultSize > 0) {
     //   this._attachListenersWithSizeLimit(stream)
     // } else {
-      this._attachListenersStandard(stream)
+    this._attachListenersStandard(stream)
     // }
   }
 
