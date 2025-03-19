@@ -4,7 +4,6 @@ const helper = require('../test-helper')
 const pg = helper.pg
 var assert = require('assert')
 
-
 const suite = new helper.Suite()
 
 // Test that the pool respects the maxResultSize option
@@ -58,4 +57,3 @@ suite.test('pool query works with adequate maxResultSize', (done) => {
     pool.end(done)
   })
 })
-
