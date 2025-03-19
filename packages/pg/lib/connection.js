@@ -110,8 +110,9 @@ class Connection extends EventEmitter {
   }
 
   attachListeners(stream) {
+    var self = this
     // Use the appropriate implementation based on whether maxResultSize is enabled
-    if (this._maxResultSize && this._maxResultSize > 0) {
+    if (self._maxResultSize && self._maxResultSize > 0) {
       this._attachListenersWithSizeLimit(stream)
     } else {
       this._attachListenersStandard(stream)
