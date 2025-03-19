@@ -3,6 +3,12 @@
   "version": "3.3.0",
   "description": "A slightly nicer interface to Postgres over node-libpq",
   "main": "index.js",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./index.js"
+    }
+  },
   "scripts": {
     "test": "mocha"
   },
@@ -34,5 +40,9 @@
     "node-gyp": ">=10.x",
     "okay": "^0.3.0",
     "semver": "^4.1.0"
-  }
+  },
+  "files": [
+    "index.js",
+    "esm"
+  ]
 }

@@ -3,6 +3,12 @@
   "version": "3.8.0",
   "description": "Connection pool for node-postgres",
   "main": "index.js",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./index.js"
+    }
+  },
   "directories": {
     "test": "test"
   },
@@ -36,5 +42,9 @@
   },
   "peerDependencies": {
     "pg": ">=8.0"
-  }
+  },
+  "files": [
+    "index.js",
+    "esm"
+  ]
 }

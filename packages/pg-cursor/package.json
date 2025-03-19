@@ -3,6 +3,12 @@
   "version": "2.13.1",
   "description": "Query cursor extension for node-postgres",
   "main": "index.js",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./index.js"
+    }
+  },
   "directories": {
     "test": "test"
   },
@@ -22,5 +28,9 @@
   },
   "peerDependencies": {
     "pg": "^8"
-  }
+  },
+  "files": [
+    "index.js",
+    "esm"
+  ]
 }
