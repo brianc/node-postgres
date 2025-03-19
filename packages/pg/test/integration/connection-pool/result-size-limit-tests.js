@@ -6,17 +6,10 @@ var assert = require('assert')
 
 const suite = new helper.Suite()
 
-// Test that the pool respects the maxResultSize option
-suite.test('pool respects maxResultSize option', (done) => {
+suite.testAsync('large result triggers error', async () => {
   const pool = new pg.Pool({
     ...helper.args,
     maxResultSize: 1024, // very small limit
-  })
-
-  pool.on('error', (err) => {
-    if (err.code === 'RESULT_SIZE_EXCEEDED') {
-      return done()
-    }
   })
 
   const largeQuery = `
@@ -24,15 +17,16 @@ suite.test('pool respects maxResultSize option', (done) => {
            repeat('x', 100) as data
   `
 
-  pool.query(largeQuery, (err) => {
-    if (!err) {
-      return done(new Error('Expected query to fail with size limit error'))
-    }
-
-    if (err.code !== 'RESULT_SIZE_EXCEEDED') {
-      return done(new Error(`Expected RESULT_SIZE_EXCEEDED error but got: ${err.message} (${err.code})`))
-    }
+  pool.on('error', (err) => {
+    assert.equal(err.code, 'RESULT_SIZE_EXCEEDED')
   })
+
+  try {
+    await pool.query(largeQuery)
+    throw new Error('should have raised RESULT_SIZE_EXCEEDED error')
+  } catch (err) {
+    assert.equal(err.code, 'RESULT_SIZE_EXCEEDED')
+  }
 })
 
 suite.test('pool query works with adequate maxResultSize', (done) => {
