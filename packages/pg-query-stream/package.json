@@ -4,6 +4,13 @@
   "description": "Postgres query result returned as readable stream",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.ts"
   },
@@ -21,7 +28,8 @@
   ],
   "files": [
     "/dist/*{js,ts,map}",
-    "/src"
+    "/src",
+    "/esm"
   ],
   "author": "Brian M. Carlson",
   "license": "MIT",
