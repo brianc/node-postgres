@@ -1,5 +1,5 @@
 // ESM wrapper for pg-pool
-import Pool from '../index.js';
+import Pool from '../index.js'
 
 // Export as default only to match CJS module
-export default Pool; 
+export default Pool
