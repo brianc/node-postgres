@@ -278,13 +278,15 @@ export class Parser {
   }
 
   private parseDataRowMessage(offset: number, length: number, bytes: Buffer) {
-    this.reader.setBuffer(offset, bytes)
-    const fieldCount = this.reader.int16()
+    const reader = this.reader
+    reader.setBuffer(offset, bytes)
+    const fieldCount = reader.int16()
     const fields: any[] = new Array(fieldCount)
+    const textMode = this.mode === 'text'
     for (let i = 0; i < fieldCount; i++) {
-      const len = this.reader.int32()
+      const len = reader.int32()
       // a -1 for length means the value of the field is null
-      fields[i] = len === -1 ? null : this.reader.string(len)
+      fields[i] = len === -1 ? null : textMode ? reader.string(len) : reader.bytes(len)
     }
     return new DataRowMessage(length, fields)
   }
