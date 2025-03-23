@@ -37,4 +37,14 @@ describe('pool ending', () => {
       expect(res.rows[0].name).to.equal('brianc')
     })
   )
+
+  it('pool.end() - finish pending queries', async () => {
+    const pool = new Pool({ max: 20 })
+    let completed = 0
+    for (let x = 1; x <= 20; x++) {
+      pool.query('SELECT $1::text as name', ['brianc']).then(() => completed++)
+    }
+    await pool.end()
+    expect(completed).to.equal(20)
+  })
 })
