@@ -86,7 +86,7 @@ function prepareObject(val, seen) {
 
     return prepareValue(val.toPostgres(prepareValue), seen)
   }
-  return JSON.stringify(val)
+  return JSON.stringify(val, (_, val) => typeof val === 'bigint' ? val.toString() : val)
 }
 
 function dateToString(date) {
