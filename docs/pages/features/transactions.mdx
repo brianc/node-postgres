@@ -31,10 +31,10 @@ try {
   const insertPhotoValues = [res.rows[0].id, 's3.bucket.foo']
   await client.query(insertPhotoText, insertPhotoValues)
   await client.query('COMMIT')
+  client.release()
 } catch (e) {
   await client.query('ROLLBACK')
-  throw e
-} finally {
   client.release()
+  throw e
 }
 ```
