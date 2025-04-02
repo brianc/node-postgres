@@ -178,7 +178,7 @@ suite.test('handles socket error during pool.query and destroys it immediately',
 //         })
 //       )
 //       client.query(
-//         // Retrieve a field which lenght cannot be handled by JS (+700Mo string)
+//         // Retrieve a field which length cannot be handled by JS
 //         `SELECT repeat('A', 536870889)`,
 //         assert.calls((err) => {
 //           if (helper.args.native) {
