@@ -22,7 +22,7 @@
   "dependencies": {
     "pg-connection-string": "^2.7.0",
     "pg-pool": "^3.8.0",
-    "pg-protocol": "file:../pg-protocol",
+    "pg-protocol": "^1.8.0",
     "pg-types": "^2.1.0",
     "pgpass": "1.x"
   },
