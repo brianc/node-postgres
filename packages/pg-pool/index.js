@@ -205,6 +205,10 @@ class Pool extends EventEmitter {
         response.callback(new Error('timeout exceeded when trying to connect'))
       }, this.options.connectionTimeoutMillis)
 
+      if (tid.unref) {
+        tid.unref()
+      }
+
       this._pendingQueue.push(pendingItem)
       return result
     }

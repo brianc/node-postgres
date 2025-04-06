@@ -161,7 +161,21 @@ class Query extends EventEmitter {
       return new Error('Query values must be an array')
     }
     if (this.requiresPreparation()) {
-      this.prepare(connection)
+      // If we're using the extended query protocol we fire off several separate commands
+      // to the backend. On some versions of node & some operating system versions
+      // the network stack writes each message separately instead of buffering them together
+      // causing the client & network to send more slowly. Corking & uncorking the stream
+      // allows node to buffer up the messages internally before sending them all off at once.
+      // note: we're checking for existence of cork/uncork because some versions of streams
+      // might not have this (cloudflare?)
+      connection.stream.cork && connection.stream.cork()
+      try {
+        this.prepare(connection)
+      } finally {
+        // while unlikely for this.prepare to throw, if it does & we don't uncork this stream
+        // this client becomes unresponsive, so put in finally block "just in case"
+        connection.stream.uncork && connection.stream.uncork()
+      }
     } else {
       connection.query(this.text)
     }

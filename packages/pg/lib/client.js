@@ -43,6 +43,7 @@ class Client extends EventEmitter {
     this._connectionError = false
     this._queryable = true
 
+    this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.connection =
       c.connection ||
       new Connection({
@@ -104,6 +105,10 @@ class Client extends EventEmitter {
         con._ending = true
         con.stream.destroy(new Error('timeout expired'))
       }, this._connectionTimeoutMillis)
+
+      if (this.connectionTimeoutHandle.unref) {
+        this.connectionTimeoutHandle.unref()
+      }
     }
 
     if (this.host && this.host.indexOf('/') === 0) {
@@ -258,7 +263,7 @@ class Client extends EventEmitter {
   _handleAuthSASL(msg) {
     this._checkPgPass(() => {
       try {
-        this.saslSession = sasl.startSession(msg.mechanisms)
+        this.saslSession = sasl.startSession(msg.mechanisms, this.enableChannelBinding && this.connection.stream)
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
       } catch (err) {
         this.connection.emit('error', err)
@@ -268,7 +273,12 @@ class Client extends EventEmitter {
 
   async _handleAuthSASLContinue(msg) {
     try {
-      await sasl.continueSession(this.saslSession, this.password, msg.data)
+      await sasl.continueSession(
+        this.saslSession,
+        this.password,
+        msg.data,
+        this.enableChannelBinding && this.connection.stream
+      )
       this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
     } catch (err) {
       this.connection.emit('error', err)
