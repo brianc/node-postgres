@@ -1,6 +1,6 @@
 {
   "name": "pg-cursor",
-  "version": "2.12.3",
+  "version": "2.13.1",
   "description": "Query cursor extension for node-postgres",
   "main": "index.js",
   "directories": {
@@ -18,7 +18,7 @@
   "license": "MIT",
   "devDependencies": {
     "mocha": "^10.5.2",
-    "pg": "^8.13.3"
+    "pg": "^8.14.1"
   },
   "peerDependencies": {
     "pg": "^8"

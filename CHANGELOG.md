@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.14.0
+
+- Add support from SCRAM-SAH-256-PLUS i.e. [channel binding](https://github.com/brianc/node-postgres/pull/3356).
+
 ## pg@8.13.0
 
 - Add ability to specify query timeout on [per-query basis](https://github.com/brianc/node-postgres/pull/3074).
