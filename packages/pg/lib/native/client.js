@@ -2,6 +2,7 @@
 
 // eslint-disable-next-line
 var Native
+// eslint-disable-next-line no-useless-catch
 try {
   // Wrap this `require()` in a try-catch to avoid upstream bundlers from complaining that this might not be available since it is an optional import
   Native = require('pg-native')

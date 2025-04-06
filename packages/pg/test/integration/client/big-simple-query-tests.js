@@ -99,7 +99,7 @@ var runBigQuery = function (client) {
     function (err, result) {
       if (err != null) {
         console.log(err)
-        throw Err
+        throw err
       }
       assert.lengthIs(result.rows, 26)
     }

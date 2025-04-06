@@ -25,13 +25,11 @@ const exec = async (client, q) => {
 const bench = async (client, q, time) => {
   let start = Date.now()
   let count = 0
-  while (true) {
+  do {
     await exec(client, q)
     count++
-    if (Date.now() - start > time) {
-      return count
-    }
-  }
+  } while (Date.now() - start > time)
+  return count
 }
 
 const run = async () => {
