@@ -80,12 +80,11 @@ class Query extends EventEmitter {
   }
 
   handleDataRow(msg) {
-    let row
-
     if (this._canceledDueToError) {
       return
     }
 
+    let row
     try {
       row = this._result.parseRow(msg.fields)
     } catch (err) {
@@ -119,7 +118,7 @@ class Query extends EventEmitter {
     }
   }
 
-  handleError(err, connection) {
+  handleError(err) {
     // need to sync after error during a prepared statement
     if (this._canceledDueToError) {
       err = this._canceledDueToError
@@ -133,9 +132,9 @@ class Query extends EventEmitter {
     this.emit('error', err)
   }
 
-  handleReadyForQuery(con) {
+  handleReadyForQuery() {
     if (this._canceledDueToError) {
-      return this.handleError(this._canceledDueToError, con)
+      return this.handleError(this._canceledDueToError)
     }
     if (this.callback) {
       try {

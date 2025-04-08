@@ -299,7 +299,7 @@ class Client extends EventEmitter {
     this.secretKey = msg.secretKey
   }
 
-  _handleReadyForQuery(msg) {
+  _handleReadyForQuery() {
     if (this._connecting) {
       this._connecting = false
       this._connected = true
@@ -318,7 +318,7 @@ class Client extends EventEmitter {
     this.activeQuery = null
     this.readyForQuery = true
     if (activeQuery) {
-      activeQuery.handleReadyForQuery(this.connection)
+      activeQuery.handleReadyForQuery()
     }
     this._pulseQueryQueue()
   }
