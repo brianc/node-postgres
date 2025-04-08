@@ -53,8 +53,6 @@ class Result {
       var rawValue = rowData[i]
       if (rawValue !== null) {
         row[i] = this._parsers[i](rawValue)
-      } else {
-        row[i] = null
       }
     }
     return row
@@ -67,8 +65,6 @@ class Result {
       var field = this.fields[i].name
       if (rawValue !== null) {
         row[field] = this._parsers[i](rawValue)
-      } else {
-        row[field] = null
       }
     }
     return row
