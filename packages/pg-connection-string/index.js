@@ -93,8 +93,7 @@ function parse(str) {
         config.ssl = false
         break
       }
-      case 'prefer':
-      case 'no-verify': {
+      case 'prefer': {
         config.ssl.rejectUnauthorized = false
         break
       }
