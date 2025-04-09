@@ -120,6 +120,32 @@ export class DatabaseError extends Error implements NoticeOrError {
   }
 }
 
+export class ParserError extends Error implements NoticeOrError {
+  public severity: string | undefined
+  public code: string | undefined
+  public detail: string | undefined
+  public hint: string | undefined
+  public position: string | undefined
+  public internalPosition: string | undefined
+  public internalQuery: string | undefined
+  public where: string | undefined
+  public schema: string | undefined
+  public table: string | undefined
+  public column: string | undefined
+  public dataType: string | undefined
+  public constraint: string | undefined
+  public file: string | undefined
+  public line: string | undefined
+  public routine: string | undefined
+  constructor(
+    message: string,
+    public readonly length: number,
+    public readonly name: MessageName
+  ) {
+    super(message)
+  }
+}
+
 export class CopyDataMessage {
   public readonly name = 'copyData'
   constructor(
