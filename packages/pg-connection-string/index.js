@@ -87,31 +87,50 @@ function parse(str) {
     config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
   }
 
-  switch (config.sslmode) {
-    case 'disable': {
-      config.ssl = false
-      break
-    }
-    case 'prefer':
-    case 'no-verify': {
-      config.ssl.rejectUnauthorized = false
-      break
-    }
-    case 'require': {
-      if (config.sslrootcert) {
-        // If a root CA is specified, behavior of `sslmode=require` will be the same as that of `verify-ca`
-        config.ssl.checkServerIdentity = function () {}
-      } else {
-        config.ssl.rejectUnauthorized = false
+  if (config.sslcompat === 'libpq') {
+    switch (config.sslmode) {
+      case 'disable': {
+        config.ssl = false
+        break
       }
-      break
+      case 'prefer':
+      case 'no-verify': {
+        config.ssl.rejectUnauthorized = false
+        break
+      }
+      case 'require': {
+        if (config.sslrootcert) {
+          // If a root CA is specified, behavior of `sslmode=require` will be the same as that of `verify-ca`
+          config.ssl.checkServerIdentity = function () {}
+        } else {
+          config.ssl.rejectUnauthorized = false
+        }
+        break
+      }
+      case 'verify-ca': {
+        config.ssl.checkServerIdentity = function () {}
+        break
+      }
+      case 'verify-full': {
+        break
+      }
     }
-    case 'verify-ca': {
-      config.ssl.checkServerIdentity = function () {}
-      break
-    }
-    case 'verify-full': {
-      break
+  } else {
+    switch (config.sslmode) {
+      case 'disable': {
+        config.ssl = false
+        break
+      }
+      case 'prefer':
+      case 'require':
+      case 'verify-ca':
+      case 'verify-full': {
+        break
+      }
+      case 'no-verify': {
+        config.ssl.rejectUnauthorized = false
+        break
+      }
     }
   }
 
