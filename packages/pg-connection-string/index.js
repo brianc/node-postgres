@@ -107,6 +107,11 @@ function parse(str) {
         break
       }
       case 'verify-ca': {
+        if (!config.ssl.ca) {
+          throw new Error(
+            'SECURITY WARNING: Using sslmode=verify-ca requires specifying a CA with sslrootcert. If a public CA is used, verify-ca allows connections to a server that somebody else may have registered with the CA, making you vulnerable to Man-in-the-Middle attacks. Either specify a custom CA certificate with sslrootcert parameter or use sslmode=verify-full for proper security.'
+          )
+        }
         config.ssl.checkServerIdentity = function () {}
         break
       }

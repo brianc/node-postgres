@@ -88,18 +88,21 @@ Query parameters follow a `?` character, including the following special query p
  * `encoding=<encoding>` - sets the `client_encoding` property
  * `ssl=1`, `ssl=true`, `ssl=0`, `ssl=false` - sets `ssl` to true or false, accordingly
  * `sslcompat=libpq` - use libpq semantics for `sslmode`
+ * `sslmode=<sslmode>` when `sslcompat` is not set
+   * `sslmode=disable` - sets `ssl` to false
+   * `sslmode=no-verify` - sets `ssl` to `{ rejectUnauthorized: false }`
+   * `sslmode=prefer`, `sslmode=require`, `sslmode=verify-ca`, `sslmode=verify-full` - sets `ssl` to true
  * `sslmode=<sslmode>` when `sslcompat=libpq`
    * `sslmode=disable` - sets `ssl` to false
    * `sslmode=prefer` - sets `ssl` to `{ rejectUnauthorized: false }`
    * `sslmode=require` - sets `ssl` to `{ rejectUnauthorized: false }` unless `sslrootcert` is specified, in which case it behaves like `verify-ca`
    * `sslmode=verify-ca` - sets `ssl` to `{ checkServerIdentity: no-op }` (verify CA, but not server identity). This verifies the presented certificate against the effective CA, i.e. the one specified in sslrootcert or the system CA if sslrootcert was not specified.
    * `sslmode=verify-full` - sets `ssl` to `{}` (verify CA and server identity)
- * `sslmode=<sslmode>` when `sslcompat` is not set
-   * `sslmode=disable` - sets `ssl` to false
-   * `sslmode=no-verify` - sets `ssl` to `{ rejectUnauthorized: false }`
-   * `sslmode=prefer`, `sslmode=require`, `sslmode=verify-ca`, `sslmode=verify-full` - sets `ssl` to true
  * `sslcert=<filename>` - reads data from the given file and includes the result as `ssl.cert`
  * `sslkey=<filename>` - reads data from the given file and includes the result as `ssl.key`
  * `sslrootcert=<filename>` - reads data from the given file and includes the result as `ssl.ca`
 
 A bare relative URL, such as `salesdata`, will indicate a database name while leaving other properties empty.
+
+> [!CAUTION]
+> Choosing an sslmode other than verify-full has serious security implications. Please read https://www.postgresql.org/docs/current/libpq-ssl.html#LIBPQ-SSL-SSLMODE-STATEMENTS to understand the trade-offs.
