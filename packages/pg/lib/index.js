@@ -3,6 +3,7 @@
 var Client = require('./client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
+var TypeOverrides = require('./type-overrides')
 var Pool = require('pg-pool')
 const { DatabaseError } = require('pg-protocol')
 const { escapeIdentifier, escapeLiteral } = require('./utils')
@@ -22,6 +23,7 @@ var PG = function (clientConstructor) {
   this.Pool = poolFactory(this.Client)
   this._pools = []
   this.Connection = Connection
+  this.TypeOverrides = TypeOverrides
   this.types = require('pg-types')
   this.DatabaseError = DatabaseError
   this.escapeIdentifier = escapeIdentifier
