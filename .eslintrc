@@ -15,8 +15,7 @@
     "@typescript-eslint/no-unused-vars": ["error", {
       "args": "none"
     }],
-    "no-unused-vars": "off",
-    "no-unreachable": "error"
+    "no-unused-vars": "off"
   },
   "overrides": [
     {
