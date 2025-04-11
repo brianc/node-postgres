@@ -25,11 +25,14 @@ const exec = async (client, q) => {
 const bench = async (client, q, time) => {
   let start = Date.now()
   let count = 0
-  do {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
     await exec(client, q)
     count++
-  } while (Date.now() - start > time)
-  return count
+    if (Date.now() - start > time) {
+      return count
+    }
+  }
 }
 
 const run = async () => {
