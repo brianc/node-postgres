@@ -14,6 +14,7 @@ module.exports = {
  * The Web Crypto API - grabbed from the Node.js library or the global
  * @type Crypto
  */
+// eslint-disable-next-line no-undef
 const webCrypto = nodeCrypto.webcrypto || globalThis.crypto
 /**
  * The SubtleCrypto API for low level crypto operations.

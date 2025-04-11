@@ -328,16 +328,17 @@ export class Parser {
         }
         break
       case 10: // AuthenticationSASL
-        message.name = 'authenticationSASL'
-        message.mechanisms = []
-        let mechanism: string
-        do {
-          mechanism = this.reader.cstring()
-
-          if (mechanism) {
-            message.mechanisms.push(mechanism)
-          }
-        } while (mechanism)
+        {
+          message.name = 'authenticationSASL'
+          message.mechanisms = []
+          let mechanism: string
+          do {
+            mechanism = this.reader.cstring()
+            if (mechanism) {
+              message.mechanisms.push(mechanism)
+            }
+          } while (mechanism)
+        }
         break
       case 11: // AuthenticationSASLContinue
         message.name = 'authenticationSASLContinue'

@@ -60,6 +60,7 @@ const startMockServer = (port, badBuffer, callback) => {
           setImmediate(() => {
             socket.write(badBuffer)
           })
+          break
         default:
         // console.log('got code', code)
       }

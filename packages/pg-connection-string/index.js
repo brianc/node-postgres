@@ -19,7 +19,7 @@ function parse(str) {
   let dummyHost = false
   if (/ |%[^a-f0-9]|%[a-f0-9][^a-f0-9]/i.test(str)) {
     // Ensure spaces are encoded as %20
-    str = encodeURI(str).replace(/\%25(\d\d)/g, '%$1')
+    str = encodeURI(str).replace(/%25(\d\d)/g, '%$1')
   }
 
   try {

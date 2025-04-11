@@ -7,7 +7,7 @@ var defaults = require('../../../lib').defaults
 
 // clear process.env
 var realEnv = {}
-for (var key in process.env) {
+for (const key in process.env) {
   realEnv[key] = process.env[key]
   delete process.env[key]
 }
@@ -122,6 +122,6 @@ testVal('verify-full', true)
 testVal('no-verify', { rejectUnauthorized: false })
 
 // restore process.env
-for (var key in realEnv) {
+for (const key in realEnv) {
   process.env[key] = realEnv[key]
 }

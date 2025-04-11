@@ -75,7 +75,7 @@ describe('error recovery', () => {
     const client = new Client()
     const stmt = 'SELECT * FROM goose;'
     await client.connect()
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       let queryError: Error | undefined
       client.query(stmt).catch((e) => {
         queryError = e
@@ -86,7 +86,7 @@ describe('error recovery', () => {
         assert(queryError, 'query should have errored due to client ending')
         resolve()
       })
-      await client.end()
+      client.end()
     })
   })
 
