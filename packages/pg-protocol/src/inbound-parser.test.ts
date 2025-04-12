@@ -50,15 +50,7 @@ var rowWithBigOids = {
 }
 var bigOidDescBuff = buffers.rowDescription([rowWithBigOids])
 
-var emptyRowFieldBuf = new BufferList().addInt16(0).join(true, 'D')
-
 var emptyRowFieldBuf = buffers.dataRow([])
-
-var oneFieldBuf = new BufferList()
-  .addInt16(1) // number of fields
-  .addInt32(5) // length of bytes of fields
-  .addCString('test')
-  .join(true, 'D')
 
 var oneFieldBuf = buffers.dataRow(['test'])
 

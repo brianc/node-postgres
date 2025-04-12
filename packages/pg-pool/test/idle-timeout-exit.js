@@ -11,7 +11,6 @@ if (module === require.main) {
   pool.query('SELECT NOW()', (err, res) => console.log('completed first'))
   pool.on('remove', () => {
     console.log('removed')
-    done()
   })
 
   setTimeout(() => {

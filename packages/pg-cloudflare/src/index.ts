@@ -61,6 +61,7 @@ export class CloudflareSocket extends EventEmitter {
   }
 
   async _listen() {
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       log('awaiting receive from CF socket')
       const { done, value } = await this._cfReader!.read()

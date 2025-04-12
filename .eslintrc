@@ -1,7 +1,7 @@
 {
   "plugins": ["@typescript-eslint", "prettier"],
   "parser": "@typescript-eslint/parser",
-  "extends": ["plugin:prettier/recommended", "prettier"],
+  "extends": ["eslint:recommended", "plugin:prettier/recommended", "prettier"],
   "ignorePatterns": ["node_modules", "coverage", "packages/pg-protocol/dist/**/*", "packages/pg-query-stream/dist/**/*"],
   "parserOptions": {
     "ecmaVersion": 2017,
@@ -17,5 +17,13 @@
       "args": "none"
     }],
     "no-unused-vars": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.mts", "*.cts", "*.tsx"],
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ]
 }
