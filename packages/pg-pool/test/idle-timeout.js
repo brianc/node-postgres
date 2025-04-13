@@ -89,14 +89,15 @@ describe('idle timeout', () => {
 
   it('unrefs the connections and timeouts so the program can exit when idle when the allowExitOnIdle option is set', function (done) {
     const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
-      silent: true,
+      stdio: ['ignore', 'pipe', 'inherit', 'ipc'],
       env: { ...process.env, ALLOW_EXIT_ON_IDLE: '1' },
     })
     let result = ''
     child.stdout.setEncoding('utf8')
     child.stdout.on('data', (chunk) => (result += chunk))
     child.on('error', (err) => done(err))
-    child.on('close', () => {
+    child.on('exit', (exitCode) => {
+      expect(exitCode).to.equal(0)
       expect(result).to.equal('completed first\ncompleted second\n')
       done()
     })
@@ -104,13 +105,14 @@ describe('idle timeout', () => {
 
   it('keeps old behavior when allowExitOnIdle option is not set', function (done) {
     const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
-      silent: true,
+      stdio: ['ignore', 'pipe', 'inherit', 'ipc'],
     })
     let result = ''
     child.stdout.setEncoding('utf8')
     child.stdout.on('data', (chunk) => (result += chunk))
     child.on('error', (err) => done(err))
-    child.on('close', () => {
+    child.on('exit', (exitCode) => {
+      expect(exitCode).to.equal(0)
       expect(result).to.equal('completed first\ncompleted second\nremoved\n')
       done()
     })
