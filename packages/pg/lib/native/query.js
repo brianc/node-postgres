@@ -56,6 +56,17 @@ NativeQuery.prototype.handleError = function (err) {
       err[normalizedFieldName] = fields[key]
     }
   }
+
+  // For maxResultSize exceeded errors, make sure we emit the error to the client too
+  if (err.code === 'RESULT_SIZE_EXCEEDED') {
+    if (this.native && this.native.connection) {
+      // Need to emit the error on the client/connection level too
+      process.nextTick(() => {
+        this.native.connection.emit('error', err)
+      })
+    }
+  }
+
   if (this.callback) {
     this.callback(err)
   } else {
@@ -89,6 +100,9 @@ NativeQuery.prototype.submit = function (client) {
   this.native = client.native
   client.native.arrayMode = this._arrayMode
 
+  // Get the maxResultSize from the client if it's set
+  this._maxResultSize = client._maxResultSize
+
   var after = function (err, rows, results) {
     client.native.arrayMode = false
     setImmediate(function () {
@@ -98,6 +112,30 @@ NativeQuery.prototype.submit = function (client) {
     // handle possible query error
     if (err) {
       return self.handleError(err)
+    }
+
+    // Check the result size if maxResultSize is configured
+    if (self._maxResultSize) {
+      // Calculate result size (rough approximation)
+      let resultSize = 0
+
+      // For multiple result sets
+      if (results.length > 1) {
+        for (let i = 0; i < rows.length; i++) {
+          resultSize += self._calculateResultSize(rows[i])
+        }
+      } else if (rows.length > 0) {
+        resultSize = self._calculateResultSize(rows)
+      }
+
+      // If the size limit is exceeded, generate an error
+      if (resultSize > self._maxResultSize) {
+        const error = new Error('Query result size exceeded the configured limit')
+        error.code = 'RESULT_SIZE_EXCEEDED'
+        error.resultSize = resultSize
+        error.maxResultSize = self._maxResultSize
+        return self.handleError(error)
+      }
     }
 
     // emit row events for each row in the result
@@ -165,4 +203,60 @@ NativeQuery.prototype.submit = function (client) {
   } else {
     client.native.query(this.text, after)
   }
+}
+
+// Helper method to estimate the size of a result set
+NativeQuery.prototype._calculateResultSize = function (rows) {
+  let size = 0
+
+  // For empty results, return 0
+  if (!rows || rows.length === 0) {
+    return 0
+  }
+
+  // For array mode, calculate differently
+  if (this._arrayMode) {
+    // Just use a rough approximation based on number of rows
+    return rows.length * 100
+  }
+
+  // For each row, approximate its size
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
+
+    // Add base row size
+    size += 24 // Overhead per row
+
+    // Add size of each column
+    for (const key in row) {
+      if (Object.prototype.hasOwnProperty.call(row, key)) {
+        const value = row[key]
+
+        // Add key size
+        size += key.length * 2 // Assume 2 bytes per character
+
+        // Add value size based on type
+        if (value === null || value === undefined) {
+          size += 8
+        } else if (typeof value === 'string') {
+          size += value.length * 2 // Assume 2 bytes per character
+        } else if (typeof value === 'number') {
+          size += 8
+        } else if (typeof value === 'boolean') {
+          size += 4
+        } else if (value instanceof Date) {
+          size += 8
+        } else if (Buffer.isBuffer(value)) {
+          size += value.length
+        } else if (Array.isArray(value)) {
+          size += 16 + value.length * 8
+        } else {
+          // For objects, use a rough estimate
+          size += 32 + JSON.stringify(value).length * 2
+        }
+      }
+    }
+  }
+
+  return size
 }
