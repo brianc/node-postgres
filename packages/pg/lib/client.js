@@ -20,6 +20,7 @@ class Client extends EventEmitter {
     this.database = this.connectionParameters.database
     this.port = this.connectionParameters.port
     this.host = this.connectionParameters.host
+    this.principal = this.connectionParameters.principal
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
@@ -179,6 +180,9 @@ class Client extends EventEmitter {
   }
 
   _attachListeners(con) {
+    // kerberos
+    con.on('GSSInit', this._handleGSSInit.bind(this))
+    con.on('GSSContinue', this._handleGSSContinue.bind(this))
     // password request handling
     con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
@@ -201,6 +205,39 @@ class Client extends EventEmitter {
     con.on('copyInResponse', this._handleCopyInResponse.bind(this))
     con.on('copyData', this._handleCopyData.bind(this))
     con.on('notification', this._handleNotification.bind(this))
+  }
+
+  async _handleGSSInit(msg) {
+    const kerberos = require('kerberos').Kerberos
+    try {
+      this.kclient = await kerberos.initializeClient(`${this.principal}@${this.host}`, {
+        mechOID: kerberos.GSS_MECH_OID_SPNEGO,
+      })
+
+      // TODO: below this might need to be a recursive loop to step multiple times.
+      const token = await this.kclient.step('')
+
+      const buf = Buffer.from(token, 'base64')
+      this.connection.sendBinaryPassword(buf)
+    } catch (e) {
+      this.emit('error', e)
+    }
+  }
+
+  async _handleGSSContinue(msg) {
+    try {
+      const inToken = msg.inToken
+      const token = await this.kclient.step(inToken)
+
+      // TODO: probably a better way to handle this.
+      if (token == null) {
+        return
+      }
+      const buf = Buffer.from(token, 'base64')
+      this.connection.sendBinaryPassword(buf)
+    } catch (e) {
+      this.emit('error', e)
+    }
   }
 
   // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
