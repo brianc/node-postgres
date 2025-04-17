@@ -5,7 +5,7 @@
 //MIT License
 
 //parses a connection string
-function parse(str) {
+function parse(str, options = {}) {
   //unix socket
   if (str.charAt(0) === '/') {
     const config = str.split(' ')
@@ -87,20 +87,58 @@ function parse(str) {
     config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
   }
 
-  switch (config.sslmode) {
-    case 'disable': {
-      config.ssl = false
-      break
+  if (options.useLibpqCompat && config.uselibpqcompat) {
+    throw new Error('Both useLibpqCompat and uselibpqcompat are set. Please use only one of them.')
+  }
+
+  if (config.uselibpqcompat === 'true' || options.useLibpqCompat) {
+    switch (config.sslmode) {
+      case 'disable': {
+        config.ssl = false
+        break
+      }
+      case 'prefer': {
+        config.ssl.rejectUnauthorized = false
+        break
+      }
+      case 'require': {
+        if (config.sslrootcert) {
+          // If a root CA is specified, behavior of `sslmode=require` will be the same as that of `verify-ca`
+          config.ssl.checkServerIdentity = function () {}
+        } else {
+          config.ssl.rejectUnauthorized = false
+        }
+        break
+      }
+      case 'verify-ca': {
+        if (!config.ssl.ca) {
+          throw new Error(
+            'SECURITY WARNING: Using sslmode=verify-ca requires specifying a CA with sslrootcert. If a public CA is used, verify-ca allows connections to a server that somebody else may have registered with the CA, making you vulnerable to Man-in-the-Middle attacks. Either specify a custom CA certificate with sslrootcert parameter or use sslmode=verify-full for proper security.'
+          )
+        }
+        config.ssl.checkServerIdentity = function () {}
+        break
+      }
+      case 'verify-full': {
+        break
+      }
     }
-    case 'prefer':
-    case 'require':
-    case 'verify-ca':
-    case 'verify-full': {
-      break
-    }
-    case 'no-verify': {
-      config.ssl.rejectUnauthorized = false
-      break
+  } else {
+    switch (config.sslmode) {
+      case 'disable': {
+        config.ssl = false
+        break
+      }
+      case 'prefer':
+      case 'require':
+      case 'verify-ca':
+      case 'verify-full': {
+        break
+      }
+      case 'no-verify': {
+        config.ssl.rejectUnauthorized = false
+        break
+      }
     }
   }
 
