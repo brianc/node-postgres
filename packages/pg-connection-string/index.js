@@ -5,7 +5,7 @@
 //MIT License
 
 //parses a connection string
-function parse(str) {
+function parse(str, options = {}) {
   //unix socket
   if (str.charAt(0) === '/') {
     const config = str.split(' ')
@@ -87,7 +87,11 @@ function parse(str) {
     config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
   }
 
-  if (config.sslcompat === 'libpq') {
+  if (options.useLibpqCompat && config.sslcompat) {
+    throw new Error('Both useLibpqCompat and sslcompat are set. Please use only one of them.')
+  }
+
+  if (config.sslcompat === 'libpq' || options.useLibpqCompat) {
     switch (config.sslmode) {
       case 'disable': {
         config.ssl = false
