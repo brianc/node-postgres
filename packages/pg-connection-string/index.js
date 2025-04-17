@@ -87,11 +87,11 @@ function parse(str, options = {}) {
     config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
   }
 
-  if (options.useLibpqCompat && config.sslcompat) {
-    throw new Error('Both useLibpqCompat and sslcompat are set. Please use only one of them.')
+  if (options.useLibpqCompat && config.uselibpqcompat) {
+    throw new Error('Both useLibpqCompat and uselibpqcompat are set. Please use only one of them.')
   }
 
-  if (config.sslcompat === 'libpq' || options.useLibpqCompat) {
+  if (config.uselibpqcompat === 'true' || options.useLibpqCompat) {
     switch (config.sslmode) {
       case 'disable': {
         config.ssl = false

@@ -288,50 +288,51 @@ describe('parse', function () {
     })
   })
 
-  it('configuration parameter sslmode=disable with libpq compatibility', function () {
-    var connectionString = 'pg:///?sslmode=disable&sslcompat=libpq'
+  it('configuration parameter sslmode=disable with uselibpqcompat query param', function () {
+    var connectionString = 'pg:///?sslmode=disable&uselibpqcompat=true'
     var subject = parse(connectionString)
     subject.ssl.should.eql(false)
   })
 
-  it('configuration parameter sslmode=prefer with libpq compatibility', function () {
-    var connectionString = 'pg:///?sslmode=prefer&sslcompat=libpq'
+  it('configuration parameter sslmode=prefer with uselibpqcompat query param', function () {
+    var connectionString = 'pg:///?sslmode=prefer&uselibpqcompat=true'
     var subject = parse(connectionString)
     subject.ssl.should.eql({
       rejectUnauthorized: false,
     })
   })
 
-  it('configuration parameter sslmode=require with libpq compatibility', function () {
-    var connectionString = 'pg:///?sslmode=require&sslcompat=libpq'
+  it('configuration parameter sslmode=require with uselibpqcompat query param', function () {
+    var connectionString = 'pg:///?sslmode=require&uselibpqcompat=true'
     var subject = parse(connectionString)
     subject.ssl.should.eql({
       rejectUnauthorized: false,
     })
   })
 
-  it('configuration parameter sslmode=verify-ca with libpq compatibility', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca&sslcompat=libpq'
+  it('configuration parameter sslmode=verify-ca with uselibpqcompat query param', function () {
+    var connectionString = 'pg:///?sslmode=verify-ca&uselibpqcompat=true'
     expect(function () {
       parse(connectionString)
     }).to.throw()
   })
 
-  it('configuration parameter sslmode=verify-ca and sslrootcert with libpq compatibility', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca&sslcompat=libpq&sslrootcert=' + __dirname + '/example.ca'
+  it('configuration parameter sslmode=verify-ca and sslrootcert with uselibpqcompat query param', function () {
+    var connectionString = 'pg:///?sslmode=verify-ca&uselibpqcompat=true&sslrootcert=' + __dirname + '/example.ca'
     var subject = parse(connectionString)
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
     expect(subject.ssl.checkServerIdentity()).be.undefined
   })
 
-  it('configuration parameter sslmode=verify-full with libpq compatibility', function () {
-    var connectionString = 'pg:///?sslmode=verify-full&sslcompat=libpq'
+  it('configuration parameter sslmode=verify-full with uselibpqcompat query param', function () {
+    var connectionString = 'pg:///?sslmode=verify-full&uselibpqcompat=true'
     var subject = parse(connectionString)
     subject.ssl.should.eql({})
   })
 
-  it('configuration parameter ssl=true and sslmode=require still work with sslrootcert=/path/to/ca with libpq compatibility', function () {
-    var connectionString = 'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require&sslcompat=libpq'
+  it('configuration parameter ssl=true and sslmode=require still work with sslrootcert=/path/to/ca with uselibpqcompat query param', function () {
+    var connectionString =
+      'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require&uselibpqcompat=true'
     var subject = parse(connectionString)
     subject.ssl.should.have.property('ca', 'example ca\n')
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
@@ -389,7 +390,7 @@ describe('parse', function () {
   })
 
   it('does not allow sslcompat query parameter and useLibpqCompat option at the same time', function () {
-    var connectionString = 'pg:///?sslcompat=libpq'
+    var connectionString = 'pg:///?uselibpqcompat=true'
     expect(function () {
       parse(connectionString, { useLibpqCompat: true })
     }).to.throw()

@@ -87,7 +87,7 @@ Query parameters follow a `?` character, including the following special query p
  * `host=<host>` - sets `host` property, overriding the URL's host
  * `encoding=<encoding>` - sets the `client_encoding` property
  * `ssl=1`, `ssl=true`, `ssl=0`, `ssl=false` - sets `ssl` to true or false, accordingly
- * `sslcompat=libpq` - use libpq semantics for `sslmode`
+ * `uselibpqcompat=true` - use libpq semantics
  * `sslmode=<sslmode>` when `sslcompat` is not set
    * `sslmode=disable` - sets `ssl` to false
    * `sslmode=no-verify` - sets `ssl` to `{ rejectUnauthorized: false }`
