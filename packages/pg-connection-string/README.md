@@ -96,7 +96,7 @@ Query parameters follow a `?` character, including the following special query p
    * `sslmode=disable` - sets `ssl` to false
    * `sslmode=prefer` - sets `ssl` to `{ rejectUnauthorized: false }`
    * `sslmode=require` - sets `ssl` to `{ rejectUnauthorized: false }` unless `sslrootcert` is specified, in which case it behaves like `verify-ca`
-   * `sslmode=verify-ca` - sets `ssl` to `{ checkServerIdentity: no-op }` (verify CA, but not server identity). This verifies the presented certificate against the effective CA, i.e. the one specified in sslrootcert or the system CA if sslrootcert was not specified.
+   * `sslmode=verify-ca` - sets `ssl` to `{ checkServerIdentity: no-op }` (verify CA, but not server identity). This verifies the presented certificate against the effective CA specified in sslrootcert.
    * `sslmode=verify-full` - sets `ssl` to `{}` (verify CA and server identity)
  * `sslcert=<filename>` - reads data from the given file and includes the result as `ssl.cert`
  * `sslkey=<filename>` - reads data from the given file and includes the result as `ssl.key`
