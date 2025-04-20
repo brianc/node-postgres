@@ -169,12 +169,8 @@ function toClientConfig(config) {
       if (typeof sslConfig === 'boolean') {
         c[key] = sslConfig
       }
-      // else path is taken. multiple tests produce a sslConfig that is an object
-      // and we can console.log to see that we take this path
-      //
-      // see https://github.com/istanbuljs/babel-plugin-istanbul/issues/186#issuecomment-1137765139
-      // istanbul ignore else
-      else if (typeof sslConfig === 'object') {
+
+      if (typeof sslConfig === 'object') {
         c[key] = toConnectionOptions(sslConfig)
       }
     } else if (value !== undefined && value !== null) {

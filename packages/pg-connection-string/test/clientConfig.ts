@@ -1,21 +1,19 @@
-'use strict'
-
-const chai = require('chai')
+import chai from 'chai'
 const expect = chai.expect
 chai.should()
 
-const { parse, toClientConfig, parseIntoClientConfig } = require('../')
+import { parse, toClientConfig, parseIntoClientConfig } from '../'
 
 describe('toClientConfig', function () {
   it('converts connection info', function () {
     const config = parse('postgres://brian:pw@boom:381/lala')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.user.should.equal('brian')
-    clientConfig.password.should.equal('pw')
-    clientConfig.host.should.equal('boom')
-    clientConfig.port.should.equal(381)
-    clientConfig.database.should.equal('lala')
+    clientConfig.user?.should.equal('brian')
+    clientConfig.password?.should.equal('pw')
+    clientConfig.host?.should.equal('boom')
+    clientConfig.port?.should.equal(381)
+    clientConfig.database?.should.equal('lala')
   })
 
   it('converts query params', function () {
@@ -24,45 +22,47 @@ describe('toClientConfig', function () {
     )
     const clientConfig = toClientConfig(config)
 
-    clientConfig.application_name.should.equal('TheApp')
-    clientConfig.fallback_application_name.should.equal('TheAppFallback')
-    clientConfig.client_encoding.should.equal('utf8')
-    clientConfig.options.should.equal('-c geqo=off')
+    clientConfig.application_name?.should.equal('TheApp')
+    clientConfig.fallback_application_name?.should.equal('TheAppFallback')
+    clientConfig.client_encoding?.should.equal('utf8')
+    clientConfig.options?.should.equal('-c geqo=off')
   })
 
   it('converts SSL boolean', function () {
     const config = parse('pg:///?ssl=true')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl.should.equal(true)
+    clientConfig.ssl?.should.equal(true)
   })
 
   it('converts sslmode=disable', function () {
     const config = parse('pg:///?sslmode=disable')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl.should.equal(false)
+    clientConfig.ssl?.should.equal(false)
   })
 
   it('converts sslmode=noverify', function () {
     const config = parse('pg:///?sslmode=no-verify')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl.rejectUnauthorized.should.equal(false)
+    clientConfig.ssl?.should.deep.equal({
+      rejectUnauthorized: false,
+    })
   })
 
   it('converts other sslmode options', function () {
     const config = parse('pg:///?sslmode=verify-ca')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl.should.deep.equal({})
+    clientConfig.ssl?.should.deep.equal({})
   })
 
   it('converts other sslmode options', function () {
     const config = parse('pg:///?sslmode=verify-ca')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl.should.deep.equal({})
+    clientConfig.ssl?.should.deep.equal({})
   })
 
   it('converts ssl cert options', function () {
@@ -77,7 +77,7 @@ describe('toClientConfig', function () {
     const config = parse(connectionString)
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl.should.deep.equal({
+    clientConfig.ssl?.should.deep.equal({
       ca: 'example ca\n',
       cert: 'example cert\n',
       key: 'example key\n',
@@ -87,9 +87,9 @@ describe('toClientConfig', function () {
   it('converts unix domain sockets', function () {
     const config = parse('socket:/some path/?db=my[db]&encoding=utf8&client_encoding=bogus')
     const clientConfig = toClientConfig(config)
-    clientConfig.host.should.equal('/some path/')
-    clientConfig.database.should.equal('my[db]', 'must to be escaped and unescaped through "my%5Bdb%5D"')
-    clientConfig.client_encoding.should.equal('utf8')
+    clientConfig.host?.should.equal('/some path/')
+    clientConfig.database?.should.equal('my[db]', 'must to be escaped and unescaped through "my%5Bdb%5D"')
+    clientConfig.client_encoding?.should.equal('utf8')
   })
 
   it('handles invalid port', function () {
@@ -106,9 +106,9 @@ describe('toClientConfig', function () {
 
     const clientConfig = toClientConfig(config)
 
-    clientConfig.host.should.equal('boom')
-    clientConfig.database.should.equal('lala')
-    clientConfig.ssl.should.deep.equal({})
+    clientConfig.host?.should.equal('boom')
+    clientConfig.database?.should.equal('lala')
+    clientConfig.ssl?.should.deep.equal({})
   })
 })
 
@@ -116,10 +116,10 @@ describe('parseIntoClientConfig', function () {
   it('converts url', function () {
     const clientConfig = parseIntoClientConfig('postgres://brian:pw@boom:381/lala')
 
-    clientConfig.user.should.equal('brian')
-    clientConfig.password.should.equal('pw')
-    clientConfig.host.should.equal('boom')
-    clientConfig.port.should.equal(381)
-    clientConfig.database.should.equal('lala')
+    clientConfig.user?.should.equal('brian')
+    clientConfig.password?.should.equal('pw')
+    clientConfig.host?.should.equal('boom')
+    clientConfig.port?.should.equal(381)
+    clientConfig.database?.should.equal('lala')
   })
 })
