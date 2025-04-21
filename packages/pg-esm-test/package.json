@@ -1,0 +1,21 @@
+{
+  "name": "pg-esm-test",
+  "version": "1.0.0",
+  "description": "A test module for PostgreSQL with ESM support",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "postgres",
+    "postgresql",
+    "esm",
+    "test"
+  ],
+  "dependencies": {
+    "pg": "^8.14.1"
+  },
+  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
+  "license": "MIT"
+}
