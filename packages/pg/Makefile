@@ -55,4 +55,4 @@ test-pool:
 
 test-worker:
 	@echo "***Testing Cloudflare Worker support***"
-	@node test/worker/src/index.test.js
+	yarn vitest -c test/vitest.config.mts test/cloudflare/ --no-watch

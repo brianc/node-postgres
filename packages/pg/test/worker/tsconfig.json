@@ -4,8 +4,8 @@
 		"lib": [
 			"es2021"
 		],
-		"module": "es2022",
-		"moduleResolution": "node",
+		"module": "node16",
+		"moduleResolution": "node16",
 		"types": [
 			"@cloudflare/workers-types"
 		],

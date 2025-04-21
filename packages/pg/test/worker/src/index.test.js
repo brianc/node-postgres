@@ -22,9 +22,13 @@ async function test() {
     },
     logLevel: 'ERROR',
   })
+  console.log('worker made')
   try {
-    const resp = await worker.fetch('/')
+    console.log('requesting from worker')
+    const resp = await worker.fetch('http://example.com/')
+    console.log('got resp')
     const res = await resp.json()
+    console.log('get response', res)
     const { rows } = res
     assert.same(rows[0].text, 'Hello, World!')
   } finally {
