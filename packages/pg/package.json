@@ -21,7 +21,7 @@
   "main": "./lib",
   "exports": {
     ".": {
-      "import": "./esm/index.js",
+      "import": "./esm/index.mjs",
       "require": "./lib/index.js",
       "default": "./lib/index.js"
     }

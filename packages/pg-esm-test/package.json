@@ -14,7 +14,9 @@
     "test"
   ],
   "dependencies": {
-    "pg": "^8.14.1"
+    "pg": "^8.14.1",
+    "pg-pool": "^3.8.0",
+    "pg-native": "^3.3.0"
   },
   "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "license": "MIT"
