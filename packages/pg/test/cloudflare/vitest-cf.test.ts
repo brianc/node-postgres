@@ -1,6 +1,5 @@
 import { Pool } from 'pg'
 import { test } from 'vitest'
-import args from '../../test/cli'
 import assert from 'node:assert'
 
 test('default', async () => {
