@@ -24,7 +24,8 @@ async function test() {
   })
   try {
     const resp = await worker.fetch('/')
-    const { rows } = await resp.json()
+    const res = await resp.json()
+    const { rows } = res
     assert.same(rows[0].text, 'Hello, World!')
   } finally {
     await worker.stop()

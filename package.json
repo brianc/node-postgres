@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "yarn lerna exec yarn test",
+    "test": "yarn lerna exec --concurrency 1 yarn test",
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
     "docs:build": "cd docs && yarn build",
