@@ -19,6 +19,13 @@
   },
   "author": "Brian Carlson <brian.m.carlson@gmail.com>",
   "main": "./lib",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./lib/index.js",
+      "default": "./lib/index.js"
+    }
+  },
   "dependencies": {
     "pg-connection-string": "^2.7.0",
     "pg-pool": "^3.8.0",
@@ -52,6 +59,7 @@
   },
   "files": [
     "lib",
+    "esm",
     "SPONSORS.md"
   ],
   "license": "MIT",
