@@ -197,6 +197,8 @@ var md5PasswordBuffer = buffers.authenticationMD5Password()
 var SASLBuffer = buffers.authenticationSASL()
 var SASLContinueBuffer = buffers.authenticationSASLContinue()
 var SASLFinalBuffer = buffers.authenticationSASLFinal()
+var GSSInitBuffer = buffers.authenticationGSSInit()
+var GSSContinueBuffer = buffers.authenticationGSSContinue()
 
 var expectedPlainPasswordMessage = {
   name: 'authenticationCleartextPassword',
@@ -220,6 +222,15 @@ var expectedSASLContinueMessage = {
 var expectedSASLFinalMessage = {
   name: 'authenticationSASLFinal',
   data: 'data',
+}
+
+var expectedGSSInitMessage = {
+  name: 'GSSInit',
+}
+
+var expectedGSSContinueMessage = {
+  name: 'GSSContinue',
+  inToken: btoa('data'),
 }
 
 var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
@@ -247,6 +258,8 @@ describe('PgPacketStream', function () {
   testForMessage(md5PasswordBuffer, expectedMD5PasswordMessage)
   testForMessage(SASLBuffer, expectedSASLMessage)
   testForMessage(SASLContinueBuffer, expectedSASLContinueMessage)
+  testForMessage(GSSInitBuffer, expectedGSSInitMessage)
+  testForMessage(GSSContinueBuffer, expectedGSSContinueMessage)
 
   // this exercises a found bug in the parser:
   // https://github.com/brianc/node-postgres/pull/2210#issuecomment-627626084

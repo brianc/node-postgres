@@ -327,6 +327,13 @@ export class Parser {
           return new AuthenticationMD5Password(length, salt)
         }
         break
+      case 7: // GSS Init (Kerberos)
+        message.name = 'GSSInit'
+        break
+      case 8: // GSSAPI Continue (Kerberos)
+        message.name = 'GSSContinue'
+        message.inToken = this.reader.bytes(length - 8).toString('base64')
+        return message
       case 10: // AuthenticationSASL
         {
           message.name = 'authenticationSASL'

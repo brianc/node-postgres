@@ -10,3 +10,4 @@ dist
 /.eslintcache
 .vscode/
 manually-test-on-heroku.js
+.idea/
