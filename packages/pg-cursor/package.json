@@ -5,7 +5,7 @@
   "main": "index.js",
   "exports": {
     ".": {
-      "import": "./esm/index.js",
+      "import": "./esm/index.mjs",
       "require": "./index.js",
       "default": "./index.js"
     }
