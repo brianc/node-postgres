@@ -58,6 +58,7 @@ l-161 -22 -94 41 c-201 87 -327 113 -533 112 -77 -1 -166 -7 -196 -13z m-89
   head: (
     <>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="/favicon.ico" />
       <meta
         name="description"
         content="node-postgres is a collection of node.js modules for interfacing with your PostgreSQL database."
