@@ -3,6 +3,8 @@
 var Client = require('./client')
 var defaults = require('./defaults')
 var Connection = require('./connection')
+var Result = require('./result')
+var utils = require('./utils')
 var Pool = require('pg-pool')
 const { DatabaseError } = require('pg-protocol')
 const { escapeIdentifier, escapeLiteral } = require('./utils')
@@ -26,6 +28,8 @@ var PG = function (clientConstructor) {
   this.DatabaseError = DatabaseError
   this.escapeIdentifier = escapeIdentifier
   this.escapeLiteral = escapeLiteral
+  this.Result = Result
+  this.utils = utils
 }
 
 if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {

@@ -1,6 +1,7 @@
 'use strict'
-const Result = require('pg/lib/result.js')
-const prepare = require('pg/lib/utils.js').prepareValue
+const pg = require('pg')
+const { Result, utils } = pg
+const prepare = utils.prepareValue
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 

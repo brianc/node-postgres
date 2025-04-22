@@ -1,9 +1,17 @@
 {
   "name": "pg-connection-string",
-  "version": "2.7.0",
+  "version": "2.7.1-alpha.0",
   "description": "Functions for dealing with a PostgresSQL connection string",
   "main": "./index.js",
   "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./esm/index.mjs",
+      "require": "./index.js",
+      "default": "./index.js"
+    }
+  },
   "scripts": {
     "test": "istanbul cover _mocha && npm run check-coverage",
     "check-coverage": "istanbul check-coverage --statements 100 --branches 100 --lines 100 --functions 100",
@@ -34,6 +42,7 @@
   },
   "files": [
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "esm"
   ]
 }

@@ -54,5 +54,11 @@ test-pool:
 	@find test/integration/connection-pool -name "*.js" | $(node-command) binary
 
 test-worker:
-	@echo "***Testing Cloudflare Worker support***"
-	@node test/worker/src/index.test.js
+  # this command only runs in node 18.x and above since there are 
+	# worker specific items missing from the node environment in lower versions
+	@if [[ $(shell node --version | sed 's/v//' | cut -d'.' -f1) -ge 18 ]]; then \
+		echo "***Testing Cloudflare Worker support***"; \
+		yarn vitest run -c test/vitest.config.mts test/cloudflare/ --no-watch -- $(params); \
+	else \
+		echo "Skipping test-worker: Node.js version is less than 18."; \
+	fi

@@ -37,7 +37,8 @@ export class CloudflareSocket extends EventEmitter {
       if (connectListener) this.once('connect', connectListener)
 
       const options: SocketOptions = this.ssl ? { secureTransport: 'starttls' } : {}
-      const { connect } = await import('cloudflare:sockets')
+      const mod = await import('cloudflare:sockets')
+      const connect = mod.connect
       this._cfSocket = connect(`${host}:${port}`, options)
       this._cfWriter = this._cfSocket.writable.getWriter()
       this._addClosedHandler()

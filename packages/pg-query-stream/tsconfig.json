@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "node16",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
     "target": "es6",
     "noImplicitAny": false,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "sourceMap": true,
     "pretty": true,
     "outDir": "dist",
