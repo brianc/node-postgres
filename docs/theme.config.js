@@ -10,7 +10,6 @@ export default {
   docsRepositoryBase: 'https://github.com/brianc/node-postgres/blob/master/docs', // base URL for the docs repository
   titleSuffix: ' – node-postgres',
   darkMode: true,
-  footer: true,
   navigation: {
     prev: true,
     next: true,
@@ -23,7 +22,6 @@ export default {
   },
   logo: (
     <>
-      <svg>...</svg>
       <span>node-postgres</span>
     </>
   ),
