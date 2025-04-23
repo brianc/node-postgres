@@ -87,6 +87,7 @@ class Pool extends EventEmitter {
     }
 
     this.options.max = this.options.max || this.options.poolSize || 10
+    this.options.min = this.options.min || 0
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
@@ -109,6 +110,10 @@ class Pool extends EventEmitter {
 
   _isFull() {
     return this._clients.length >= this.options.max
+  }
+
+  _isAboveMin() {
+    return this._clients.length > this.options.min
   }
 
   _pulseQueue() {
@@ -334,8 +339,10 @@ class Pool extends EventEmitter {
 
   // release a client back to the poll, include an error
   // to remove it from the pool
-  _release(client, idleListener, err) {
-    client.on('error', idleListener)
+  _release(client, idleListener, err, registerListener = true) {
+    if (registerListener) {
+      client.on('error', idleListener)
+    }
 
     client._poolUseCount = (client._poolUseCount || 0) + 1
 
@@ -363,14 +370,16 @@ class Pool extends EventEmitter {
     // idle timeout
     let tid
     if (this.options.idleTimeoutMillis) {
-      tid = setTimeout(() => {
-        this.log('remove idle client')
-        this._remove(client)
-      }, this.options.idleTimeoutMillis)
+      if (this._isAboveMin()) {
+        tid = setTimeout(() => {
+          this.log('remove idle client')
+          this._remove(client)
+        }, this.options.idleTimeoutMillis)
 
-      if (this.options.allowExitOnIdle) {
-        // allow Node to exit if this is all that's left
-        tid.unref()
+        if (this.options.allowExitOnIdle) {
+          // allow Node to exit if this is all that's left
+          tid.unref()
+        }
       }
     }
 
