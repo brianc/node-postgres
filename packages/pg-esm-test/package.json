@@ -1,6 +1,6 @@
 {
   "name": "pg-esm-test",
-  "version": "1.1.1",
+  "version": "1.1.4",
   "description": "A test module for PostgreSQL with ESM support",
   "main": "index.js",
   "type": "module",
