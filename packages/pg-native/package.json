@@ -8,6 +8,11 @@
       "import": "./esm/index.mjs",
       "require": "./index.js",
       "default": "./index.js"
+    },
+    "./lib/*": {
+      "import": "./lib/*",
+      "require": "./lib/*",
+      "default": "./lib/*"
     }
   },
   "scripts": {
