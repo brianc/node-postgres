@@ -339,10 +339,8 @@ class Pool extends EventEmitter {
 
   // release a client back to the poll, include an error
   // to remove it from the pool
-  _release(client, idleListener, err, registerListener = true) {
-    if (registerListener) {
-      client.on('error', idleListener)
-    }
+  _release(client, idleListener, err) {
+    client.on('error', idleListener)
 
     client._poolUseCount = (client._poolUseCount || 0) + 1
 
