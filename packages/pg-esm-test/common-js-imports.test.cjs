@@ -2,7 +2,13 @@ const assert = require('node:assert')
 const test = require('node:test')
 const { describe, it } = test
 
-const paths = ['pg', 'pg/lib/index.js', 'pg/lib/connection-parameters.js']
+const paths = [
+  'pg',
+  'pg/lib/index.js',
+  'pg/lib/connection-parameters.js',
+  'pg-protocol/dist/messages.js',
+  'pg-native/lib/build-result.js',
+]
 for (const path of paths) {
   describe(`importing ${path}`, () => {
     it('works with require', () => {
