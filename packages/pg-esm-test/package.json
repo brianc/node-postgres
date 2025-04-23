@@ -19,7 +19,8 @@
     "pg-cursor": "^2.14.1",
     "pg-native": "^3.4.0",
     "pg-pool": "^3.9.1",
-    "pg-query-stream": "^4.9.1"
+    "pg-query-stream": "^4.9.1",
+    "pg-protocol": "^1.9.0"
   },
   "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "license": "MIT"

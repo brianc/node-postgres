@@ -1,5 +1,5 @@
 // ESM wrapper for pg-protocol
-import protocol from '../dist/index.js'
+import * as protocol from '../dist/index.js'
 
 // Re-export all the properties
 export const DatabaseError = protocol.DatabaseError

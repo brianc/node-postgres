@@ -49,6 +49,7 @@
   },
   "files": [
     "index.js",
+    "lib",
     "esm"
   ]
 }
