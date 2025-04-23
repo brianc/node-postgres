@@ -1,11 +1,12 @@
 'use strict'
 
-var Client = require('./client')
-var defaults = require('./defaults')
-var Connection = require('./connection')
-var Result = require('./result')
-var utils = require('./utils')
-var Pool = require('pg-pool')
+const Client = require('./client')
+const defaults = require('./defaults')
+const Connection = require('./connection')
+const Result = require('./result')
+const utils = require('./utils')
+const Pool = require('pg-pool')
+const TypeOverrides = require('./type-overrides')
 const { DatabaseError } = require('pg-protocol')
 const { escapeIdentifier, escapeLiteral } = require('./utils')
 
@@ -26,6 +27,7 @@ var PG = function (clientConstructor) {
   this.Connection = Connection
   this.types = require('pg-types')
   this.DatabaseError = DatabaseError
+  this.TypeOverrides = TypeOverrides
   this.escapeIdentifier = escapeIdentifier
   this.escapeLiteral = escapeLiteral
   this.Result = Result
