@@ -48,8 +48,7 @@ type Config = {
 example to create a new pool with configuration:
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool({
   host: 'localhost',
@@ -69,8 +68,7 @@ pool.query(text: string, values?: any[]) => Promise<pg.Result>
 ```
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -102,8 +100,7 @@ Acquires a client from the pool.
 - If the pool is 'full' and all clients are currently checked out will wait in a FIFO queue until a client becomes available by it being released back to the pool.
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -121,8 +118,7 @@ Client instances returned from `pool.connect` will have a `release` method which
 The `release` method on an acquired client returns it back to the pool. If you pass a truthy value in the `destroy` parameter, instead of releasing the client to the pool, the pool will be instructed to disconnect and destroy this client, leaving a space within itself for a new client.
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -134,8 +130,7 @@ client.release()
 ```
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 assert(pool.totalCount === 0)
@@ -168,8 +163,7 @@ Calling `pool.end` will drain the pool of all active clients, disconnect them, a
 
 ```js
 // again both promises and callbacks are supported:
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
