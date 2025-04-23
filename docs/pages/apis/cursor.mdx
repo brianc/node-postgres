@@ -28,11 +28,9 @@ const values = [10]
 
 const cursor = client.query(new Cursor(text, values))
 
-cursor.read(100, (err, rows) => {
-  cursor.close(() => {
-    client.release()
-  })
-})
+const { rows } = await cursor.read(100)
+console.log(rows.length) // 100 (unless the table has fewer than 100 rows)
+client.release()
 ```
 
 ```ts

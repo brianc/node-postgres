@@ -6,5 +6,6 @@
   "types": "Data Types",
   "ssl": "SSL",
   "native": "Native",
-  "esm": "ESM"
+  "esm": "ESM",
+  "callbacks": "Callbacks"
 }
