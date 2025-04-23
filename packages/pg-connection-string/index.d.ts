@@ -1,6 +1,6 @@
 import { ClientConfig } from 'pg'
 
-export function parse(connectionString: string, options: Options): ConnectionOptions
+export function parse(connectionString: string, options?: Options): ConnectionOptions
 
 export interface Options {
   // Use libpq semantics when interpreting the connection string
