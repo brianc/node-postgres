@@ -1,7 +1,7 @@
 'use strict'
-const pg = require('pg')
-const { Result, utils } = pg
-const prepare = utils.prepareValue
+// note: can remove these deep requires when we bump min version of pg to 9.x
+const Result = require('pg/lib/result.js')
+const prepare = require('pg/lib/utils.js').prepareValue
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 
