@@ -367,17 +367,15 @@ class Pool extends EventEmitter {
 
     // idle timeout
     let tid
-    if (this.options.idleTimeoutMillis) {
-      if (this._isAboveMin()) {
-        tid = setTimeout(() => {
-          this.log('remove idle client')
-          this._remove(client)
-        }, this.options.idleTimeoutMillis)
+    if (this.options.idleTimeoutMillis && this._isAboveMin()) {
+      tid = setTimeout(() => {
+        this.log('remove idle client')
+        this._remove(client)
+      }, this.options.idleTimeoutMillis)
 
-        if (this.options.allowExitOnIdle) {
-          // allow Node to exit if this is all that's left
-          tid.unref()
-        }
+      if (this.options.allowExitOnIdle) {
+        // allow Node to exit if this is all that's left
+        tid.unref()
       }
     }
 
