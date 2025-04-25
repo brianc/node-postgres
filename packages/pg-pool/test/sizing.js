@@ -55,4 +55,72 @@ describe('pool size of 1', () => {
       return yield pool.end()
     })
   )
+
+  it(
+    'does not remove clients when at or below min',
+    co.wrap(function* () {
+      const pool = new Pool({ max: 1, min: 1, idleTimeoutMillis: 10 })
+      const client = yield pool.connect()
+      client.release()
+      yield new Promise((resolve) => setTimeout(resolve, 20))
+      expect(pool.idleCount).to.equal(1)
+      return yield pool.end()
+    })
+  )
+
+  it(
+    'does remove clients when at or below min if maxUses is reached',
+    co.wrap(function* () {
+      const pool = new Pool({ max: 1, min: 1, idleTimeoutMillis: 10, maxUses: 1 })
+      const client = yield pool.connect()
+      client.release()
+      yield new Promise((resolve) => setTimeout(resolve, 20))
+      expect(pool.idleCount).to.equal(0)
+      return yield pool.end()
+    })
+  )
+
+  it(
+    'does remove clients when at or below min if maxLifetimeSeconds is reached',
+    co.wrap(function* () {
+      const pool = new Pool({ max: 1, min: 1, idleTimeoutMillis: 10, maxLifetimeSeconds: 1 })
+      const client = yield pool.connect()
+      client.release()
+      yield new Promise((resolve) => setTimeout(resolve, 1020))
+      expect(pool.idleCount).to.equal(0)
+      return yield pool.end()
+    })
+  )
+})
+
+describe('pool size of 2', () => {
+  it(
+    'does not remove clients when at or below min',
+    co.wrap(function* () {
+      const pool = new Pool({ max: 2, min: 2, idleTimeoutMillis: 10 })
+      const client = yield pool.connect()
+      const client2 = yield pool.connect()
+      client.release()
+      yield new Promise((resolve) => setTimeout(resolve, 20))
+      client2.release()
+      yield new Promise((resolve) => setTimeout(resolve, 20))
+      expect(pool.idleCount).to.equal(2)
+      return yield pool.end()
+    })
+  )
+
+  it(
+    'does remove clients when above min',
+    co.wrap(function* () {
+      const pool = new Pool({ max: 2, min: 1, idleTimeoutMillis: 10 })
+      const client = yield pool.connect()
+      const client2 = yield pool.connect()
+      client.release()
+      yield new Promise((resolve) => setTimeout(resolve, 20))
+      client2.release()
+      yield new Promise((resolve) => setTimeout(resolve, 20))
+      expect(pool.idleCount).to.equal(1)
+      return yield pool.end()
+    })
+  )
 })

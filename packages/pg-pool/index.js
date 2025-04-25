@@ -87,6 +87,7 @@ class Pool extends EventEmitter {
     }
 
     this.options.max = this.options.max || this.options.poolSize || 10
+    this.options.min = this.options.min || 0
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
@@ -109,6 +110,10 @@ class Pool extends EventEmitter {
 
   _isFull() {
     return this._clients.length >= this.options.max
+  }
+
+  _isAboveMin() {
+    return this._clients.length > this.options.min
   }
 
   _pulseQueue() {
@@ -362,7 +367,7 @@ class Pool extends EventEmitter {
 
     // idle timeout
     let tid
-    if (this.options.idleTimeoutMillis) {
+    if (this.options.idleTimeoutMillis && this._isAboveMin()) {
       tid = setTimeout(() => {
         this.log('remove idle client')
         this._remove(client)
