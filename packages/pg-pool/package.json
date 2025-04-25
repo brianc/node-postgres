@@ -1,6 +1,6 @@
 {
   "name": "pg-pool",
-  "version": "3.9.5",
+  "version": "3.9.6",
   "description": "Connection pool for node-postgres",
   "main": "index.js",
   "exports": {
@@ -39,7 +39,7 @@
     "expect.js": "0.3.1",
     "lodash": "^4.17.11",
     "mocha": "^10.5.2",
-    "pg-cursor": "^2.14.5"
+    "pg-cursor": "^2.14.6"
   },
   "peerDependencies": {
     "pg": ">=8.0"
