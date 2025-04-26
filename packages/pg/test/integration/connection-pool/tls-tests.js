@@ -9,13 +9,9 @@ const suite = new helper.Suite()
 
 if (process.env.PG_CLIENT_CERT_TEST) {
   suite.testAsync('client certificate', async () => {
-    const pool = new pg.Pool({
-      ssl: {
-        ca: fs.readFileSync(process.env.PGSSLROOTCERT),
-        cert: fs.readFileSync(process.env.PGSSLCERT),
-        key: fs.readFileSync(process.env.PGSSLKEY),
-      },
-    })
+    // PGSSLROOTCERT, PGSSLCERT, and PGSSLKEY are all set as environment
+    // variables in .travis.yml
+    const pool = new pg.Pool()
 
     await pool.query('SELECT 1')
     await pool.end()

@@ -1,6 +1,7 @@
 'use strict'
 
 var dns = require('dns')
+var fs = require('fs')
 
 var defaults = require('./defaults')
 
@@ -23,10 +24,15 @@ var readSSLConfigFromEnvironment = function () {
     case 'disable':
       return false
     case 'prefer':
+      return true
     case 'require':
     case 'verify-ca':
     case 'verify-full':
-      return true
+      return {
+        ca: process.env.PGSSLROOTCERT ? fs.readFileSync(process.env.PGSSLROOTCERT).toString() : undefined,
+        key: process.env.PGSSLKEY ? fs.readFileSync(process.env.PGSSLKEY).toString() : undefined,
+        cert: process.env.PGSSLCERT ? fs.readFileSync(process.env.PGSSLCERT).toString() : undefined,
+      }
     case 'no-verify':
       return { rejectUnauthorized: false }
   }
