@@ -44,7 +44,7 @@ var SSLNegotiationPacketTests = [
     testName: 'connection does not emit ECONNRESET errors during disconnect also when using SSL',
     errorMessage: null,
     response: 'S',
-    responseType: 'sslconnect',
+    responseType: 'connect',
   },
   {
     testName: 'connection emits an error when SSL is not supported',
