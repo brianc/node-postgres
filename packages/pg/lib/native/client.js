@@ -92,6 +92,7 @@ Client.prototype._connect = function (cb) {
   this.connectionParameters.getLibpqConnectionString(function (err, conString) {
     if (self.connectionParameters.nativeConnectionString) conString = self.connectionParameters.nativeConnectionString
     if (err) return cb(err)
+    if (self.connectionParameters.nativeConnectionString) conString = self.connectionParameters.nativeConnectionString
     self.native.connect(conString, function (err) {
       if (err) {
         self.native.end()
