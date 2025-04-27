@@ -1,14 +1,14 @@
 'use strict'
 
-var chai = require('chai')
-var expect = chai.expect
+const chai = require('chai')
+const expect = chai.expect
 chai.should()
 
-var parse = require('../').parse
+const parse = require('../').parse
 
 describe('parse', function () {
   it('using connection string in client constructor', function () {
-    var subject = parse('postgres://brian:pw@boom:381/lala')
+    const subject = parse('postgres://brian:pw@boom:381/lala')
     subject.user.should.equal('brian')
     subject.password.should.equal('pw')
     subject.host.should.equal('boom')
@@ -17,42 +17,42 @@ describe('parse', function () {
   })
 
   it('escape spaces if present', function () {
-    var subject = parse('postgres://localhost/post gres')
+    const subject = parse('postgres://localhost/post gres')
     subject.database.should.equal('post gres')
   })
 
   it('do not double escape spaces', function () {
-    var subject = parse('postgres://localhost/post%20gres')
+    const subject = parse('postgres://localhost/post%20gres')
     subject.database.should.equal('post gres')
   })
 
   it('initializing with unix domain socket', function () {
-    var subject = parse('/var/run/')
+    const subject = parse('/var/run/')
     subject.host.should.equal('/var/run/')
   })
 
   it('initializing with unix domain socket and a specific database, the simple way', function () {
-    var subject = parse('/var/run/ mydb')
+    const subject = parse('/var/run/ mydb')
     subject.host.should.equal('/var/run/')
     subject.database.should.equal('mydb')
   })
 
   it('initializing with unix domain socket, the health way', function () {
-    var subject = parse('socket:/some path/?db=my[db]&encoding=utf8')
+    const subject = parse('socket:/some path/?db=my[db]&encoding=utf8')
     subject.host.should.equal('/some path/')
     subject.database.should.equal('my[db]', 'must to be escaped and unescaped trough "my%5Bdb%5D"')
     subject.client_encoding.should.equal('utf8')
   })
 
   it('initializing with unix domain socket, the escaped health way', function () {
-    var subject = parse('socket:/some%20path/?db=my%2Bdb&encoding=utf8')
+    const subject = parse('socket:/some%20path/?db=my%2Bdb&encoding=utf8')
     subject.host.should.equal('/some path/')
     subject.database.should.equal('my+db')
     subject.client_encoding.should.equal('utf8')
   })
 
   it('initializing with unix domain socket, username and password', function () {
-    var subject = parse('socket://brian:pw@/var/run/?db=mydb')
+    const subject = parse('socket://brian:pw@/var/run/?db=mydb')
     subject.user.should.equal('brian')
     subject.password.should.equal('pw')
     subject.host.should.equal('/var/run/')
@@ -60,14 +60,14 @@ describe('parse', function () {
   })
 
   it('password contains  < and/or >  characters', function () {
-    var sourceConfig = {
+    const sourceConfig = {
       user: 'brian',
       password: 'hello<ther>e',
       host: 'localhost',
       port: 5432,
       database: 'postgres',
     }
-    var connectionString =
+    const connectionString =
       'postgres://' +
       sourceConfig.user +
       ':' +
@@ -78,19 +78,19 @@ describe('parse', function () {
       sourceConfig.port +
       '/' +
       sourceConfig.database
-    var subject = parse(connectionString)
+    const subject = parse(connectionString)
     subject.password.should.equal(sourceConfig.password)
   })
 
   it('password contains colons', function () {
-    var sourceConfig = {
+    const sourceConfig = {
       user: 'brian',
       password: 'hello:pass:world',
       host: 'localhost',
       port: 5432,
       database: 'postgres',
     }
-    var connectionString =
+    const connectionString =
       'postgres://' +
       sourceConfig.user +
       ':' +
@@ -101,21 +101,21 @@ describe('parse', function () {
       sourceConfig.port +
       '/' +
       sourceConfig.database
-    var subject = parse(connectionString)
+    const subject = parse(connectionString)
     subject.password.should.equal(sourceConfig.password)
   })
 
   it('username or password contains weird characters', function () {
-    var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
-    var subject = parse(strang)
+    const strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
+    const subject = parse(strang)
     subject.user.should.equal('my f%irst name')
     subject.password.should.equal('is&%awesome!')
     subject.host.should.equal('localhost')
   })
 
   it('url is properly encoded', function () {
-    var encoded = 'pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
-    var subject = parse(encoded)
+    const encoded = 'pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
+    const subject = parse(encoded)
     subject.user.should.equal('bi%na%%ry ')
     subject.password.should.equal('s@f#')
     subject.host.should.equal('localhost')
@@ -123,24 +123,24 @@ describe('parse', function () {
   })
 
   it('relative url sets database', function () {
-    var relative = 'different_db_on_default_host'
-    var subject = parse(relative)
+    const relative = 'different_db_on_default_host'
+    const subject = parse(relative)
     subject.database.should.equal('different_db_on_default_host')
   })
 
   it('no pathname returns null database', function () {
-    var subject = parse('pg://myhost')
+    const subject = parse('pg://myhost')
     ;(subject.database === null).should.equal(true)
   })
 
   it('pathname of "/" returns null database', function () {
-    var subject = parse('pg://myhost/')
+    const subject = parse('pg://myhost/')
     subject.host.should.equal('myhost')
     ;(subject.database === null).should.equal(true)
   })
 
   it('configuration parameter host', function () {
-    var subject = parse('pg://user:pass@/dbname?host=/unix/socket')
+    const subject = parse('pg://user:pass@/dbname?host=/unix/socket')
     subject.user.should.equal('user')
     subject.password.should.equal('pass')
     subject.host.should.equal('/unix/socket')
@@ -148,13 +148,13 @@ describe('parse', function () {
   })
 
   it('configuration parameter host overrides url host', function () {
-    var subject = parse('pg://user:pass@localhost/dbname?host=/unix/socket')
+    const subject = parse('pg://user:pass@localhost/dbname?host=/unix/socket')
     subject.database.should.equal('dbname')
     subject.host.should.equal('/unix/socket')
   })
 
   it('url with encoded socket', function () {
-    var subject = parse('pg://user:pass@%2Funix%2Fsocket/dbname')
+    const subject = parse('pg://user:pass@%2Funix%2Fsocket/dbname')
     subject.user.should.equal('user')
     subject.password.should.equal('pass')
     subject.host.should.equal('/unix/socket')
@@ -162,7 +162,7 @@ describe('parse', function () {
   })
 
   it('url with real host and an encoded db name', function () {
-    var subject = parse('pg://user:pass@localhost/%2Fdbname')
+    const subject = parse('pg://user:pass@localhost/%2Fdbname')
     subject.user.should.equal('user')
     subject.password.should.equal('pass')
     subject.host.should.equal('localhost')
@@ -170,7 +170,7 @@ describe('parse', function () {
   })
 
   it('configuration parameter host treats encoded host as part of the db name', function () {
-    var subject = parse('pg://user:pass@%2Funix%2Fsocket/dbname?host=localhost')
+    const subject = parse('pg://user:pass@%2Funix%2Fsocket/dbname?host=localhost')
     subject.user.should.equal('user')
     subject.password.should.equal('pass')
     subject.host.should.equal('localhost')
@@ -178,258 +178,258 @@ describe('parse', function () {
   })
 
   it('configuration parameter application_name', function () {
-    var connectionString = 'pg:///?application_name=TheApp'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?application_name=TheApp'
+    const subject = parse(connectionString)
     subject.application_name.should.equal('TheApp')
   })
 
   it('configuration parameter fallback_application_name', function () {
-    var connectionString = 'pg:///?fallback_application_name=TheAppFallback'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?fallback_application_name=TheAppFallback'
+    const subject = parse(connectionString)
     subject.fallback_application_name.should.equal('TheAppFallback')
   })
 
   it('configuration parameter options', function () {
-    var connectionString = 'pg:///?options=-c geqo=off'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?options=-c geqo=off'
+    const subject = parse(connectionString)
     subject.options.should.equal('-c geqo=off')
   })
 
   it('configuration parameter ssl=true', function () {
-    var connectionString = 'pg:///?ssl=true'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?ssl=true'
+    const subject = parse(connectionString)
     subject.ssl.should.equal(true)
   })
 
   it('configuration parameter ssl=1', function () {
-    var connectionString = 'pg:///?ssl=1'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?ssl=1'
+    const subject = parse(connectionString)
     subject.ssl.should.equal(true)
   })
 
   it('configuration parameter ssl=0', function () {
-    var connectionString = 'pg:///?ssl=0'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?ssl=0'
+    const subject = parse(connectionString)
     subject.ssl.should.equal(false)
   })
 
   it('set ssl', function () {
-    var subject = parse('pg://myhost/db?ssl=1')
+    const subject = parse('pg://myhost/db?ssl=1')
     subject.ssl.should.equal(true)
   })
 
   it('configuration parameter sslcert=/path/to/cert', function () {
-    var connectionString = 'pg:///?sslcert=' + __dirname + '/example.cert'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslcert=' + __dirname + '/example.cert'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({
       cert: 'example cert\n',
     })
   })
 
   it('configuration parameter sslkey=/path/to/key', function () {
-    var connectionString = 'pg:///?sslkey=' + __dirname + '/example.key'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslkey=' + __dirname + '/example.key'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({
       key: 'example key\n',
     })
   })
 
   it('configuration parameter sslrootcert=/path/to/ca', function () {
-    var connectionString = 'pg:///?sslrootcert=' + __dirname + '/example.ca'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslrootcert=' + __dirname + '/example.ca'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({
       ca: 'example ca\n',
     })
   })
 
   it('configuration parameter sslmode=no-verify', function () {
-    var connectionString = 'pg:///?sslmode=no-verify'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=no-verify'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({
       rejectUnauthorized: false,
     })
   })
 
   it('configuration parameter sslmode=disable', function () {
-    var connectionString = 'pg:///?sslmode=disable'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=disable'
+    const subject = parse(connectionString)
     subject.ssl.should.eql(false)
   })
 
   it('configuration parameter sslmode=prefer', function () {
-    var connectionString = 'pg:///?sslmode=prefer'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=prefer'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({})
   })
 
   it('configuration parameter sslmode=require', function () {
-    var connectionString = 'pg:///?sslmode=require'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=require'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({})
   })
 
   it('configuration parameter sslmode=verify-ca', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=verify-ca'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({})
   })
 
   it('configuration parameter sslmode=verify-full', function () {
-    var connectionString = 'pg:///?sslmode=verify-full'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=verify-full'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({})
   })
 
   it('configuration parameter ssl=true and sslmode=require still work with sslrootcert=/path/to/ca', function () {
-    var connectionString = 'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({
       ca: 'example ca\n',
     })
   })
 
   it('configuration parameter sslmode=disable with uselibpqcompat query param', function () {
-    var connectionString = 'pg:///?sslmode=disable&uselibpqcompat=true'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=disable&uselibpqcompat=true'
+    const subject = parse(connectionString)
     subject.ssl.should.eql(false)
   })
 
   it('configuration parameter sslmode=prefer with uselibpqcompat query param', function () {
-    var connectionString = 'pg:///?sslmode=prefer&uselibpqcompat=true'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=prefer&uselibpqcompat=true'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({
       rejectUnauthorized: false,
     })
   })
 
   it('configuration parameter sslmode=require with uselibpqcompat query param', function () {
-    var connectionString = 'pg:///?sslmode=require&uselibpqcompat=true'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=require&uselibpqcompat=true'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({
       rejectUnauthorized: false,
     })
   })
 
   it('configuration parameter sslmode=verify-ca with uselibpqcompat query param', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca&uselibpqcompat=true'
+    const connectionString = 'pg:///?sslmode=verify-ca&uselibpqcompat=true'
     expect(function () {
       parse(connectionString)
     }).to.throw()
   })
 
   it('configuration parameter sslmode=verify-ca and sslrootcert with uselibpqcompat query param', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca&uselibpqcompat=true&sslrootcert=' + __dirname + '/example.ca'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=verify-ca&uselibpqcompat=true&sslrootcert=' + __dirname + '/example.ca'
+    const subject = parse(connectionString)
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
     expect(subject.ssl.checkServerIdentity()).be.undefined
   })
 
   it('configuration parameter sslmode=verify-full with uselibpqcompat query param', function () {
-    var connectionString = 'pg:///?sslmode=verify-full&uselibpqcompat=true'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?sslmode=verify-full&uselibpqcompat=true'
+    const subject = parse(connectionString)
     subject.ssl.should.eql({})
   })
 
   it('configuration parameter ssl=true and sslmode=require still work with sslrootcert=/path/to/ca with uselibpqcompat query param', function () {
-    var connectionString =
+    const connectionString =
       'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require&uselibpqcompat=true'
-    var subject = parse(connectionString)
+    const subject = parse(connectionString)
     subject.ssl.should.have.property('ca', 'example ca\n')
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
     expect(subject.ssl.checkServerIdentity()).be.undefined
   })
 
   it('configuration parameter sslmode=disable with useLibpqCompat option', function () {
-    var connectionString = 'pg:///?sslmode=disable'
-    var subject = parse(connectionString, { useLibpqCompat: true })
+    const connectionString = 'pg:///?sslmode=disable'
+    const subject = parse(connectionString, { useLibpqCompat: true })
     subject.ssl.should.eql(false)
   })
 
   it('configuration parameter sslmode=prefer with useLibpqCompat option', function () {
-    var connectionString = 'pg:///?sslmode=prefer'
-    var subject = parse(connectionString, { useLibpqCompat: true })
+    const connectionString = 'pg:///?sslmode=prefer'
+    const subject = parse(connectionString, { useLibpqCompat: true })
     subject.ssl.should.eql({
       rejectUnauthorized: false,
     })
   })
 
   it('configuration parameter sslmode=require with useLibpqCompat option', function () {
-    var connectionString = 'pg:///?sslmode=require'
-    var subject = parse(connectionString, { useLibpqCompat: true })
+    const connectionString = 'pg:///?sslmode=require'
+    const subject = parse(connectionString, { useLibpqCompat: true })
     subject.ssl.should.eql({
       rejectUnauthorized: false,
     })
   })
 
   it('configuration parameter sslmode=verify-ca with useLibpqCompat option', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca'
+    const connectionString = 'pg:///?sslmode=verify-ca'
     expect(function () {
       parse(connectionString, { useLibpqCompat: true })
     }).to.throw()
   })
 
   it('configuration parameter sslmode=verify-ca and sslrootcert with useLibpqCompat option', function () {
-    var connectionString = 'pg:///?sslmode=verify-ca&sslrootcert=' + __dirname + '/example.ca'
-    var subject = parse(connectionString, { useLibpqCompat: true })
+    const connectionString = 'pg:///?sslmode=verify-ca&sslrootcert=' + __dirname + '/example.ca'
+    const subject = parse(connectionString, { useLibpqCompat: true })
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
     expect(subject.ssl.checkServerIdentity()).be.undefined
   })
 
   it('configuration parameter sslmode=verify-full with useLibpqCompat option', function () {
-    var connectionString = 'pg:///?sslmode=verify-full'
-    var subject = parse(connectionString, { useLibpqCompat: true })
+    const connectionString = 'pg:///?sslmode=verify-full'
+    const subject = parse(connectionString, { useLibpqCompat: true })
     subject.ssl.should.eql({})
   })
 
   it('configuration parameter ssl=true and sslmode=require still work with sslrootcert=/path/to/ca with useLibpqCompat option', function () {
-    var connectionString = 'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require'
-    var subject = parse(connectionString, { useLibpqCompat: true })
+    const connectionString = 'pg:///?ssl=true&sslrootcert=' + __dirname + '/example.ca&sslmode=require'
+    const subject = parse(connectionString, { useLibpqCompat: true })
     subject.ssl.should.have.property('ca', 'example ca\n')
     subject.ssl.should.have.property('checkServerIdentity').that.is.a('function')
     expect(subject.ssl.checkServerIdentity()).be.undefined
   })
 
   it('does not allow sslcompat query parameter and useLibpqCompat option at the same time', function () {
-    var connectionString = 'pg:///?uselibpqcompat=true'
+    const connectionString = 'pg:///?uselibpqcompat=true'
     expect(function () {
       parse(connectionString, { useLibpqCompat: true })
     }).to.throw()
   })
 
   it('allow other params like max, ...', function () {
-    var subject = parse('pg://myhost/db?max=18&min=4')
+    const subject = parse('pg://myhost/db?max=18&min=4')
     subject.max.should.equal('18')
     subject.min.should.equal('4')
   })
 
   it('configuration parameter keepalives', function () {
-    var connectionString = 'pg:///?keepalives=1'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?keepalives=1'
+    const subject = parse(connectionString)
     subject.keepalives.should.equal('1')
   })
 
   it('unknown configuration parameter is passed into client', function () {
-    var connectionString = 'pg:///?ThereIsNoSuchPostgresParameter=1234'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?ThereIsNoSuchPostgresParameter=1234'
+    const subject = parse(connectionString)
     subject.ThereIsNoSuchPostgresParameter.should.equal('1234')
   })
 
   it('do not override a config field with value from query string', function () {
-    var subject = parse('socket:/some path/?db=my[db]&encoding=utf8&client_encoding=bogus')
+    const subject = parse('socket:/some path/?db=my[db]&encoding=utf8&client_encoding=bogus')
     subject.host.should.equal('/some path/')
     subject.database.should.equal('my[db]', 'must to be escaped and unescaped through "my%5Bdb%5D"')
     subject.client_encoding.should.equal('utf8')
   })
 
   it('return last value of repeated parameter', function () {
-    var connectionString = 'pg:///?keepalives=1&keepalives=0'
-    var subject = parse(connectionString)
+    const connectionString = 'pg:///?keepalives=1&keepalives=0'
+    const subject = parse(connectionString)
     subject.keepalives.should.equal('0')
   })
 
   it('use the port specified in the query parameters', function () {
-    var connectionString = 'postgres:///?host=localhost&port=1234'
-    var subject = parse(connectionString)
+    const connectionString = 'postgres:///?host=localhost&port=1234'
+    const subject = parse(connectionString)
     subject.port.should.equal('1234')
   })
 })

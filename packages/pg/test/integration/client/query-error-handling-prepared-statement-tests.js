@@ -1,24 +1,24 @@
 'use strict'
-var helper = require('./test-helper')
-var Query = helper.pg.Query
+const helper = require('./test-helper')
+const Query = helper.pg.Query
 const { Client } = helper
 const assert = require('assert')
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
 suite.test('client end during query execution of prepared statement', function (done) {
-  var client = new Client()
+  const client = new Client()
   client.connect(
     assert.success(function () {
-      var sleepQuery = 'select pg_sleep($1)'
+      const sleepQuery = 'select pg_sleep($1)'
 
-      var queryConfig = {
+      const queryConfig = {
         name: 'sleep query',
         text: sleepQuery,
         values: [5],
       }
 
-      var queryInstance = new Query(
+      const queryInstance = new Query(
         queryConfig,
         assert.calls(function (err, result) {
           assert.equal(err.message, 'Connection terminated')
@@ -26,7 +26,7 @@ suite.test('client end during query execution of prepared statement', function (
         })
       )
 
-      var query1 = client.query(queryInstance)
+      const query1 = client.query(queryInstance)
 
       query1.on('error', function (err) {
         assert.fail('Prepared statement should not emit error')
@@ -46,9 +46,9 @@ suite.test('client end during query execution of prepared statement', function (
 })
 
 function killIdleQuery(targetQuery, cb) {
-  var client2 = new Client(helper.args)
-  var pidColName = 'procpid'
-  var queryColName = 'current_query'
+  const client2 = new Client(helper.args)
+  let pidColName = 'procpid'
+  let queryColName = 'current_query'
   client2.connect(
     assert.success(function () {
       helper.versionGTE(
@@ -59,7 +59,7 @@ function killIdleQuery(targetQuery, cb) {
             pidColName = 'pid'
             queryColName = 'query'
           }
-          var killIdleQuery =
+          const killIdleQuery =
             'SELECT ' +
             pidColName +
             ', (SELECT pg_terminate_backend(' +
@@ -87,10 +87,10 @@ suite.test('query killed during query execution of prepared statement', function
   if (helper.args.native) {
     return done()
   }
-  var client = new Client(helper.args)
+  const client = new Client(helper.args)
   client.connect(
     assert.success(function () {
-      var sleepQuery = 'select pg_sleep($1)'
+      const sleepQuery = 'select pg_sleep($1)'
 
       const queryConfig = {
         name: 'sleep query',
@@ -101,7 +101,7 @@ suite.test('query killed during query execution of prepared statement', function
       // client should emit an error because it is unexpectedly disconnected
       assert.emits(client, 'error')
 
-      var query1 = client.query(
+      const query1 = client.query(
         new Query(queryConfig),
         assert.calls(function (err, result) {
           assert.equal(err.message, 'terminating connection due to administrator command')

@@ -3,7 +3,7 @@
 const defaults = require('./defaults')
 
 function escapeElement(elementRepresentation) {
-  var escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  const escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
   return '"' + escaped + '"'
 }
@@ -12,8 +12,8 @@ function escapeElement(elementRepresentation) {
 // uses comma separator so won't work for types like box that use
 // a different array separator.
 function arrayString(val) {
-  var result = '{'
-  for (var i = 0; i < val.length; i++) {
+  let result = '{'
+  for (let i = 0; i < val.length; i++) {
     if (i > 0) {
       result = result + ','
     }
@@ -22,9 +22,9 @@ function arrayString(val) {
     } else if (Array.isArray(val[i])) {
       result = result + arrayString(val[i])
     } else if (ArrayBuffer.isView(val[i])) {
-      var item = val[i]
+      let item = val[i]
       if (!(item instanceof Buffer)) {
-        var buf = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
+        const buf = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
         if (buf.length === item.byteLength) {
           item = buf
         } else {
@@ -44,7 +44,7 @@ function arrayString(val) {
 // to their 'raw' counterparts for use as a postgres parameter
 // note: you can override this function to provide your own conversion mechanism
 // for complex types, etc...
-var prepareValue = function (val, seen) {
+const prepareValue = function (val, seen) {
   // null and undefined are both null for postgres
   if (val == null) {
     return null
@@ -54,7 +54,7 @@ var prepareValue = function (val, seen) {
       return val
     }
     if (ArrayBuffer.isView(val)) {
-      var buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
+      const buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
       if (buf.length === val.byteLength) {
         return buf
       }
@@ -90,13 +90,13 @@ function prepareObject(val, seen) {
 }
 
 function dateToString(date) {
-  var offset = -date.getTimezoneOffset()
+  let offset = -date.getTimezoneOffset()
 
-  var year = date.getFullYear()
-  var isBCYear = year < 1
+  let year = date.getFullYear()
+  const isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
-  var ret =
+  let ret =
     String(year).padStart(4, '0') +
     '-' +
     String(date.getMonth() + 1).padStart(2, '0') +
@@ -124,11 +124,11 @@ function dateToString(date) {
 }
 
 function dateToStringUTC(date) {
-  var year = date.getUTCFullYear()
-  var isBCYear = year < 1
+  let year = date.getUTCFullYear()
+  const isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
-  var ret =
+  let ret =
     String(year).padStart(4, '0') +
     '-' +
     String(date.getUTCMonth() + 1).padStart(2, '0') +
@@ -170,11 +170,11 @@ const escapeIdentifier = function (str) {
 }
 
 const escapeLiteral = function (str) {
-  var hasBackslash = false
-  var escaped = "'"
+  let hasBackslash = false
+  let escaped = "'"
 
-  for (var i = 0; i < str.length; i++) {
-    var c = str[i]
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i]
     if (c === "'") {
       escaped += c + c
     } else if (c === '\\') {

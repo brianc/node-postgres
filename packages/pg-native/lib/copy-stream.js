@@ -1,8 +1,8 @@
-var Duplex = require('stream').Duplex
-var Writable = require('stream').Writable
-var util = require('util')
+const Duplex = require('stream').Duplex
+const Writable = require('stream').Writable
+const util = require('util')
 
-var CopyStream = (module.exports = function (pq, options) {
+const CopyStream = (module.exports = function (pq, options) {
   Duplex.call(this, options)
   this.pq = pq
   this._reading = false
@@ -12,7 +12,7 @@ util.inherits(CopyStream, Duplex)
 
 // writer methods
 CopyStream.prototype._write = function (chunk, encoding, cb) {
-  var result = this.pq.putCopyData(chunk)
+  const result = this.pq.putCopyData(chunk)
 
   // sent successfully
   if (result === 1) return cb()
@@ -21,22 +21,22 @@ CopyStream.prototype._write = function (chunk, encoding, cb) {
   if (result === -1) return cb(new Error(this.pq.errorMessage()))
 
   // command would block. wait for writable and call again.
-  var self = this
+  const self = this
   this.pq.writable(function () {
     self._write(chunk, encoding, cb)
   })
 }
 
 CopyStream.prototype.end = function () {
-  var args = Array.prototype.slice.call(arguments, 0)
-  var self = this
+  const args = Array.prototype.slice.call(arguments, 0)
+  const self = this
 
-  var callback = args.pop()
+  const callback = args.pop()
 
   if (args.length) {
     this.write(args[0])
   }
-  var result = this.pq.putCopyEnd()
+  const result = this.pq.putCopyEnd()
 
   // sent successfully
   if (result === 1) {
@@ -55,7 +55,7 @@ CopyStream.prototype.end = function () {
 
   // error
   if (result === -1) {
-    var err = new Error(this.pq.errorMessage())
+    const err = new Error(this.pq.errorMessage())
     return this.emit('error', err)
   }
 
@@ -70,7 +70,7 @@ CopyStream.prototype.end = function () {
 
 // reader methods
 CopyStream.prototype._consumeBuffer = function (cb) {
-  var result = this.pq.getCopyData(true)
+  const result = this.pq.getCopyData(true)
   if (result instanceof Buffer) {
     return setImmediate(function () {
       cb(null, result)
@@ -81,7 +81,7 @@ CopyStream.prototype._consumeBuffer = function (cb) {
     return cb(null, null)
   }
   if (result === 0) {
-    var self = this
+    const self = this
     this.pq.once('readable', function () {
       self.pq.stopReader()
       self.pq.consumeInput()
@@ -96,7 +96,7 @@ CopyStream.prototype._read = function (size) {
   if (this._reading) return
   this._reading = true
   // console.log('read begin');
-  var self = this
+  const self = this
   this._consumeBuffer(function (err, buffer) {
     self._reading = false
     if (err) {
@@ -110,18 +110,18 @@ CopyStream.prototype._read = function (size) {
   })
 }
 
-var consumeResults = function (pq, cb) {
-  var cleanup = function () {
+const consumeResults = function (pq, cb) {
+  const cleanup = function () {
     pq.removeListener('readable', onReadable)
     pq.stopReader()
   }
 
-  var readError = function (message) {
+  const readError = function (message) {
     cleanup()
     return cb(new Error(message || pq.errorMessage()))
   }
 
-  var onReadable = function () {
+  const onReadable = function () {
     // read waiting data from the socket
     // e.g. clear the pending 'select'
     if (!pq.consumeInput()) {
