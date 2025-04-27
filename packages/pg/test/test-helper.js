@@ -1,6 +1,6 @@
 'use strict'
 const assert = require('assert')
-var sys = require('util')
+const sys = require('util')
 
 const Suite = require('./suite')
 const args = require('./cli')
@@ -16,10 +16,10 @@ process.on('uncaughtException', function (d) {
   }
   process.exit(-1)
 })
-var expect = function (callback, timeout) {
-  var executed = false
+const expect = function (callback, timeout) {
+  const executed = false
   timeout = timeout || parseInt(process.env.TEST_TIMEOUT) || 5000
-  var id = setTimeout(function () {
+  const id = setTimeout(function () {
     assert.ok(
       executed,
       'Expected execution of function to be fired within ' +
@@ -66,15 +66,15 @@ process.on('uncaughtException', function (err) {
   process.exit(255)
 })
 
-var getTimezoneOffset = Date.prototype.getTimezoneOffset
+const getTimezoneOffset = Date.prototype.getTimezoneOffset
 
-var setTimezoneOffset = function (minutesOffset) {
+const setTimezoneOffset = function (minutesOffset) {
   Date.prototype.getTimezoneOffset = function () {
     return minutesOffset
   }
 }
 
-var resetTimezoneOffset = function () {
+const resetTimezoneOffset = function () {
   Date.prototype.getTimezoneOffset = getTimezoneOffset
 }
 
@@ -88,14 +88,14 @@ const rejection = (promise) =>
 
 if (Object.isExtensible(assert)) {
   assert.same = function (actual, expected) {
-    for (var key in expected) {
+    for (const key in expected) {
       assert.equal(actual[key], expected[key])
     }
   }
 
   assert.emits = function (item, eventName, callback, message) {
-    var called = false
-    var id = setTimeout(function () {
+    let called = false
+    const id = setTimeout(function () {
       test("Should have called '" + eventName + "' event", function () {
         assert.ok(called, message || "Expected '" + eventName + "' to be called.")
       })
@@ -119,25 +119,25 @@ if (Object.isExtensible(assert)) {
   }
 
   assert.UTCDate = function (actual, year, month, day, hours, min, sec, milisecond) {
-    var actualYear = actual.getUTCFullYear()
+    const actualYear = actual.getUTCFullYear()
     assert.equal(actualYear, year, 'expected year ' + year + ' but got ' + actualYear)
 
-    var actualMonth = actual.getUTCMonth()
+    const actualMonth = actual.getUTCMonth()
     assert.equal(actualMonth, month, 'expected month ' + month + ' but got ' + actualMonth)
 
-    var actualDate = actual.getUTCDate()
+    const actualDate = actual.getUTCDate()
     assert.equal(actualDate, day, 'expected day ' + day + ' but got ' + actualDate)
 
-    var actualHours = actual.getUTCHours()
+    const actualHours = actual.getUTCHours()
     assert.equal(actualHours, hours, 'expected hours ' + hours + ' but got ' + actualHours)
 
-    var actualMin = actual.getUTCMinutes()
+    const actualMin = actual.getUTCMinutes()
     assert.equal(actualMin, min, 'expected min ' + min + ' but got ' + actualMin)
 
-    var actualSec = actual.getUTCSeconds()
+    const actualSec = actual.getUTCSeconds()
     assert.equal(actualSec, sec, 'expected sec ' + sec + ' but got ' + actualSec)
 
-    var actualMili = actual.getUTCMilliseconds()
+    const actualMili = actual.getUTCMilliseconds()
     assert.equal(actualMili, milisecond, 'expected milisecond ' + milisecond + ' but got ' + actualMili)
   }
 
@@ -153,7 +153,7 @@ if (Object.isExtensible(assert)) {
       spit(actual, expected)
       assert.equal(actual.length, expected.length)
     }
-    for (var i = 0; i < actual.length; i++) {
+    for (let i = 0; i < actual.length; i++) {
       if (actual[i] != expected[i]) {
         spit(actual, expected)
       }

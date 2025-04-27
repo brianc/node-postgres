@@ -1,6 +1,6 @@
 'use strict'
-var helper = require('./test-helper')
-var pg = helper.pg
+const helper = require('./test-helper')
+const pg = helper.pg
 const assert = require('assert')
 
 const pool = new pg.Pool()

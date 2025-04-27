@@ -2,7 +2,7 @@
 const helper = require('./test-helper')
 const assert = require('assert')
 
-var sasl = require('../../../lib/crypto/sasl')
+const sasl = require('../../../lib/crypto/sasl')
 
 const suite = new helper.Suite()
 

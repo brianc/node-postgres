@@ -1,18 +1,18 @@
 'use strict'
-var helper = require('./test-helper')
-var Client = helper.Client
+const helper = require('./test-helper')
+const Client = helper.Client
 const assert = require('assert')
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
-var conInfo = helper.config
+const conInfo = helper.config
 
 function getConInfo(override) {
   return Object.assign({}, conInfo, override)
 }
 
 function testClientVersion(cb) {
-  var client = new Client({})
+  const client = new Client({})
   client.connect(
     assert.success(function () {
       helper.versionGTE(
@@ -37,13 +37,13 @@ function testClientVersion(cb) {
 }
 
 function getIdleTransactionSessionTimeout(conf, cb) {
-  var client = new Client(conf)
+  const client = new Client(conf)
   client.connect(
     assert.success(function () {
       client.query(
         'SHOW idle_in_transaction_session_timeout',
         assert.success(function (res) {
-          var timeout = res.rows[0].idle_in_transaction_session_timeout
+          const timeout = res.rows[0].idle_in_transaction_session_timeout
           cb(timeout)
           client.end()
         })
@@ -64,7 +64,7 @@ if (!helper.args.native) {
     })
 
     suite.test('idle_in_transaction_session_timeout integer is used', function (done) {
-      var conf = getConInfo({
+      const conf = getConInfo({
         idle_in_transaction_session_timeout: 3000,
       })
       getIdleTransactionSessionTimeout(conf, function (res) {
@@ -74,7 +74,7 @@ if (!helper.args.native) {
     })
 
     suite.test('idle_in_transaction_session_timeout float is used', function (done) {
-      var conf = getConInfo({
+      const conf = getConInfo({
         idle_in_transaction_session_timeout: 3000.7,
       })
       getIdleTransactionSessionTimeout(conf, function (res) {
@@ -84,7 +84,7 @@ if (!helper.args.native) {
     })
 
     suite.test('idle_in_transaction_session_timeout string is used', function (done) {
-      var conf = getConInfo({
+      const conf = getConInfo({
         idle_in_transaction_session_timeout: '3000',
       })
       getIdleTransactionSessionTimeout(conf, function (res) {

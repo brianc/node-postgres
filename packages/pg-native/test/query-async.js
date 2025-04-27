@@ -1,7 +1,7 @@
-var Client = require('../')
-var assert = require('assert')
-var async = require('async')
-var ok = require('okay')
+const Client = require('../')
+const assert = require('assert')
+const async = require('async')
+const ok = require('okay')
 
 describe('async query', function () {
   before(function (done) {
@@ -24,7 +24,7 @@ describe('async query', function () {
   })
 
   it('simple query works', function (done) {
-    var runQuery = function (n, done) {
+    const runQuery = function (n, done) {
       this.client.query('SELECT NOW() AS the_time', function (err, rows) {
         if (err) return done(err)
         assert.equal(rows[0].the_time.getFullYear(), new Date().getFullYear())
@@ -35,14 +35,14 @@ describe('async query', function () {
   })
 
   it('parameters work', function (done) {
-    var runQuery = function (n, done) {
+    const runQuery = function (n, done) {
       this.client.query('SELECT $1::text AS name', ['Brian'], done)
     }.bind(this)
     async.timesSeries(3, runQuery, done)
   })
 
   it('prepared, named statements work', function (done) {
-    var client = this.client
+    const client = this.client
     client.prepare('test', 'SELECT $1::text as name', 1, function (err) {
       if (err) return done(err)
       client.execute(
@@ -80,7 +80,7 @@ describe('async query', function () {
   })
 
   it('returns an error if there was a query error', function (done) {
-    var runErrorQuery = function (n, done) {
+    const runErrorQuery = function (n, done) {
       this.client.query('SELECT ALKJSFDSLFKJ', function (err) {
         assert(err instanceof Error, 'Should return an error instance')
         done()

@@ -24,7 +24,7 @@ function getNodejsStreamFuncs() {
   }
 
   function getSecureStream(options) {
-    var tls = require('tls')
+    const tls = require('tls')
     return tls.connect(options)
   }
   return {

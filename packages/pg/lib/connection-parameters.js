@@ -1,12 +1,12 @@
 'use strict'
 
-var dns = require('dns')
+const dns = require('dns')
 
-var defaults = require('./defaults')
+const defaults = require('./defaults')
 
-var parse = require('pg-connection-string').parse // parses a connection string
+const parse = require('pg-connection-string').parse // parses a connection string
 
-var val = function (key, config, envVar) {
+const val = function (key, config, envVar) {
   if (envVar === undefined) {
     envVar = process.env['PG' + key.toUpperCase()]
   } else if (envVar === false) {
@@ -18,7 +18,7 @@ var val = function (key, config, envVar) {
   return config[key] || envVar || defaults[key]
 }
 
-var readSSLConfigFromEnvironment = function () {
+const readSSLConfigFromEnvironment = function () {
   switch (process.env.PGSSLMODE) {
     case 'disable':
       return false
@@ -34,12 +34,12 @@ var readSSLConfigFromEnvironment = function () {
 }
 
 // Convert arg to a string, surround in single quotes, and escape single quotes and backslashes
-var quoteParamValue = function (value) {
+const quoteParamValue = function (value) {
   return "'" + ('' + value).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"
 }
 
-var add = function (params, config, paramName) {
-  var value = config[paramName]
+const add = function (params, config, paramName) {
+  const value = config[paramName]
   if (value !== undefined && value !== null) {
     params.push(paramName + '=' + quoteParamValue(value))
   }
@@ -125,7 +125,7 @@ class ConnectionParameters {
   }
 
   getLibpqConnectionString(cb) {
-    var params = []
+    const params = []
     add(params, this, 'user')
     add(params, this, 'password')
     add(params, this, 'port')
@@ -134,7 +134,7 @@ class ConnectionParameters {
     add(params, this, 'connect_timeout')
     add(params, this, 'options')
 
-    var ssl = typeof this.ssl === 'object' ? this.ssl : this.ssl ? { sslmode: this.ssl } : {}
+    const ssl = typeof this.ssl === 'object' ? this.ssl : this.ssl ? { sslmode: this.ssl } : {}
     add(params, ssl, 'sslmode')
     add(params, ssl, 'sslca')
     add(params, ssl, 'sslkey')

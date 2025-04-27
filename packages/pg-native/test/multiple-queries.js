@@ -1,5 +1,5 @@
-var Client = require('../')
-var assert = require('assert')
+const Client = require('../')
+const assert = require('assert')
 
 describe('multiple commands in a single query', function () {
   before(function (done) {
@@ -22,7 +22,7 @@ describe('multiple commands in a single query', function () {
   })
 
   it('inserts and reads at once', function (done) {
-    var txt = 'CREATE TEMP TABLE boom(age int);'
+    let txt = 'CREATE TEMP TABLE boom(age int);'
     txt += 'INSERT INTO boom(age) VALUES(10);'
     txt += 'SELECT * FROM boom;'
     this.client.query(txt, function (err, rows, results) {

@@ -9,14 +9,14 @@ try {
 } catch (e) {
   throw e
 }
-var TypeOverrides = require('../type-overrides')
-var EventEmitter = require('events').EventEmitter
-var util = require('util')
-var ConnectionParameters = require('../connection-parameters')
+const TypeOverrides = require('../type-overrides')
+const EventEmitter = require('events').EventEmitter
+const util = require('util')
+const ConnectionParameters = require('../connection-parameters')
 
-var NativeQuery = require('./query')
+const NativeQuery = require('./query')
 
-var Client = (module.exports = function (config) {
+const Client = (module.exports = function (config) {
   EventEmitter.call(this)
   config = config || {}
 
@@ -35,7 +35,7 @@ var Client = (module.exports = function (config) {
 
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
-  var cp = (this.connectionParameters = new ConnectionParameters(config))
+  const cp = (this.connectionParameters = new ConnectionParameters(config))
   if (config.nativeConnectionString) cp.nativeConnectionString = config.nativeConnectionString
   this.user = cp.user
 
@@ -80,7 +80,7 @@ Client.prototype._errorAllQueries = function (err) {
 // pass an optional callback to be called once connected
 // or with an error if there was a connection error
 Client.prototype._connect = function (cb) {
-  var self = this
+  const self = this
 
   if (this._connecting) {
     process.nextTick(() => cb(new Error('Client has already been connected. You cannot reuse a client.')))
@@ -152,11 +152,11 @@ Client.prototype.connect = function (callback) {
 //    optional string rowMode = 'array' for an array of results
 //  }
 Client.prototype.query = function (config, values, callback) {
-  var query
-  var result
-  var readTimeout
-  var readTimeoutTimer
-  var queryCallback
+  let query
+  let result
+  let readTimeout
+  let readTimeoutTimer
+  let queryCallback
 
   if (config === null || config === undefined) {
     throw new TypeError('Client was passed a null or undefined query')
@@ -187,7 +187,7 @@ Client.prototype.query = function (config, values, callback) {
     queryCallback = query.callback
 
     readTimeoutTimer = setTimeout(() => {
-      var error = new Error('Query read timeout')
+      const error = new Error('Query read timeout')
 
       process.nextTick(() => {
         query.handleError(error, this.connection)
@@ -200,7 +200,7 @@ Client.prototype.query = function (config, values, callback) {
       query.callback = () => {}
 
       // Remove from queue
-      var index = this._queryQueue.indexOf(query)
+      const index = this._queryQueue.indexOf(query)
       if (index > -1) {
         this._queryQueue.splice(index, 1)
       }
@@ -237,14 +237,14 @@ Client.prototype.query = function (config, values, callback) {
 
 // disconnect from the backend server
 Client.prototype.end = function (cb) {
-  var self = this
+  const self = this
 
   this._ending = true
 
   if (!this._connected) {
     this.once('connect', this.end.bind(this, cb))
   }
-  var result
+  let result
   if (!cb) {
     result = new this._Promise(function (resolve, reject) {
       cb = (err) => (err ? reject(err) : resolve())
@@ -272,7 +272,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
   if (this._hasActiveQuery()) {
     return
   }
-  var query = this._queryQueue.shift()
+  const query = this._queryQueue.shift()
   if (!query) {
     if (!initialConnection) {
       this.emit('drain')
@@ -281,7 +281,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
   }
   this._activeQuery = query
   query.submit(this)
-  var self = this
+  const self = this
   query.once('_done', function () {
     self._pulseQueryQueue()
   })

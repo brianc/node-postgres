@@ -1,6 +1,6 @@
-var Client = require('../')
-var assert = require('assert')
-var semver = require('semver')
+const Client = require('../')
+const assert = require('assert')
+const semver = require('semver')
 
 describe('version', function () {
   it('is exported', function () {

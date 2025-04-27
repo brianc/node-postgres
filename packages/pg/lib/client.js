@@ -1,14 +1,14 @@
 'use strict'
 
-var EventEmitter = require('events').EventEmitter
-var utils = require('./utils')
-var sasl = require('./crypto/sasl')
-var TypeOverrides = require('./type-overrides')
+const EventEmitter = require('events').EventEmitter
+const utils = require('./utils')
+const sasl = require('./crypto/sasl')
+const TypeOverrides = require('./type-overrides')
 
-var ConnectionParameters = require('./connection-parameters')
-var Query = require('./query')
-var defaults = require('./defaults')
-var Connection = require('./connection')
+const ConnectionParameters = require('./connection-parameters')
+const Query = require('./query')
+const defaults = require('./defaults')
+const Connection = require('./connection')
 const crypto = require('./crypto/utils')
 
 class Client extends EventEmitter {
@@ -32,7 +32,7 @@ class Client extends EventEmitter {
 
     this.replication = this.connectionParameters.replication
 
-    var c = config || {}
+    const c = config || {}
 
     this._Promise = c.Promise || global.Promise
     this._types = new TypeOverrides(c.types)
@@ -87,8 +87,8 @@ class Client extends EventEmitter {
   }
 
   _connect(callback) {
-    var self = this
-    var con = this.connection
+    const self = this
+    const con = this.connection
     this._connectionCallback = callback
 
     if (this._connecting || this._connected) {
@@ -427,14 +427,14 @@ class Client extends EventEmitter {
   }
 
   getStartupConf() {
-    var params = this.connectionParameters
+    const params = this.connectionParameters
 
-    var data = {
+    const data = {
       user: params.user,
       database: params.database,
     }
 
-    var appName = params.application_name || params.fallback_application_name
+    const appName = params.application_name || params.fallback_application_name
     if (appName) {
       data.application_name = appName
     }
@@ -459,7 +459,7 @@ class Client extends EventEmitter {
 
   cancel(client, query) {
     if (client.activeQuery === query) {
-      var con = this.connection
+      const con = this.connection
 
       if (this.host && this.host.indexOf('/') === 0) {
         con.connect(this.host + '/.s.PGSQL.' + this.port)
@@ -519,11 +519,11 @@ class Client extends EventEmitter {
 
   query(config, values, callback) {
     // can take in strings, config object or query object
-    var query
-    var result
-    var readTimeout
-    var readTimeoutTimer
-    var queryCallback
+    let query
+    let result
+    let readTimeout
+    let readTimeoutTimer
+    let queryCallback
 
     if (config === null || config === undefined) {
       throw new TypeError('Client was passed a null or undefined query')
@@ -552,7 +552,7 @@ class Client extends EventEmitter {
       queryCallback = query.callback
 
       readTimeoutTimer = setTimeout(() => {
-        var error = new Error('Query read timeout')
+        const error = new Error('Query read timeout')
 
         process.nextTick(() => {
           query.handleError(error, this.connection)
@@ -565,7 +565,7 @@ class Client extends EventEmitter {
         query.callback = () => {}
 
         // Remove from queue
-        var index = this.queryQueue.indexOf(query)
+        const index = this.queryQueue.indexOf(query)
         if (index > -1) {
           this.queryQueue.splice(index, 1)
         }

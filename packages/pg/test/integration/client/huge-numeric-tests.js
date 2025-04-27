@@ -1,11 +1,11 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 const pool = new helper.pg.Pool()
 const assert = require('assert')
 
 pool.connect(
   assert.success(function (client, done) {
-    var types = require('pg-types')
+    const types = require('pg-types')
     // 1231 = numericOID
     types.setTypeParser(1700, function () {
       return 'yes'
@@ -13,7 +13,7 @@ pool.connect(
     types.setTypeParser(1700, 'binary', function () {
       return 'yes'
     })
-    var bignum = '294733346389144765940638005275322203805'
+    const bignum = '294733346389144765940638005275322203805'
     client.query('CREATE TEMP TABLE bignumz(id numeric)')
     client.query('INSERT INTO bignumz(id) VALUES ($1)', [bignum])
     client.query(
