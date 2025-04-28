@@ -15,9 +15,9 @@ MIT License
 ## Usage
 
 ```js
-var parse = require('pg-connection-string').parse;
+const parse = require('pg-connection-string').parse;
 
-var config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
+const config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
 ```
 
 The resulting config contains a subset of the following properties:

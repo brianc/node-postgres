@@ -50,7 +50,7 @@ pg.end()
 // new way, available since 6.0.0:
 
 // create a pool
-var pool = new pg.Pool()
+const pool = new pg.Pool()
 
 // connection using created pool
 pool.connect(function (err, client, done) {
