@@ -32,7 +32,6 @@ const NativeQuery = (module.exports = function (config, values, callback) {
 util.inherits(NativeQuery, EventEmitter)
 
 const errorFieldMap = {
-  /* eslint-disable quote-props */
   sqlState: 'code',
   statementPosition: 'position',
   messagePrimary: 'message',
@@ -130,11 +129,9 @@ NativeQuery.prototype.submit = function (client) {
   // named query
   if (this.name) {
     if (this.name.length > 63) {
-      /* eslint-disable no-console */
       console.error('Warning! Postgres only supports 63 characters for query names.')
       console.error('You supplied %s (%s)', this.name, this.name.length)
       console.error('This can cause conflicts and silent errors executing queries')
-      /* eslint-enable no-console */
     }
     const values = (this.values || []).map(utils.prepareValue)
 
