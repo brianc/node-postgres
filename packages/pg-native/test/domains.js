@@ -8,7 +8,7 @@ const checkDomain = function (domain, when) {
 
 describe('domains', function () {
   it('remains bound after a query', function (done) {
-    var domain = require('domain').create() // eslint-disable-line
+    const domain = require('domain').create()
     domain.run(function () {
       const client = new Client()
       client.connect(function () {

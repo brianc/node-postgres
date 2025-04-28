@@ -20,11 +20,7 @@ test('simple query interface', function () {
   })
   query.once('row', function (row) {
     test('Can iterate through columns', function () {
-      let columnCount = 0
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      for (const column in row) {
-        columnCount++
-      }
+      const columnCount = Object.keys(row).length
       if ('length' in row) {
         assert.lengthIs(
           row,
