@@ -285,7 +285,7 @@ pool.on('connect', function () {
   connectCount++
 })
 
-for (const i = 0; i < 200; i++) {
+for (let i = 0; i < 200; i++) {
   pool.query('SELECT NOW()')
 }
 
