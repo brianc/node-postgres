@@ -35,8 +35,8 @@
     "pg-connection-string": "^2.8.5",
     "pg-pool": "^3.9.6",
     "pg-protocol": "^1.9.5",
-    "pg-types": "^2.1.0",
-    "pgpass": "1.x"
+    "pg-types": "2.2.0",
+    "pgpass": "1.0.5"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.8.12",
@@ -47,7 +47,6 @@
     "pg-copy-streams": "0.3.0",
     "typescript": "^4.0.3",
     "vitest": "~3.0.9",
-    "workerd": "^1.20230419.0",
     "wrangler": "^3.x"
   },
   "optionalDependencies": {
