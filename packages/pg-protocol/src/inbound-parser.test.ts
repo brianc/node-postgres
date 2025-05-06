@@ -565,4 +565,34 @@ describe('PgPacketStream', function () {
       })
     })
   })
+
+  describe('error handling', () => {
+    it('should handle unexpected errors in handlePacket', async () => {
+      // Create a buffer with a valid row description code (0x54) and valid length
+      // but invalid field data that will cause a parsing error
+      const malformedBuffer = Buffer.from([
+        0x54, // RowDescription message code
+        0x00,
+        0x00,
+        0x00,
+        0x0b, // length (11 bytes)
+        0x00,
+        0x01, // field count (1)
+        0x00,
+        0x00,
+        0x00,
+        0x00, // invalid field data
+        0x00,
+        0x00,
+        0x00,
+        0x00, // invalid field data
+      ])
+
+      const messages = await parseBuffers([malformedBuffer])
+      assert.strictEqual(messages.length, 1)
+      assert.strictEqual(messages[0].name, 'error')
+      assert(messages[0] instanceof Error)
+      assert(messages[0].message.includes('unexpected error handling packet'))
+    })
+  })
 })
