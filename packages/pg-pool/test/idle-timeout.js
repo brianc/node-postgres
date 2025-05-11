@@ -25,23 +25,25 @@ describe('idle timeout', () => {
   it(
     'times out and removes clients when others are also removed',
     co.wrap(function* () {
-      let currentClient = 1
       const pool = new Pool({ idleTimeoutMillis: 10 })
       const clientA = yield pool.connect()
       const clientB = yield pool.connect()
-      clientA.release()
-      clientB.release(new Error())
+      clientA.release() // this will put clientA in the idle pool
+      clientB.release(new Error()) // an error will cause clientB to be removed immediately
 
       const removal = new Promise((resolve) => {
-        pool.on('remove', () => {
+        pool.on('remove', (client) => {
+          // clientB's stream may take a while to close, so we may get a remove
+          // event for it
+          // we only want to handle the remove event for clientA when it times out
+          // due to being idle
+          if (client !== clientA) {
+            return
+          }
+
           expect(pool.idleCount).to.equal(0)
           expect(pool.totalCount).to.equal(0)
-
-          if (currentClient >= 2) {
-            resolve()
-          } else {
-            currentClient++
-          }
+          resolve()
         })
       })
 
@@ -50,7 +52,7 @@ describe('idle timeout', () => {
       try {
         yield Promise.race([removal, timeout])
       } finally {
-        yield pool.end()
+        pool.end()
       }
     })
   )
