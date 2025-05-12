@@ -22,7 +22,7 @@ function readASN1OID(data, index) {
 
   const { length: OIDLength, index: indexAfterOIDLength } = readASN1Length(data, index)
   index = indexAfterOIDLength
-  let lastIndex = index + OIDLength
+  const lastIndex = index + OIDLength
 
   const byte1 = data[index++]
   let oid = ((byte1 / 40) >> 0) + '.' + (byte1 % 40)

@@ -14,9 +14,15 @@
   },
   "rules": {
     "@typescript-eslint/no-unused-vars": ["error", {
-      "args": "none"
+      "args": "none",
+      "varsIgnorePattern": "^_$"
     }],
-    "no-unused-vars": "off"
+    "no-unused-vars": ["error", {
+      "args": "none",
+      "varsIgnorePattern": "^_$"
+    }],
+    "no-var": "error",
+    "prefer-const": "error"
   },
   "overrides": [
     {

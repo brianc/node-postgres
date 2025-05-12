@@ -27,10 +27,10 @@ const startup = (opts: Record<string, string>): Buffer => {
 
   writer.addCString('client_encoding').addCString('UTF8')
 
-  var bodyBuffer = writer.addCString('').flush()
+  const bodyBuffer = writer.addCString('').flush()
   // this message is sent without a code
 
-  var length = bodyBuffer.length + 4
+  const length = bodyBuffer.length + 4
 
   return new Writer().addInt32(length).add(bodyBuffer).flush()
 }
@@ -78,23 +78,21 @@ const parse = (query: ParseOpts): Buffer => {
   // normalize missing query names to allow for null
   const name = query.name || ''
   if (name.length > 63) {
-    /* eslint-disable no-console */
     console.error('Warning! Postgres only supports 63 characters for query names.')
     console.error('You supplied %s (%s)', name, name.length)
     console.error('This can cause conflicts and silent errors executing queries')
-    /* eslint-enable no-console */
   }
 
   const types = query.types || emptyArray
 
-  var len = types.length
+  const len = types.length
 
-  var buffer = writer
+  const buffer = writer
     .addCString(name) // name of query
     .addCString(query.text) // actual query text
     .addInt16(len)
 
-  for (var i = 0; i < len; i++) {
+  for (let i = 0; i < len; i++) {
     buffer.addInt32(types[i])
   }
 

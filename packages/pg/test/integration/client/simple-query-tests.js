@@ -1,30 +1,26 @@
 'use strict'
-var helper = require('./test-helper')
-var Query = helper.pg.Query
+const helper = require('./test-helper')
+const Query = helper.pg.Query
 const assert = require('assert')
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
 
 // before running this test make sure you run the script create-test-tables
 test('simple query interface', function () {
-  var client = helper.client()
+  const client = helper.client()
 
-  var query = client.query(new Query('select name from person order by name collate "C"'))
+  const query = client.query(new Query('select name from person order by name collate "C"'))
 
   client.on('drain', client.end.bind(client))
 
-  var rows = []
+  const rows = []
   query.on('row', function (row, result) {
     assert.ok(result)
     rows.push(row['name'])
   })
   query.once('row', function (row) {
     test('Can iterate through columns', function () {
-      var columnCount = 0
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      for (var column in row) {
-        columnCount++
-      }
+      const columnCount = Object.keys(row).length
       if ('length' in row) {
         assert.lengthIs(
           row,
@@ -47,11 +43,11 @@ test('simple query interface', function () {
 })
 
 test('prepared statements do not mutate params', function () {
-  var client = helper.client()
+  const client = helper.client()
 
-  var params = [1]
+  const params = [1]
 
-  var query = client.query(new Query('select name from person where $1 = 1 order by name collate "C"', params))
+  const query = client.query(new Query('select name from person where $1 = 1 order by name collate "C"', params))
 
   assert.deepEqual(params, [1])
 
@@ -72,10 +68,10 @@ test('prepared statements do not mutate params', function () {
 })
 
 test('multiple simple queries', function () {
-  var client = helper.client()
+  const client = helper.client()
   client.query({ text: "create temp table bang(id serial, name varchar(5));insert into bang(name) VALUES('boom');" })
   client.query("insert into bang(name) VALUES ('yes');")
-  var query = client.query(new Query('select name from bang'))
+  const query = client.query(new Query('select name from bang'))
   assert.emits(query, 'row', function (row) {
     assert.equal(row['name'], 'boom')
     assert.emits(query, 'row', function (row) {
@@ -86,12 +82,12 @@ test('multiple simple queries', function () {
 })
 
 test('multiple select statements', function () {
-  var client = helper.client()
+  const client = helper.client()
   client.query(
     'create temp table boom(age integer); insert into boom(age) values(1); insert into boom(age) values(2); insert into boom(age) values(3)'
   )
   client.query({ text: "create temp table bang(name varchar(5)); insert into bang(name) values('zoom');" })
-  var result = client.query(new Query({ text: 'select age from boom where age < 2; select name from bang' }))
+  const result = client.query(new Query({ text: 'select age from boom where age < 2; select name from bang' }))
   assert.emits(result, 'row', function (row) {
     assert.strictEqual(row['age'], 1)
     assert.emits(result, 'row', function (row) {

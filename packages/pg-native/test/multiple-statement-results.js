@@ -1,5 +1,5 @@
-var Client = require('../')
-var assert = require('assert')
+const Client = require('../')
+const assert = require('assert')
 
 describe('multiple statements', () => {
   before(() => {

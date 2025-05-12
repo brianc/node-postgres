@@ -1,10 +1,10 @@
 'use strict'
-var helper = require('./../test-helper')
-var pg = helper.pg
-var native = helper.args.native
+const helper = require('./../test-helper')
+const pg = helper.pg
+const native = helper.args.native
 const assert = require('assert')
 
-var pool = new pg.Pool()
+const pool = new pg.Pool()
 
 pool.connect(
   assert.calls(function (err, client, done) {

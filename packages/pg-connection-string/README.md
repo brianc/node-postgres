@@ -3,9 +3,6 @@ pg-connection-string
 
 [![NPM](https://nodei.co/npm/pg-connection-string.png?compact=true)](https://nodei.co/npm/pg-connection-string/)
 
-[![Build Status](https://travis-ci.org/iceddev/pg-connection-string.svg?branch=master)](https://travis-ci.org/iceddev/pg-connection-string)
-[![Coverage Status](https://coveralls.io/repos/github/iceddev/pg-connection-string/badge.svg?branch=master)](https://coveralls.io/github/iceddev/pg-connection-string?branch=master)
-
 Functions for dealing with a PostgresSQL connection string
 
 `parse` method taken from [node-postgres](https://github.com/brianc/node-postgres.git)
@@ -15,9 +12,9 @@ MIT License
 ## Usage
 
 ```js
-var parse = require('pg-connection-string').parse;
+const parse = require('pg-connection-string').parse;
 
-var config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
+const config = parse('postgres://someuser:somepassword@somehost:381/somedatabase')
 ```
 
 The resulting config contains a subset of the following properties:

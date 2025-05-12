@@ -18,7 +18,7 @@ const poolFactory = (Client) => {
   }
 }
 
-var PG = function (clientConstructor) {
+const PG = function (clientConstructor) {
   this.defaults = defaults
   this.Client = clientConstructor
   this.Query = this.Client.Query
@@ -44,7 +44,7 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
     configurable: true,
     enumerable: false,
     get() {
-      var native = null
+      let native = null
       try {
         native = new PG(require('./native'))
       } catch (err) {
