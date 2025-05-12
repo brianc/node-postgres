@@ -5592,13 +5592,13 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-libpq@1.8.14:
-  version "1.8.14"
-  resolved "https://registry.yarnpkg.com/libpq/-/libpq-1.8.14.tgz#1cc404b887c2bf1a6c9ffdb7245aca4a7b44f2ff"
-  integrity sha512-/DDvQCiXP0KBMZ31U2mmURKaxoKt9kNqqgrSO2RuBKS+OJjw5b7uHi5jFoV8zPAUa2TNtq2XfcWL1OWDEyjwlg==
+libpq@^1.8.15:
+  version "1.8.15"
+  resolved "https://registry.yarnpkg.com/libpq/-/libpq-1.8.15.tgz#bf9cea8e59e1a4a911d06df01d408213a09925ad"
+  integrity sha512-4lSWmly2Nsj3LaTxxtFmJWuP3Kx+0hYHEd+aNrcXEWT0nKWaPd9/QZPiMkkC680zeALFGHQdQWjBvnilL+vgWA==
   dependencies:
     bindings "1.5.0"
-    nan "2.22.0"
+    nan "~2.22.2"
 
 lines-and-columns@^1.1.6:
   version "1.1.6"
@@ -6309,10 +6309,10 @@ mz@^2.5.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@2.22.0:
-  version "2.22.0"
-  resolved "https://registry.yarnpkg.com/nan/-/nan-2.22.0.tgz#31bc433fc33213c97bad36404bb68063de604de3"
-  integrity sha512-nbajikzWTMwsW+eSsNm3QwlOs7het9gGJU5dDZzRTQGk03vyBOauxgI4VakDzE0PtsGTmXPsXTbbjVhRwR5mpw==
+nan@~2.22.2:
+  version "2.22.2"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.22.2.tgz#6b504fd029fb8f38c0990e52ad5c26772fdacfbb"
+  integrity sha512-DANghxFkS1plDdRsX0X9pm0Z6SJNN6gBdtXfanwoZ8hooC5gosGFSBGRYHUVPz1asKA/kMRqDRdHrluZ61SpBQ==
 
 nanoid@^3.3.8:
   version "3.3.11"
