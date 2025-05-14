@@ -85,11 +85,11 @@ Query parameters follow a `?` character, including the following special query p
  * `encoding=<encoding>` - sets the `client_encoding` property
  * `ssl=1`, `ssl=true`, `ssl=0`, `ssl=false` - sets `ssl` to true or false, accordingly
  * `uselibpqcompat=true` - use libpq semantics
- * `sslmode=<sslmode>` when `sslcompat` is not set
+ * `sslmode=<sslmode>` when `uselibpqcompat=true` is not set
    * `sslmode=disable` - sets `ssl` to false
    * `sslmode=no-verify` - sets `ssl` to `{ rejectUnauthorized: false }`
    * `sslmode=prefer`, `sslmode=require`, `sslmode=verify-ca`, `sslmode=verify-full` - sets `ssl` to true
- * `sslmode=<sslmode>` when `sslcompat=libpq`
+ * `sslmode=<sslmode>` when `uselibpqcompat=true`
    * `sslmode=disable` - sets `ssl` to false
    * `sslmode=prefer` - sets `ssl` to `{ rejectUnauthorized: false }`
    * `sslmode=require` - sets `ssl` to `{ rejectUnauthorized: false }` unless `sslrootcert` is specified, in which case it behaves like `verify-ca`

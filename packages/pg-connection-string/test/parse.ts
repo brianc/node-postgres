@@ -403,7 +403,7 @@ describe('parse', function () {
     expect(subject.ssl?.checkServerIdentity()).be.undefined
   })
 
-  it('does not allow sslcompat query parameter and useLibpqCompat option at the same time', function () {
+  it('does not allow uselibpqcompat query parameter and useLibpqCompat option at the same time', function () {
     const connectionString = 'pg:///?uselibpqcompat=true'
     expect(function () {
       parse(connectionString, { useLibpqCompat: true })
