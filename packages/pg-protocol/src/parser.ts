@@ -27,7 +27,6 @@ import {
   NoticeMessage,
 } from './messages'
 import { BufferReader } from './buffer-reader'
-import assert from 'assert'
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1
@@ -199,7 +198,7 @@ export class Parser {
       case MessageCodes.CopyData:
         return this.parseCopyData(offset, length, bytes)
       default:
-        assert.fail(`unknown message code: ${code.toString(16)}`)
+        return new DatabaseError('received invalid response: ' + code.toString(16), length, 'error')
     }
   }
 
@@ -259,9 +258,9 @@ export class Parser {
 
   private parseField(): Field {
     const name = this.reader.cstring()
-    const tableID = this.reader.int32()
+    const tableID = this.reader.uint32()
     const columnID = this.reader.int16()
-    const dataTypeID = this.reader.int32()
+    const dataTypeID = this.reader.uint32()
     const dataTypeSize = this.reader.int16()
     const dataTypeModifier = this.reader.int32()
     const mode = this.reader.int16() === 0 ? 'text' : 'binary'
@@ -329,16 +328,17 @@ export class Parser {
         }
         break
       case 10: // AuthenticationSASL
-        message.name = 'authenticationSASL'
-        message.mechanisms = []
-        let mechanism: string
-        do {
-          mechanism = this.reader.cstring()
-
-          if (mechanism) {
-            message.mechanisms.push(mechanism)
-          }
-        } while (mechanism)
+        {
+          message.name = 'authenticationSASL'
+          message.mechanisms = []
+          let mechanism: string
+          do {
+            mechanism = this.reader.cstring()
+            if (mechanism) {
+              message.mechanisms.push(mechanism)
+            }
+          } while (mechanism)
+        }
         break
       case 11: // AuthenticationSASLContinue
         message.name = 'authenticationSASLContinue'

@@ -5,13 +5,13 @@ slug: /guides/upgrading
 
 # Upgrading to 8.0
 
-node-postgres at 8.0 introduces a breaking change to ssl-verified connections.  If you connect with ssl and use
+node-postgres at 8.0 introduces a breaking change to ssl-verified connections. If you connect with ssl and use
 
 ```
 const client = new Client({ ssl: true })
 ```
 
-and the server's SSL certificate is self-signed, connections will fail as of node-postgres 8.0.  To keep the existing behavior, modify the invocation to
+and the server's SSL certificate is self-signed, connections will fail as of node-postgres 8.0. To keep the existing behavior, modify the invocation to
 
 ```
 const client = new Client({ ssl: { rejectUnauthorized: false } })
@@ -37,7 +37,7 @@ If your application still relies on these they will be _gone_ in `pg@7.0`. In or
 // old way, deprecated in 6.3.0:
 
 // connection using global singleton
-pg.connect(function(err, client, done) {
+pg.connect(function (err, client, done) {
   client.query(/* etc, etc */)
   done()
 })
@@ -50,10 +50,10 @@ pg.end()
 // new way, available since 6.0.0:
 
 // create a pool
-var pool = new pg.Pool()
+const pool = new pg.Pool()
 
 // connection using created pool
-pool.connect(function(err, client, done) {
+pool.connect(function (err, client, done) {
   client.query(/* etc, etc */)
   done()
 })
@@ -102,11 +102,12 @@ If you do **not** pass a callback `client.query` will return an instance of a `P
 `client.query` has always accepted any object that has a `.submit` method on it. In this scenario the client calls `.submit` on the object, delegating execution responsibility to it. In this situation the client also **returns the instance it was passed**. This is how [pg-cursor](https://github.com/brianc/node-pg-cursor) and [pg-query-stream](https://github.com/brianc/node-pg-query-stream) work. So, if you need the event emitter functionality on your queries for some reason, it is still possible because `Query` is an instance of `Submittable`:
 
 ```js
-const { Client, Query } = require('pg')
+import pg from 'pg'
+const { Client, Query } = pg
 const query = client.query(new Query('SELECT NOW()'))
-query.on('row', row => {})
-query.on('end', res => {})
-query.on('error', res => {})
+query.on('row', (row) => {})
+query.on('end', (res) => {})
+query.on('error', (res) => {})
 ```
 
 `Query` is considered a public, documented part of the API of node-postgres and this form will be supported indefinitely.

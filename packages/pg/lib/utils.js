@@ -1,13 +1,11 @@
 'use strict'
 
-const crypto = require('crypto')
-
 const defaults = require('./defaults')
 
 const util = require('util')
 
 function escapeElement(elementRepresentation) {
-  var escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  const escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
   return '"' + escaped + '"'
 }
@@ -16,8 +14,8 @@ function escapeElement(elementRepresentation) {
 // uses comma separator so won't work for types like box that use
 // a different array separator.
 function arrayString(val) {
-  var result = '{'
-  for (var i = 0; i < val.length; i++) {
+  let result = '{'
+  for (let i = 0; i < val.length; i++) {
     if (i > 0) {
       result = result + ','
     }
@@ -25,8 +23,17 @@ function arrayString(val) {
       result = result + 'NULL'
     } else if (Array.isArray(val[i])) {
       result = result + arrayString(val[i])
-    } else if (val[i] instanceof Buffer) {
-      result += '\\\\x' + val[i].toString('hex')
+    } else if (ArrayBuffer.isView(val[i])) {
+      let item = val[i]
+      if (!(item instanceof Buffer)) {
+        const buf = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
+        if (buf.length === item.byteLength) {
+          item = buf
+        } else {
+          item = buf.slice(item.byteOffset, item.byteOffset + item.byteLength)
+        }
+      }
+      result += '\\\\x' + item.toString('hex')
     } else {
       result += escapeElement(prepareValue(val[i]))
     }
@@ -39,32 +46,33 @@ function arrayString(val) {
 // to their 'raw' counterparts for use as a postgres parameter
 // note: you can override this function to provide your own conversion mechanism
 // for complex types, etc...
-var prepareValue = function (val, seen) {
+const prepareValue = function (val, seen) {
   // null and undefined are both null for postgres
   if (val == null) {
     return null
   }
-  if (val instanceof Buffer) {
-    return val
-  }
-  if (ArrayBuffer.isView(val)) {
-    var buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
-    if (buf.length === val.byteLength) {
-      return buf
-    }
-    return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
-  }
-  if (util.types.isDate(val)) {
-    if (defaults.parseInputDatesAsUTC) {
-      return dateToStringUTC(val)
-    } else {
-      return dateToString(val)
-    }
-  }
-  if (Array.isArray(val)) {
-    return arrayString(val)
-  }
   if (typeof val === 'object') {
+    if (val instanceof Buffer) {
+      return val
+    }
+    if (ArrayBuffer.isView(val)) {
+      const buf = Buffer.from(val.buffer, val.byteOffset, val.byteLength)
+      if (buf.length === val.byteLength) {
+        return buf
+      }
+      return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
+    }
+    if (util.types.isDate(val)) {
+      if (defaults.parseInputDatesAsUTC) {
+        return dateToStringUTC(val)
+      } else {
+        return dateToString(val)
+      }
+    }
+    if (Array.isArray(val)) {
+      return arrayString(val)
+    }
+
     return prepareObject(val, seen)
   }
   return val.toString()
@@ -83,35 +91,27 @@ function prepareObject(val, seen) {
   return JSON.stringify(val)
 }
 
-function pad(number, digits) {
-  number = '' + number
-  while (number.length < digits) {
-    number = '0' + number
-  }
-  return number
-}
-
 function dateToString(date) {
-  var offset = -date.getTimezoneOffset()
+  let offset = -date.getTimezoneOffset()
 
-  var year = date.getFullYear()
-  var isBCYear = year < 1
+  let year = date.getFullYear()
+  const isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
-  var ret =
-    pad(year, 4) +
+  let ret =
+    String(year).padStart(4, '0') +
     '-' +
-    pad(date.getMonth() + 1, 2) +
+    String(date.getMonth() + 1).padStart(2, '0') +
     '-' +
-    pad(date.getDate(), 2) +
+    String(date.getDate()).padStart(2, '0') +
     'T' +
-    pad(date.getHours(), 2) +
+    String(date.getHours()).padStart(2, '0') +
     ':' +
-    pad(date.getMinutes(), 2) +
+    String(date.getMinutes()).padStart(2, '0') +
     ':' +
-    pad(date.getSeconds(), 2) +
+    String(date.getSeconds()).padStart(2, '0') +
     '.' +
-    pad(date.getMilliseconds(), 3)
+    String(date.getMilliseconds()).padStart(3, '0')
 
   if (offset < 0) {
     ret += '-'
@@ -120,30 +120,30 @@ function dateToString(date) {
     ret += '+'
   }
 
-  ret += pad(Math.floor(offset / 60), 2) + ':' + pad(offset % 60, 2)
+  ret += String(Math.floor(offset / 60)).padStart(2, '0') + ':' + String(offset % 60).padStart(2, '0')
   if (isBCYear) ret += ' BC'
   return ret
 }
 
 function dateToStringUTC(date) {
-  var year = date.getUTCFullYear()
-  var isBCYear = year < 1
+  let year = date.getUTCFullYear()
+  const isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
 
-  var ret =
-    pad(year, 4) +
+  let ret =
+    String(year).padStart(4, '0') +
     '-' +
-    pad(date.getUTCMonth() + 1, 2) +
+    String(date.getUTCMonth() + 1).padStart(2, '0') +
     '-' +
-    pad(date.getUTCDate(), 2) +
+    String(date.getUTCDate()).padStart(2, '0') +
     'T' +
-    pad(date.getUTCHours(), 2) +
+    String(date.getUTCHours()).padStart(2, '0') +
     ':' +
-    pad(date.getUTCMinutes(), 2) +
+    String(date.getUTCMinutes()).padStart(2, '0') +
     ':' +
-    pad(date.getUTCSeconds(), 2) +
+    String(date.getUTCSeconds()).padStart(2, '0') +
     '.' +
-    pad(date.getUTCMilliseconds(), 3)
+    String(date.getUTCMilliseconds()).padStart(3, '0')
 
   ret += '+00:00'
   if (isBCYear) ret += ' BC'
@@ -166,15 +166,34 @@ function normalizeQueryConfig(config, values, callback) {
   return config
 }
 
-const md5 = function (string) {
-  return crypto.createHash('md5').update(string, 'utf-8').digest('hex')
+// Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
+const escapeIdentifier = function (str) {
+  return '"' + str.replace(/"/g, '""') + '"'
 }
 
-// See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
-const postgresMd5PasswordHash = function (user, password, salt) {
-  var inner = md5(password + user)
-  var outer = md5(Buffer.concat([Buffer.from(inner), salt]))
-  return 'md5' + outer
+const escapeLiteral = function (str) {
+  let hasBackslash = false
+  let escaped = "'"
+
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i]
+    if (c === "'") {
+      escaped += c + c
+    } else if (c === '\\') {
+      escaped += c + c
+      hasBackslash = true
+    } else {
+      escaped += c
+    }
+  }
+
+  escaped += "'"
+
+  if (hasBackslash === true) {
+    escaped = ' E' + escaped
+  }
+
+  return escaped
 }
 
 module.exports = {
@@ -184,6 +203,6 @@ module.exports = {
     return prepareValue(value)
   },
   normalizeQueryConfig,
-  postgresMd5PasswordHash,
-  md5,
+  escapeIdentifier,
+  escapeLiteral,
 }

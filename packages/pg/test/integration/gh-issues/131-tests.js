@@ -1,8 +1,9 @@
 'use strict'
-var helper = require('../test-helper')
-var pg = helper.pg
+const helper = require('../test-helper')
+const pg = helper.pg
+const assert = require('assert')
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
 suite.test('parsing array decimal results', function (done) {
   const pool = new pg.Pool()

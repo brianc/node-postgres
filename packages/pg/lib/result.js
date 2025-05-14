@@ -1,8 +1,8 @@
 'use strict'
 
-var types = require('pg-types')
+const types = require('pg-types')
 
-var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
+const matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
 
 // result object returned from query
 // in the 'end' event and also
@@ -21,11 +21,12 @@ class Result {
     if (this.rowAsArray) {
       this.parseRow = this._parseRowAsArray
     }
+    this._prebuiltEmptyResultObject = null
   }
 
   // adds a command complete message
   addCommandComplete(msg) {
-    var match
+    let match
     if (msg.text) {
       // pure javascript
       match = matchRegexp.exec(msg.text)
@@ -36,7 +37,7 @@ class Result {
     if (match) {
       this.command = match[1]
       if (match[3]) {
-        // COMMMAND OID ROWS
+        // COMMAND OID ROWS
         this.oid = parseInt(match[2], 10)
         this.rowCount = parseInt(match[3], 10)
       } else if (match[2]) {
@@ -47,9 +48,9 @@ class Result {
   }
 
   _parseRowAsArray(rowData) {
-    var row = new Array(rowData.length)
-    for (var i = 0, len = rowData.length; i < len; i++) {
-      var rawValue = rowData[i]
+    const row = new Array(rowData.length)
+    for (let i = 0, len = rowData.length; i < len; i++) {
+      const rawValue = rowData[i]
       if (rawValue !== null) {
         row[i] = this._parsers[i](rawValue)
       } else {
@@ -60,10 +61,10 @@ class Result {
   }
 
   parseRow(rowData) {
-    var row = {}
-    for (var i = 0, len = rowData.length; i < len; i++) {
-      var rawValue = rowData[i]
-      var field = this.fields[i].name
+    const row = { ...this._prebuiltEmptyResultObject }
+    for (let i = 0, len = rowData.length; i < len; i++) {
+      const rawValue = rowData[i]
+      const field = this.fields[i].name
       if (rawValue !== null) {
         row[field] = this._parsers[i](rawValue)
       } else {
@@ -86,14 +87,21 @@ class Result {
     if (this.fields.length) {
       this._parsers = new Array(fieldDescriptions.length)
     }
-    for (var i = 0; i < fieldDescriptions.length; i++) {
-      var desc = fieldDescriptions[i]
+
+    const row = {}
+
+    for (let i = 0; i < fieldDescriptions.length; i++) {
+      const desc = fieldDescriptions[i]
+      row[desc.name] = null
+
       if (this._types) {
         this._parsers[i] = this._types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       } else {
         this._parsers[i] = types.getTypeParser(desc.dataTypeID, desc.format || 'text')
       }
     }
+
+    this._prebuiltEmptyResultObject = { ...row }
   }
 }
 

@@ -4,7 +4,7 @@ title: Data Types
 
 import { Alert } from '/components/alert.tsx'
 
-PostgreSQL has a rich system of supported [data types](https://www.postgresql.org/docs/9.5/static/datatype.html). node-postgres does its best to support the most common data types out of the box and supplies an extensible type parser to allow for custom type serialization and parsing.
+PostgreSQL has a rich system of supported [data types](https://www.postgresql.org/docs/current/datatype.html). node-postgres does its best to support the most common data types out of the box and supplies an extensible type parser to allow for custom type serialization and parsing.
 
 ## strings by default
 
@@ -21,7 +21,7 @@ console.log(result.rows[0]) // will contain the unparsed string value of each co
 
 ### uuid + json / jsonb
 
-There is no data type in JavaScript for a uuid/guid so node-postgres converts a uuid to a string. JavaScript has great support for JSON and node-postgres converts json/jsonb objects directly into their JavaScript object via [`JSON.parse`](https://github.com/brianc/node-pg-types/blob/master/lib/textParsers.js#L193). Likewise sending an object to the PostgreSQL server via a query from node-postgres, node-posgres will call [`JSON.stringify`](https://github.com/brianc/node-postgres/blob/e5f0e5d36a91a72dda93c74388ac890fa42b3be0/lib/utils.js#L47) on your outbound value, automatically converting it to json for the server.
+There is no data type in JavaScript for a uuid/guid so node-postgres converts a uuid to a string. JavaScript has great support for JSON and node-postgres converts json/jsonb objects directly into their JavaScript object via [`JSON.parse`](https://github.com/brianc/node-pg-types/blob/master/lib/textParsers.js#L193). Likewise sending an object to the PostgreSQL server via a query from node-postgres, node-postgres will call [`JSON.stringify`](https://github.com/brianc/node-postgres/blob/e5f0e5d36a91a72dda93c74388ac890fa42b3be0/lib/utils.js#L47) on your outbound value, automatically converting it to json for the server.
 
 ```js
 const createTableText = `

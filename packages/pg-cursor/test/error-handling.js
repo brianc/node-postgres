@@ -19,6 +19,38 @@ describe('error handling', function () {
       })
     })
   })
+
+  it('errors queued reads', async () => {
+    const client = new pg.Client()
+    await client.connect()
+
+    const cursor = client.query(new Cursor('asdfdffsdf'))
+
+    const immediateRead = cursor.read(1)
+    const queuedRead1 = cursor.read(1)
+    const queuedRead2 = cursor.read(1)
+
+    assert(
+      await immediateRead.then(
+        () => null,
+        (err) => err
+      )
+    )
+    assert(
+      await queuedRead1.then(
+        () => null,
+        (err) => err
+      )
+    )
+    assert(
+      await queuedRead2.then(
+        () => null,
+        (err) => err
+      )
+    )
+
+    client.end()
+  })
 })
 
 describe('read callback does not fire sync', () => {

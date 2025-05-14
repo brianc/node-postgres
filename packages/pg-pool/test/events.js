@@ -60,6 +60,44 @@ describe('events', function () {
     }, 100)
   })
 
+  it('emits release every time a client is released', function (done) {
+    const pool = new Pool()
+    let releaseCount = 0
+    pool.on('release', function (err, client) {
+      expect(err instanceof Error).not.to.be(true)
+      expect(client).to.be.ok()
+      releaseCount++
+    })
+    const promises = []
+    for (let i = 0; i < 10; i++) {
+      pool.connect(function (err, client, release) {
+        if (err) return done(err)
+        release()
+      })
+      promises.push(pool.query('SELECT now()'))
+    }
+    Promise.all(promises).then(() => {
+      pool.end(() => {
+        expect(releaseCount).to.be(20)
+        done()
+      })
+    })
+  })
+
+  it('emits release with an error if client is released due to an error', function (done) {
+    const pool = new Pool()
+    pool.connect(function (err, client, release) {
+      expect(err).to.equal(undefined)
+      const releaseError = new Error('problem')
+      pool.once('release', function (err, errClient) {
+        expect(err).to.equal(releaseError)
+        expect(errClient).to.equal(client)
+        pool.end(done)
+      })
+      release(releaseError)
+    })
+  })
+
   it('emits error and client if an idle client in the pool hits an error', function (done) {
     const pool = new Pool()
     pool.connect(function (err, client) {

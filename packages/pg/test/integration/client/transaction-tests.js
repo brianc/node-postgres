@@ -1,14 +1,15 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 const suite = new helper.Suite()
 const pg = helper.pg
+const assert = require('assert')
 
 const client = new pg.Client()
 client.connect(
   assert.success(function () {
     client.query('begin')
 
-    var getZed = {
+    const getZed = {
       text: 'SELECT * FROM person WHERE name = $1',
       values: ['Zed'],
     }

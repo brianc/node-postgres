@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "node16",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "target": "es2020",
+    "noImplicitAny": true,
+    "moduleResolution": "node16",
+    "sourceMap": true,
+    "outDir": "dist",
+    "incremental": true,
+    "baseUrl": ".",
+    "declaration": true,
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "src/types/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

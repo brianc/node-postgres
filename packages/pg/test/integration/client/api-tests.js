@@ -1,8 +1,9 @@
 'use strict'
-var helper = require('../test-helper')
-var pg = helper.pg
+const helper = require('../test-helper')
+const pg = helper.pg
+const assert = require('assert')
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
 suite.test('null and undefined are both inserted as NULL', function (done) {
   const pool = new pg.Pool()
@@ -102,6 +103,21 @@ suite.test('query no timeout', (cb) => {
   })
 })
 
+suite.test('query with timeout on query basis', (cb) => {
+  const pool = new pg.Pool()
+  pool.connect().then((client) => {
+    client.query(
+      { text: 'SELECT pg_sleep(20)', query_timeout: 1000 },
+      assert.calls(function (err, result) {
+        assert(err)
+        assert(err.message === 'Query read timeout')
+        client.release()
+        pool.end(cb)
+      })
+    )
+  })
+})
+
 suite.test('callback API', (done) => {
   const client = new helper.Client()
   client.query('CREATE TEMP TABLE peep(name text)')
@@ -164,7 +180,7 @@ suite.test('executing nested queries', function (done) {
 })
 
 suite.test('raises error if cannot connect', function () {
-  var connectionString = 'pg://sfalsdkf:asdf@localhost/ieieie'
+  const connectionString = 'pg://sfalsdkf:asdf@localhost/ieieie'
   const pool = new pg.Pool({ connectionString: connectionString })
   pool.connect(
     assert.calls(function (err, client, done) {
@@ -197,7 +213,7 @@ suite.test('callback is fired once and only once', function (done) {
     assert.calls(function (err, client, release) {
       assert(!err)
       client.query('CREATE TEMP TABLE boom(name varchar(10))')
-      var callCount = 0
+      let callCount = 0
       client.query(
         [
           "INSERT INTO boom(name) VALUES('hai')",
@@ -240,7 +256,7 @@ suite.test('can provide callback and config and parameters', function (done) {
   pool.connect(
     assert.calls(function (err, client, release) {
       assert(!err)
-      var config = {
+      const config = {
         text: 'select $1::text as val',
       }
       client.query(

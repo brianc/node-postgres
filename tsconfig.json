@@ -6,6 +6,7 @@
   },
   "include": [],
   "references": [
+    {"path": "./packages/pg-cloudflare"},
     {"path": "./packages/pg-query-stream"},
     {"path": "./packages/pg-protocol"}
   ]

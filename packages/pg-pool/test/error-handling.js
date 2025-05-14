@@ -198,7 +198,7 @@ describe('pool error handling', function () {
       co.wrap(function* () {
         const pool = new Pool({ max: 1 })
         const errors = []
-        for (var i = 0; i < 20; i++) {
+        for (let i = 0; i < 20; i++) {
           try {
             yield pool.query('invalid sql')
           } catch (err) {

@@ -1,14 +1,16 @@
 'use strict'
-var util = require('util')
-var helper = require('./test-helper')
+const util = require('util')
+const helper = require('./test-helper')
+const assert = require('assert')
+const suite = new helper.Suite()
 
-var Client = helper.Client
+const Client = helper.Client
 
-var conInfo = helper.config
+const conInfo = helper.config
 
-test('returns results as array', function () {
-  var client = new Client(conInfo)
-  var checkRow = function (row) {
+suite.test('returns results as array', function () {
+  const client = new Client(conInfo)
+  const checkRow = function (row) {
     assert(util.isArray(row), 'row should be an array')
     assert.equal(row.length, 4)
     assert.equal(row[0].getFullYear(), new Date().getFullYear())
@@ -18,12 +20,12 @@ test('returns results as array', function () {
   }
   client.connect(
     assert.success(function () {
-      var config = {
+      const config = {
         text: 'SELECT NOW(), 1::int, $1::text, null',
         values: ['hai'],
         rowMode: 'array',
       }
-      var query = client.query(
+      client.query(
         config,
         assert.success(function (result) {
           assert.equal(result.rows.length, 1)

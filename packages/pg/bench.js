@@ -1,8 +1,7 @@
 const pg = require('./lib')
 
 const params = {
-  text:
-    'select typname, typnamespace, typowner, typlen, typbyval, typcategory, typispreferred, typisdefined, typdelim, typrelid, typelem, typarray from pg_type where typtypmod = $1 and typisdefined = $2',
+  text: 'select typname, typnamespace, typowner, typlen, typbyval, typcategory, typispreferred, typisdefined, typdelim, typrelid, typelem, typarray from pg_type where typtypmod = $1 and typisdefined = $2',
   values: [-1, true],
 }
 
@@ -24,8 +23,9 @@ const exec = async (client, q) => {
 }
 
 const bench = async (client, q, time) => {
-  let start = Date.now()
+  const start = Date.now()
   let count = 0
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     await exec(client, q)
     count++
@@ -48,21 +48,27 @@ const run = async () => {
   for (let i = 0; i < 4; i++) {
     let queries = await bench(client, params, seconds * 1000)
     console.log('')
-    console.log('little queries:', queries)
+    console.log('param queries:', queries)
     console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 733 qps')
+    console.log('on my laptop best so far seen 987 qps')
+
+    queries = await bench(client, { ...params, name: 'params' }, seconds * 1000)
+    console.log('')
+    console.log('named queries:', queries)
+    console.log('qps', queries / seconds)
+    console.log('on my laptop best so far seen 937 qps')
 
     console.log('')
     queries = await bench(client, seq, seconds * 1000)
     console.log('sequence queries:', queries)
     console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 1309 qps')
+    console.log('on my laptop best so far seen 2725 qps')
 
     console.log('')
     queries = await bench(client, insert, seconds * 1000)
     console.log('insert queries:', queries)
     console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 6445 qps')
+    console.log('on my laptop best so far seen 27383 qps')
 
     console.log('')
     console.log('Warming up bytea test')
@@ -76,7 +82,7 @@ const run = async () => {
     const time = Date.now() - start
     console.log('bytea time:', time, 'ms')
     console.log('bytea length:', results.rows[0].data.byteLength, 'bytes')
-    console.log('on my laptop best so far seen 1107ms and 104857600 bytes')
+    console.log('on my laptop best so far seen 1407ms and 104857600 bytes')
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
 

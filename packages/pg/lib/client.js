@@ -1,15 +1,15 @@
 'use strict'
 
-var EventEmitter = require('events').EventEmitter
-var utils = require('./utils')
-var sasl = require('./sasl')
-var pgPass = require('pgpass')
-var TypeOverrides = require('./type-overrides')
+const EventEmitter = require('events').EventEmitter
+const utils = require('./utils')
+const sasl = require('./crypto/sasl')
+const TypeOverrides = require('./type-overrides')
 
-var ConnectionParameters = require('./connection-parameters')
-var Query = require('./query')
-var defaults = require('./defaults')
-var Connection = require('./connection')
+const ConnectionParameters = require('./connection-parameters')
+const Query = require('./query')
+const defaults = require('./defaults')
+const Connection = require('./connection')
+const crypto = require('./crypto/utils')
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -32,16 +32,18 @@ class Client extends EventEmitter {
 
     this.replication = this.connectionParameters.replication
 
-    var c = config || {}
+    const c = config || {}
 
     this._Promise = c.Promise || global.Promise
     this._types = new TypeOverrides(c.types)
     this._ending = false
+    this._ended = false
     this._connecting = false
     this._connected = false
     this._connectionError = false
     this._queryable = true
 
+    this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.connection =
       c.connection ||
       new Connection({
@@ -85,8 +87,8 @@ class Client extends EventEmitter {
   }
 
   _connect(callback) {
-    var self = this
-    var con = this.connection
+    const self = this
+    const con = this.connection
     this._connectionCallback = callback
 
     if (this._connecting || this._connected) {
@@ -98,12 +100,15 @@ class Client extends EventEmitter {
     }
     this._connecting = true
 
-    this.connectionTimeoutHandle
     if (this._connectionTimeoutMillis > 0) {
       this.connectionTimeoutHandle = setTimeout(() => {
         con._ending = true
         con.stream.destroy(new Error('timeout expired'))
       }, this._connectionTimeoutMillis)
+
+      if (this.connectionTimeoutHandle.unref) {
+        this.connectionTimeoutHandle.unref()
+      }
     }
 
     if (this.host && this.host.indexOf('/') === 0) {
@@ -132,6 +137,7 @@ class Client extends EventEmitter {
 
       clearTimeout(this.connectionTimeoutHandle)
       this._errorAllQueries(error)
+      this._ended = true
 
       if (!this._ending) {
         // if the connection is ended without us calling .end()
@@ -223,12 +229,17 @@ class Client extends EventEmitter {
     } else if (this.password !== null) {
       cb()
     } else {
-      pgPass(this.connectionParameters, (pass) => {
-        if (undefined !== pass) {
-          this.connectionParameters.password = this.password = pass
-        }
-        cb()
-      })
+      try {
+        const pgPass = require('pgpass')
+        pgPass(this.connectionParameters, (pass) => {
+          if (undefined !== pass) {
+            this.connectionParameters.password = this.password = pass
+          }
+          cb()
+        })
+      } catch (e) {
+        this.emit('error', e)
+      }
     }
   }
 
@@ -239,27 +250,48 @@ class Client extends EventEmitter {
   }
 
   _handleAuthMD5Password(msg) {
-    this._checkPgPass(() => {
-      const hashedPassword = utils.postgresMd5PasswordHash(this.user, this.password, msg.salt)
-      this.connection.password(hashedPassword)
+    this._checkPgPass(async () => {
+      try {
+        const hashedPassword = await crypto.postgresMd5PasswordHash(this.user, this.password, msg.salt)
+        this.connection.password(hashedPassword)
+      } catch (e) {
+        this.emit('error', e)
+      }
     })
   }
 
   _handleAuthSASL(msg) {
     this._checkPgPass(() => {
-      this.saslSession = sasl.startSession(msg.mechanisms)
-      this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
+      try {
+        this.saslSession = sasl.startSession(msg.mechanisms, this.enableChannelBinding && this.connection.stream)
+        this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
+      } catch (err) {
+        this.connection.emit('error', err)
+      }
     })
   }
 
-  _handleAuthSASLContinue(msg) {
-    sasl.continueSession(this.saslSession, this.password, msg.data)
-    this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+  async _handleAuthSASLContinue(msg) {
+    try {
+      await sasl.continueSession(
+        this.saslSession,
+        this.password,
+        msg.data,
+        this.enableChannelBinding && this.connection.stream
+      )
+      this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+    } catch (err) {
+      this.connection.emit('error', err)
+    }
   }
 
   _handleAuthSASLFinal(msg) {
-    sasl.finalizeSession(this.saslSession, msg.data)
-    this.saslSession = null
+    try {
+      sasl.finalizeSession(this.saslSession, msg.data)
+      this.saslSession = null
+    } catch (err) {
+      this.connection.emit('error', err)
+    }
   }
 
   _handleBackendKeyData(msg) {
@@ -355,11 +387,21 @@ class Client extends EventEmitter {
   }
 
   _handleCommandComplete(msg) {
+    if (this.activeQuery == null) {
+      const error = new Error('Received unexpected commandComplete message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // delegate commandComplete to active query
     this.activeQuery.handleCommandComplete(msg, this.connection)
   }
 
-  _handleParseComplete(msg) {
+  _handleParseComplete() {
+    if (this.activeQuery == null) {
+      const error = new Error('Received unexpected parseComplete message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // if a prepared statement has a name and properly parses
     // we track that its already been executed so we don't parse
     // it again on the same client
@@ -385,14 +427,14 @@ class Client extends EventEmitter {
   }
 
   getStartupConf() {
-    var params = this.connectionParameters
+    const params = this.connectionParameters
 
-    var data = {
+    const data = {
       user: params.user,
       database: params.database,
     }
 
-    var appName = params.application_name || params.fallback_application_name
+    const appName = params.application_name || params.fallback_application_name
     if (appName) {
       data.application_name = appName
     }
@@ -417,7 +459,7 @@ class Client extends EventEmitter {
 
   cancel(client, query) {
     if (client.activeQuery === query) {
-      var con = this.connection
+      const con = this.connection
 
       if (this.host && this.host.indexOf('/') === 0) {
         con.connect(this.host + '/.s.PGSQL.' + this.port)
@@ -442,35 +484,15 @@ class Client extends EventEmitter {
     return this._types.getTypeParser(oid, format)
   }
 
-  // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
+  // escapeIdentifier and escapeLiteral moved to utility functions & exported
+  // on PG
+  // re-exported here for backwards compatibility
   escapeIdentifier(str) {
-    return '"' + str.replace(/"/g, '""') + '"'
+    return utils.escapeIdentifier(str)
   }
 
-  // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
   escapeLiteral(str) {
-    var hasBackslash = false
-    var escaped = "'"
-
-    for (var i = 0; i < str.length; i++) {
-      var c = str[i]
-      if (c === "'") {
-        escaped += c + c
-      } else if (c === '\\') {
-        escaped += c + c
-        hasBackslash = true
-      } else {
-        escaped += c
-      }
-    }
-
-    escaped += "'"
-
-    if (hasBackslash === true) {
-      escaped = ' E' + escaped
-    }
-
-    return escaped
+    return utils.escapeLiteral(str)
   }
 
   _pulseQueryQueue() {
@@ -497,11 +519,11 @@ class Client extends EventEmitter {
 
   query(config, values, callback) {
     // can take in strings, config object or query object
-    var query
-    var result
-    var readTimeout
-    var readTimeoutTimer
-    var queryCallback
+    let query
+    let result
+    let readTimeout
+    let readTimeoutTimer
+    let queryCallback
 
     if (config === null || config === undefined) {
       throw new TypeError('Client was passed a null or undefined query')
@@ -512,11 +534,16 @@ class Client extends EventEmitter {
         query.callback = query.callback || values
       }
     } else {
-      readTimeout = this.connectionParameters.query_timeout
+      readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       query = new Query(config, values, callback)
       if (!query.callback) {
         result = new this._Promise((resolve, reject) => {
           query.callback = (err, res) => (err ? reject(err) : resolve(res))
+        }).catch((err) => {
+          // replace the stack trace that leads to `TCP.onStreamRead` with one that leads back to the
+          // application that created the query
+          Error.captureStackTrace(err)
+          throw err
         })
       }
     }
@@ -525,7 +552,7 @@ class Client extends EventEmitter {
       queryCallback = query.callback
 
       readTimeoutTimer = setTimeout(() => {
-        var error = new Error('Query read timeout')
+        const error = new Error('Query read timeout')
 
         process.nextTick(() => {
           query.handleError(error, this.connection)
@@ -538,7 +565,7 @@ class Client extends EventEmitter {
         query.callback = () => {}
 
         // Remove from queue
-        var index = this.queryQueue.indexOf(query)
+        const index = this.queryQueue.indexOf(query)
         if (index > -1) {
           this.queryQueue.splice(index, 1)
         }
@@ -591,7 +618,7 @@ class Client extends EventEmitter {
     this._ending = true
 
     // if we have never connected, then end is a noop, callback immediately
-    if (!this.connection._connecting) {
+    if (!this.connection._connecting || this._ended) {
       if (cb) {
         cb()
       } else {

@@ -1,0 +1,33 @@
+---
+title: Utilities
+---
+import { Alert } from '/components/alert.tsx'
+
+## Utility Functions
+### pg.escapeIdentifier
+
+Escapes a string as a [SQL identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS).
+
+```js
+import { escapeIdentifier } from 'pg';
+const escapedIdentifier = escapeIdentifier('FooIdentifier')
+console.log(escapedIdentifier) // '"FooIdentifier"'
+```
+
+<Alert>
+  **Note**: When using an identifier that is the result of this function in an operation like `CREATE TABLE ${escapedIdentifier(identifier)}`, the table that is created will be CASE SENSITIVE. If you use any capital letters in the escaped identifier, you must always refer to the created table like `SELECT * from "MyCaseSensitiveTable"`; queries like `SELECT * FROM MyCaseSensitiveTable` will result in a "Non-existent table" error since case information is stripped from the query.
+</Alert>
+
+### pg.escapeLiteral
+
+<Alert>
+  **Note**: Instead of manually escaping SQL literals, it is recommended to use parameterized queries. Refer to [parameterized queries](/features/queries#parameterized-query) and the [client.query](/apis/client#clientquery) API for more information.
+</Alert>
+
+Escapes a string as a [SQL literal](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-CONSTANTS).
+
+```js
+import { escapeLiteral } from 'pg';
+const escapedLiteral = escapeLiteral("hello 'world'")
+console.log(escapedLiteral) // "'hello ''world'''"
+```

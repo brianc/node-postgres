@@ -3,6 +3,7 @@ const helper = require('./../test-helper')
 const pg = helper.pg
 const suite = new helper.Suite()
 const { native } = helper.args
+const assert = require('assert')
 
 /**
  * This test only executes if the env variables SCRAM_TEST_PGUSER and
@@ -44,14 +45,27 @@ if (!config.user || !config.password) {
   return
 }
 
-suite.testAsync('can connect using sasl/scram', async () => {
-  const client = new pg.Client(config)
-  let usingSasl = false
-  client.connection.once('authenticationSASL', () => {
-    usingSasl = true
+suite.testAsync('can connect using sasl/scram with channel binding enabled (if using SSL)', async () => {
+  const client = new pg.Client({ ...config, enableChannelBinding: true })
+  let usingChannelBinding = false
+  let hasPeerCert = false
+  client.connection.once('authenticationSASLContinue', () => {
+    hasPeerCert = client.connection.stream.getPeerCertificate === 'function'
+    usingChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256-PLUS'
   })
   await client.connect()
-  assert.ok(usingSasl, 'Should be using SASL for authentication')
+  assert.ok(usingChannelBinding || !hasPeerCert, 'Should be using SCRAM-SHA-256-PLUS for authentication if using SSL')
+  await client.end()
+})
+
+suite.testAsync('can connect using sasl/scram with channel binding disabled', async () => {
+  const client = new pg.Client({ ...config, enableChannelBinding: false })
+  let usingSASLWithoutChannelBinding = false
+  client.connection.once('authenticationSASLContinue', () => {
+    usingSASLWithoutChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256'
+  })
+  await client.connect()
+  assert.ok(usingSASLWithoutChannelBinding, 'Should be using SCRAM-SHA-256 (no channel binding) for authentication')
   await client.end()
 })
 
@@ -68,6 +82,27 @@ suite.testAsync('sasl/scram fails when password is wrong', async () => {
     () => client.connect(),
     {
       code: '28P01',
+    },
+    'Error code should be for a password error'
+  )
+  assert.ok(usingSasl, 'Should be using SASL for authentication')
+})
+
+suite.testAsync('sasl/scram fails when password is empty', async () => {
+  const client = new pg.Client({
+    ...config,
+    // We use a password function here so the connection defaults do not
+    // override the empty string value with one from process.env.PGPASSWORD
+    password: () => '',
+  })
+  let usingSasl = false
+  client.connection.once('authenticationSASL', () => {
+    usingSasl = true
+  })
+  await assert.rejects(
+    () => client.connect(),
+    {
+      message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a non-empty string',
     },
     'Error code should be for a password error'
   )

@@ -39,6 +39,11 @@ function promisify(Promise, callback) {
   const result = new Promise(function (resolve, reject) {
     res = resolve
     rej = reject
+  }).catch((err) => {
+    // replace the stack trace that leads to `TCP.onStreamRead` with one that leads back to the
+    // application that created the query
+    Error.captureStackTrace(err)
+    throw err
   })
   return { callback: cb, result: result }
 }
@@ -82,6 +87,7 @@ class Pool extends EventEmitter {
     }
 
     this.options.max = this.options.max || this.options.poolSize || 10
+    this.options.min = this.options.min || 0
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
@@ -104,6 +110,10 @@ class Pool extends EventEmitter {
 
   _isFull() {
     return this._clients.length >= this.options.max
+  }
+
+  _isAboveMin() {
+    return this._clients.length > this.options.min
   }
 
   _pulseQueue() {
@@ -200,6 +210,10 @@ class Pool extends EventEmitter {
         response.callback(new Error('timeout exceeded when trying to connect'))
       }, this.options.connectionTimeoutMillis)
 
+      if (tid.unref) {
+        tid.unref()
+      }
+
       this._pendingQueue.push(pendingItem)
       return result
     }
@@ -239,7 +253,7 @@ class Pool extends EventEmitter {
         // remove the dead client from our list of clients
         this._clients = this._clients.filter((c) => c !== client)
         if (timeoutHit) {
-          err.message = 'Connection terminated due to connection timeout'
+          err = new Error('Connection terminated due to connection timeout', { cause: err })
         }
 
         // this client won’t be released, so move on immediately
@@ -330,6 +344,8 @@ class Pool extends EventEmitter {
 
     client._poolUseCount = (client._poolUseCount || 0) + 1
 
+    this.emit('release', err, client)
+
     // TODO(bmc): expose a proper, public interface _queryable and _ending
     if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
       if (client._poolUseCount >= this.options.maxUses) {
@@ -351,7 +367,7 @@ class Pool extends EventEmitter {
 
     // idle timeout
     let tid
-    if (this.options.idleTimeoutMillis) {
+    if (this.options.idleTimeoutMillis && this._isAboveMin()) {
       tid = setTimeout(() => {
         this.log('remove idle client')
         this._remove(client)

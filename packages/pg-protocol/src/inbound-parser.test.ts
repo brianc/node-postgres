@@ -5,27 +5,16 @@ import assert from 'assert'
 import { PassThrough } from 'stream'
 import { BackendMessage } from './messages'
 
-var authOkBuffer = buffers.authenticationOk()
-var paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
-var readyForQueryBuffer = buffers.readyForQuery()
-var backendKeyDataBuffer = buffers.backendKeyData(1, 2)
-var commandCompleteBuffer = buffers.commandComplete('SELECT 3')
-var parseCompleteBuffer = buffers.parseComplete()
-var bindCompleteBuffer = buffers.bindComplete()
-var portalSuspendedBuffer = buffers.portalSuspended()
+const authOkBuffer = buffers.authenticationOk()
+const paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
+const readyForQueryBuffer = buffers.readyForQuery()
+const backendKeyDataBuffer = buffers.backendKeyData(1, 2)
+const commandCompleteBuffer = buffers.commandComplete('SELECT 3')
+const parseCompleteBuffer = buffers.parseComplete()
+const bindCompleteBuffer = buffers.bindComplete()
+const portalSuspendedBuffer = buffers.portalSuspended()
 
-var addRow = function (bufferList: BufferList, name: string, offset: number) {
-  return bufferList
-    .addCString(name) // field name
-    .addInt32(offset++) // table id
-    .addInt16(offset++) // attribute of column number
-    .addInt32(offset++) // objectId of field's data type
-    .addInt16(offset++) // datatype size
-    .addInt32(offset++) // type modifier
-    .addInt16(0) // format code, 0 => text
-}
-
-var row1 = {
+const row1 = {
   name: 'id',
   tableID: 1,
   attributeNumber: 2,
@@ -34,10 +23,10 @@ var row1 = {
   typeModifier: 5,
   formatCode: 0,
 }
-var oneRowDescBuff = buffers.rowDescription([row1])
+const oneRowDescBuff = buffers.rowDescription([row1])
 row1.name = 'bang'
 
-var twoRowBuf = buffers.rowDescription([
+const twoRowBuf = buffers.rowDescription([
   row1,
   {
     name: 'whoah',
@@ -50,58 +39,61 @@ var twoRowBuf = buffers.rowDescription([
   },
 ])
 
-var emptyRowFieldBuf = new BufferList().addInt16(0).join(true, 'D')
+const rowWithBigOids = {
+  name: 'bigoid',
+  tableID: 3000000001,
+  attributeNumber: 2,
+  dataTypeID: 3000000003,
+  dataTypeSize: 4,
+  typeModifier: 5,
+  formatCode: 0,
+}
+const bigOidDescBuff = buffers.rowDescription([rowWithBigOids])
 
-var emptyRowFieldBuf = buffers.dataRow([])
+const emptyRowFieldBuf = buffers.dataRow([])
 
-var oneFieldBuf = new BufferList()
-  .addInt16(1) // number of fields
-  .addInt32(5) // length of bytes of fields
-  .addCString('test')
-  .join(true, 'D')
+const oneFieldBuf = buffers.dataRow(['test'])
 
-var oneFieldBuf = buffers.dataRow(['test'])
-
-var expectedAuthenticationOkayMessage = {
+const expectedAuthenticationOkayMessage = {
   name: 'authenticationOk',
   length: 8,
 }
 
-var expectedParameterStatusMessage = {
+const expectedParameterStatusMessage = {
   name: 'parameterStatus',
   parameterName: 'client_encoding',
   parameterValue: 'UTF8',
   length: 25,
 }
 
-var expectedBackendKeyDataMessage = {
+const expectedBackendKeyDataMessage = {
   name: 'backendKeyData',
   processID: 1,
   secretKey: 2,
 }
 
-var expectedReadyForQueryMessage = {
+const expectedReadyForQueryMessage = {
   name: 'readyForQuery',
   length: 5,
   status: 'I',
 }
 
-var expectedCommandCompleteMessage = {
+const expectedCommandCompleteMessage = {
   name: 'commandComplete',
   length: 13,
   text: 'SELECT 3',
 }
-var emptyRowDescriptionBuffer = new BufferList()
+const emptyRowDescriptionBuffer = new BufferList()
   .addInt16(0) // number of fields
   .join(true, 'T')
 
-var expectedEmptyRowDescriptionMessage = {
+const expectedEmptyRowDescriptionMessage = {
   name: 'rowDescription',
   length: 6,
   fieldCount: 0,
   fields: [],
 }
-var expectedOneRowMessage = {
+const expectedOneRowMessage = {
   name: 'rowDescription',
   length: 27,
   fieldCount: 1,
@@ -118,7 +110,7 @@ var expectedOneRowMessage = {
   ],
 }
 
-var expectedTwoRowMessage = {
+const expectedTwoRowMessage = {
   name: 'rowDescription',
   length: 53,
   fieldCount: 2,
@@ -143,38 +135,54 @@ var expectedTwoRowMessage = {
     },
   ],
 }
+const expectedBigOidMessage = {
+  name: 'rowDescription',
+  length: 31,
+  fieldCount: 1,
+  fields: [
+    {
+      name: 'bigoid',
+      tableID: 3000000001,
+      columnID: 2,
+      dataTypeID: 3000000003,
+      dataTypeSize: 4,
+      dataTypeModifier: 5,
+      format: 'text',
+    },
+  ],
+}
 
-var emptyParameterDescriptionBuffer = new BufferList()
+const emptyParameterDescriptionBuffer = new BufferList()
   .addInt16(0) // number of parameters
   .join(true, 't')
 
-var oneParameterDescBuf = buffers.parameterDescription([1111])
+const oneParameterDescBuf = buffers.parameterDescription([1111])
 
-var twoParameterDescBuf = buffers.parameterDescription([2222, 3333])
+const twoParameterDescBuf = buffers.parameterDescription([2222, 3333])
 
-var expectedEmptyParameterDescriptionMessage = {
+const expectedEmptyParameterDescriptionMessage = {
   name: 'parameterDescription',
   length: 6,
   parameterCount: 0,
   dataTypeIDs: [],
 }
 
-var expectedOneParameterMessage = {
+const expectedOneParameterMessage = {
   name: 'parameterDescription',
   length: 10,
   parameterCount: 1,
   dataTypeIDs: [1111],
 }
 
-var expectedTwoParameterMessage = {
+const expectedTwoParameterMessage = {
   name: 'parameterDescription',
   length: 14,
   parameterCount: 2,
   dataTypeIDs: [2222, 3333],
 }
 
-var testForMessage = function (buffer: Buffer, expectedMessage: any) {
-  it('recieves and parses ' + expectedMessage.name, async () => {
+const testForMessage = function (buffer: Buffer, expectedMessage: any) {
+  it('receives and parses ' + expectedMessage.name, async () => {
     const messages = await parseBuffers([buffer])
     const [lastMessage] = messages
 
@@ -184,38 +192,38 @@ var testForMessage = function (buffer: Buffer, expectedMessage: any) {
   })
 }
 
-var plainPasswordBuffer = buffers.authenticationCleartextPassword()
-var md5PasswordBuffer = buffers.authenticationMD5Password()
-var SASLBuffer = buffers.authenticationSASL()
-var SASLContinueBuffer = buffers.authenticationSASLContinue()
-var SASLFinalBuffer = buffers.authenticationSASLFinal()
+const plainPasswordBuffer = buffers.authenticationCleartextPassword()
+const md5PasswordBuffer = buffers.authenticationMD5Password()
+const SASLBuffer = buffers.authenticationSASL()
+const SASLContinueBuffer = buffers.authenticationSASLContinue()
+const SASLFinalBuffer = buffers.authenticationSASLFinal()
 
-var expectedPlainPasswordMessage = {
+const expectedPlainPasswordMessage = {
   name: 'authenticationCleartextPassword',
 }
 
-var expectedMD5PasswordMessage = {
+const expectedMD5PasswordMessage = {
   name: 'authenticationMD5Password',
   salt: Buffer.from([1, 2, 3, 4]),
 }
 
-var expectedSASLMessage = {
+const expectedSASLMessage = {
   name: 'authenticationSASL',
   mechanisms: ['SCRAM-SHA-256'],
 }
 
-var expectedSASLContinueMessage = {
+const expectedSASLContinueMessage = {
   name: 'authenticationSASLContinue',
   data: 'data',
 }
 
-var expectedSASLFinalMessage = {
+const expectedSASLFinalMessage = {
   name: 'authenticationSASLFinal',
   data: 'data',
 }
 
-var notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
-var expectedNotificationResponseMessage = {
+const notificationResponseBuffer = buffers.notification(4, 'hi', 'boom')
+const expectedNotificationResponseMessage = {
   name: 'notification',
   processId: 4,
   channel: 'hi',
@@ -272,6 +280,7 @@ describe('PgPacketStream', function () {
     testForMessage(emptyRowDescriptionBuffer, expectedEmptyRowDescriptionMessage)
     testForMessage(oneRowDescBuff, expectedOneRowMessage)
     testForMessage(twoRowBuf, expectedTwoRowMessage)
+    testForMessage(bigOidDescBuff, expectedBigOidMessage)
   })
 
   describe('parameterDescription messages', function () {
@@ -299,7 +308,7 @@ describe('PgPacketStream', function () {
 
   describe('notice message', function () {
     // this uses the same logic as error message
-    var buff = buffers.notice([{ type: 'C', value: 'code' }])
+    const buff = buffers.notice([{ type: 'C', value: 'code' }])
     testForMessage(buff, {
       name: 'notice',
       code: 'code',
@@ -311,7 +320,7 @@ describe('PgPacketStream', function () {
   })
 
   describe('with all the fields', function () {
-    var buffer = buffers.error([
+    const buffer = buffers.error([
       {
         type: 'S',
         value: 'ERROR',
@@ -457,7 +466,7 @@ describe('PgPacketStream', function () {
   // tcp packets anywhere, we need to make sure we can parse every single
   // split on a tcp message
   describe('split buffer, single message parsing', function () {
-    var fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
+    const fullBuffer = buffers.dataRow([null, 'bang', 'zug zug', null, '!'])
 
     it('parses when full buffer comes in', async function () {
       const messages = await parseBuffers([fullBuffer])
@@ -470,12 +479,12 @@ describe('PgPacketStream', function () {
       assert.equal(message.fields[4], '!')
     })
 
-    var testMessageRecievedAfterSpiltAt = async function (split: number) {
-      var firstBuffer = Buffer.alloc(fullBuffer.length - split)
-      var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
+    const testMessageReceivedAfterSplitAt = async function (split: number) {
+      const firstBuffer = Buffer.alloc(fullBuffer.length - split)
+      const secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
       fullBuffer.copy(secondBuffer, 0, firstBuffer.length)
-      const messages = await parseBuffers([fullBuffer])
+      const messages = await parseBuffers([firstBuffer, secondBuffer])
       const message = messages[0] as any
       assert.equal(message.fields.length, 5)
       assert.equal(message.fields[0], null)
@@ -486,28 +495,30 @@ describe('PgPacketStream', function () {
     }
 
     it('parses when split in the middle', function () {
-      testMessageRecievedAfterSpiltAt(6)
+      return testMessageReceivedAfterSplitAt(6)
     })
 
     it('parses when split at end', function () {
-      testMessageRecievedAfterSpiltAt(2)
+      return testMessageReceivedAfterSplitAt(2)
     })
 
     it('parses when split at beginning', function () {
-      testMessageRecievedAfterSpiltAt(fullBuffer.length - 2)
-      testMessageRecievedAfterSpiltAt(fullBuffer.length - 1)
-      testMessageRecievedAfterSpiltAt(fullBuffer.length - 5)
+      return Promise.all([
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 2),
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 1),
+        testMessageReceivedAfterSplitAt(fullBuffer.length - 5),
+      ])
     })
   })
 
   describe('split buffer, multiple message parsing', function () {
-    var dataRowBuffer = buffers.dataRow(['!'])
-    var readyForQueryBuffer = buffers.readyForQuery()
-    var fullBuffer = Buffer.alloc(dataRowBuffer.length + readyForQueryBuffer.length)
+    const dataRowBuffer = buffers.dataRow(['!'])
+    const readyForQueryBuffer = buffers.readyForQuery()
+    const fullBuffer = Buffer.alloc(dataRowBuffer.length + readyForQueryBuffer.length)
     dataRowBuffer.copy(fullBuffer, 0, 0)
     readyForQueryBuffer.copy(fullBuffer, dataRowBuffer.length, 0)
 
-    var verifyMessages = function (messages: any[]) {
+    const verifyMessages = function (messages: any[]) {
       assert.strictEqual(messages.length, 2)
       assert.deepEqual(messages[0], {
         name: 'dataRow',
@@ -523,21 +534,21 @@ describe('PgPacketStream', function () {
       })
     }
     // sanity check
-    it('recieves both messages when packet is not split', async function () {
+    it('receives both messages when packet is not split', async function () {
       const messages = await parseBuffers([fullBuffer])
       verifyMessages(messages)
     })
 
-    var splitAndVerifyTwoMessages = async function (split: number) {
-      var firstBuffer = Buffer.alloc(fullBuffer.length - split)
-      var secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
+    const splitAndVerifyTwoMessages = async function (split: number) {
+      const firstBuffer = Buffer.alloc(fullBuffer.length - split)
+      const secondBuffer = Buffer.alloc(fullBuffer.length - firstBuffer.length)
       fullBuffer.copy(firstBuffer, 0, 0)
       fullBuffer.copy(secondBuffer, 0, firstBuffer.length)
       const messages = await parseBuffers([firstBuffer, secondBuffer])
       verifyMessages(messages)
     }
 
-    describe('recieves both messages when packet is split', function () {
+    describe('receives both messages when packet is split', function () {
       it('in the middle', function () {
         return splitAndVerifyTwoMessages(11)
       })

@@ -15,7 +15,11 @@ node-postgres is made possible by the helpful contributors from the community as
 - [mpirik](https://github.com/mpirik)
 - [@BLUE-DEVIL1134](https://github.com/BLUE-DEVIL1134)
 - [bubble.io](https://bubble.io/)
-- GitHub[https://github.com/github]
+- [GitHub](https://github.com/github)
+- [n8n](https://n8n.io/)
+- [loveland](https://github.com/loveland)
+- [gajus](https://github.com/gajus)
+- [thirdiron](https://github.com/thirdiron)
 
 # Supporters
 
@@ -48,3 +52,5 @@ node-postgres is made possible by the helpful contributors from the community as
 - [Scout APM](https://github.com/scoutapm-sponsorships)
 - [Sideline Sports](https://github.com/SidelineSports)
 - [Gadget](https://github.com/gadget-inc)
+- [Sentry](https://sentry.io/welcome/)
+- [devlikeapro](https://github.com/devlikepro)

@@ -1,19 +1,22 @@
 'use strict'
-var pg = require('../../../lib')
-var config = require('./test-helper').config
-test('can connect with ssl', function () {
-  return false
-  config.ssl = {
-    rejectUnauthorized: false,
+const helper = require('./test-helper')
+const assert = require('assert')
+const suite = new helper.Suite()
+
+suite.test('can connect with ssl', function () {
+  const config = {
+    ...helper.config,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   }
-  pg.connect(
-    config,
-    assert.success(function (client) {
-      return false
+  const client = new helper.pg.Client(config)
+  client.connect(
+    assert.success(function () {
       client.query(
         'SELECT NOW()',
         assert.success(function () {
-          pg.end()
+          client.end()
         })
       )
     })
