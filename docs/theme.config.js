@@ -53,7 +53,7 @@ l-161 -22 -94 41 c-201 87 -327 113 -533 112 -77 -1 -166 -7 -196 -13z m-89
     </>
   ),
   chat: {
-    link: 'https://discord.gg/4nbb6zJa',
+    link: 'https://discord.gg/2afXp5vUWm',
   },
   head: (
     <>
