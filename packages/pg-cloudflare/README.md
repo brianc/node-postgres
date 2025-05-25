@@ -27,7 +27,7 @@ module.exports.getStream = function getStream(ssl = false) {
 
 ## Node.js implementation of the Socket API proposal
 
-If you're looking for a way to rely on `connect()` as the interface you use to interact with raw sockets, but need this interface to be availble in a Node.js environment, [`@arrowood.dev/socket`](https://github.com/Ethan-Arrowood/socket) provides a Node.js implementation of the Socket API.
+If you're looking for a way to rely on `connect()` as the interface you use to interact with raw sockets, but need this interface to be available in a Node.js environment, [`@arrowood.dev/socket`](https://github.com/Ethan-Arrowood/socket) provides a Node.js implementation of the Socket API.
 
 
 ### license

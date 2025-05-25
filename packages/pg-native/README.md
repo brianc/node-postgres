@@ -264,7 +264,7 @@ Prepares a name statement with name of `statementName` and a query text of `quer
 
 - __`client.executeSync(statementName:string, <values:string[]>) -> results:Object[]`__
 
-Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query paramters as a `values` array.  Throws an `Error` if the execution fails, otherwas returns an array of results.
+Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query parameters as a `values` array.  Throws an `Error` if the execution fails, otherwise returns an array of results.
 
 ## testing
 
