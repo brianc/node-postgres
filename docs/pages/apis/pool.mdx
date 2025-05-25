@@ -29,14 +29,14 @@ type Config = {
   idleTimeoutMillis?: number
 
   // maximum number of clients the pool should contain
-  // by default this is set to 10.  There is some nuance to setting the maxium size of your pool.
+  // by default this is set to 10.  There is some nuance to setting the maximum size of your pool.
   // see https://node-postgres.com/guides/pool-sizing for more information
   max?: number
 
   // minimum number of clients the pool should hold on to and _not_ destroy with the idleTimeoutMillis
   // this can be useful if you get very bursty traffic and want to keep a few clients around.
   // note: current the pool will not automatically create and connect new clients up to the min, it will
-  // only not evict and close clients except those which execeed the min count.
+  // only not evict and close clients except those which exceed the min count.
   // the default is 0 which disables this behavior.
   min?: number
 
