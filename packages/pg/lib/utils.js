@@ -173,8 +173,7 @@ const escapeLiteral = function (str) {
   let hasBackslash = false
   let escaped = "'"
 
-  for (let i = 0; i < str.length; i++) {
-    const c = str[i]
+  for (const c of str) {
     if (c === "'") {
       escaped += c + c
     } else if (c === '\\') {

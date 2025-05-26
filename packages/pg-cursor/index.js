@@ -174,8 +174,7 @@ class Cursor extends EventEmitter {
       this._cb(msg)
     }
     // dispatch error to all waiting callbacks
-    for (let i = 0; i < this._queue.length; i++) {
-      const queuedCallback = this._queue[i][1]
+    for (const [_, queuedCallback] of this._queue) {
       queuedCallback.call(this, msg)
     }
     this._queue.length = 0
