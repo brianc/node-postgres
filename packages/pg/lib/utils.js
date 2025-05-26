@@ -2,6 +2,9 @@
 
 const defaults = require('./defaults')
 
+const util = require('util')
+const { isDate } = util.types || util // Node 8 doesn't have `util.types`
+
 function escapeElement(elementRepresentation) {
   const escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
@@ -60,7 +63,7 @@ const prepareValue = function (val, seen) {
       }
       return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
     }
-    if (val instanceof Date) {
+    if (isDate(val)) {
       if (defaults.parseInputDatesAsUTC) {
         return dateToStringUTC(val)
       } else {
