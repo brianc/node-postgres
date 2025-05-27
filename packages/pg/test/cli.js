@@ -2,8 +2,8 @@
 const ConnectionParameters = require('../lib/connection-parameters')
 const config = new ConnectionParameters(process.argv[2])
 
-for (let i = 0; i < process.argv.length; i++) {
-  switch (process.argv[i].toLowerCase()) {
+for (const arg of process.argv) {
+  switch (arg.toLowerCase()) {
     case 'native':
       config.native = true
       break
