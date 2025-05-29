@@ -25,6 +25,7 @@ import {
   MessageName,
   AuthenticationMD5Password,
   NoticeMessage,
+  ParserError,
 } from './messages'
 import { BufferReader } from './buffer-reader'
 
@@ -152,53 +153,57 @@ export class Parser {
   }
 
   private handlePacket(offset: number, code: number, length: number, bytes: Buffer): BackendMessage {
-    switch (code) {
-      case MessageCodes.BindComplete:
-        return bindComplete
-      case MessageCodes.ParseComplete:
-        return parseComplete
-      case MessageCodes.CloseComplete:
-        return closeComplete
-      case MessageCodes.NoData:
-        return noData
-      case MessageCodes.PortalSuspended:
-        return portalSuspended
-      case MessageCodes.CopyDone:
-        return copyDone
-      case MessageCodes.ReplicationStart:
-        return replicationStart
-      case MessageCodes.EmptyQuery:
-        return emptyQuery
-      case MessageCodes.DataRow:
-        return this.parseDataRowMessage(offset, length, bytes)
-      case MessageCodes.CommandComplete:
-        return this.parseCommandCompleteMessage(offset, length, bytes)
-      case MessageCodes.ReadyForQuery:
-        return this.parseReadyForQueryMessage(offset, length, bytes)
-      case MessageCodes.NotificationResponse:
-        return this.parseNotificationMessage(offset, length, bytes)
-      case MessageCodes.AuthenticationResponse:
-        return this.parseAuthenticationResponse(offset, length, bytes)
-      case MessageCodes.ParameterStatus:
-        return this.parseParameterStatusMessage(offset, length, bytes)
-      case MessageCodes.BackendKeyData:
-        return this.parseBackendKeyData(offset, length, bytes)
-      case MessageCodes.ErrorMessage:
-        return this.parseErrorMessage(offset, length, bytes, 'error')
-      case MessageCodes.NoticeMessage:
-        return this.parseErrorMessage(offset, length, bytes, 'notice')
-      case MessageCodes.RowDescriptionMessage:
-        return this.parseRowDescriptionMessage(offset, length, bytes)
-      case MessageCodes.ParameterDescriptionMessage:
-        return this.parseParameterDescriptionMessage(offset, length, bytes)
-      case MessageCodes.CopyIn:
-        return this.parseCopyInMessage(offset, length, bytes)
-      case MessageCodes.CopyOut:
-        return this.parseCopyOutMessage(offset, length, bytes)
-      case MessageCodes.CopyData:
-        return this.parseCopyData(offset, length, bytes)
-      default:
-        return new DatabaseError('received invalid response: ' + code.toString(16), length, 'error')
+    try {
+      switch (code) {
+        case MessageCodes.BindComplete:
+          return bindComplete
+        case MessageCodes.ParseComplete:
+          return parseComplete
+        case MessageCodes.CloseComplete:
+          return closeComplete
+        case MessageCodes.NoData:
+          return noData
+        case MessageCodes.PortalSuspended:
+          return portalSuspended
+        case MessageCodes.CopyDone:
+          return copyDone
+        case MessageCodes.ReplicationStart:
+          return replicationStart
+        case MessageCodes.EmptyQuery:
+          return emptyQuery
+        case MessageCodes.DataRow:
+          return this.parseDataRowMessage(offset, length, bytes)
+        case MessageCodes.CommandComplete:
+          return this.parseCommandCompleteMessage(offset, length, bytes)
+        case MessageCodes.ReadyForQuery:
+          return this.parseReadyForQueryMessage(offset, length, bytes)
+        case MessageCodes.NotificationResponse:
+          return this.parseNotificationMessage(offset, length, bytes)
+        case MessageCodes.AuthenticationResponse:
+          return this.parseAuthenticationResponse(offset, length, bytes)
+        case MessageCodes.ParameterStatus:
+          return this.parseParameterStatusMessage(offset, length, bytes)
+        case MessageCodes.BackendKeyData:
+          return this.parseBackendKeyData(offset, length, bytes)
+        case MessageCodes.ErrorMessage:
+          return this.parseErrorMessage(offset, length, bytes, 'error')
+        case MessageCodes.NoticeMessage:
+          return this.parseErrorMessage(offset, length, bytes, 'notice')
+        case MessageCodes.RowDescriptionMessage:
+          return this.parseRowDescriptionMessage(offset, length, bytes)
+        case MessageCodes.ParameterDescriptionMessage:
+          return this.parseParameterDescriptionMessage(offset, length, bytes)
+        case MessageCodes.CopyIn:
+          return this.parseCopyInMessage(offset, length, bytes)
+        case MessageCodes.CopyOut:
+          return this.parseCopyOutMessage(offset, length, bytes)
+        case MessageCodes.CopyData:
+          return this.parseCopyData(offset, length, bytes)
+        default:
+          return new DatabaseError('received invalid response: ' + code.toString(16), length, 'error')
+      }
+    } catch (error) {
+      return new ParserError(`unexpected error handling packet: ${error}`, length, 'error')
     }
   }
 
