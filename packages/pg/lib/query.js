@@ -183,6 +183,12 @@ class Query extends EventEmitter {
   }
 
   hasBeenParsed(connection) {
+    if (connection.submittedNamedStatements[this.name]) {
+      console.log(`-----------------------------------`)
+      console.log(`query.hasBeenParsed :  This statement has already been prepared`)
+      console.log(`-----------------------------------`)
+      return true
+    }
     return this.name && connection.parsedStatements[this.name]
   }
 
