@@ -19,7 +19,7 @@ export interface ConnectionOptions {
   password?: string
   user?: string
   port?: string | null
-  database: string | null | undefined
+  database: string | undefined
   client_encoding?: string
   ssl?: boolean | string | SSLConfig
 
