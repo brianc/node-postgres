@@ -1,0 +1,25 @@
+{
+  "name": "pg-bundler-test",
+  "version": "0.0.0",
+  "description": "Test bundlers with pg-cloudflare, https://github.com/brianc/node-postgres/issues/3452",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "pg-cloudflare": "^1.2.5",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "rollup": "^4.41.1",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "vite": "^6.3.5",
+    "esbuild": "^0.25.5"
+  },
+  "scripts": {
+    "test": "yarn webpack && yarn rollup && yarn vite && yarn esbuild",
+    "webpack": "webpack --config webpack-empty.config.mjs && webpack --config webpack-cloudflare.config.mjs",
+    "rollup": "rollup --config rollup-empty.config.mjs --failAfterWarnings && rollup --config rollup-cloudflare.config.mjs --failAfterWarnings",
+    "vite": "[ $(node --version | sed 's/v//' | cut -d'.' -f1) -ge 18 ] && vite build --config vite-empty.config.mjs && vite build --config vite-cloudflare.config.mjs || echo 'Skip Vite test'",
+    "esbuild": "node esbuild-empty.config.mjs && node esbuild-cloudflare.config.mjs"
+  }
+}

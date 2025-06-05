@@ -11,9 +11,11 @@
   },
   "exports": {
     ".": {
-      "import": "./esm/index.mjs",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "cloudflare": {
+        "import": "./esm/index.mjs",
+        "require": "./dist/index.js"
+      },
+      "default": "./dist/empty.js"
     }
   },
   "scripts": {
