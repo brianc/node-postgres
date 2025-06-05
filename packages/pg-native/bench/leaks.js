@@ -1,13 +1,13 @@
 const Client = require('../')
 const async = require('async')
 
-let performance: { now: () => number };
+let performance = { now: () => number }
 try {
   // Support for node < 16.0.0
-  performance = require('perf_hooks').performance;
+  performance = require('perf_hooks').performance
 } catch (e) {
   // failback for node < 8.5.0
-  performance = { now: Date.now }; // Fallback to Date.now
+  performance = { now: Date.now } // Fallback to Date.now
 }
 
 const loop = function () {
