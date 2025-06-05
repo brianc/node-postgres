@@ -1,6 +1,15 @@
 const Client = require('../')
 const async = require('async')
 
+let performance: { now: () => number };
+try {
+  // Support for node < 16.0.0
+  performance = require('perf_hooks').performance;
+} catch (e) {
+  // failback for node < 8.5.0
+  performance = { now: Date.now }; // Fallback to Date.now
+}
+
 const loop = function () {
   const client = new Client()
 
@@ -37,10 +46,10 @@ const loop = function () {
 
   const ops = [connect, simpleQuery, paramsQuery, prepared, sync, end]
 
-  const start = Date.now()
+  const start = performance.now()
   async.series(ops, function (err) {
     if (err) throw err
-    console.log(Date.now() - start)
+    console.log(performance.now() - start)
     setImmediate(loop)
   })
 }

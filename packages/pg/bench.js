@@ -1,5 +1,14 @@
 const pg = require('./lib')
 
+let performance;
+try {
+    // Support for node < 16.0.0
+    performance = require('perf_hooks').performance
+} catch (e) {
+    // failback for node < 8.5.0
+    performance = { now: () => Date.now() }
+};
+
 const params = {
   text: 'select typname, typnamespace, typowner, typlen, typbyval, typcategory, typispreferred, typisdefined, typdelim, typrelid, typelem, typarray from pg_type where typtypmod = $1 and typisdefined = $2',
   values: [-1, true],
@@ -23,13 +32,13 @@ const exec = async (client, q) => {
 }
 
 const bench = async (client, q, time) => {
-  const start = Date.now()
+  const start = performance.now()
   let count = 0
   // eslint-disable-next-line no-constant-condition
   while (true) {
     await exec(client, q)
     count++
-    if (Date.now() - start > time) {
+    if (performance.now() - start > time) {
       return count
     }
   }
@@ -77,9 +86,9 @@ const run = async () => {
       values: ['test', Buffer.allocUnsafe(104857600)],
     })
     console.log('bytea warmup done')
-    const start = Date.now()
+    const start = performance.now()
     const results = await client.query('SELECT * FROM buf')
-    const time = Date.now() - start
+    const time = performance.now() - start
     console.log('bytea time:', time, 'ms')
     console.log('bytea length:', results.rows[0].data.byteLength, 'bytes')
     console.log('on my laptop best so far seen 1407ms and 104857600 bytes')
