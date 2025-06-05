@@ -1,7 +1,7 @@
 const Client = require('../')
 const async = require('async')
 
-let performance = { now: () => number }
+let performance
 try {
   // Support for node < 16.0.0
   performance = require('perf_hooks').performance
