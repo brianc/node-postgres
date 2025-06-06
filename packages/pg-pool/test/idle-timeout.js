@@ -25,6 +25,7 @@ describe('idle timeout', () => {
   it(
     'times out and removes clients when others are also removed',
     co.wrap(function* () {
+      let currentClient = 1
       const pool = new Pool({ idleTimeoutMillis: 10 })
       const clientA = yield pool.connect()
       const clientB = yield pool.connect()
@@ -43,7 +44,12 @@ describe('idle timeout', () => {
 
           expect(pool.idleCount).to.equal(0)
           expect(pool.totalCount).to.equal(0)
-          resolve()
+
+          if (currentClient >= 2) {
+            resolve()
+          } else {
+            currentClient++
+          }
         })
       })
 
@@ -52,7 +58,7 @@ describe('idle timeout', () => {
       try {
         yield Promise.race([removal, timeout])
       } finally {
-        pool.end()
+        yield pool.end()
       }
     })
   )
