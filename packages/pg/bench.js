@@ -1,14 +1,5 @@
 const pg = require('./lib')
 
-let performance
-try {
-  // Support for node < 16.0.0
-  performance = require('perf_hooks').performance
-} catch (e) {
-  // failback for node < 8.5.0
-  performance = { now: () => Date.now() }
-}
-
 const params = {
   text: 'select typname, typnamespace, typowner, typlen, typbyval, typcategory, typispreferred, typisdefined, typdelim, typrelid, typelem, typarray from pg_type where typtypmod = $1 and typisdefined = $2',
   values: [-1, true],

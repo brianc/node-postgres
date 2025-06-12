@@ -2,15 +2,6 @@
 
 import { BufferReader } from './buffer-reader'
 
-let performance: { now: () => number }
-try {
-  // Support for node < 16.0.0
-  performance = require('perf_hooks').performance
-} catch (e) {
-  // failback for node < 8.5.0
-  performance = { now: Date.now } // Fallback to Date.now
-}
-
 const LOOPS = 1000
 let count = 0
 const start = performance.now()
