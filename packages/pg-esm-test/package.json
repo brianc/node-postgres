@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test --conditions=cloudflare"
   },
   "keywords": [
     "postgres",
