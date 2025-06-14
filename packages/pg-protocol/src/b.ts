@@ -4,14 +4,14 @@ import { BufferReader } from './buffer-reader'
 
 const LOOPS = 1000
 let count = 0
-const start = Date.now()
+const start = performance.now()
 
 const reader = new BufferReader()
 const buffer = Buffer.from([33, 33, 33, 33, 33, 33, 33, 0])
 
 const run = () => {
   if (count > LOOPS) {
-    console.log(Date.now() - start)
+    console.log(performance.now() - start)
     return
   }
   count++

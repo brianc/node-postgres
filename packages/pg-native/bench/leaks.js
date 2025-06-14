@@ -37,10 +37,10 @@ const loop = function () {
 
   const ops = [connect, simpleQuery, paramsQuery, prepared, sync, end]
 
-  const start = Date.now()
+  const start = performance.now()
   async.series(ops, function (err) {
     if (err) throw err
-    console.log(Date.now() - start)
+    console.log(performance.now() - start)
     setImmediate(loop)
   })
 }
