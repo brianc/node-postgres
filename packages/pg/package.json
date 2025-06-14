@@ -25,6 +25,9 @@
       "require": "./lib/index.js",
       "default": "./lib/index.js"
     },
+    "./package.json": {
+      "default": "./package.json"
+    },
     "./lib/*": {
       "import": "./lib/*",
       "require": "./lib/*",
