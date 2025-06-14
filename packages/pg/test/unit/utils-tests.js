@@ -232,35 +232,46 @@ test('prepareValue: can safely be used to map an array of values including those
 })
 
 const testEscapeLiteral = function (testName, input, expected) {
-  test(testName, function () {
+  test(`escapeLiteral: ${testName}`, function () {
     const actual = utils.escapeLiteral(input)
     assert.equal(expected, actual)
   })
 }
-testEscapeLiteral('escapeLiteral: no special characters', 'hello world', "'hello world'")
 
-testEscapeLiteral('escapeLiteral: contains double quotes only', 'hello " world', "'hello \" world'")
+testEscapeLiteral('no special characters', 'hello world', "'hello world'")
 
-testEscapeLiteral('escapeLiteral: contains single quotes only', "hello ' world", "'hello '' world'")
+testEscapeLiteral('contains double quotes only', 'hello " world', "'hello \" world'")
 
-testEscapeLiteral('escapeLiteral: contains backslashes only', 'hello \\ world', " E'hello \\\\ world'")
+testEscapeLiteral('contains single quotes only', "hello ' world", "'hello '' world'")
 
-testEscapeLiteral('escapeLiteral: contains single quotes and double quotes', 'hello \' " world', "'hello '' \" world'")
+testEscapeLiteral('contains backslashes only', 'hello \\ world', " E'hello \\\\ world'")
+
+testEscapeLiteral('contains single quotes and double quotes', 'hello \' " world', "'hello '' \" world'")
+
+testEscapeLiteral('date', new Date(), "''")
+
+testEscapeLiteral('null', null, "''")
+
+testEscapeLiteral('undefined', undefined, "''")
+
+testEscapeLiteral('boolean', false, "''")
+
+testEscapeLiteral('number', 1, "''")
+
+testEscapeLiteral('number', 1, "''")
+
+testEscapeLiteral('boolean', true, "''")
+
+testEscapeLiteral('array', [1, 2, 3], "''")
+
+testEscapeLiteral('object', { x: 42 }, "''")
+
+testEscapeLiteral('contains double quotes and backslashes', 'hello \\ " world', " E'hello \\\\ \" world'")
+
+testEscapeLiteral('contains single quotes and backslashes', "hello \\ ' world", " E'hello \\\\ '' world'")
 
 testEscapeLiteral(
-  'escapeLiteral: contains double quotes and backslashes',
-  'hello \\ " world',
-  " E'hello \\\\ \" world'"
-)
-
-testEscapeLiteral(
-  'escapeLiteral: contains single quotes and backslashes',
-  "hello \\ ' world",
-  " E'hello \\\\ '' world'"
-)
-
-testEscapeLiteral(
-  'escapeLiteral: contains single quotes, double quotes, and backslashes',
+  'contains single quotes, double quotes, and backslashes',
   'hello \\ \' " world',
   " E'hello \\\\ '' \" world'"
 )
