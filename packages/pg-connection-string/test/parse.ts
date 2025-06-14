@@ -315,6 +315,26 @@ describe('parse', function () {
     }).to.throw()
   })
 
+  it('when throwing on invalid url does not print out the password in the error message', function () {
+    const host = 'localhost'
+    const port = 5432
+    const user = 'user'
+    const password = 'g#4624$@F$#v`'
+    const database = 'db'
+
+    const connectionString = `postgres://${user}:${password}@${host}:${port}/${database}`
+    expect(function () {
+      parse(connectionString)
+    }).to.throw()
+    try {
+      parse(connectionString)
+    } catch (err: unknown) {
+      expect(JSON.stringify(err)).to.not.include(password, 'Password should not be in the error message')
+      return
+    }
+    throw new Error('Expected an error to be thrown')
+  })
+
   it('configuration parameter sslmode=verify-ca and sslrootcert with uselibpqcompat query param', function () {
     const connectionString = 'pg:///?sslmode=verify-ca&uselibpqcompat=true&sslrootcert=' + __dirname + '/example.ca'
     const subject = parse(connectionString)

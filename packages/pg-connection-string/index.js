@@ -23,11 +23,16 @@ function parse(str, options = {}) {
   }
 
   try {
-    result = new URL(str, 'postgres://base')
-  } catch (e) {
-    // The URL is invalid so try again with a dummy host
-    result = new URL(str.replace('@/', '@___DUMMY___/'), 'postgres://base')
-    dummyHost = true
+    try {
+      result = new URL(str, 'postgres://base')
+    } catch (e) {
+      // The URL is invalid so try again with a dummy host
+      result = new URL(str.replace('@/', '@___DUMMY___/'), 'postgres://base')
+      dummyHost = true
+    }
+  } catch (err) {
+    // Remove the input from the error message to avoid leaking sensitive information
+    err.input && (err.input = '*****REDACTED*****')
   }
 
   // We'd like to use Object.fromEntries() here but Node.js 10 does not support it
