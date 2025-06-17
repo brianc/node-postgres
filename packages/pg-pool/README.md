@@ -356,6 +356,28 @@ maxUses = rebalanceWindowSeconds * totalRequestsPerSecond / numAppInstances / po
    7200 =        1800            *          1000          /        10       /    25
 ```
 
+## Retry on timeout
+
+It is possible to configure the pool to retry connections that timeout. 
+This is useful in cases where you have DNS issues or other transient network problems that cause the pool to fail to
+connect to the database.
+
+This can be done by setting the `connectionTimeoutMillis` option, plus passing the `retryOnTimeout`, `maxRetries`, and
+`retryDelay` options to the pool constructor.
+
+```js
+const Pool = require('pg-pool')
+const pool = new Pool({
+  connectionTimeoutMillis: 1000, // timeout for acquiring a connection
+  retryOnTimeout: true, // retry on timeout
+  maxRetries: 5, // maximum number of retries
+  retryDelay: 1_000, // delay between retries in milliseconds
+})
+```
+The connection will be retried up to `maxRetries` times if it times out, with a delay of `retryDelay` milliseconds between each retry.
+The existing error (connection timeout) will still be thrown if the maximum number of retries is reached.
+
+
 ## tests
 
 To run tests clone the repo, `npm i` in the working dir, and then run `npm test`
