@@ -91,6 +91,9 @@ class Pool extends EventEmitter {
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
+    this.options.retryOnTimeout = this.options.retryOnTimeout || false
+    this.options.maxRetries = this.options.maxRetries || 3
+    this.options.retryDelay = this.options.retryDelay || 3_000
     this.log = this.options.log || function () {}
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
@@ -229,7 +232,7 @@ class Pool extends EventEmitter {
     return result
   }
 
-  newClient(pendingItem) {
+  newClient(pendingItem, retryAttempt = 0) {
     const client = new this.Client(this.options)
     this._clients.push(client)
     const idleListener = makeIdleListener(this, client)
@@ -258,6 +261,19 @@ class Pool extends EventEmitter {
         this.log('client failed to connect', err)
         // remove the dead client from our list of clients
         this._clients = this._clients.filter((c) => c !== client)
+
+        // Retry on timeout if enabled
+        if (timeoutHit && this.options.retryOnTimeout && retryAttempt < this.options.maxRetries) {
+          this.log(`Connection timeout, retry ${retryAttempt + 1}/${this.options.maxRetries}`)
+
+          // delay the retry to avoid tight loops
+          setTimeout(() => {
+            this.newClient(pendingItem, retryAttempt + 1)
+          }, this.options.retryDelay)
+
+          return
+        }
+        
         if (timeoutHit) {
           err = new Error('Connection terminated due to connection timeout', { cause: err })
         }
