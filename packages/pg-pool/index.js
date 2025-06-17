@@ -273,7 +273,6 @@ class Pool extends EventEmitter {
 
           return
         }
-        
         if (timeoutHit) {
           err = new Error('Connection terminated due to connection timeout', { cause: err })
         }
