@@ -1,6 +1,6 @@
 {
   "name": "pg",
-  "version": "8.16.0",
+  "version": "8.16.1",
   "description": "PostgreSQL client - pure javascript & libpq with the same API",
   "keywords": [
     "database",
@@ -35,9 +35,9 @@
     }
   },
   "dependencies": {
-    "pg-connection-string": "^2.9.0",
-    "pg-pool": "^3.10.0",
-    "pg-protocol": "^1.10.0",
+    "pg-connection-string": "^2.9.1",
+    "pg-pool": "^3.10.1",
+    "pg-protocol": "^1.10.1",
     "pg-types": "2.2.0",
     "pgpass": "1.0.5"
   },
@@ -53,7 +53,7 @@
     "wrangler": "^3.x"
   },
   "optionalDependencies": {
-    "pg-cloudflare": "^1.2.5"
+    "pg-cloudflare": "^1.2.6"
   },
   "peerDependencies": {
     "pg-native": ">=3.0.1"

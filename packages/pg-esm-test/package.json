@@ -1,6 +1,6 @@
 {
   "name": "pg-esm-test",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A test module for PostgreSQL with ESM support",
   "main": "index.js",
   "type": "module",
@@ -14,13 +14,13 @@
     "test"
   ],
   "devDependencies": {
-    "pg": "^8.16.0",
-    "pg-cloudflare": "^1.2.5",
-    "pg-cursor": "^2.15.0",
-    "pg-native": "^3.5.0",
-    "pg-pool": "^3.10.0",
-    "pg-protocol": "^1.10.0",
-    "pg-query-stream": "^4.10.0"
+    "pg": "^8.16.1",
+    "pg-cloudflare": "^1.2.6",
+    "pg-cursor": "^2.15.1",
+    "pg-native": "^3.5.1",
+    "pg-pool": "^3.10.1",
+    "pg-protocol": "^1.10.1",
+    "pg-query-stream": "^4.10.1"
   },
   "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "license": "MIT"
