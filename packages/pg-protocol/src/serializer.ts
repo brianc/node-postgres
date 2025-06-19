@@ -157,6 +157,8 @@ const bind = (config: BindOpts = {}): Buffer => {
   writer.addInt16(len)
   writer.add(paramWriter.flush())
 
+  // all results use the same format code
+  writer.addInt16(1)
   // format code
   writer.addInt16(binary ? ParamType.BINARY : ParamType.STRING)
   return writer.flush(code.bind)
