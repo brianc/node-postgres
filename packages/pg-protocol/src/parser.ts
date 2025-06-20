@@ -284,7 +284,7 @@ export class Parser {
     for (let i = 0; i < fieldCount; i++) {
       const len = this.reader.int32()
       // a -1 for length means the value of the field is null
-      fields[i] = len === -1 ? null : this.reader.string(len)
+      fields[i] = len === -1 ? null : this.reader.bytes(len)
     }
     return new DataRowMessage(length, fields)
   }
