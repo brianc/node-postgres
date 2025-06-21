@@ -301,7 +301,7 @@ describe('PgPacketStream', function () {
       testForMessage(oneFieldBuf, {
         name: 'dataRow',
         fieldCount: 1,
-        fields: ['test'],
+        fields: [Buffer.from('test')],
       })
     })
   })
@@ -524,7 +524,7 @@ describe('PgPacketStream', function () {
         name: 'dataRow',
         fieldCount: 1,
         length: 11,
-        fields: ['!'],
+        fields: [Buffer.from('!')],
       })
       assert.equal(messages[0].fields[0], '!')
       assert.deepEqual(messages[1], {
