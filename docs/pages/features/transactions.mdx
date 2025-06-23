@@ -16,8 +16,7 @@ To execute a transaction with node-postgres you simply execute `BEGIN / COMMIT /
 ## Examples
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 const pool = new Pool()
 
 const client = await pool.connect()

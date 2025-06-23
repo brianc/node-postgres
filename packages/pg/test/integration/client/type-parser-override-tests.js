@@ -1,9 +1,9 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 const assert = require('assert')
 
 function testTypeParser(client, expectedResult, done) {
-  var boolValue = true
+  const boolValue = true
   client.query('CREATE TEMP TABLE parserOverrideTest(id bool)')
   client.query('INSERT INTO parserOverrideTest(id) VALUES ($1)', [boolValue])
   client.query(
@@ -20,7 +20,7 @@ pool.connect(
   assert.success(function (client1, done1) {
     pool.connect(
       assert.success(function (client2, done2) {
-        var boolTypeOID = 16
+        const boolTypeOID = 16
         client1.setTypeParser(boolTypeOID, function () {
           return 'first client'
         })

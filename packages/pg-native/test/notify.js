@@ -1,8 +1,8 @@
-var Client = require('../')
-var ok = require('okay')
+const Client = require('../')
+const ok = require('okay')
 
-var notify = function (channel, payload) {
-  var client = new Client()
+const notify = function (channel, payload) {
+  const client = new Client()
   client.connectSync()
   client.querySync('NOTIFY ' + channel + ", '" + payload + "'")
   client.end()
@@ -10,12 +10,12 @@ var notify = function (channel, payload) {
 
 describe('simple LISTEN/NOTIFY', function () {
   before(function (done) {
-    var client = (this.client = new Client())
+    const client = (this.client = new Client())
     client.connect(done)
   })
 
   it('works', function (done) {
-    var client = this.client
+    const client = this.client
     client.querySync('LISTEN boom')
     client.on('notification', function (msg) {
       done()
@@ -31,14 +31,14 @@ describe('simple LISTEN/NOTIFY', function () {
 if (!process.env.TRAVIS_CI) {
   describe('async LISTEN/NOTIFY', function () {
     before(function (done) {
-      var client = (this.client = new Client())
+      const client = (this.client = new Client())
       client.connect(done)
     })
 
     it('works', function (done) {
-      var client = this.client
-      var count = 0
-      var check = function () {
+      const client = this.client
+      let count = 0
+      const check = function () {
         count++
         if (count >= 2) return done()
       }

@@ -1,5 +1,5 @@
 function x509Error(msg, cert) {
-  throw new Error('SASL channel binding: ' + msg + ' when parsing public certificate ' + cert.toString('base64'))
+  return new Error('SASL channel binding: ' + msg + ' when parsing public certificate ' + cert.toString('base64'))
 }
 
 function readASN1Length(data, index) {
@@ -7,7 +7,7 @@ function readASN1Length(data, index) {
   if (length < 0x80) return { length, index }
 
   const lengthBytes = length & 0x7f
-  if (lengthBytes > 4) x509Error('bad length', data)
+  if (lengthBytes > 4) throw x509Error('bad length', data)
 
   length = 0
   for (let i = 0; i < lengthBytes; i++) {
@@ -18,11 +18,11 @@ function readASN1Length(data, index) {
 }
 
 function readASN1OID(data, index) {
-  if (data[index++] !== 0x6) x509Error('non-OID data', data) // 6 = OID
+  if (data[index++] !== 0x6) throw x509Error('non-OID data', data) // 6 = OID
 
   const { length: OIDLength, index: indexAfterOIDLength } = readASN1Length(data, index)
   index = indexAfterOIDLength
-  lastIndex = index + OIDLength
+  const lastIndex = index + OIDLength
 
   const byte1 = data[index++]
   let oid = ((byte1 / 40) >> 0) + '.' + (byte1 % 40)
@@ -43,7 +43,7 @@ function readASN1OID(data, index) {
 }
 
 function expectASN1Seq(data, index) {
-  if (data[index++] !== 0x30) x509Error('non-sequence data', data) // 30 = Sequence
+  if (data[index++] !== 0x30) throw x509Error('non-sequence data', data) // 30 = Sequence
   return readASN1Length(data, index)
 }
 
@@ -85,10 +85,10 @@ function signatureAlgorithmHashFromCertificate(data, index) {
     case '1.2.840.10045.4.3.4':
       return 'SHA-512'
     // RSASSA-PSS: hash is indicated separately
-    case '1.2.840.113549.1.1.10':
+    case '1.2.840.113549.1.1.10': {
       index = indexAfterOID
       index = expectASN1Seq(data, index).index
-      if (data[index++] !== 0xa0) x509Error('non-tag data', data) // a0 = constructed tag 0
+      if (data[index++] !== 0xa0) throw x509Error('non-tag data', data) // a0 = constructed tag 0
       index = readASN1Length(data, index).index // skip over tag length field
       index = expectASN1Seq(data, index).index // skip over sequence length field
       const { oid: hashOID } = readASN1OID(data, index)
@@ -105,7 +105,8 @@ function signatureAlgorithmHashFromCertificate(data, index) {
         case '2.16.840.1.101.3.4.2.3':
           return 'SHA-512'
       }
-      x509Error('unknown hash OID ' + hashOID, data)
+      throw x509Error('unknown hash OID ' + hashOID, data)
+    }
     // Ed25519 -- see https: return//github.com/openssl/openssl/issues/15477
     case '1.3.101.110':
     case '1.3.101.112': // ph
@@ -113,9 +114,9 @@ function signatureAlgorithmHashFromCertificate(data, index) {
     // Ed448 -- still not in pg 17.2 (if supported, digest would be SHAKE256 x 64 bytes)
     case '1.3.101.111':
     case '1.3.101.113': // ph
-      x509Error('Ed448 certificate channel binding is not currently supported by Postgres')
+      throw x509Error('Ed448 certificate channel binding is not currently supported by Postgres')
   }
-  x509Error('unknown OID ' + oid, data)
+  throw x509Error('unknown OID ' + oid, data)
 }
 
 module.exports = { signatureAlgorithmHashFromCertificate }

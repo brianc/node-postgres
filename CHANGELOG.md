@@ -4,6 +4,14 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.16.0
+
+- Add support for [min connection pool size](https://github.com/brianc/node-postgres/pull/3438).
+
+## pg@8.15.0
+
+- Add support for [esm](https://github.com/brianc/node-postgres/pull/3423) importing. CommonJS importing is still also supported.
+
 ## pg@8.14.0
 
 - Add support from SCRAM-SAH-256-PLUS i.e. [channel binding](https://github.com/brianc/node-postgres/pull/3356).

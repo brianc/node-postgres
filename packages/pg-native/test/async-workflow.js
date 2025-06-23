@@ -1,7 +1,7 @@
-var Client = require('../')
-var ok = require('okay')
-var assert = require('assert')
-var concat = require('concat-stream')
+const Client = require('../')
+const ok = require('okay')
+const assert = require('assert')
+const concat = require('concat-stream')
 
 describe('async workflow', function () {
   before(function (done) {
@@ -9,7 +9,7 @@ describe('async workflow', function () {
     this.client.connect(done)
   })
 
-  var echoParams = function (params, cb) {
+  const echoParams = function (params, cb) {
     this.client.query(
       'SELECT $1::text as first, $2::text as second',
       params,
@@ -20,20 +20,20 @@ describe('async workflow', function () {
     )
   }
 
-  var checkParams = function (params, rows) {
+  const checkParams = function (params, rows) {
     assert.equal(rows.length, 1)
     assert.equal(rows[0].first, params[0])
     assert.equal(rows[0].second, params[1])
   }
 
   it('sends async query', function (done) {
-    var params = ['one', 'two']
+    const params = ['one', 'two']
     echoParams.call(this, params, done)
   })
 
   it('sends multiple async queries', function (done) {
-    var self = this
-    var params = ['bang', 'boom']
+    const self = this
+    const params = ['bang', 'boom']
     echoParams.call(
       this,
       params,
@@ -44,13 +44,13 @@ describe('async workflow', function () {
   })
 
   it('sends an async query, copies in, copies out, and sends another query', function (done) {
-    var self = this
+    const self = this
     this.client.querySync('CREATE TEMP TABLE test(name text, age int)')
     this.client.query(
       "INSERT INTO test(name, age) VALUES('brian', 32)",
       ok(done, function () {
         self.client.querySync('COPY test FROM stdin')
-        var input = self.client.getCopyStream()
+        const input = self.client.getCopyStream()
         input.write(Buffer.from('Aaron\t30\n', 'utf8'))
         input.end(function () {
           self.client.query(
@@ -60,7 +60,7 @@ describe('async workflow', function () {
               self.client.query(
                 'COPY test TO stdout',
                 ok(done, function () {
-                  var output = self.client.getCopyStream()
+                  const output = self.client.getCopyStream()
 
                   // pump the stream
                   output.read()

@@ -1,7 +1,7 @@
 'use strict'
-var bluebird = require('bluebird')
-var helper = require('../test-helper')
-var pg = helper.pg
+const bluebird = require('bluebird')
+const helper = require('../test-helper')
+const pg = helper.pg
 const assert = require('assert')
 
 process.on('unhandledRejection', function (e) {

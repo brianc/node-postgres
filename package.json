@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "yarn lerna exec yarn test",
+    "test": "yarn lerna exec --concurrency 1 yarn test",
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
     "docs:build": "cd docs && yarn build",
@@ -23,7 +23,7 @@
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.17.0",
     "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.1.2",
     "lerna": "^3.19.0",

@@ -1,0 +1,39 @@
+---
+title: Callbacks
+---
+
+## Callback Support
+
+`async` / `await` is the preferred way to write async code these days with node, but callbacks are supported in the `pg` module and the `pg-pool` module. To use them, pass a callback function as the last argument to the following methods & it will be called and a promise will not be returned:
+
+
+```js
+const { Pool, Client } = require('pg')
+
+// pool
+const pool = new Pool()
+// run a query on an available client
+pool.query('SELECT NOW()', (err, res) => {
+  console.log(err, res)
+})
+
+// check out a client to do something more complex like a transaction
+pool.connect((err, client, release) => {
+  client.query('SELECT NOW()', (err, res) => {
+    release()
+    console.log(err, res)
+    pool.end()
+  })
+
+})
+
+// single client
+const client = new Client()
+client.connect((err) => {
+  if (err) throw err
+  client.query('SELECT NOW()', (err, res) => {
+    console.log(err, res)
+    client.end()
+  })
+})
+```

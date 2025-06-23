@@ -1,9 +1,21 @@
 {
   "name": "pg-protocol",
-  "version": "1.8.0",
+  "version": "1.10.2",
   "description": "The postgres client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./dist/*": {
+      "import": "./dist/*",
+      "require": "./dist/*",
+      "default": "./dist/*"
+    }
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.2.7",
@@ -29,6 +41,7 @@
   },
   "files": [
     "/dist/*{js,ts,map}",
-    "/src"
+    "/src",
+    "/esm"
   ]
 }

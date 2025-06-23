@@ -30,40 +30,40 @@ $ npm i pg-native
 ### async
 
 ```js
-var Client = require('pg-native')
+const Client = require('pg-native')
 
-var client = new Client();
+const client = new Client();
 client.connect(function(err) {
   if(err) throw err
 
-  //text queries
+  // text queries
   client.query('SELECT NOW() AS the_date', function(err, rows) {
     if(err) throw err
 
-    console.log(rows[0].the_date) //Tue Sep 16 2014 23:42:39 GMT-0400 (EDT)
+    console.log(rows[0].the_date) // Tue Sep 16 2014 23:42:39 GMT-0400 (EDT)
 
-    //parameterized statements
+    // parameterized statements
     client.query('SELECT $1::text as twitter_handle', ['@briancarlson'], function(err, rows) {
       if(err) throw err
 
       console.log(rows[0].twitter_handle) //@briancarlson
     })
 
-    //prepared statements
+    // prepared statements
     client.prepare('get_twitter', 'SELECT $1::text as twitter_handle', 1, function(err) {
       if(err) throw err
 
-      //execute the prepared, named statement
+      // execute the prepared, named statement
       client.execute('get_twitter', ['@briancarlson'], function(err, rows) {
         if(err) throw err
 
         console.log(rows[0].twitter_handle) //@briancarlson
 
-        //execute the prepared, named statement again
+        // execute the prepared, named statement again
         client.execute('get_twitter', ['@realcarrotfacts'], function(err, rows) {
           if(err) throw err
 
-          console.log(rows[0].twitter_handle) //@realcarrotfacts
+          console.log(rows[0].twitter_handle) // @realcarrotfacts
           
           client.end(function() {
             console.log('ended')
@@ -81,27 +81,27 @@ client.connect(function(err) {
 Because `pg-native` is bound to [libpq](https://github.com/brianc/node-libpq) it is able to provide _sync_ operations for both connecting and queries. This is a bad idea in _non-blocking systems_ like web servers, but is exteremly convienent in scripts and bootstrapping applications - much the same way `fs.readFileSync` comes in handy.
 
 ```js
-var Client = require('pg-native')
+const Client = require('pg-native')
 
-var client = new Client()
+const client = new Client()
 client.connectSync()
 
-//text queries
-var rows = client.querySync('SELECT NOW() AS the_date')
-console.log(rows[0].the_date) //Tue Sep 16 2014 23:42:39 GMT-0400 (EDT)
+// text queries
+const rows = client.querySync('SELECT NOW() AS the_date')
+console.log(rows[0].the_date) // Tue Sep 16 2014 23:42:39 GMT-0400 (EDT)
 
-//parameterized queries
-var rows = client.querySync('SELECT $1::text as twitter_handle', ['@briancarlson'])
-console.log(rows[0].twitter_handle) //@briancarlson
+// parameterized queries
+const rows = client.querySync('SELECT $1::text as twitter_handle', ['@briancarlson'])
+console.log(rows[0].twitter_handle) // @briancarlson
 
-//prepared statements
+// prepared statements
 client.prepareSync('get_twitter', 'SELECT $1::text as twitter_handle', 1)
 
-var rows = client.executeSync('get_twitter', ['@briancarlson'])
-console.log(rows[0].twitter_handle) //@briancarlson
+const rows = client.executeSync('get_twitter', ['@briancarlson'])
+console.log(rows[0].twitter_handle) // @briancarlson
 
-var rows = client.executeSync('get_twitter', ['@realcarrotfacts'])
-console.log(rows[0].twitter_handle) //@realcarrotfacts
+const rows = client.executeSync('get_twitter', ['@realcarrotfacts'])
+console.log(rows[0].twitter_handle) // @realcarrotfacts
 ```
 
 ## api
@@ -125,14 +125,14 @@ Returns an `Error` to the `callback` if the connection was unsuccessful.  `callb
 ##### example
 
 ```js
-var client = new Client()
+const client = new Client()
 client.connect(function(err) {
   if(err) throw err
   
   console.log('connected!')
 })
 
-var client2 = new Client()
+const client2 = new Client()
 client2.connect('postgresql://user:password@host:5432/database?param=value', function(err) {
   if(err) throw err
   
@@ -147,7 +147,7 @@ Execute a query with the text of `queryText` and _optional_ parameters specified
 ##### example
 
 ```js
-var client = new Client()
+const client = new Client()
 client.connect(function(err) {
   if (err) throw err
   
@@ -175,7 +175,7 @@ Prepares a _named statement_ for later execution.  You _must_ supply the name of
 ##### example
 
 ```js
-var client = new Client()
+const client = new Client()
 client.connect(function(err) {
   if(err) throw err
   
@@ -197,7 +197,7 @@ Executes a previously prepared statement on this client with the name of `statem
 
 
 ```js
-var client = new Client()
+const client = new Client()
 client.connect(function(err) {
   if(err) throw err
   
@@ -221,7 +221,7 @@ Ends the connection. Calls the _optional_ callback when the connection is termin
 ##### example
 
 ```js
-var client = new Client()
+const client = new Client()
 client.connect(function(err) {
   if(err) throw err
   client.end(function() {
@@ -236,9 +236,9 @@ Cancels the active query on the client. Callback receives an error if there was 
 
 ##### example
 ```js
-var client = new Client()
+const client = new Client()
 client.connectSync()
-//sleep for 100 seconds
+// sleep for 100 seconds
 client.query('select pg_sleep(100)', function(err) {
   console.log(err) // [Error: ERROR: canceling statement due to user request]
 })
@@ -264,7 +264,7 @@ Prepares a name statement with name of `statementName` and a query text of `quer
 
 - __`client.executeSync(statementName:string, <values:string[]>) -> results:Object[]`__
 
-Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query paramters as a `values` array.  Throws an `Error` if the execution fails, otherwas returns an array of results.
+Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query parameters as a `values` array.  Throws an `Error` if the execution fails, otherwise returns an array of results.
 
 ## testing
 

@@ -1,6 +1,6 @@
 'use strict'
-var helper = require('../test-helper')
-var pg = helper.pg
+const helper = require('../test-helper')
+const pg = helper.pg
 
 process.on('unhandledRejection', function (e) {
   console.error(e, e.stack)

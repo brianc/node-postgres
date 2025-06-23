@@ -74,10 +74,10 @@ module.exports = {
   maxResultSize: undefined,
 }
 
-var pgTypes = require('pg-types')
+const pgTypes = require('pg-types')
 // save default parsers
-var parseBigInteger = pgTypes.getTypeParser(20, 'text')
-var parseBigIntegerArray = pgTypes.getTypeParser(1016, 'text')
+const parseBigInteger = pgTypes.getTypeParser(20, 'text')
+const parseBigIntegerArray = pgTypes.getTypeParser(1016, 'text')
 
 // parse int8 so you can get your count values as actual numbers
 module.exports.__defineSetter__('parseInt8', function (val) {

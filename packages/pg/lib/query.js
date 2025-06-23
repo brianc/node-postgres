@@ -244,7 +244,6 @@ class Query extends EventEmitter {
     connection.sendCopyFail('No source stream defined')
   }
 
-  // eslint-disable-next-line no-unused-vars
   handleCopyData(msg, connection) {
     // noop
   }

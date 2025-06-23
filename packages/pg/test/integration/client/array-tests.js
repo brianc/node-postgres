@@ -1,9 +1,9 @@
 'use strict'
-var helper = require('./test-helper')
-var pg = helper.pg
+const helper = require('./test-helper')
+const pg = helper.pg
 const assert = require('assert')
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
 const pool = new pg.Pool()
 
@@ -16,7 +16,7 @@ pool.connect(
         'SELECT $1::text[] as array',
         [[null]],
         assert.success(function (result) {
-          var array = result.rows[0].array
+          const array = result.rows[0].array
           assert.lengthIs(array, 1)
           assert.isNull(array[0])
           done()
@@ -25,9 +25,9 @@ pool.connect(
     })
 
     suite.test('elements containing JSON-escaped characters', function (done) {
-      var param = '\\"\\"'
+      let param = '\\"\\"'
 
-      for (var i = 1; i <= 0x1f; i++) {
+      for (let i = 1; i <= 0x1f; i++) {
         param += String.fromCharCode(i)
       }
 
@@ -35,7 +35,7 @@ pool.connect(
         'SELECT $1::text[] as array',
         [[param]],
         assert.success(function (result) {
-          var array = result.rows[0].array
+          const array = result.rows[0].array
           assert.lengthIs(array, 1)
           assert.equal(array[0], param)
           done()
@@ -70,7 +70,7 @@ pool.connect(
           client.query(
             'SELECT names FROM why',
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 3)
               assert.equal(names[0], 'aaron')
               assert.equal(names[1], 'brian')
@@ -84,7 +84,7 @@ pool.connect(
           client.query(
             "SELECT '{}'::text[] as names",
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 0)
               done()
             })
@@ -95,7 +95,7 @@ pool.connect(
           client.query(
             'SELECT \'{"joe,bob",jim}\'::text[] as names',
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 2)
               assert.equal(names[0], 'joe,bob')
               assert.equal(names[1], 'jim')
@@ -108,7 +108,7 @@ pool.connect(
           client.query(
             'SELECT \'{"{","}"}\'::text[] as names',
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 2)
               assert.equal(names[0], '{')
               assert.equal(names[1], '}')
@@ -121,7 +121,7 @@ pool.connect(
           client.query(
             'SELECT \'{joe,null,bob,"NULL"}\'::text[] as names',
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 4)
               assert.equal(names[0], 'joe')
               assert.equal(names[1], null)
@@ -136,7 +136,7 @@ pool.connect(
           client.query(
             "SELECT ARRAY['joe''', 'jim', 'bob\"'] AS names",
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 3)
               assert.equal(names[0], "joe'")
               assert.equal(names[1], 'jim')
@@ -150,7 +150,7 @@ pool.connect(
           client.query(
             "SELECT '{{1,joe},{2,bob}}'::text[] as names",
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 2)
 
               assert.lengthIs(names[0], 2)
@@ -169,7 +169,7 @@ pool.connect(
           client.query(
             "SELECT '{1,2,3}'::integer[] as names",
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 3)
               assert.equal(names[0], 1)
               assert.equal(names[1], 2)
@@ -183,7 +183,7 @@ pool.connect(
           client.query(
             "SELECT '{{1,100},{2,100},{3,100}}'::integer[] as names",
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 3)
               assert.equal(names[0][0], 1)
               assert.equal(names[0][1], 100)
@@ -209,7 +209,7 @@ pool.connect(
               ],
             ],
             assert.success(function (result) {
-              var names = result.rows[0].names
+              const names = result.rows[0].names
               assert.lengthIs(names, 3)
               assert.equal(names[0][0], 1)
               assert.equal(names[0][1], 100)

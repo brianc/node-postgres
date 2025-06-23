@@ -22,8 +22,7 @@ const config = {
   },
 }
 
-import pg from 'pg'
-const { Client, Pool } = pg
+import { Client, Pool } from 'pg'
 
 const client = new Client(config)
 await client.connect()

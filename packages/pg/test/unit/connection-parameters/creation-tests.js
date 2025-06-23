@@ -6,7 +6,7 @@ const defaults = require('../../../lib').defaults
 const dns = require('dns')
 
 // clear process.env
-for (var key in process.env) {
+for (const key in process.env) {
   delete process.env[key]
 }
 
@@ -18,7 +18,7 @@ suite.test('ConnectionParameters construction', function () {
   assert.ok(new ConnectionParameters('postgres://localhost/postgres'), 'with connection string')
 })
 
-var compare = function (actual, expected, type) {
+const compare = function (actual, expected, type) {
   const expectedDatabase = expected.database === undefined ? expected.user : expected.database
 
   assert.equal(actual.user, expected.user, type + ' user')
@@ -38,13 +38,13 @@ var compare = function (actual, expected, type) {
 }
 
 suite.test('ConnectionParameters initializing from defaults', function () {
-  var subject = new ConnectionParameters()
+  const subject = new ConnectionParameters()
   compare(subject, defaults, 'defaults')
   assert.ok(subject.isDomainSocket === false)
 })
 
 suite.test('ConnectionParameters initializing from defaults with connectionString set', function () {
-  var config = {
+  const config = {
     user: 'brians-are-the-best',
     database: 'scoobysnacks',
     port: 7777,
@@ -57,18 +57,18 @@ suite.test('ConnectionParameters initializing from defaults with connectionStrin
     options: '-c geqo=off',
   }
 
-  var original_value = defaults.connectionString
+  const original_value = defaults.connectionString
   // Just changing this here doesn't actually work because it's no longer in scope when viewed inside of
   // of ConnectionParameters() so we have to pass in the defaults explicitly to test it
   defaults.connectionString =
     'postgres://brians-are-the-best:mypassword@foo.bar.net:7777/scoobysnacks?options=-c geqo=off'
-  var subject = new ConnectionParameters(defaults)
+  const subject = new ConnectionParameters(defaults)
   defaults.connectionString = original_value
   compare(subject, config, 'defaults-connectionString')
 })
 
 suite.test('ConnectionParameters initializing from config', function () {
-  var config = {
+  const config = {
     user: 'brian',
     database: 'home',
     port: 7777,
@@ -84,23 +84,23 @@ suite.test('ConnectionParameters initializing from config', function () {
     idle_in_transaction_session_timeout: 15000,
     options: '-c geqo=off',
   }
-  var subject = new ConnectionParameters(config)
+  const subject = new ConnectionParameters(config)
   compare(subject, config, 'config')
   assert.ok(subject.isDomainSocket === false)
 })
 
 suite.test('ConnectionParameters initializing from config and config.connectionString', function () {
-  var subject1 = new ConnectionParameters({
+  const subject1 = new ConnectionParameters({
     connectionString: 'postgres://test@host/db',
   })
-  var subject2 = new ConnectionParameters({
+  const subject2 = new ConnectionParameters({
     connectionString: 'postgres://test@host/db?ssl=1',
   })
-  var subject3 = new ConnectionParameters({
+  const subject3 = new ConnectionParameters({
     connectionString: 'postgres://test@host/db',
     ssl: true,
   })
-  var subject4 = new ConnectionParameters({
+  const subject4 = new ConnectionParameters({
     connectionString: 'postgres://test@host/db?ssl=1',
     ssl: false,
   })
@@ -112,31 +112,31 @@ suite.test('ConnectionParameters initializing from config and config.connectionS
 })
 
 suite.test('escape spaces if present', function () {
-  var subject = new ConnectionParameters('postgres://localhost/post gres')
+  const subject = new ConnectionParameters('postgres://localhost/post gres')
   assert.equal(subject.database, 'post gres')
 })
 
 suite.test('do not double escape spaces', function () {
-  var subject = new ConnectionParameters('postgres://localhost/post%20gres')
+  const subject = new ConnectionParameters('postgres://localhost/post%20gres')
   assert.equal(subject.database, 'post gres')
 })
 
 suite.test('initializing with unix domain socket', function () {
-  var subject = new ConnectionParameters('/var/run/')
+  const subject = new ConnectionParameters('/var/run/')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/var/run/')
   assert.equal(subject.database, defaults.user)
 })
 
 suite.test('initializing with unix domain socket and a specific database, the simple way', function () {
-  var subject = new ConnectionParameters('/var/run/ mydb')
+  const subject = new ConnectionParameters('/var/run/ mydb')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/var/run/')
   assert.equal(subject.database, 'mydb')
 })
 
 suite.test('initializing with unix domain socket, the health way', function () {
-  var subject = new ConnectionParameters('socket:/some path/?db=my[db]&encoding=utf8')
+  const subject = new ConnectionParameters('socket:/some path/?db=my[db]&encoding=utf8')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/some path/')
   assert.equal(subject.database, 'my[db]', 'must to be escaped and unescaped trough "my%5Bdb%5D"')
@@ -144,14 +144,14 @@ suite.test('initializing with unix domain socket, the health way', function () {
 })
 
 suite.test('initializing with unix domain socket, the escaped health way', function () {
-  var subject = new ConnectionParameters('socket:/some%20path/?db=my%2Bdb&encoding=utf8')
+  const subject = new ConnectionParameters('socket:/some%20path/?db=my%2Bdb&encoding=utf8')
   assert.ok(subject.isDomainSocket)
   assert.equal(subject.host, '/some path/')
   assert.equal(subject.database, 'my+db')
   assert.equal(subject.client_encoding, 'utf8')
 })
 
-var checkForPart = function (array, part) {
+const checkForPart = function (array, part) {
   assert.ok(array.indexOf(part) > -1, array.join(' ') + ' did not contain ' + part)
 }
 
@@ -164,19 +164,19 @@ const getDNSHost = async function (host) {
 }
 
 suite.testAsync('builds simple string', async function () {
-  var config = {
+  const config = {
     user: 'brian',
     password: 'xyz',
     host: 'localhost',
     port: 888,
     database: 'bam',
   }
-  var subject = new ConnectionParameters(config)
+  const subject = new ConnectionParameters(config)
   const dnsHost = await getDNSHost(config.host)
   return new Promise((resolve) => {
     subject.getLibpqConnectionString(function (err, constring) {
       assert(!err)
-      var parts = constring.split(' ')
+      const parts = constring.split(' ')
       checkForPart(parts, "user='brian'")
       checkForPart(parts, "password='xyz'")
       checkForPart(parts, `hostaddr='${dnsHost}'`)
@@ -188,18 +188,18 @@ suite.testAsync('builds simple string', async function () {
 })
 
 suite.test('builds dns string', async function () {
-  var config = {
+  const config = {
     user: 'brian',
     password: 'asdf',
     host: 'localhost',
     port: 5432,
   }
-  var subject = new ConnectionParameters(config)
+  const subject = new ConnectionParameters(config)
   const dnsHost = await getDNSHost(config.host)
   return new Promise((resolve) => {
     subject.getLibpqConnectionString(function (err, constring) {
       assert(!err)
-      var parts = constring.split(' ')
+      const parts = constring.split(' ')
       checkForPart(parts, "user='brian'")
       checkForPart(parts, `hostaddr='${dnsHost}'`)
       resolve()
@@ -208,13 +208,13 @@ suite.test('builds dns string', async function () {
 })
 
 suite.test('error when dns fails', function () {
-  var config = {
+  const config = {
     user: 'brian',
     password: 'asf',
     host: 'asdlfkjasldfkksfd#!$!!!!..com',
     port: 5432,
   }
-  var subject = new ConnectionParameters(config)
+  const subject = new ConnectionParameters(config)
   subject.getLibpqConnectionString(
     assert.calls(function (err, constring) {
       assert.ok(err)
@@ -224,17 +224,17 @@ suite.test('error when dns fails', function () {
 })
 
 suite.test('connecting to unix domain socket', function () {
-  var config = {
+  const config = {
     user: 'brian',
     password: 'asf',
     host: '/tmp/',
     port: 5432,
   }
-  var subject = new ConnectionParameters(config)
+  const subject = new ConnectionParameters(config)
   subject.getLibpqConnectionString(
     assert.calls(function (err, constring) {
       assert(!err)
-      var parts = constring.split(' ')
+      const parts = constring.split(' ')
       checkForPart(parts, "user='brian'")
       checkForPart(parts, "host='/tmp/'")
     })
@@ -242,17 +242,17 @@ suite.test('connecting to unix domain socket', function () {
 })
 
 suite.test('config contains quotes and backslashes', function () {
-  var config = {
+  const config = {
     user: 'not\\brian',
     password: "bad'chars",
     host: '/tmp/',
     port: 5432,
   }
-  var subject = new ConnectionParameters(config)
+  const subject = new ConnectionParameters(config)
   subject.getLibpqConnectionString(
     assert.calls(function (err, constring) {
       assert(!err)
-      var parts = constring.split(' ')
+      const parts = constring.split(' ')
       checkForPart(parts, "user='not\\\\brian'")
       checkForPart(parts, "password='bad\\'chars'")
     })
@@ -260,28 +260,28 @@ suite.test('config contains quotes and backslashes', function () {
 })
 
 suite.test('encoding can be specified by config', function () {
-  var config = {
+  const config = {
     client_encoding: 'utf-8',
   }
-  var subject = new ConnectionParameters(config)
+  const subject = new ConnectionParameters(config)
   subject.getLibpqConnectionString(
     assert.calls(function (err, constring) {
       assert(!err)
-      var parts = constring.split(' ')
+      const parts = constring.split(' ')
       checkForPart(parts, "client_encoding='utf-8'")
     })
   )
 })
 
 suite.test('password contains  < and/or >  characters', function () {
-  var sourceConfig = {
+  const sourceConfig = {
     user: 'brian',
     password: 'hello<ther>e',
     host: 'localhost',
     port: 5432,
     database: 'postgres',
   }
-  var connectionString =
+  const connectionString =
     'postgres://' +
     sourceConfig.user +
     ':' +
@@ -292,15 +292,15 @@ suite.test('password contains  < and/or >  characters', function () {
     sourceConfig.port +
     '/' +
     sourceConfig.database
-  var subject = new ConnectionParameters(connectionString)
+  const subject = new ConnectionParameters(connectionString)
   assert.equal(subject.password, sourceConfig.password)
 })
 
 suite.test('username or password contains weird characters', function () {
-  var defaults = require('../../../lib/defaults')
+  const defaults = require('../../../lib/defaults')
   defaults.ssl = true
-  var strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
-  var subject = new ConnectionParameters(strang)
+  const strang = 'pg://my f%irst name:is&%awesome!@localhost:9000'
+  const subject = new ConnectionParameters(strang)
   assert.equal(subject.user, 'my f%irst name')
   assert.equal(subject.password, 'is&%awesome!')
   assert.equal(subject.host, 'localhost')
@@ -308,8 +308,8 @@ suite.test('username or password contains weird characters', function () {
 })
 
 suite.test('url is properly encoded', function () {
-  var encoded = 'pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
-  var subject = new ConnectionParameters(encoded)
+  const encoded = 'pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
+  const subject = new ConnectionParameters(encoded)
   assert.equal(subject.user, 'bi%na%%ry ')
   assert.equal(subject.password, 's@f#')
   assert.equal(subject.host, 'localhost')
@@ -317,10 +317,10 @@ suite.test('url is properly encoded', function () {
 })
 
 suite.test('ssl is set on client', function () {
-  var Client = require('../../../lib/client')
-  var defaults = require('../../../lib/defaults')
+  const Client = require('../../../lib/client')
+  const defaults = require('../../../lib/defaults')
   defaults.ssl = true
-  var c = new Client('postgres://user:password@host/database')
+  const c = new Client('postgres://user:password@host/database')
   assert(c.ssl, 'Client should have ssl enabled via defaults')
 })
 
@@ -330,7 +330,7 @@ suite.test('coercing string "true" to boolean', function () {
 })
 
 suite.test('ssl is set on client', function () {
-  var sourceConfig = {
+  const sourceConfig = {
     user: 'brian',
     password: 'hello<ther>e',
     host: 'localhost',
@@ -344,9 +344,9 @@ suite.test('ssl is set on client', function () {
       sslrootcert: '/path/root.crt',
     },
   }
-  var defaults = require('../../../lib/defaults')
+  const defaults = require('../../../lib/defaults')
   defaults.ssl = true
-  var c = new ConnectionParameters(sourceConfig)
+  const c = new ConnectionParameters(sourceConfig)
   c.getLibpqConnectionString(
     assert.calls(function (err, pgCString) {
       assert(!err)

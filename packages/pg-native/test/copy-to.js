@@ -1,7 +1,7 @@
-var assert = require('assert')
-var Client = require('../')
-var concat = require('concat-stream')
-var _ = require('lodash')
+const assert = require('assert')
+const Client = require('../')
+const concat = require('concat-stream')
+const _ = require('lodash')
 
 describe('COPY TO', function () {
   before(function (done) {
@@ -14,18 +14,18 @@ describe('COPY TO', function () {
   })
 
   it('works - basic check', function (done) {
-    var limit = 1000
-    var qText = 'COPY (SELECT * FROM generate_series(0, ' + (limit - 1) + ')) TO stdout'
-    var self = this
+    const limit = 1000
+    const qText = 'COPY (SELECT * FROM generate_series(0, ' + (limit - 1) + ')) TO stdout'
+    const self = this
     this.client.query(qText, function (err) {
       if (err) return done(err)
-      var stream = self.client.getCopyStream()
+      const stream = self.client.getCopyStream()
       // pump the stream for node v0.11.x
       stream.read()
       stream.pipe(
         concat(function (buff) {
-          var res = buff.toString('utf8')
-          var expected = _.range(0, limit).join('\n') + '\n'
+          const res = buff.toString('utf8')
+          const expected = _.range(0, limit).join('\n') + '\n'
           assert.equal(res, expected)
           done()
         })

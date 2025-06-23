@@ -3,6 +3,8 @@ title: Welcome
 slug: /
 ---
 
+import { Logo } from '/components/logo.tsx'
+
 node-postgres is a collection of node.js modules for interfacing with your PostgreSQL database. It has support for callbacks, promises, async/await, connection pooling, prepared statements, cursors, streaming results, C/C++ bindings, rich type parsing, and more! Just like PostgreSQL itself there are a lot of features: this documentation aims to get you up and running quickly and in the right direction. It also tries to provide guides for more advanced & edge-case topics allowing you to tap into the full power of PostgreSQL from node.js.
 
 ## Install
@@ -15,19 +17,33 @@ $ npm install pg
 
 node-postgres continued development and support is made possible by the many [supporters](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
 
+Special thanks to [Medplum](https://www.medplum.com/) for sponsoring node-postgres for a whole year!
+
+<a href="https://www.medplum.com/">
+  <img
+    alt="Medplum"
+    src="https://raw.githubusercontent.com/medplum/medplum-logo/refs/heads/main/medplum-logo.png"
+    style={{
+      width: '300px',
+      height: 'auto',
+      margin: '0 auto',
+      display: 'block',
+    }}
+  />
+</a>
+
 If you or your company would like to sponsor node-postgres stop by [GitHub Sponsors](https://github.com/sponsors/brianc) and sign up or feel free to [email me](mailto:brian@pecanware.com) if you want to add your logo to the documentation or discuss higher tiers of sponsorship!
 
 # Version compatibility
 
-node-postgres strives to be compatible with all recent LTS versions of node & the most recent "stable" version. At the time of this writing node-postgres is compatible with node 8.x, 10.x, 12.x and 14.x To use node >= 14.x you will need to install `pg@8.2.x` or later due to some internal stream changes on the node 14 branch. Dropping support for an old node lts version will always be considered a breaking change in node-postgres and will be done on _major_ version number changes only, and we will try to keep support for 8.x for as long as reasonably possible.
+node-postgres strives to be compatible with all recent LTS versions of node & the most recent "stable" version. At the time of this writing node-postgres is compatible with node 18.x, 20.x, 22.x, and 24.x.
 
 ## Getting started
 
 The simplest possible way to connect, query, and disconnect is with async/await:
 
 ```js
-import pg from 'pg'
-const { Client } = pg
+import { Client } from 'pg'
 const client = new Client()
 await client.connect()
 
@@ -41,8 +57,7 @@ await client.end()
 For the sake of simplicity, these docs will assume that the methods are successful. In real life use, make sure to properly handle errors thrown in the methods. A `try/catch` block is a great way to do so:
 
 ```ts
-import pg from 'pg'
-const { Client } = pg
+import { Client } from 'pg'
 const client = new Client()
 await client.connect()
 
@@ -56,22 +71,17 @@ try {
 }
 ```
 
-### Callbacks
+### Pooling
 
-If you prefer a callback-style approach to asynchronous programming, all async methods support an optional callback parameter as well:
+In most applications you'll want to use a [connection pool](/features/pooling) to manage your connections. This is a more advanced topic, but here's a simple example of how to use it:
 
 ```js
-import pg from 'pg'
-const { Client } = pg
-const client = new Client()
-
-client.connect((err) => {
-   client.query('SELECT $1::text as message', ['Hello world!'], (err, res) => {
-     console.log(err ? err.stack : res.rows[0].message) // Hello World!
-     client.end()
-   })
-})
-
+import { Pool } from 'pg'
+const pool = new Pool()
+const res = await pool.query('SELECT $1::text as message', ['Hello world!'])
+console.log(res.rows[0].message) // Hello world!
 ```
 
 Our real-world apps are almost always more complicated than that, and I urge you to read on!
+
+

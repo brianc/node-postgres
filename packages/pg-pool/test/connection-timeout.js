@@ -57,7 +57,7 @@ describe('connection timeout', () => {
       function* () {
         const errors = []
         const pool = new Pool({ connectionTimeoutMillis: 1, port: this.port, host: 'localhost' })
-        for (var i = 0; i < 15; i++) {
+        for (let i = 0; i < 15; i++) {
           try {
             yield pool.connect()
           } catch (e) {

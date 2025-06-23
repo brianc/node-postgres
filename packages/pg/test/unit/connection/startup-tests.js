@@ -1,31 +1,31 @@
 'use strict'
 const helper = require('./test-helper')
 const assert = require('assert')
-var Connection = require('../../../lib/connection')
+const Connection = require('../../../lib/connection')
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
 const { MemoryStream } = helper
 test('connection can take existing stream', function () {
-  var stream = new MemoryStream()
-  var con = new Connection({ stream: stream })
+  const stream = new MemoryStream()
+  const con = new Connection({ stream: stream })
   assert.equal(con.stream, stream)
 })
 
 test('connection can take stream factory method', function () {
-  var stream = new MemoryStream()
-  var connectionOpts = {}
-  var makeStream = function (opts) {
+  const stream = new MemoryStream()
+  const connectionOpts = {}
+  const makeStream = function (opts) {
     assert.equal(connectionOpts, opts)
     return stream
   }
   connectionOpts.stream = makeStream
-  var con = new Connection(connectionOpts)
+  const con = new Connection(connectionOpts)
   assert.equal(con.stream, stream)
 })
 
 test('using any stream', function () {
-  var makeStream = function () {
-    var stream = new MemoryStream()
+  const makeStream = function () {
+    const stream = new MemoryStream()
     stream.connect = function (port, host) {
       this.connectCalled = true
       this.port = port
@@ -34,9 +34,9 @@ test('using any stream', function () {
     return stream
   }
 
-  var stream = makeStream()
+  const stream = makeStream()
 
-  var con = new Connection({ stream: stream })
+  const con = new Connection({ stream: stream })
 
   con.connect(1234, 'bang')
 
@@ -53,7 +53,7 @@ test('using any stream', function () {
   })
 
   test('after stream connects client emits connected event', function () {
-    var hit = false
+    let hit = false
 
     con.once('connect', function () {
       hit = true
@@ -64,11 +64,11 @@ test('using any stream', function () {
   })
 
   test('after stream emits connected event init TCP-keepalive', function () {
-    var stream = makeStream()
-    var con = new Connection({ stream: stream, keepAlive: true })
+    const stream = makeStream()
+    const con = new Connection({ stream: stream, keepAlive: true })
     con.connect(123, 'test')
 
-    var res = false
+    let res = false
 
     stream.setKeepAlive = function (bit) {
       res = bit

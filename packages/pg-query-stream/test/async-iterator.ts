@@ -122,11 +122,9 @@ if (!process.version.startsWith('v8')) {
       const pool = new pg.Pool({ max: 1 })
       const client = await pool.connect()
 
-      /* eslint-disable @typescript-eslint/no-unused-vars */
       for await (const _ of client.query(new QueryStream('select TRUE', [], { highWaterMark: 1 }))) break
       for await (const _ of client.query(new QueryStream('select TRUE', [], { highWaterMark: 1 }))) break
       for await (const _ of client.query(new QueryStream('select TRUE', [], { highWaterMark: 1 }))) break
-      /* eslint-enable @typescript-eslint/no-unused-vars */
 
       client.release()
       await pool.end()

@@ -2,7 +2,7 @@
 const helper = require('./test-helper')
 const assert = require('assert')
 
-var sasl = require('../../../lib/crypto/sasl')
+const sasl = require('../../../lib/crypto/sasl')
 
 const suite = new helper.Suite()
 
@@ -225,7 +225,7 @@ suite.test('sasl/scram', function () {
               0x0d, // signature algorithm length
               0x06, // ASN.1 OID
               0x09, // OID length
-              0x2a, // OID: 1.2.840.113549.1.1.11 (RSASSA-PKCS1-v1_5 / SHA-256​)
+              0x2a, // OID: 1.2.840.113549.1.1.11 (RSASSA-PKCS1-v1_5 / SHA-256)
               0x86,
               0x48,
               0x86,

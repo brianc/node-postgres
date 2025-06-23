@@ -5,5 +5,7 @@
   "transactions": "Transactions",
   "types": "Data Types",
   "ssl": "SSL",
-  "native": "Native"
+  "native": "Native",
+  "esm": "ESM",
+  "callbacks": "Callbacks"
 }

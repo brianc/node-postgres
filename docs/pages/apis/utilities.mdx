@@ -9,7 +9,7 @@ import { Alert } from '/components/alert.tsx'
 Escapes a string as a [SQL identifier](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS).
 
 ```js
-const { escapeIdentifier } = require('pg')
+import { escapeIdentifier } from 'pg';
 const escapedIdentifier = escapeIdentifier('FooIdentifier')
 console.log(escapedIdentifier) // '"FooIdentifier"'
 ```
@@ -27,7 +27,7 @@ console.log(escapedIdentifier) // '"FooIdentifier"'
 Escapes a string as a [SQL literal](https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-CONSTANTS).
 
 ```js
-const { escapeLiteral } = require('pg')
+import { escapeLiteral } from 'pg';
 const escapedLiteral = escapeLiteral("hello 'world'")
 console.log(escapedLiteral) // "'hello ''world'''"
 ```

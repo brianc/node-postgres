@@ -1,11 +1,11 @@
 'use strict'
-var helper = require('./../test-helper')
+const helper = require('./../test-helper')
 const assert = require('assert')
 
-var oldTz = process.env.TZ
+const oldTz = process.env.TZ
 process.env.TZ = 'Europe/Berlin'
 
-var date = new Date()
+const date = new Date()
 
 const pool = new helper.pg.Pool()
 const suite = new helper.Suite()

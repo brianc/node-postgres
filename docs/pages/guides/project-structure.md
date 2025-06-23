@@ -27,13 +27,12 @@ The location doesn't really matter - I've found it usually ends up being somewha
 Typically I'll start out my `db/index.js` file like so:
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
-export const query = (text, params, callback) => {
-  return pool.query(text, params, callback)
+export const query = (text, params) => {
+  return pool.query(text, params)
 }
 ```
 
@@ -55,8 +54,7 @@ app.get('/:id', async (req, res, next) => {
 Imagine we have lots of routes scattered throughout many files under our `routes/` directory. We now want to go back and log every single query that's executed, how long it took, and the number of rows it returned. If we had required node-postgres directly in every route file we'd have to go edit every single route - that would take forever & be really error prone! But thankfully we put our data access into `db/index.js`. Let's go add some logging:
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -76,8 +74,7 @@ _note: I didn't log the query parameters. Depending on your application you migh
 Now what if we need to check out a client from the pool to run several queries in a row in a transaction? We can add another method to our `db/index.js` file when we need to do this:
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 

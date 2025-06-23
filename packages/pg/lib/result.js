@@ -1,8 +1,8 @@
 'use strict'
 
-var types = require('pg-types')
+const types = require('pg-types')
 
-var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
+const matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
 
 // result object returned from query
 // in the 'end' event and also
@@ -26,7 +26,7 @@ class Result {
 
   // adds a command complete message
   addCommandComplete(msg) {
-    var match
+    let match
     if (msg.text) {
       // pure javascript
       match = matchRegexp.exec(msg.text)
@@ -48,9 +48,9 @@ class Result {
   }
 
   _parseRowAsArray(rowData) {
-    var row = new Array(rowData.length)
-    for (var i = 0, len = rowData.length; i < len; i++) {
-      var rawValue = rowData[i]
+    const row = new Array(rowData.length)
+    for (let i = 0, len = rowData.length; i < len; i++) {
+      const rawValue = rowData[i]
       if (rawValue !== null) {
         row[i] = this._parsers[i](rawValue)
       } else {
@@ -61,12 +61,13 @@ class Result {
   }
 
   parseRow(rowData) {
-    var row = { ...this._prebuiltEmptyResultObject }
-    for (var i = 0, len = rowData.length; i < len; i++) {
-      var rawValue = rowData[i]
-      var field = this.fields[i].name
+    const row = { ...this._prebuiltEmptyResultObject }
+    for (let i = 0, len = rowData.length; i < len; i++) {
+      const rawValue = rowData[i]
+      const field = this.fields[i].name
       if (rawValue !== null) {
-        row[field] = this._parsers[i](rawValue)
+        const v = this.fields[i].format === 'binary' ? Buffer.from(rawValue) : rawValue
+        row[field] = this._parsers[i](v)
       } else {
         row[field] = null
       }
@@ -88,10 +89,10 @@ class Result {
       this._parsers = new Array(fieldDescriptions.length)
     }
 
-    var row = {}
+    const row = {}
 
-    for (var i = 0; i < fieldDescriptions.length; i++) {
-      var desc = fieldDescriptions[i]
+    for (let i = 0; i < fieldDescriptions.length; i++) {
+      const desc = fieldDescriptions[i]
       row[desc.name] = null
 
       if (this._types) {

@@ -29,8 +29,16 @@ type Config = {
   idleTimeoutMillis?: number
 
   // maximum number of clients the pool should contain
-  // by default this is set to 10.
+  // by default this is set to 10.  There is some nuance to setting the maximum size of your pool.
+  // see https://node-postgres.com/guides/pool-sizing for more information
   max?: number
+
+  // minimum number of clients the pool should hold on to and _not_ destroy with the idleTimeoutMillis
+  // this can be useful if you get very bursty traffic and want to keep a few clients around.
+  // note: current the pool will not automatically create and connect new clients up to the min, it will
+  // only not evict and close clients except those which exceed the min count.
+  // the default is 0 which disables this behavior.
+  min?: number
 
   // Default behavior is the pool will keep clients open & connected to the backend
   // until idleTimeoutMillis expire for each client and node will maintain a ref
@@ -42,14 +50,19 @@ type Config = {
   // to the postgres server.  This can be handy in scripts & tests
   // where you don't want to wait for your clients to go idle before your process exits.
   allowExitOnIdle?: boolean
+
+  // Sets a max overall life for the connection.
+  // A value of 60 would evict connections that have been around for over 60 seconds,
+  // regardless of whether they are idle. It's useful to force rotation of connection pools through
+  // middleware so that you can rotate the underlying servers. The default is disabled (value of zero)
+  maxLifetimeSeconds?: number
 }
 ```
 
 example to create a new pool with configuration:
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool({
   host: 'localhost',
@@ -57,6 +70,7 @@ const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  maxLifetimeSeconds: 60
 })
 ```
 
@@ -69,8 +83,7 @@ pool.query(text: string, values?: any[]) => Promise<pg.Result>
 ```
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -102,8 +115,7 @@ Acquires a client from the pool.
 - If the pool is 'full' and all clients are currently checked out will wait in a FIFO queue until a client becomes available by it being released back to the pool.
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -121,8 +133,7 @@ Client instances returned from `pool.connect` will have a `release` method which
 The `release` method on an acquired client returns it back to the pool. If you pass a truthy value in the `destroy` parameter, instead of releasing the client to the pool, the pool will be instructed to disconnect and destroy this client, leaving a space within itself for a new client.
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 
@@ -134,8 +145,7 @@ client.release()
 ```
 
 ```js
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 assert(pool.totalCount === 0)
@@ -168,8 +178,7 @@ Calling `pool.end` will drain the pool of all active clients, disconnect them, a
 
 ```js
 // again both promises and callbacks are supported:
-import pg from 'pg'
-const { Pool } = pg
+import { Pool } from 'pg'
 
 const pool = new Pool()
 

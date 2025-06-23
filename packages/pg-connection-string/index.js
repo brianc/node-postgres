@@ -5,7 +5,7 @@
 //MIT License
 
 //parses a connection string
-function parse(str) {
+function parse(str, options = {}) {
   //unix socket
   if (str.charAt(0) === '/') {
     const config = str.split(' ')
@@ -19,15 +19,20 @@ function parse(str) {
   let dummyHost = false
   if (/ |%[^a-f0-9]|%[a-f0-9][^a-f0-9]/i.test(str)) {
     // Ensure spaces are encoded as %20
-    str = encodeURI(str).replace(/\%25(\d\d)/g, '%$1')
+    str = encodeURI(str).replace(/%25(\d\d)/g, '%$1')
   }
 
   try {
-    result = new URL(str, 'postgres://base')
-  } catch (e) {
-    // The URL is invalid so try again with a dummy host
-    result = new URL(str.replace('@/', '@___DUMMY___/'), 'postgres://base')
-    dummyHost = true
+    try {
+      result = new URL(str, 'postgres://base')
+    } catch (e) {
+      // The URL is invalid so try again with a dummy host
+      result = new URL(str.replace('@/', '@___DUMMY___/'), 'postgres://base')
+      dummyHost = true
+    }
+  } catch (err) {
+    // Remove the input from the error message to avoid leaking sensitive information
+    err.input && (err.input = '*****REDACTED*****')
   }
 
   // We'd like to use Object.fromEntries() here but Node.js 10 does not support it
@@ -87,26 +92,122 @@ function parse(str) {
     config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
   }
 
-  switch (config.sslmode) {
-    case 'disable': {
-      config.ssl = false
-      break
+  if (options.useLibpqCompat && config.uselibpqcompat) {
+    throw new Error('Both useLibpqCompat and uselibpqcompat are set. Please use only one of them.')
+  }
+
+  if (config.uselibpqcompat === 'true' || options.useLibpqCompat) {
+    switch (config.sslmode) {
+      case 'disable': {
+        config.ssl = false
+        break
+      }
+      case 'prefer': {
+        config.ssl.rejectUnauthorized = false
+        break
+      }
+      case 'require': {
+        if (config.sslrootcert) {
+          // If a root CA is specified, behavior of `sslmode=require` will be the same as that of `verify-ca`
+          config.ssl.checkServerIdentity = function () {}
+        } else {
+          config.ssl.rejectUnauthorized = false
+        }
+        break
+      }
+      case 'verify-ca': {
+        if (!config.ssl.ca) {
+          throw new Error(
+            'SECURITY WARNING: Using sslmode=verify-ca requires specifying a CA with sslrootcert. If a public CA is used, verify-ca allows connections to a server that somebody else may have registered with the CA, making you vulnerable to Man-in-the-Middle attacks. Either specify a custom CA certificate with sslrootcert parameter or use sslmode=verify-full for proper security.'
+          )
+        }
+        config.ssl.checkServerIdentity = function () {}
+        break
+      }
+      case 'verify-full': {
+        break
+      }
     }
-    case 'prefer':
-    case 'require':
-    case 'verify-ca':
-    case 'verify-full': {
-      break
-    }
-    case 'no-verify': {
-      config.ssl.rejectUnauthorized = false
-      break
+  } else {
+    switch (config.sslmode) {
+      case 'disable': {
+        config.ssl = false
+        break
+      }
+      case 'prefer':
+      case 'require':
+      case 'verify-ca':
+      case 'verify-full': {
+        break
+      }
+      case 'no-verify': {
+        config.ssl.rejectUnauthorized = false
+        break
+      }
     }
   }
 
   return config
 }
 
+// convert pg-connection-string ssl config to a ClientConfig.ConnectionOptions
+function toConnectionOptions(sslConfig) {
+  const connectionOptions = Object.entries(sslConfig).reduce((c, [key, value]) => {
+    // we explicitly check for undefined and null instead of `if (value)` because some
+    // options accept falsy values. Example: `ssl.rejectUnauthorized = false`
+    if (value !== undefined && value !== null) {
+      c[key] = value
+    }
+
+    return c
+  }, {})
+
+  return connectionOptions
+}
+
+// convert pg-connection-string config to a ClientConfig
+function toClientConfig(config) {
+  const poolConfig = Object.entries(config).reduce((c, [key, value]) => {
+    if (key === 'ssl') {
+      const sslConfig = value
+
+      if (typeof sslConfig === 'boolean') {
+        c[key] = sslConfig
+      }
+
+      if (typeof sslConfig === 'object') {
+        c[key] = toConnectionOptions(sslConfig)
+      }
+    } else if (value !== undefined && value !== null) {
+      if (key === 'port') {
+        // when port is not specified, it is converted into an empty string
+        // we want to avoid NaN or empty string as a values in ClientConfig
+        if (value !== '') {
+          const v = parseInt(value, 10)
+          if (isNaN(v)) {
+            throw new Error(`Invalid ${key}: ${value}`)
+          }
+
+          c[key] = v
+        }
+      } else {
+        c[key] = value
+      }
+    }
+
+    return c
+  }, {})
+
+  return poolConfig
+}
+
+// parses a connection string into ClientConfig
+function parseIntoClientConfig(str) {
+  return toClientConfig(parse(str))
+}
+
 module.exports = parse
 
 parse.parse = parse
+parse.toClientConfig = toClientConfig
+parse.parseIntoClientConfig = parseIntoClientConfig

@@ -11,7 +11,7 @@ const testPoolSize = function (max) {
     let count = 0
 
     return new Promise((resolve) => {
-      for (var i = 0; i < max; i++) {
+      for (let i = 0; i < max; i++) {
         pool.connect(function (err, client, release) {
           assert(!err)
           client.query('SELECT * FROM NOW()')

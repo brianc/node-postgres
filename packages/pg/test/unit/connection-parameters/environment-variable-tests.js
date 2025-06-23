@@ -1,13 +1,13 @@
 'use strict'
 const Suite = require('../../suite')
 
-var assert = require('assert')
-var ConnectionParameters = require('../../../lib/connection-parameters')
-var defaults = require('../../../lib').defaults
+const assert = require('assert')
+const ConnectionParameters = require('../../../lib/connection-parameters')
+const defaults = require('../../../lib').defaults
 
 // clear process.env
-var realEnv = {}
-for (var key in process.env) {
+const realEnv = {}
+for (const key in process.env) {
   realEnv[key] = process.env[key]
   delete process.env[key]
 }
@@ -16,7 +16,7 @@ const suite = new Suite('ConnectionParameters')
 
 const clearEnv = () => {
   // clear process.env
-  for (var key in process.env) {
+  for (const key in process.env) {
     delete process.env[key]
   }
 }
@@ -29,7 +29,7 @@ suite.test('ConnectionParameters initialized from environment variables', functi
   process.env['PGDATABASE'] = 'allyerbase'
   process.env['PGPASSWORD'] = 'open'
 
-  var subject = new ConnectionParameters()
+  const subject = new ConnectionParameters()
   assert.equal(subject.host, 'local', 'env host')
   assert.equal(subject.user, 'bmc2', 'env user')
   assert.equal(subject.port, 7890, 'env port')
@@ -46,7 +46,7 @@ suite.test('ConnectionParameters initialized from mix', function () {
   process.env['PGPASSWORD'] = 'open'
   delete process.env['PGPASSWORD']
   delete process.env['PGDATABASE']
-  var subject = new ConnectionParameters({
+  const subject = new ConnectionParameters({
     user: 'testing',
     database: 'zugzug',
   })
@@ -59,8 +59,8 @@ suite.test('ConnectionParameters initialized from mix', function () {
 
 suite.test('connection string parsing', function () {
   clearEnv()
-  var string = 'postgres://brian:pw@boom:381/lala'
-  var subject = new ConnectionParameters(string)
+  const string = 'postgres://brian:pw@boom:381/lala'
+  const subject = new ConnectionParameters(string)
   assert.equal(subject.host, 'boom', 'string host')
   assert.equal(subject.user, 'brian', 'string user')
   assert.equal(subject.password, 'pw', 'string password')
@@ -72,8 +72,8 @@ suite.test('connection string parsing - ssl', function () {
   // clear process.env
   clearEnv()
 
-  var string = 'postgres://brian:pw@boom:381/lala?ssl=true'
-  var subject = new ConnectionParameters(string)
+  let string = 'postgres://brian:pw@boom:381/lala?ssl=true'
+  let subject = new ConnectionParameters(string)
   assert.equal(subject.ssl, true, 'ssl')
 
   string = 'postgres://brian:pw@boom:381/lala?ssl=1'
@@ -99,15 +99,15 @@ suite.test('connection string parsing - ssl', function () {
 
 suite.test('ssl is false by default', function () {
   clearEnv()
-  var subject = new ConnectionParameters()
+  const subject = new ConnectionParameters()
   assert.equal(subject.ssl, false)
 })
 
-var testVal = function (mode, expected) {
+const testVal = function (mode, expected) {
   suite.test('ssl is ' + expected + ' when $PGSSLMODE=' + mode, function () {
     clearEnv()
     process.env.PGSSLMODE = mode
-    var subject = new ConnectionParameters()
+    const subject = new ConnectionParameters()
     assert.deepStrictEqual(subject.ssl, expected)
   })
 }
@@ -122,6 +122,6 @@ testVal('verify-full', true)
 testVal('no-verify', { rejectUnauthorized: false })
 
 // restore process.env
-for (var key in realEnv) {
+for (const key in realEnv) {
   process.env[key] = realEnv[key]
 }

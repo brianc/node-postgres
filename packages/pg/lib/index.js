@@ -1,9 +1,12 @@
 'use strict'
 
-var Client = require('./client')
-var defaults = require('./defaults')
-var Connection = require('./connection')
-var Pool = require('pg-pool')
+const Client = require('./client')
+const defaults = require('./defaults')
+const Connection = require('./connection')
+const Result = require('./result')
+const utils = require('./utils')
+const Pool = require('pg-pool')
+const TypeOverrides = require('./type-overrides')
 const { DatabaseError } = require('pg-protocol')
 const { escapeIdentifier, escapeLiteral } = require('./utils')
 
@@ -15,7 +18,7 @@ const poolFactory = (Client) => {
   }
 }
 
-var PG = function (clientConstructor) {
+const PG = function (clientConstructor) {
   this.defaults = defaults
   this.Client = clientConstructor
   this.Query = this.Client.Query
@@ -24,8 +27,11 @@ var PG = function (clientConstructor) {
   this.Connection = Connection
   this.types = require('pg-types')
   this.DatabaseError = DatabaseError
+  this.TypeOverrides = TypeOverrides
   this.escapeIdentifier = escapeIdentifier
   this.escapeLiteral = escapeLiteral
+  this.Result = Result
+  this.utils = utils
 }
 
 if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
@@ -38,7 +44,7 @@ if (typeof process.env.NODE_PG_FORCE_NATIVE !== 'undefined') {
     configurable: true,
     enumerable: false,
     get() {
-      var native = null
+      let native = null
       try {
         native = new PG(require('./native'))
       } catch (err) {

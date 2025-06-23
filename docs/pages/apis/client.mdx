@@ -23,15 +23,18 @@ type Config = {
   lock_timeout?: number, // number of milliseconds a query is allowed to be en lock state before it's cancelled due to lock timeout
   application_name?: string, // The name of the application that created this Client instance
   connectionTimeoutMillis?: number, // number of milliseconds to wait for connection, default is no timeout
-  idle_in_transaction_session_timeout?: number // number of milliseconds before terminating any session with an open idle transaction, default is no timeout
+  keepAliveInitialDelayMillis?: number, // set the initial delay before the first keepalive probe is sent on an idle socket
+  idle_in_transaction_session_timeout?: number, // number of milliseconds before terminating any session with an open idle transaction, default is no timeout
+  client_encoding?: string, // specifies the character set encoding that the database uses for sending data to the client
+  fallback_application_name?: string, // provide an application name to use if application_name is not set
+  options?: string // command-line options to be sent to the server
 }
 ```
 
 example to create a client with specific connection information:
 
 ```js
-import pg from 'pg'
-const { Client } = pg
+import { Client } from 'pg'
 
 const client = new Client({
   user: 'database-user',
@@ -45,8 +48,7 @@ const client = new Client({
 ## client.connect
 
 ```js
-import pg from 'pg'
-const { Client } = pg
+import { Client } from 'pg'
 const client = new Client()
 
 await client.connect()
@@ -88,8 +90,7 @@ client.query(text: string, values?: any[]) => Promise<Result>
 **Plain text query**
 
 ```js
-import pg from 'pg'
-const { Client } = pg
+import { Client } from 'pg'
 const client = new Client()
 
 await client.connect()
@@ -103,8 +104,7 @@ await client.end()
 **Parameterized query**
 
 ```js
-import pg from 'pg'
-const { Client } = pg
+import { Client } from 'pg'
 const client = new Client()
 
 await client.connect()
@@ -142,8 +142,7 @@ await client.end()
 If you pass an object to `client.query` and the object has a `.submit` function on it, the client will pass it's PostgreSQL server connection to the object and delegate query dispatching to the supplied object. This is an advanced feature mostly intended for library authors. It is incidentally also currently how the callback and promise based queries above are handled internally, but this is subject to change. It is also how [pg-cursor](https://github.com/brianc/node-pg-cursor) and [pg-query-stream](https://github.com/brianc/node-pg-query-stream) work.
 
 ```js
-import pg from 'pg'
-const { Query } = pg
+import { Query } from 'pg'
 const query = new Query('select $1::text as name', ['brianc'])
 
 const result = client.query(query)

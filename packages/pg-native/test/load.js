@@ -1,11 +1,11 @@
-var Client = require('../')
-var async = require('async')
-var ok = require('okay')
+const Client = require('../')
+const async = require('async')
+const ok = require('okay')
 
-var execute = function (x, done) {
-  var client = new Client()
+const execute = function (x, done) {
+  const client = new Client()
   client.connectSync()
-  var query = function (n, cb) {
+  const query = function (n, cb) {
     client.query('SELECT $1::int as num', [n], function (err) {
       cb(err)
     })

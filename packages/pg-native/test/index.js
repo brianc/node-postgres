@@ -1,5 +1,5 @@
-var Client = require('../')
-var assert = require('assert')
+const Client = require('../')
+const assert = require('assert')
 
 describe('connection', function () {
   it('works', function (done) {
@@ -24,7 +24,7 @@ describe('connectSync', function () {
   })
 
   it('works with args', function () {
-    var args = 'host=' + (process.env.PGHOST || 'localhost')
+    const args = 'host=' + (process.env.PGHOST || 'localhost')
     Client().connectSync(args)
   })
 

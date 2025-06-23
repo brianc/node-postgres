@@ -1,16 +1,16 @@
-var Client = require('../')
-var async = require('async')
-var ok = require('okay')
-var bytes = require('crypto').pseudoRandomBytes
+const Client = require('../')
+const async = require('async')
+const ok = require('okay')
+const bytes = require('crypto').pseudoRandomBytes
 
 describe('many connections', function () {
   describe('async', function () {
-    var test = function (count, times) {
+    const test = function (count, times) {
       it(`connecting ${count} clients ${times} times`, function (done) {
         this.timeout(200000)
 
-        var connectClient = function (n, cb) {
-          var client = new Client()
+        const connectClient = function (n, cb) {
+          const client = new Client()
           client.connect(
             ok(cb, function () {
               bytes(
@@ -29,7 +29,7 @@ describe('many connections', function () {
           )
         }
 
-        var run = function (n, cb) {
+        const run = function (n, cb) {
           async.times(count, connectClient, cb)
         }
 

@@ -101,9 +101,9 @@ const signerOptions = {
   username: 'api-user',
 }
 
-const signer = new RDS.Signer()
+const signer = new RDS.Signer(signerOptions)
 
-const getPassword = () => signer.getAuthToken(signerOptions)
+const getPassword = () => signer.getAuthToken()
 
 const pool = new Pool({
   user: signerOptions.username,

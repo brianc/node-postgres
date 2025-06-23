@@ -1,10 +1,10 @@
 'use strict'
-var assert = require('assert')
-var Client = require('../../lib/client')
-var NativeClient = require('../../lib/native')
+const assert = require('assert')
+const Client = require('../../lib/client')
+const NativeClient = require('../../lib/native')
 
-var client = new Client()
-var nativeClient = new NativeClient()
+const client = new Client()
+const nativeClient = new NativeClient()
 
 client.connect()
 nativeClient.connect((err) => {
@@ -12,7 +12,7 @@ nativeClient.connect((err) => {
     client.end()
 
     nativeClient.query('SELECT lkdasjfasd', (nativeErr) => {
-      for (var key in nativeErr) {
+      for (const key in nativeErr) {
         assert.equal(err[key], nativeErr[key], `Expected err.${key} to equal nativeErr.${key}`)
       }
       nativeClient.end()

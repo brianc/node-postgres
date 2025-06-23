@@ -1,12 +1,12 @@
 'use strict'
-var helper = require('./test-helper')
-var Query = require('../../../lib/query')
-var types = require('pg-types')
+const helper = require('./test-helper')
+const Query = require('../../../lib/query')
+const types = require('pg-types')
 const assert = require('assert')
 
 const suite = new helper.Suite()
 
-var typeParserError = new Error('TEST: Throw in type parsers')
+const typeParserError = new Error('TEST: Throw in type parsers')
 
 types.setTypeParser('special oid that will throw', function () {
   throw typeParserError
@@ -33,9 +33,9 @@ const emitFakeEvents = (con) => {
 }
 
 suite.test('emits error', function (done) {
-  var client = helper.client()
-  var con = client.connection
-  var query = client.query(new Query('whatever'))
+  const client = helper.client()
+  const con = client.connection
+  const query = client.query(new Query('whatever'))
   emitFakeEvents(con)
 
   assert.emits(query, 'error', function (err) {
@@ -45,8 +45,8 @@ suite.test('emits error', function (done) {
 })
 
 suite.test('calls callback with error', function (done) {
-  var client = helper.client()
-  var con = client.connection
+  const client = helper.client()
+  const con = client.connection
   emitFakeEvents(con)
   client.query('whatever', function (err) {
     assert.equal(err, typeParserError)
@@ -55,8 +55,8 @@ suite.test('calls callback with error', function (done) {
 })
 
 suite.test('rejects promise with error', function (done) {
-  var client = helper.client()
-  var con = client.connection
+  const client = helper.client()
+  const con = client.connection
   emitFakeEvents(con)
   client.query('whatever').catch((err) => {
     assert.equal(err, typeParserError)

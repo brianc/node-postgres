@@ -1,16 +1,16 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 const assert = require('assert')
 const suite = new helper.Suite()
 
-var Client = helper.Client
+const Client = helper.Client
 
-var conInfo = helper.config
+const conInfo = helper.config
 
-var checkResult = function (result) {
+const checkResult = function (result) {
   assert(result.fields)
   assert.equal(result.fields.length, 3)
-  var fields = result.fields
+  const fields = result.fields
   assert.equal(fields[0].name, 'now')
   assert.equal(fields[1].name, 'num')
   assert.equal(fields[2].name, 'texty')
@@ -20,7 +20,7 @@ var checkResult = function (result) {
 }
 
 suite.test('row descriptions on result object', function () {
-  var client = new Client(conInfo)
+  const client = new Client(conInfo)
   client.connect(
     assert.success(function () {
       client.query(
@@ -36,7 +36,7 @@ suite.test('row descriptions on result object', function () {
 })
 
 suite.test('row description on no rows', function () {
-  var client = new Client(conInfo)
+  const client = new Client(conInfo)
   client.connect(
     assert.success(function () {
       client.query(

@@ -1,29 +1,29 @@
-var Client = require('../')
-var async = require('async')
+const Client = require('../')
+const async = require('async')
 
-var loop = function () {
-  var client = new Client()
+const loop = function () {
+  const client = new Client()
 
-  var connect = function (cb) {
+  const connect = function (cb) {
     client.connect(cb)
   }
 
-  var simpleQuery = function (cb) {
+  const simpleQuery = function (cb) {
     client.query('SELECT NOW()', cb)
   }
 
-  var paramsQuery = function (cb) {
+  const paramsQuery = function (cb) {
     client.query('SELECT $1::text as name', ['Brian'], cb)
   }
 
-  var prepared = function (cb) {
+  const prepared = function (cb) {
     client.prepare('test', 'SELECT $1::text as name', 1, function (err) {
       if (err) return cb(err)
       client.execute('test', ['Brian'], cb)
     })
   }
 
-  var sync = function (cb) {
+  const sync = function (cb) {
     client.querySync('SELECT NOW()')
     client.querySync('SELECT $1::text as name', ['Brian'])
     client.prepareSync('boom', 'SELECT $1::text as name', 1)
@@ -31,16 +31,16 @@ var loop = function () {
     setImmediate(cb)
   }
 
-  var end = function (cb) {
+  const end = function (cb) {
     client.end(cb)
   }
 
-  var ops = [connect, simpleQuery, paramsQuery, prepared, sync, end]
+  const ops = [connect, simpleQuery, paramsQuery, prepared, sync, end]
 
-  var start = Date.now()
+  const start = performance.now()
   async.series(ops, function (err) {
     if (err) throw err
-    console.log(Date.now() - start)
+    console.log(performance.now() - start)
     setImmediate(loop)
   })
 }

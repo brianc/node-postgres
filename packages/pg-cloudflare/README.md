@@ -10,6 +10,59 @@
 npm i --save-dev pg-cloudflare
 ```
 
+The package uses conditional exports to support bundlers that don't know about
+`cloudflare:sockets`, so the consumer code by default imports an empty file. To
+enable the package, resolve to the `cloudflare` condition in your bundler's
+config. For example:
+
+- `webpack.config.js`
+  ```js
+  export default {
+    ...,
+    resolve: { conditionNames: [..., "cloudflare"] },
+    plugins: [
+      // ignore cloudflare:sockets imports
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^cloudflare:sockets$/,
+      }),
+    ],
+  }
+  ```
+- `vite.config.js`
+  ```js
+  export default defineConfig({
+    ...,
+    resolve: {
+      conditions: [..., "cloudflare"],
+    },
+    build: {
+      ...,
+      // don't try to bundle cloudflare:sockets
+      rollupOptions: {
+        external: [..., 'cloudflare:sockets'],
+      },
+    },
+  })
+  ```
+- `rollup.config.js`
+  ```js
+  export default defineConfig({
+    ...,
+    plugins: [..., nodeResolve({ exportConditions: [..., 'cloudflare'] })],
+    // don't try to bundle cloudflare:sockets
+    external: [..., 'cloudflare:sockets'],
+  })
+  ```
+- `esbuild.config.js`
+  ```js
+  await esbuild.build({
+    ...,
+    conditions: [..., 'cloudflare'],
+  })
+  ```
+
+The concrete examples can be found in `packages/pg-bundler-test`.
+
 ## How to use conditionally, in non-Node.js environments
 
 As implemented in `pg` [here](https://github.com/brianc/node-postgres/commit/07553428e9c0eacf761a5d4541a3300ff7859578#diff-34588ad868ebcb232660aba7ee6a99d1e02f4bc93f73497d2688c3f074e60533R5-R13), a typical use case might look as follows, where in a Node.js environment the `net` module is used, while in a non-Node.js environment, where `net` is unavailable, `pg-cloudflare` is used instead, providing an equivalent interface:
@@ -21,14 +74,13 @@ module.exports.getStream = function getStream(ssl = false) {
     return net.Socket()
   }
   const { CloudflareSocket } = require('pg-cloudflare')
-  return new CloudflareSocket(ssl);
+  return new CloudflareSocket(ssl)
 }
 ```
 
 ## Node.js implementation of the Socket API proposal
 
-If you're looking for a way to rely on `connect()` as the interface you use to interact with raw sockets, but need this interface to be availble in a Node.js environment, [`@arrowood.dev/socket`](https://github.com/Ethan-Arrowood/socket) provides a Node.js implementation of the Socket API.
-
+If you're looking for a way to rely on `connect()` as the interface you use to interact with raw sockets, but need this interface to be available in a Node.js environment, [`@arrowood.dev/socket`](https://github.com/Ethan-Arrowood/socket) provides a Node.js implementation of the Socket API.
 
 ### license
 

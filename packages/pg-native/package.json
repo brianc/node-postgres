@@ -1,8 +1,20 @@
 {
   "name": "pg-native",
-  "version": "3.3.0",
+  "version": "3.5.1",
   "description": "A slightly nicer interface to Postgres over node-libpq",
   "main": "index.js",
+  "exports": {
+    ".": {
+      "import": "./esm/index.mjs",
+      "require": "./index.js",
+      "default": "./index.js"
+    },
+    "./lib/*": {
+      "import": "./lib/*",
+      "require": "./lib/*",
+      "default": "./lib/*"
+    }
+  },
   "scripts": {
     "test": "mocha"
   },
@@ -22,8 +34,8 @@
   },
   "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-native",
   "dependencies": {
-    "libpq": "1.8.14",
-    "pg-types": "^2.1.0"
+    "libpq": "^1.8.15",
+    "pg-types": "2.2.0"
   },
   "devDependencies": {
     "async": "^0.9.0",
@@ -33,6 +45,11 @@
     "mocha": "10.5.2",
     "node-gyp": ">=10.x",
     "okay": "^0.3.0",
-    "semver": "^4.1.0"
-  }
+    "semver": "^7.7.2"
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "esm"
+  ]
 }

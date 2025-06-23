@@ -1,24 +1,24 @@
 'use strict'
-var helper = require('./test-helper')
-var Client = helper.Client
+const helper = require('./test-helper')
+const Client = helper.Client
 
 const assert = require('assert')
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
-var conInfo = helper.config
+const conInfo = helper.config
 
 function getConInfo(override) {
   return Object.assign({}, conInfo, override)
 }
 
 function getStatementTimeout(conf, cb) {
-  var client = new Client(conf)
+  const client = new Client(conf)
   client.connect(
     assert.success(function () {
       client.query(
         'SHOW statement_timeout',
         assert.success(function (res) {
-          var statementTimeout = res.rows[0].statement_timeout
+          const statementTimeout = res.rows[0].statement_timeout
           cb(statementTimeout)
           client.end()
         })
@@ -38,7 +38,7 @@ if (!helper.args.native) {
   })
 
   suite.test('statement_timeout integer is used', function (done) {
-    var conf = getConInfo({
+    const conf = getConInfo({
       statement_timeout: 3000,
     })
     getStatementTimeout(conf, function (res) {
@@ -48,7 +48,7 @@ if (!helper.args.native) {
   })
 
   suite.test('statement_timeout float is used', function (done) {
-    var conf = getConInfo({
+    const conf = getConInfo({
       statement_timeout: 3000.7,
     })
     getStatementTimeout(conf, function (res) {
@@ -58,7 +58,7 @@ if (!helper.args.native) {
   })
 
   suite.test('statement_timeout string is used', function (done) {
-    var conf = getConInfo({
+    const conf = getConInfo({
       statement_timeout: '3000',
     })
     getStatementTimeout(conf, function (res) {
@@ -68,10 +68,10 @@ if (!helper.args.native) {
   })
 
   suite.test('statement_timeout actually cancels long running queries', function (done) {
-    var conf = getConInfo({
+    const conf = getConInfo({
       statement_timeout: '10', // 10ms to keep tests running fast
     })
-    var client = new Client(conf)
+    const client = new Client(conf)
     client.connect(
       assert.success(function () {
         client.query('SELECT pg_sleep( 1 )', function (error) {

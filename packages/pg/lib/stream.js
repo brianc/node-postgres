@@ -24,7 +24,7 @@ function getNodejsStreamFuncs() {
   }
 
   function getSecureStream(options) {
-    var tls = require('tls')
+    const tls = require('tls')
     return tls.connect(options)
   }
   return {
@@ -60,7 +60,9 @@ function getCloudflareStreamFuncs() {
 function isCloudflareRuntime() {
   // Since 2022-03-21 the `global_navigator` compatibility flag is on for Cloudflare Workers
   // which means that `navigator.userAgent` will be defined.
+  // eslint-disable-next-line no-undef
   if (typeof navigator === 'object' && navigator !== null && typeof navigator.userAgent === 'string') {
+    // eslint-disable-next-line no-undef
     return navigator.userAgent === 'Cloudflare-Workers'
   }
   // In case `navigator` or `navigator.userAgent` is not defined then try a more sneaky approach
