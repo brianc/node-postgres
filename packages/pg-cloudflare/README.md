@@ -19,7 +19,7 @@ config. For example:
   ```js
   export default {
     ...,
-    resolve: { conditionNames: [..., "cloudflare"] },
+    resolve: { conditionNames: [..., "workerd"] },
     plugins: [
       // ignore cloudflare:sockets imports
       new webpack.IgnorePlugin({
@@ -29,11 +29,15 @@ config. For example:
   }
   ```
 - `vite.config.js`
+
+  > [!NOTE]
+  > If you are using the [Cloudflare Vite plugin](https://www.npmjs.com/package/@cloudflare/vite-plugin) then the following configuration is not necessary.
+
   ```js
   export default defineConfig({
     ...,
     resolve: {
-      conditions: [..., "cloudflare"],
+      conditions: [..., "workerd"],
     },
     build: {
       ...,
@@ -44,11 +48,12 @@ config. For example:
     },
   })
   ```
+
 - `rollup.config.js`
   ```js
   export default defineConfig({
     ...,
-    plugins: [..., nodeResolve({ exportConditions: [..., 'cloudflare'] })],
+    plugins: [..., nodeResolve({ exportConditions: [..., 'workerd'] })],
     // don't try to bundle cloudflare:sockets
     external: [..., 'cloudflare:sockets'],
   })
@@ -57,7 +62,7 @@ config. For example:
   ```js
   await esbuild.build({
     ...,
-    conditions: [..., 'cloudflare'],
+    conditions: [..., 'workerd'],
   })
   ```
 

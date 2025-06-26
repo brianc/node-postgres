@@ -4,5 +4,5 @@ await esbuild.build({
   entryPoints: ['./src/index.mjs'],
   bundle: true,
   outfile: './dist/esbuild-cloudflare.js',
-  conditions: ['import', 'cloudflare'],
+  conditions: ['import', 'workerd'],
 })

@@ -6,7 +6,7 @@ export default {
   output: {
     filename: 'webpack-cloudflare.js',
   },
-  resolve: { conditionNames: ['import', 'cloudflare'] },
+  resolve: { conditionNames: ['import', 'workerd'] },
   plugins: [
     // ignore cloudflare:sockets imports
     new webpack.IgnorePlugin({
