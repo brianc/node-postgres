@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   resolve: {
-    conditions: ['import', 'cloudflare'],
+    conditions: ['import', 'workerd'],
   },
   plugins: [commonjs()],
 })

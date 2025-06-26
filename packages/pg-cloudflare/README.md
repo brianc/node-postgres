@@ -19,7 +19,7 @@ config. For example:
   ```js
   export default {
     ...,
-    resolve: { conditionNames: [..., "cloudflare"] },
+    resolve: { conditionNames: [..., "workerd"] },
     plugins: [
       // ignore cloudflare:sockets imports
       new webpack.IgnorePlugin({
@@ -33,7 +33,7 @@ config. For example:
   export default defineConfig({
     ...,
     resolve: {
-      conditions: [..., "cloudflare"],
+      conditions: [..., "workerd"],
     },
     build: {
       ...,
@@ -48,7 +48,7 @@ config. For example:
   ```js
   export default defineConfig({
     ...,
-    plugins: [..., nodeResolve({ exportConditions: [..., 'cloudflare'] })],
+    plugins: [..., nodeResolve({ exportConditions: [..., 'workerd'] })],
     // don't try to bundle cloudflare:sockets
     external: [..., 'cloudflare:sockets'],
   })
@@ -57,7 +57,7 @@ config. For example:
   ```js
   await esbuild.build({
     ...,
-    conditions: [..., 'cloudflare'],
+    conditions: [..., 'workerd'],
   })
   ```
 

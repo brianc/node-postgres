@@ -11,7 +11,7 @@
   },
   "exports": {
     ".": {
-      "cloudflare": {
+      "workerd": {
         "import": "./esm/index.mjs",
         "require": "./dist/index.js"
       },

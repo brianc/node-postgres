@@ -8,6 +8,6 @@ export default defineConfig({
     file: 'dist/rollup-cloudflare.js',
     format: 'es',
   },
-  plugins: [nodeResolve({ exportConditions: ['import', 'cloudflare'], preferBuiltins: true }), commonjs()],
+  plugins: [nodeResolve({ exportConditions: ['import', 'workerd'], preferBuiltins: true }), commonjs()],
   external: ['cloudflare:sockets'],
 })
