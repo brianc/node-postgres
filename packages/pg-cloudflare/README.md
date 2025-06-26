@@ -29,6 +29,10 @@ config. For example:
   }
   ```
 - `vite.config.js`
+
+  > [!NOTE]
+  > If you are using the [Cloudflare Vite plugin](https://www.npmjs.com/package/@cloudflare/vite-plugin) then the following configuration is not necessary.
+
   ```js
   export default defineConfig({
     ...,
@@ -44,6 +48,7 @@ config. For example:
     },
   })
   ```
+
 - `rollup.config.js`
   ```js
   export default defineConfig({
