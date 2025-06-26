@@ -112,7 +112,7 @@ class Query extends EventEmitter {
   // if a named prepared statement is created with empty query text
   // the backend will send an emptyQuery message but *not* a command complete message
   // since we pipeline sync immediately after execute we don't need to do anything here
-  // unless we have rows specified, in which case we did not pipeline the intial sync call
+  // unless we have rows specified, in which case we did not pipeline the initial sync call
   handleEmptyQuery(connection) {
     if (this.rows) {
       connection.sync()

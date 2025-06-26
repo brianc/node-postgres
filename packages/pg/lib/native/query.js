@@ -19,7 +19,7 @@ const NativeQuery = (module.exports = function (config, values, callback) {
   // then emit them as they come in
   // without setting singleRowMode to true
   // this has almost no meaning because libpq
-  // reads all rows into memory befor returning any
+  // reads all rows into memory before returning any
   this._emitRowEvents = false
   this.on(
     'newListener',

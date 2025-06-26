@@ -18,7 +18,7 @@ const Client = (module.exports = function (config) {
   this._reading = false
   this._read = this._read.bind(this)
 
-  // allow custom type converstion to be passed in
+  // allow custom type conversion to be passed in
   this._types = config.types || types
 
   // allow config to specify returning results

@@ -323,7 +323,7 @@ class Client extends EventEmitter {
     this._pulseQueryQueue()
   }
 
-  // if we receieve an error event or error message
+  // if we receive an error event or error message
   // during the connection process we handle it here
   _handleErrorWhileConnecting(err) {
     if (this._connectionError) {
