@@ -28,11 +28,8 @@
     "./package.json": {
       "default": "./package.json"
     },
-    "./lib/*": {
-      "import": "./lib/*",
-      "require": "./lib/*",
-      "default": "./lib/*"
-    }
+    "./lib/*": "./lib/*.js",
+    "./lib/*.js": "./lib/*.js"
   },
   "dependencies": {
     "pg-connection-string": "^2.9.1",
