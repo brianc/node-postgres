@@ -1,6 +1,6 @@
 {
   "name": "pg-cloudflare",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "A socket implementation that can run on Cloudflare Workers using native TCP connections.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
