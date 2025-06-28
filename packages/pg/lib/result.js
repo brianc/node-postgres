@@ -52,8 +52,7 @@ class Result {
     for (let i = 0, len = rowData.length; i < len; i++) {
       const rawValue = rowData[i]
       if (rawValue !== null) {
-        const v = this.fields[i].format !== 'binary' ? rawValue.toString('utf8') : rawValue
-        row[i] = this._parsers[i](v)
+        row[i] = this._parsers[i](rawValue)
       } else {
         row[i] = null
       }
@@ -67,8 +66,7 @@ class Result {
       const rawValue = rowData[i]
       const field = this.fields[i].name
       if (rawValue !== null) {
-        const v = this.fields[i].format !== 'binary' ? rawValue.toString('utf8') : rawValue
-        row[field] = this._parsers[i](v)
+        row[field] = this._parsers[i](rawValue)
       } else {
         row[field] = null
       }
