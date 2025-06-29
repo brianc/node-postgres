@@ -1,5 +1,7 @@
 'use strict'
 
+const { emitWarning } = require('node:process')
+
 //Parse method copied from https://github.com/brianc/node-postgres
 //Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
 //MIT License
@@ -138,6 +140,9 @@ function parse(str, options = {}) {
       case 'require':
       case 'verify-ca':
       case 'verify-full': {
+        if (config.sslmode !== 'verify-full') {
+          deprecatedSslModeWarning(config.sslmode)
+        }
         break
       }
       case 'no-verify': {
@@ -204,6 +209,20 @@ function toClientConfig(config) {
 // parses a connection string into ClientConfig
 function parseIntoClientConfig(str) {
   return toClientConfig(parse(str))
+}
+
+function deprecatedSslModeWarning(sslmode) {
+  if (!deprecatedSslModeWarning.warned) {
+    deprecatedSslModeWarning.warned = true
+    emitWarning(`SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=${sslmode}'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.`)
+  }
 }
 
 module.exports = parse
