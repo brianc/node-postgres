@@ -44,7 +44,7 @@
     "async": "2.6.4",
     "bluebird": "3.7.2",
     "co": "4.6.0",
-    "pg-copy-streams": "0.3.0",
+    "pg-copy-streams": "7.0.0",
     "typescript": "^4.0.3",
     "vitest": "~3.0.9",
     "wrangler": "^3.x"
