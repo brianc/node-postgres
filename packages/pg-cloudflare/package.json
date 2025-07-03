@@ -15,7 +15,8 @@
         "import": "./esm/index.mjs",
         "require": "./dist/index.js"
       },
-      "default": "./dist/empty.js"
+      "default": "./dist/empty.js",
+      "package.json": "./package.json"
     }
   },
   "scripts": {
