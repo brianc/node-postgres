@@ -16,8 +16,8 @@
         "require": "./dist/index.js"
       },
       "default": "./dist/empty.js",
-      "package.json": "./package.json"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "build": "tsc",
