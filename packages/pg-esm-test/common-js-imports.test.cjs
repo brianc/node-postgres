@@ -12,6 +12,7 @@ const paths = [
   'pg-protocol/dist/messages.js',
   'pg-protocol/dist/messages',
   'pg-native/lib/build-result.js',
+  'pg-cloudflare/package.json',
 ]
 for (const path of paths) {
   describe(`importing ${path}`, () => {
