@@ -124,3 +124,19 @@ describe('pool size of 2', () => {
     })
   )
 })
+
+describe('pool min size', () => {
+  it(
+    'does not drop below min when clients released at same time',
+    co.wrap(function* () {
+      const pool = new Pool({ max: 2, min: 1, idleTimeoutMillis: 10 })
+      const client = yield pool.connect()
+      const client2 = yield pool.connect()
+      client.release()
+      client2.release()
+      yield new Promise((resolve) => setTimeout(resolve, 20))
+      expect(pool.idleCount).to.equal(1)
+      return yield pool.end()
+    })
+  )
+})
