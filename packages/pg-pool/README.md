@@ -52,17 +52,16 @@ The Pool constructor does not support passing a Database URL as the parameter. T
 
 ```js
 const Pool = require('pg-pool');
-const url = require('url')
 
-const params = url.parse(process.env.DATABASE_URL);
-const auth = params.auth.split(':');
+
+const databaseUrl = new URL(process.env.DATABASE_URL);
 
 const config = {
-  user: auth[0],
-  password: auth[1],
-  host: params.hostname,
-  port: params.port,
-  database: params.pathname.split('/')[1],
+  user: databaseUrl.username,
+  password: databaseUrl.password,
+  host: databaseUrl.searchParams.get('host') || databaseUrl.hostname,
+  database: databaseUrl.pathname.split('/')[1],
+  port: databaseUrl.port,
   ssl: true
 };
 
