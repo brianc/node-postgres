@@ -54,7 +54,7 @@ class Client extends EventEmitter {
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
       })
-    this.queryQueue = []
+    this._queryQueue = []
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -98,8 +98,8 @@ class Client extends EventEmitter {
       this._activeQuery = null
     }
 
-    this.queryQueue.forEach(enqueueError)
-    this.queryQueue.length = 0
+    this._queryQueue.forEach(enqueueError)
+    this._queryQueue.length = 0
   }
 
   _connect(callback) {
@@ -489,8 +489,8 @@ class Client extends EventEmitter {
       con.on('connect', function () {
         con.cancel(client.processID, client.secretKey)
       })
-    } else if (client.queryQueue.indexOf(query) !== -1) {
-      client.queryQueue.splice(client.queryQueue.indexOf(query), 1)
+    } else if (client._queryQueue.indexOf(query) !== -1) {
+      client._queryQueue.splice(client._queryQueue.indexOf(query), 1)
     }
   }
 
@@ -515,7 +515,7 @@ class Client extends EventEmitter {
 
   _pulseQueryQueue() {
     if (this.readyForQuery === true) {
-      this._activeQuery = this.queryQueue.shift()
+      this._activeQuery = this._queryQueue.shift()
       const activeQuery = this._getActiveQuery()
       if (activeQuery) {
         this.readyForQuery = false
@@ -584,9 +584,9 @@ class Client extends EventEmitter {
         query.callback = () => {}
 
         // Remove from queue
-        const index = this.queryQueue.indexOf(query)
+        const index = this._queryQueue.indexOf(query)
         if (index > -1) {
-          this.queryQueue.splice(index, 1)
+          this._queryQueue.splice(index, 1)
         }
 
         this._pulseQueryQueue()
@@ -620,7 +620,7 @@ class Client extends EventEmitter {
       return result
     }
 
-    this.queryQueue.push(query)
+    this._queryQueue.push(query)
     this._pulseQueryQueue()
     return result
   }
@@ -660,6 +660,10 @@ class Client extends EventEmitter {
         this.connection.once('end', resolve)
       })
     }
+  }
+  get queryQueue() {
+    console.warn('Warning: Client.queryQueue is deprecated and will be removed in a future version.')
+    return this._queryQueue
   }
 }
 
