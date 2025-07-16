@@ -2,6 +2,7 @@
 
 const EventEmitter = require('events').EventEmitter
 const utils = require('./utils')
+const nodeUtils = require('node:util')
 const sasl = require('./crypto/sasl')
 const TypeOverrides = require('./type-overrides')
 
@@ -10,6 +11,27 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
+
+const activeQueryDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Client.activeQuery is deprecated and will be removed in a future version.'
+)
+
+const queryQueueDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Client.queryQueue is deprecated and will be removed in a future version.'
+)
+
+const pgPassDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'pgpass support is deprecated and will be removed in a future version. ' +
+    'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this funciton you can call the pgpass module in your own code.'
+)
+
+const byoPromiseDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in a future version.'
+)
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -34,6 +56,9 @@ class Client extends EventEmitter {
 
     const c = config || {}
 
+    if (c.Promise) {
+      byoPromiseDeprecationNotice()
+    }
     this._Promise = c.Promise || global.Promise
     this._types = new TypeOverrides(c.types)
     this._ending = false
@@ -72,12 +97,12 @@ class Client extends EventEmitter {
   }
 
   get activeQuery() {
-    console.warn('Warning: Client.activeQuery is deprecated and will be removed in a future version.')
+    activeQueryDeprecationNotice()
     return this._activeQuery
   }
 
   set activeQuery(val) {
-    console.warn('Warning: Client.activeQuery is deprecated and will be removed in a future version.')
+    activeQueryDeprecationNotice()
     this._activeQuery = val
   }
 
@@ -219,9 +244,7 @@ class Client extends EventEmitter {
     con.on('notification', this._handleNotification.bind(this))
   }
 
-  // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
-  // it can be supplied by the user if required - this is a breaking change!
-  _checkPgPass(cb) {
+  _getPassword(cb) {
     const con = this.connection
     if (typeof this.password === 'function') {
       this._Promise
@@ -249,6 +272,7 @@ class Client extends EventEmitter {
         const pgPass = require('pgpass')
         pgPass(this.connectionParameters, (pass) => {
           if (undefined !== pass) {
+            pgPassDeprecationNotice()
             this.connectionParameters.password = this.password = pass
           }
           cb()
@@ -260,13 +284,13 @@ class Client extends EventEmitter {
   }
 
   _handleAuthCleartextPassword(msg) {
-    this._checkPgPass(() => {
+    this._getPassword(() => {
       this.connection.password(this.password)
     })
   }
 
   _handleAuthMD5Password(msg) {
-    this._checkPgPass(async () => {
+    this._getPassword(async () => {
       try {
         const hashedPassword = await crypto.postgresMd5PasswordHash(this.user, this.password, msg.salt)
         this.connection.password(hashedPassword)
@@ -277,7 +301,7 @@ class Client extends EventEmitter {
   }
 
   _handleAuthSASL(msg) {
-    this._checkPgPass(() => {
+    this._getPassword(() => {
       try {
         this.saslSession = sasl.startSession(msg.mechanisms, this.enableChannelBinding && this.connection.stream)
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
@@ -662,7 +686,7 @@ class Client extends EventEmitter {
     }
   }
   get queryQueue() {
-    console.warn('Warning: Client.queryQueue is deprecated and will be removed in a future version.')
+    queryQueueDeprecationNotice()
     return this._queryQueue
   }
 }
