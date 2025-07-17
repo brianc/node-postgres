@@ -35,6 +35,7 @@ function parse(str, options = {}) {
   } catch (err) {
     // Remove the input from the error message to avoid leaking sensitive information
     err.input && (err.input = '*****REDACTED*****')
+    throw err
   }
 
   // We'd like to use Object.fromEntries() here but Node.js 10 does not support it
