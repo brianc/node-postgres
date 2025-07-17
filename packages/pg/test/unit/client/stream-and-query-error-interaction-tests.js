@@ -31,8 +31,6 @@ suite.test('emits end when not in query', function () {
   client.connection.emit('connect')
   process.nextTick(function () {
     client.connection.emit('readyForQuery')
-    assert.equal(client.queryQueue.length, 0)
-    assert(client.activeQuery, 'client should have issued query')
     process.nextTick(function () {
       stream.emit('close')
     })

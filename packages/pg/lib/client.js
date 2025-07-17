@@ -2,6 +2,7 @@
 
 const EventEmitter = require('events').EventEmitter
 const utils = require('./utils')
+const nodeUtils = require('node:util')
 const sasl = require('./crypto/sasl')
 const TypeOverrides = require('./type-overrides')
 
@@ -10,6 +11,27 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
+
+const activeQueryDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Client.activeQuery is deprecated and will be removed in a future version.'
+)
+
+const queryQueueDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Client.queryQueue is deprecated and will be removed in a future version.'
+)
+
+const pgPassDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'pgpass support is deprecated and will be removed in a future version. ' +
+    'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this funciton you can call the pgpass module in your own code.'
+)
+
+const byoPromiseDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in a future version.'
+)
 
 class Client extends EventEmitter {
   constructor(config) {
@@ -34,6 +56,9 @@ class Client extends EventEmitter {
 
     const c = config || {}
 
+    if (c.Promise) {
+      byoPromiseDeprecationNotice()
+    }
     this._Promise = c.Promise || global.Promise
     this._types = new TypeOverrides(c.types)
     this._ending = false
@@ -42,6 +67,7 @@ class Client extends EventEmitter {
     this._connected = false
     this._connectionError = false
     this._queryable = true
+    this._activeQuery = null
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.connection =
@@ -53,7 +79,7 @@ class Client extends EventEmitter {
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
       })
-    this.queryQueue = []
+    this._queryQueue = []
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -70,6 +96,20 @@ class Client extends EventEmitter {
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
   }
 
+  get activeQuery() {
+    activeQueryDeprecationNotice()
+    return this._activeQuery
+  }
+
+  set activeQuery(val) {
+    activeQueryDeprecationNotice()
+    this._activeQuery = val
+  }
+
+  _getActiveQuery() {
+    return this._activeQuery
+  }
+
   _errorAllQueries(err) {
     const enqueueError = (query) => {
       process.nextTick(() => {
@@ -77,13 +117,14 @@ class Client extends EventEmitter {
       })
     }
 
-    if (this.activeQuery) {
-      enqueueError(this.activeQuery)
-      this.activeQuery = null
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery) {
+      enqueueError(activeQuery)
+      this._activeQuery = null
     }
 
-    this.queryQueue.forEach(enqueueError)
-    this.queryQueue.length = 0
+    this._queryQueue.forEach(enqueueError)
+    this._queryQueue.length = 0
   }
 
   _connect(callback) {
@@ -203,9 +244,7 @@ class Client extends EventEmitter {
     con.on('notification', this._handleNotification.bind(this))
   }
 
-  // TODO(bmc): deprecate pgpass "built in" integration since this.password can be a function
-  // it can be supplied by the user if required - this is a breaking change!
-  _checkPgPass(cb) {
+  _getPassword(cb) {
     const con = this.connection
     if (typeof this.password === 'function') {
       this._Promise
@@ -233,6 +272,7 @@ class Client extends EventEmitter {
         const pgPass = require('pgpass')
         pgPass(this.connectionParameters, (pass) => {
           if (undefined !== pass) {
+            pgPassDeprecationNotice()
             this.connectionParameters.password = this.password = pass
           }
           cb()
@@ -244,13 +284,13 @@ class Client extends EventEmitter {
   }
 
   _handleAuthCleartextPassword(msg) {
-    this._checkPgPass(() => {
+    this._getPassword(() => {
       this.connection.password(this.password)
     })
   }
 
   _handleAuthMD5Password(msg) {
-    this._checkPgPass(async () => {
+    this._getPassword(async () => {
       try {
         const hashedPassword = await crypto.postgresMd5PasswordHash(this.user, this.password, msg.salt)
         this.connection.password(hashedPassword)
@@ -261,7 +301,7 @@ class Client extends EventEmitter {
   }
 
   _handleAuthSASL(msg) {
-    this._checkPgPass(() => {
+    this._getPassword(() => {
       try {
         this.saslSession = sasl.startSession(msg.mechanisms, this.enableChannelBinding && this.connection.stream)
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
@@ -314,8 +354,8 @@ class Client extends EventEmitter {
       }
       this.emit('connect')
     }
-    const { activeQuery } = this
-    this.activeQuery = null
+    const activeQuery = this._getActiveQuery()
+    this._activeQuery = null
     this.readyForQuery = true
     if (activeQuery) {
       activeQuery.handleReadyForQuery(this.connection)
@@ -355,49 +395,51 @@ class Client extends EventEmitter {
     if (this._connecting) {
       return this._handleErrorWhileConnecting(msg)
     }
-    const activeQuery = this.activeQuery
+    const activeQuery = this._getActiveQuery()
 
     if (!activeQuery) {
       this._handleErrorEvent(msg)
       return
     }
 
-    this.activeQuery = null
+    this._activeQuery = null
     activeQuery.handleError(msg, this.connection)
   }
 
   _handleRowDescription(msg) {
     // delegate rowDescription to active query
-    this.activeQuery.handleRowDescription(msg)
+    this._getActiveQuery().handleRowDescription(msg)
   }
 
   _handleDataRow(msg) {
     // delegate dataRow to active query
-    this.activeQuery.handleDataRow(msg)
+    this._getActiveQuery().handleDataRow(msg)
   }
 
   _handlePortalSuspended(msg) {
     // delegate portalSuspended to active query
-    this.activeQuery.handlePortalSuspended(this.connection)
+    this._getActiveQuery().handlePortalSuspended(this.connection)
   }
 
   _handleEmptyQuery(msg) {
     // delegate emptyQuery to active query
-    this.activeQuery.handleEmptyQuery(this.connection)
+    this._getActiveQuery().handleEmptyQuery(this.connection)
   }
 
   _handleCommandComplete(msg) {
-    if (this.activeQuery == null) {
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
       const error = new Error('Received unexpected commandComplete message from backend.')
       this._handleErrorEvent(error)
       return
     }
     // delegate commandComplete to active query
-    this.activeQuery.handleCommandComplete(msg, this.connection)
+    activeQuery.handleCommandComplete(msg, this.connection)
   }
 
   _handleParseComplete() {
-    if (this.activeQuery == null) {
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
       const error = new Error('Received unexpected parseComplete message from backend.')
       this._handleErrorEvent(error)
       return
@@ -405,17 +447,17 @@ class Client extends EventEmitter {
     // if a prepared statement has a name and properly parses
     // we track that its already been executed so we don't parse
     // it again on the same client
-    if (this.activeQuery.name) {
-      this.connection.parsedStatements[this.activeQuery.name] = this.activeQuery.text
+    if (activeQuery.name) {
+      this.connection.parsedStatements[activeQuery.name] = activeQuery.text
     }
   }
 
   _handleCopyInResponse(msg) {
-    this.activeQuery.handleCopyInResponse(this.connection)
+    this._getActiveQuery().handleCopyInResponse(this.connection)
   }
 
   _handleCopyData(msg) {
-    this.activeQuery.handleCopyData(msg, this.connection)
+    this._getActiveQuery().handleCopyData(msg, this.connection)
   }
 
   _handleNotification(msg) {
@@ -471,8 +513,8 @@ class Client extends EventEmitter {
       con.on('connect', function () {
         con.cancel(client.processID, client.secretKey)
       })
-    } else if (client.queryQueue.indexOf(query) !== -1) {
-      client.queryQueue.splice(client.queryQueue.indexOf(query), 1)
+    } else if (client._queryQueue.indexOf(query) !== -1) {
+      client._queryQueue.splice(client._queryQueue.indexOf(query), 1)
     }
   }
 
@@ -497,21 +539,22 @@ class Client extends EventEmitter {
 
   _pulseQueryQueue() {
     if (this.readyForQuery === true) {
-      this.activeQuery = this.queryQueue.shift()
-      if (this.activeQuery) {
+      this._activeQuery = this._queryQueue.shift()
+      const activeQuery = this._getActiveQuery()
+      if (activeQuery) {
         this.readyForQuery = false
         this.hasExecuted = true
 
-        const queryError = this.activeQuery.submit(this.connection)
+        const queryError = activeQuery.submit(this.connection)
         if (queryError) {
           process.nextTick(() => {
-            this.activeQuery.handleError(queryError, this.connection)
+            activeQuery.handleError(queryError, this.connection)
             this.readyForQuery = true
             this._pulseQueryQueue()
           })
         }
       } else if (this.hasExecuted) {
-        this.activeQuery = null
+        this._activeQuery = null
         this.emit('drain')
       }
     }
@@ -565,9 +608,9 @@ class Client extends EventEmitter {
         query.callback = () => {}
 
         // Remove from queue
-        const index = this.queryQueue.indexOf(query)
+        const index = this._queryQueue.indexOf(query)
         if (index > -1) {
-          this.queryQueue.splice(index, 1)
+          this._queryQueue.splice(index, 1)
         }
 
         this._pulseQueryQueue()
@@ -601,7 +644,7 @@ class Client extends EventEmitter {
       return result
     }
 
-    this.queryQueue.push(query)
+    this._queryQueue.push(query)
     this._pulseQueryQueue()
     return result
   }
@@ -626,7 +669,7 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this.activeQuery || !this._queryable) {
+    if (this._getActiveQuery() || !this._queryable) {
       // if we have an active query we need to force a disconnect
       // on the socket - otherwise a hung query could block end forever
       this.connection.stream.destroy()
@@ -641,6 +684,10 @@ class Client extends EventEmitter {
         this.connection.once('end', resolve)
       })
     }
+  }
+  get queryQueue() {
+    queryQueueDeprecationNotice()
+    return this._queryQueue
   }
 }
 
