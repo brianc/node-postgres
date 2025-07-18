@@ -48,7 +48,7 @@ suite.test('pipeline mode with multiple queries', (cb) => {
 
     client.pipelining = true
 
-    let results = []
+    const results = []
     let completed = 0
 
     // Send multiple queries in pipeline mode
@@ -127,7 +127,7 @@ suite.test('pipeline mode with parameterized queries', (cb) => {
 
     client.pipelining = true
 
-    let results = []
+    const results = []
     let completed = 0
 
     // Send parameterized queries in pipeline mode
@@ -163,7 +163,7 @@ suite.test('pipeline mode performance benefit', (cb) => {
     // Test without pipeline mode
     const startNormal = Date.now()
     let normalCompleted = 0
-    
+
     function runNormalQueries() {
       for (let i = 0; i < numQueries; i++) {
         client.query({ text: 'SELECT $1::int as num', values: [i] }, (err, res) => {
