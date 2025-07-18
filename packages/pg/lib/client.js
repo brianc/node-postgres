@@ -70,7 +70,6 @@ class Client extends EventEmitter {
     this._activeQuery = null
     this._pipelining = false
     this._pipelineQueue = []
-    this._pipelineSync = false
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.connection =
@@ -365,22 +364,18 @@ class Client extends EventEmitter {
       this.emit('connect')
     }
 
-    if (this._pipelining) {
-      // In pipeline mode, readyForQuery indicates end of current query in pipeline
-      const activeQuery = this._getActiveQuery()
-      if (activeQuery) {
-        activeQuery.handleReadyForQuery(this.connection)
-        // Remove completed query from pipeline queue
-        const index = this._pipelineQueue.indexOf(activeQuery)
-        if (index > -1) {
-          this._pipelineQueue.splice(index, 1)
-        }
+    if (this._pipelining && this._pipelineQueue.length > 0) {
+      // In pipeline mode, readyForQuery indicates completion of the current query
+      const completedQuery = this._pipelineQueue.shift()
+      if (completedQuery) {
+        completedQuery.handleReadyForQuery(this.connection)
       }
-
+      
       // Set next query as active if available
       if (this._pipelineQueue.length > 0) {
         this._activeQuery = this._pipelineQueue[0]
       } else {
+        // All pipeline queries completed
         this._activeQuery = null
         this.readyForQuery = true
         this.emit('drain')
@@ -631,11 +626,10 @@ class Client extends EventEmitter {
 
     // In pipeline mode, only extended query protocol is allowed
     if (this._pipelining) {
-      // TODO: better check!
       if (typeof config === 'string') {
         throw new Error('Simple query protocol is not allowed in pipeline mode. Use parameterized queries instead.')
       }
-      if (query.text && query.text.includes(';')) {
+      if (query.text && query.text.split(';').filter(s => s.trim()).length > 1) {
         throw new Error('Multiple SQL commands in a single query are not allowed in pipeline mode.')
       }
     }
@@ -809,12 +803,12 @@ class Client extends EventEmitter {
     while (this._queryQueue.length > 0) {
       const query = this._queryQueue.shift()
       this._pipelineQueue.push(query)
-
+      
       // Force extended query protocol for pipeline mode
       if (!query.requiresPreparation()) {
         query.queryMode = 'extended'
       }
-
+      
       const queryError = query.submit(this.connection)
       if (queryError) {
         process.nextTick(() => {
@@ -829,12 +823,16 @@ class Client extends EventEmitter {
       }
     }
 
-    // Set active query to first in pipeline if we don't have one
-    if (!this._getActiveQuery() && this._pipelineQueue.length > 0) {
-      this._activeQuery = this._pipelineQueue[0]
+    // Send sync message to end the pipeline batch
+    if (this._pipelineQueue.length > 0 && this._queryQueue.length === 0) {
+      this.connection.sync()
+      // Set active query to first in pipeline to start processing responses
+      if (!this._getActiveQuery() && this._pipelineQueue.length > 0) {
+        this._activeQuery = this._pipelineQueue[0]
+      }
     }
 
-    this.readyForQuery = true
+    this.readyForQuery = false // We're not ready for more queries until pipeline completes
   }
 }
 
