@@ -54,6 +54,7 @@ suite.test('pipeline mode with multiple queries', (cb) => {
     // Send multiple queries in pipeline mode
     client.query({ text: 'SELECT 1 as num' }, (err, res) => {
       if (err) return cb(err)
+      console.log(res)
       results[0] = res.rows[0].num
       completed++
       if (completed === 3) checkResults()
@@ -61,6 +62,7 @@ suite.test('pipeline mode with multiple queries', (cb) => {
 
     client.query({ text: 'SELECT 2 as num' }, (err, res) => {
       if (err) return cb(err)
+      console.log(res)
       results[1] = res.rows[0].num
       completed++
       if (completed === 3) checkResults()
@@ -68,6 +70,7 @@ suite.test('pipeline mode with multiple queries', (cb) => {
 
     client.query({ text: 'SELECT 3 as num' }, (err, res) => {
       if (err) return cb(err)
+      console.log(res)
       results[2] = res.rows[0].num
       completed++
       if (completed === 3) checkResults()
