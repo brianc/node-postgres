@@ -1,6 +1,6 @@
 'use strict'
 
-const helper = require('../test-helper')
+const helper = require('./test-helper')
 const pg = helper.pg
 const assert = require('assert')
 
