@@ -1,0 +1,25 @@
+{
+  "name": "pg-transaction",
+  "version": "2.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "pretest": "tsc",
+    "test": "mocha dist/**/*.test.js"
+  },
+  "dependencies": {
+    "@types/node": "^24.0.14",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/pg": "^8.10.9",
+    "mocha": "^10.8.2",
+    "pg": "^8.11.3"
+  }
+}

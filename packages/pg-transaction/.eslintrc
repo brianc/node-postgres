@@ -1,0 +1,7 @@
+{
+  "ignorePatterns": [
+    "/dist/*{js,ts,map}",
+    "/src",
+    "/esm"
+  ]
+}
