@@ -52,21 +52,21 @@ suite.test('pipeline mode with multiple queries', (cb) => {
     let completed = 0
 
     // Send multiple queries in pipeline mode
-    client.query('SELECT 1 as num', (err, res) => {
+    client.query({text: 'SELECT 1 as num'}, (err, res) => {
       if (err) return cb(err)
       results[0] = res.rows[0].num
       completed++
       if (completed === 3) checkResults()
     })
 
-    client.query('SELECT 2 as num', (err, res) => {
+    client.query({text: 'SELECT 2 as num'}, (err, res) => {
       if (err) return cb(err)
       results[1] = res.rows[0].num
       completed++
       if (completed === 3) checkResults()
     })
 
-    client.query('SELECT 3 as num', (err, res) => {
+    client.query({text: 'SELECT 3 as num'}, (err, res) => {
       if (err) return cb(err)
       results[2] = res.rows[0].num
       completed++
@@ -192,6 +192,7 @@ suite.test('pipeline mode performance benefit', (cb) => {
             // Pipeline should be faster or at least not significantly slower
             // In real network conditions with latency, pipeline would show more benefit
             console.log(`Normal mode: ${normalTime}ms, Pipeline mode: ${pipelineTime}ms`)
+            assert(normalTime <= pipelineTime)
 
             client.end(cb)
           }

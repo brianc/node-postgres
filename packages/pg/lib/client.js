@@ -631,6 +631,7 @@ class Client extends EventEmitter {
 
     // In pipeline mode, only extended query protocol is allowed
     if (this._pipelining) {
+      // TODO: better check!
       if (typeof config === 'string') {
         throw new Error('Simple query protocol is not allowed in pipeline mode. Use parameterized queries instead.')
       }
