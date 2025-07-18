@@ -4,7 +4,7 @@
   "extends": ["eslint:recommended", "plugin:prettier/recommended", "prettier"],
   "ignorePatterns": ["node_modules", "coverage", "packages/pg-protocol/dist/**/*", "packages/pg-query-stream/dist/**/*"],
   "parserOptions": {
-    "ecmaVersion": 2017,
+    "ecmaVersion": 2022,
     "sourceType": "module"
   },
   "env": {
@@ -29,6 +29,15 @@
       "files": ["*.ts", "*.mts", "*.cts", "*.tsx"],
       "rules": {
         "no-undef": "off"
+      }
+    },
+    {
+      "files": ["packages/pg-transaction/src/**/*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "ecmaVersion": 2022,
+        "sourceType": "module",
+        "project": "./packages/pg-transaction/tsconfig.eslint.json"
       }
     }
   ]

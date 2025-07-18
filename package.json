@@ -21,14 +21,14 @@
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^6.17.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.1.2",
     "lerna": "^3.19.0",
     "prettier": "3.0.3",
-    "typescript": "^4.0.3"
+    "typescript": "^5.2.0"
   },
   "prettier": {
     "semi": false,
