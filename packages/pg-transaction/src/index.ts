@@ -8,7 +8,10 @@ function isPool(clientOrPool: Client | Pool): clientOrPool is Pool {
   return 'idleCount' in clientOrPool
 }
 
-async function transaction<T>(clientOrPool: Client | Pool, cb: (client: Client) => Promise<T>): Promise<T> {
+async function transaction<T>(
+  clientOrPool: Client | Pool,
+  cb: (client: Client | PoolClient) => Promise<T>
+): Promise<T> {
   let client: Client | PoolClient
   if (isPool(clientOrPool)) {
     // It's a Pool
@@ -19,7 +22,7 @@ async function transaction<T>(clientOrPool: Client | Pool, cb: (client: Client) 
   }
   await client.query('BEGIN')
   try {
-    const result = await cb(client as Client)
+    const result = await cb(client)
     await client.query('COMMIT')
     return result
   } catch (error) {
