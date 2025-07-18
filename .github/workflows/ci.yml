@@ -76,9 +76,4 @@ jobs:
       - run: yarn install --frozen-lockfile
       - name: Run tests (skip pg-transaction under Node < 18)
         run: |
-          if [[ "${{ matrix.node }}" -lt 18 ]]; then
-            echo "Skipping pg-transaction tests on Node.js < 18"
-            yarn workspaces foreach -v --exclude pg-transaction --topological-dev run test
-          else
-            yarn test
-          fi
+          yarn test
