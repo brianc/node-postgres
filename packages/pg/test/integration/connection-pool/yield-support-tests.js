@@ -14,7 +14,7 @@ new helper.Suite().test(
     let threw = false
     try {
       yield client.query('SELECT LKDSJDSLKFJ')
-    } catch (e) {
+    } catch {
       threw = true
     }
     assert(threw)
