@@ -129,7 +129,7 @@ class Client extends EventEmitter {
     // Error all queued queries
     this._queryQueue.forEach(enqueueError)
     this._queryQueue.length = 0
-    
+
     // Error all pipeline queries
     if (this._pipelining) {
       this._pipelineQueue.forEach(enqueueError)
@@ -364,7 +364,7 @@ class Client extends EventEmitter {
       }
       this.emit('connect')
     }
-    
+
     if (this._pipelining) {
       // In pipeline mode, readyForQuery indicates end of current query in pipeline
       const activeQuery = this._getActiveQuery()
@@ -376,7 +376,7 @@ class Client extends EventEmitter {
           this._pipelineQueue.splice(index, 1)
         }
       }
-      
+
       // Set next query as active if available
       if (this._pipelineQueue.length > 0) {
         this._activeQuery = this._pipelineQueue[0]
@@ -393,7 +393,7 @@ class Client extends EventEmitter {
         activeQuery.handleReadyForQuery(this.connection)
       }
     }
-    
+
     this._pulseQueryQueue()
   }
 
@@ -575,7 +575,7 @@ class Client extends EventEmitter {
     if (this._pipelining) {
       return this._pipelinePulseQueryQueue()
     }
-    
+
     if (this.readyForQuery === true) {
       this._activeQuery = this._queryQueue.shift()
       const activeQuery = this._getActiveQuery()
@@ -634,7 +634,7 @@ class Client extends EventEmitter {
       if (typeof config === 'string') {
         throw new Error('Simple query protocol is not allowed in pipeline mode. Use parameterized queries instead.')
       }
-      if (query.text && query.text.includes(';') && query.text.trim().split(';').filter(s => s.trim()).length > 1) {
+      if (query.text && query.text.includes(';')) {
         throw new Error('Multiple SQL commands in a single query are not allowed in pipeline mode.')
       }
     }
@@ -747,15 +747,15 @@ class Client extends EventEmitter {
     if (typeof value !== 'boolean') {
       throw new TypeError('pipelining must be a boolean')
     }
-    
+
     if (value && !this._connected) {
       throw new Error('Cannot enable pipelining before connection is established')
     }
-    
+
     if (value && this._getActiveQuery()) {
       throw new Error('Cannot enable pipelining while a query is active')
     }
-    
+
     if (value && !this._pipelining) {
       this._enterPipelineMode()
     } else if (!value && this._pipelining) {
@@ -771,15 +771,15 @@ class Client extends EventEmitter {
     if (this._pipelining) {
       return
     }
-    
+
     if (!this._connected) {
       throw new Error('Cannot enter pipeline mode before connection is established')
     }
-    
+
     if (this._getActiveQuery()) {
       throw new Error('Cannot enter pipeline mode while a query is active')
     }
-    
+
     this._pipelining = true
     this._pipelineQueue = []
     this._pipelineSync = false
@@ -789,13 +789,13 @@ class Client extends EventEmitter {
     if (!this._pipelining) {
       return
     }
-    
+
     // Send sync to end pipeline if we have pending queries
     if (this._pipelineQueue.length > 0 && !this._pipelineSync) {
       this.connection.sync()
       this._pipelineSync = true
     }
-    
+
     this._pipelining = false
   }
 
@@ -803,17 +803,17 @@ class Client extends EventEmitter {
     if (!this._pipelining) {
       return this._pulseQueryQueue()
     }
-    
+
     // In pipeline mode, send all queued queries immediately without waiting for responses
     while (this._queryQueue.length > 0) {
       const query = this._queryQueue.shift()
       this._pipelineQueue.push(query)
-      
+
       // Force extended query protocol for pipeline mode
       if (!query.requiresPreparation()) {
         query.queryMode = 'extended'
       }
-      
+
       const queryError = query.submit(this.connection)
       if (queryError) {
         process.nextTick(() => {
@@ -827,12 +827,12 @@ class Client extends EventEmitter {
         continue
       }
     }
-    
+
     // Set active query to first in pipeline if we don't have one
     if (!this._getActiveQuery() && this._pipelineQueue.length > 0) {
       this._activeQuery = this._pipelineQueue[0]
     }
-    
+
     this.readyForQuery = true
   }
 }
