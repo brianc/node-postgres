@@ -10,7 +10,7 @@
     "test": "mocha dist/**/*.test.js"
   },
   "dependencies": {
-    "@types/node": "^24.0.14",
+    "@types/node": "^20.0.0",
     "typescript": "^5.8.3"
   },
   "engines": {
