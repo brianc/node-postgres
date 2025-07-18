@@ -132,4 +132,19 @@ describe('Transaction', () => {
       await pool.end()
     }
   })
+
+  it('can return something from the transaction callback', async () => {
+    const pool = new Pool()
+    const result = await transaction(pool, async (client) => {
+      await client.query('INSERT INTO test_table (name) VALUES ($1)', ['ReturnValueTest'])
+      return 'Transaction Result'
+    })
+
+    assert.equal(result, 'Transaction Result', 'Should return value from transaction callback')
+
+    // Verify the row is visible outside the transaction
+    const { rows } = await pool.query('SELECT * FROM test_table')
+    assert.equal(rows.length, 1, 'Row should be visible after transaction with return value')
+    pool.end()
+  })
 })
