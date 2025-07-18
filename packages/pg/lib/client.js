@@ -370,7 +370,7 @@ class Client extends EventEmitter {
       if (completedQuery) {
         completedQuery.handleReadyForQuery(this.connection)
       }
-      
+
       // Set next query as active if available
       if (this._pipelineQueue.length > 0) {
         this._activeQuery = this._pipelineQueue[0]
@@ -629,7 +629,7 @@ class Client extends EventEmitter {
       if (typeof config === 'string') {
         throw new Error('Simple query protocol is not allowed in pipeline mode. Use parameterized queries instead.')
       }
-      if (query.text && query.text.split(';').filter(s => s.trim()).length > 1) {
+      if (query.text && query.text.split(';').filter((s) => s.trim()).length > 1) {
         throw new Error('Multiple SQL commands in a single query are not allowed in pipeline mode.')
       }
     }
@@ -803,12 +803,12 @@ class Client extends EventEmitter {
     while (this._queryQueue.length > 0) {
       const query = this._queryQueue.shift()
       this._pipelineQueue.push(query)
-      
+
       // Force extended query protocol for pipeline mode
       if (!query.requiresPreparation()) {
         query.queryMode = 'extended'
       }
-      
+
       const queryError = query.submit(this.connection)
       if (queryError) {
         process.nextTick(() => {
