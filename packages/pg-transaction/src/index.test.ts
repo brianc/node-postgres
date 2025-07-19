@@ -54,6 +54,12 @@ describe('Transaction', () => {
           const { rowCount } = await innerClient.query('SELECT * FROM test_table')
           assert.equal(rowCount, 0, 'Temp table should still be empty inside transaction')
         })
+
+        // now that the transaction is committed, the changes are visible outside
+        await withClient(async (innerClient) => {
+          const { rowCount } = await innerClient.query('SELECT * FROM test_table')
+          assert.equal(rowCount, 1, 'Row should be inserted after transaction commits')
+        })
       })
     })
   })
