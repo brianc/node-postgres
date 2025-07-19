@@ -8,7 +8,7 @@ PostgreSQL transactions ensure that a series of database operations either all s
 
 ## pg-transaction Module
 
-The `pg-transaction` module provides a tiny level of abstraction for handling transactions, automatically managing `BEGIN`, `COMMIT`, and `ROLLBACK` operations while ensuring proper client lifecycle management.
+The `pg-transaction` module provides a tiny level of abstraction for handling transactions, automatically running `BEGIN`, `COMMIT`, and/or `ROLLBACK`.
 
 The motivation for this module was I pretty much write the same exact thing in every project I start. Sounds like a good thing to just publish widely.
 
@@ -166,18 +166,6 @@ try {
 }
 ```
 
-### Best Practices
-
-1. **Use with Pools**: When possible, use the transaction function with a `Pool` rather than a `Client` for better resource management.
-
-2. **Keep Transactions Short**: Minimize the time spent in transactions to reduce lock contention.
-
-3. **Handle Errors Appropriately**: Let the transaction function handle rollbacks, but ensure your application logic handles the errors appropriately.
-
-4. **Avoid Nested Transactions**: PostgreSQL doesn't support true nested transactions. Use savepoints if you need nested behavior.
-
-5. **Return Values**: Use the callback's return value to pass data out of the transaction.
-
 ### Migration from Manual Transactions
 
 If you're currently using manual transaction handling, migrating to `pg-transaction` is straightforward:
@@ -244,49 +232,3 @@ try {
   client.release()
 }
 ```
-
-### When to Use Manual Transactions
-
-Consider manual transaction handling when you need:
-
-- **Savepoints**: Creating intermediate rollback points within a transaction
-- **Custom Transaction Isolation Levels**: Setting specific isolation levels
-- **Complex Transaction Logic**: Conditional commits or rollbacks based on business logic
-- **Performance Optimization**: Fine-grained control over transaction boundaries
-
-### Savepoints Example
-
-```js
-const client = await pool.connect()
-
-try {
-  await client.query('BEGIN')
-  
-  // First operation
-  await client.query('INSERT INTO orders(user_id, total) VALUES($1, $2)', [userId, total])
-  
-  // Create a savepoint
-  await client.query('SAVEPOINT order_items')
-  
-  try {
-    // Attempt to insert order items
-    for (const item of items) {
-      await client.query('INSERT INTO order_items(order_id, product_id, quantity) VALUES($1, $2, $3)', 
-        [orderId, item.productId, item.quantity])
-    }
-  } catch (error) {
-    // Rollback to savepoint, keeping the order
-    await client.query('ROLLBACK TO SAVEPOINT order_items')
-    console.log('Order items failed, but order preserved')
-  }
-  
-  await client.query('COMMIT')
-} catch (error) {
-  await client.query('ROLLBACK')
-  throw error
-} finally {
-  client.release()
-}
-```
-
-**Recommendation**: Use `pg-transaction` for most use cases, and fall back to manual transaction handling only when you need advanced features like savepoints or custom isolation levels. Note: the number of times I've done this in production apps is _nearly_ zero.
