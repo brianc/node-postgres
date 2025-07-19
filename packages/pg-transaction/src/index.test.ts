@@ -36,8 +36,8 @@ describe('Transaction', () => {
 
   it('should create a client with an empty temp table', async () => {
     await withClient(async (client) => {
-      const { rowCount } = await client.query('SELECT * FROM test_table')
-      assert.equal(rowCount, 0, 'Temp table should be empty on creation')
+      const { rows } = await client.query('SELECT * FROM test_table')
+      assert.equal(rows.length, 0, 'Temp table should be empty on creation')
     })
   })
 
@@ -51,15 +51,15 @@ describe('Transaction', () => {
 
         // while inside this transaction, the changes are not visible outside
         await withClient(async (innerClient) => {
-          const { rowCount } = await innerClient.query('SELECT * FROM test_table')
-          assert.equal(rowCount, 0, 'Temp table should still be empty inside transaction')
+          const { rows } = await innerClient.query('SELECT * FROM test_table')
+          assert.equal(rows.length, 0, 'Temp table should still be empty inside transaction')
         })
+      })
 
-        // now that the transaction is committed, the changes are visible outside
-        await withClient(async (innerClient) => {
-          const { rowCount } = await innerClient.query('SELECT * FROM test_table')
-          assert.equal(rowCount, 1, 'Row should be inserted after transaction commits')
-        })
+      // now that the transaction is committed, the changes are visible outside
+      await withClient(async (innerClient) => {
+        const { rows } = await innerClient.query('SELECT * FROM test_table')
+        assert.equal(rows.length, 1, 'Row should be inserted after transaction commits')
       })
     })
   })
@@ -76,8 +76,8 @@ describe('Transaction', () => {
       }
 
       // After rollback, the table should still be empty
-      const { rowCount } = await client.query('SELECT * FROM test_table')
-      assert.equal(rowCount, 0, 'Temp table should be empty after rollback')
+      const { rows } = await client.query('SELECT * FROM test_table')
+      assert.equal(rows.length, 0, 'Temp table should be empty after rollback')
     })
   })
 
@@ -113,8 +113,8 @@ describe('Transaction', () => {
       }
 
       // After rollback, the table should still be empty
-      const { rowCount } = await pool.query('SELECT * FROM test_table')
-      assert.equal(rowCount, 0, 'Temp table should be empty after pool rollback')
+      const { rows } = await pool.query('SELECT * FROM test_table')
+      assert.equal(rows.length, 0, 'Temp table should be empty after pool rollback')
     } finally {
       await pool.end()
     }
