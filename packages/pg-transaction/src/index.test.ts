@@ -147,4 +147,22 @@ describe('Transaction', () => {
     assert.equal(rows.length, 1, 'Row should be visible after transaction with return value')
     pool.end()
   })
+
+  it('does not throw an uncatchable error if pool cannot connect', async () => {
+    const pool = new Pool({
+      connectionString: 'postgres://invalid:invalid@localhost:5432/invalid_db',
+    })
+
+    const promise = transaction(pool, async (client) => {
+      await client.query('SELECT 1')
+    })
+
+    try {
+      await assert.rejects(promise, {
+        name: 'error',
+      })
+    } finally {
+      await pool.end()
+    }
+  })
 })
