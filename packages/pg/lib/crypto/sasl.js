@@ -178,7 +178,13 @@ function parseServerFirstMessage(data) {
 
 function parseServerFinalMessage(serverData) {
   const attrPairs = parseAttributePairs(serverData)
+  const error = attrPairs.get('e')
   const serverSignature = attrPairs.get('v')
+
+  if (error) {
+    throw new Error(`SASL: SCRAM-SERVER-FINAL-MESSAGE: server returned error: "${error}"`)
+  }
+
   if (!serverSignature) {
     throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature is missing')
   } else if (!isBase64(serverSignature)) {
