@@ -330,6 +330,7 @@ describe('parse', function () {
       parse(connectionString)
     } catch (err: unknown) {
       expect(JSON.stringify(err)).to.not.include(password, 'Password should not be in the error message')
+      expect(JSON.stringify(err)).to.include('REDACTED', 'The thrown error should contain the redacted URL')
       return
     }
     throw new Error('Expected an error to be thrown')
