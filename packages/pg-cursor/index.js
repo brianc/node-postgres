@@ -113,6 +113,12 @@ class Cursor extends EventEmitter {
   handleDataRow(msg) {
     const row = this._result.parseRow(msg.fields)
     this.emit('row', row, this._result)
+
+    if (this._rows == null) {
+      const error = new Error('Received unexpected dataRow message from backend.')
+      this.handleError(error)
+      return
+    }
     this._rows.push(row)
   }
 
