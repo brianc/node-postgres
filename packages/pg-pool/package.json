@@ -30,9 +30,9 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brianc/node-pg-pool/issues"
+    "url": "https://github.com/brianc/node-postgres/issues"
   },
-  "homepage": "https://github.com/brianc/node-pg-pool#readme",
+  "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-pool#readme",
   "devDependencies": {
     "bluebird": "3.7.2",
     "co": "4.6.0",
