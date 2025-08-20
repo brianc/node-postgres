@@ -112,9 +112,16 @@ export class Parser {
       this.bufferLength = 0
       this.bufferOffset = 0
     } else {
-      // Adjust the cursors of remainingBuffer
-      this.bufferLength = bufferFullLength - offset
-      this.bufferOffset = offset
+      // A partial message remains.
+      // Create a new, smaller buffer and copy only the remaining data into it.
+      // This breaks the reference to the original, potentially huge buffer.
+      const remainingLength = bufferFullLength - offset
+      const newBuffer = Buffer.allocUnsafe(remainingLength)
+      this.buffer.copy(newBuffer, 0, offset, offset + remainingLength)
+
+      this.buffer = newBuffer
+      this.bufferOffset = 0
+      this.bufferLength = remainingLength
     }
   }
 
