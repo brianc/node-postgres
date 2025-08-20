@@ -96,7 +96,7 @@ if (!process.version.startsWith('v8')) {
         for await (const row of stream) {
           rows.push(row)
         }
-      } catch (e) {
+      } catch {
         // swallow error - node 17 throws if stream is aborted
       }
       assert.strictEqual(rows.length, 1)
