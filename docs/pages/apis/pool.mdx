@@ -91,7 +91,7 @@ const result = await pool.query('SELECT $1::text as name', ['brianc'])
 console.log(result.rows[0].name) // brianc
 ```
 
-Notice in the example above there is no need to check out or release a client. The pool is doing the acquiring and releasing internally. I find `pool.query` to be a handy shortcut many situations and use it exclusively unless I need a transaction.
+Notice in the example above there is no need to check out or release a client. The pool is doing the acquiring and releasing internally. I find `pool.query` to be a handy shortcut in many situations and I use it exclusively unless I need a transaction.
 
 <Alert>
   <div>
@@ -112,7 +112,7 @@ Acquires a client from the pool.
 
 - If there are idle clients in the pool one will be returned to the callback on `process.nextTick`.
 - If the pool is not full but all current clients are checked out a new client will be created & returned to this callback.
-- If the pool is 'full' and all clients are currently checked out will wait in a FIFO queue until a client becomes available by it being released back to the pool.
+- If the pool is 'full' and all clients are currently checked out, requests will wait in a FIFO queue until a client becomes available by being released back to the pool.
 
 ```js
 import { Pool } from 'pg'
