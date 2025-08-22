@@ -226,4 +226,25 @@ describe('connection timeout', () => {
       })
     })
   })
+
+  it('should connect if timeout is passed, but native client in connected state', (done) => {
+    const Client = require('pg').native.Client
+
+    Client.prototype.connect = function (cb) {
+      this._connected = true
+
+      return setTimeout(() => {
+        cb()
+      }, 200)
+    }
+
+    const pool = new Pool({ connectionTimeoutMillis: 100, port: this.port, host: 'localhost' }, Client)
+
+    pool.connect((err, client, release) => {
+      expect(err).to.be(undefined)
+      expect(client).to.not.be(undefined)
+      expect(client.isConnected()).to.be(true)
+      done()
+    })
+  })
 })
