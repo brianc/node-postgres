@@ -112,9 +112,26 @@ export class Parser {
       this.bufferLength = 0
       this.bufferOffset = 0
     } else {
-      // Adjust the cursors of remainingBuffer
-      this.bufferLength = bufferFullLength - offset
-      this.bufferOffset = offset
+      // A partial message remains.
+      // Use a gradual shrinking strategy: only shrink if buffer is at least half empty,
+      // and when shrinking, reduce to half size (not exact size) to provide wiggle room.
+      const remainingLength = bufferFullLength - offset
+      const bufferUtilization = remainingLength / this.buffer.byteLength
+
+      if (bufferUtilization < 0.5) {
+        // Buffer is more than half empty - shrink it to half its current size
+        const newBufferSize = Math.max(this.buffer.byteLength / 2, remainingLength * 2)
+        const newBuffer = Buffer.allocUnsafe(newBufferSize)
+        this.buffer.copy(newBuffer, 0, offset, offset + remainingLength)
+
+        this.buffer = newBuffer
+        this.bufferOffset = 0
+        this.bufferLength = remainingLength
+      } else {
+        // Buffer utilization is reasonable - use existing cursor strategy
+        this.bufferLength = remainingLength
+        this.bufferOffset = offset
+      }
     }
   }
 
