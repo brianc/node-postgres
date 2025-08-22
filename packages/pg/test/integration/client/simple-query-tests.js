@@ -19,15 +19,8 @@ test('simple query interface', function () {
     rows.push(row['name'])
   })
   query.once('row', function (row) {
-    test('Can iterate through columns', function () {
-      const columnCount = Object.keys(row).length
-      if ('length' in row) {
-        assert.lengthIs(
-          row,
-          columnCount,
-          'Iterating through the columns gives a different length from calling .length.'
-        )
-      }
+    test('returned right columns', function () {
+      assert.deepStrictEqual(row, { name: row.name })
     })
   })
 
