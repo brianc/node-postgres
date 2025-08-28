@@ -75,7 +75,7 @@ suite.test('pipelining mode rejects simple queries', (cb) => {
     client.query('SELECT 1', (err, result) => {
       helper.assert(err)
       helper.assert.equal(
-        err.message, 
+        err.message,
         'Simple query protocol is not allowed in pipeline mode. Use parameterized queries.'
       )
       client.end(cb)
