@@ -281,7 +281,7 @@ class Query extends EventEmitter {
     })
 
     if (!this.rows) {
-      connection.sync()
+      connection.pipelineSync()
     } else {
       connection.flush()
     }

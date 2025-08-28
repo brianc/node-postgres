@@ -178,6 +178,11 @@ class Connection extends EventEmitter {
     this._send(syncBuffer)
   }
 
+  pipelineSync() {
+    // Send sync without marking connection as ending (for pipeline mode)
+    this._send(syncBuffer)
+  }
+
   ref() {
     this.stream.ref()
   }
