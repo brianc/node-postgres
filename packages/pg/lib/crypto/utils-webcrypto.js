@@ -35,7 +35,7 @@ function randomBytes(length) {
 async function md5(string) {
   try {
     return nodeCrypto.createHash('md5').update(string, 'utf-8').digest('hex')
-  } catch (e) {
+  } catch {
     // `createHash()` failed so we are probably not in Node.js, use the WebCrypto API instead.
     // Note that the MD5 algorithm on WebCrypto is not available in Node.js.
     // This is why we cannot just use WebCrypto in all environments.

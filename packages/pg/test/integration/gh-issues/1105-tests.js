@@ -11,7 +11,7 @@ suite.testAsync('timeout causing query crashes', async () => {
   while (count++ < 5000) {
     try {
       await client.query('INSERT INTO foobar(name) VALUES ($1)', [Math.random() * 1000 + ''])
-    } catch (e) {
+    } catch {
       await client.query('ROLLBACK')
     }
   }

@@ -42,7 +42,7 @@ describe('pool error handling', function () {
     const pool = new Pool()
     try {
       await pool.query(null)
-    } catch (e) {
+    } catch {
       caught = true
     }
     pool.end()
