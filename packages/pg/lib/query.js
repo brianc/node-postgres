@@ -280,7 +280,11 @@ class Query extends EventEmitter {
       rows: this.rows,
     })
 
-    connection.flush()
+    if (!this.rows) {
+      connection.sync()
+    } else {
+      connection.flush()
+    }
   }
 }
 
