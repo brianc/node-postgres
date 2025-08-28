@@ -752,7 +752,7 @@ class Client extends EventEmitter {
     if (typeof value !== 'boolean') {
       throw new TypeError('pipelining must be a boolean')
     }
-    
+
     if (this._pipelining === value) {
       return
     }
@@ -776,11 +776,11 @@ class Client extends EventEmitter {
     if (this._pipelining) {
       return
     }
-    
+
     this._pipelining = true
     this._pipelineActive = true
     this._pipelineQueue = []
-    
+
     // Send pipeline mode command to server
     this.connection.enterPipelineMode()
   }
@@ -797,7 +797,7 @@ class Client extends EventEmitter {
 
     this._pipelining = false
     this._pipelineActive = false
-    
+
     // Send exit pipeline mode command to server
     this.connection.exitPipelineMode()
   }
@@ -823,7 +823,7 @@ class Client extends EventEmitter {
 
     // Add query to pipeline queue
     this._pipelineQueue.push(query)
-    
+
     // Submit query using pipeline-specific method
     const queryError = this._submitPipelineQuery(query)
     if (queryError) {
@@ -859,7 +859,7 @@ class Client extends EventEmitter {
     } finally {
       this.connection.stream.uncork && this.connection.stream.uncork()
     }
-    
+
     return null
   }
 }

@@ -279,7 +279,7 @@ class Query extends EventEmitter {
       portal: this.portal,
       rows: this.rows,
     })
-    
+
     connection.flush()
   }
 }
