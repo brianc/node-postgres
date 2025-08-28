@@ -383,6 +383,11 @@ class Client extends EventEmitter {
       const completedQuery = this._pipelineQueue.shift()
       if (completedQuery) {
         completedQuery.handleReadyForQuery(this.connection)
+      } else {
+        // No queries in pipeline queue, but we received readyForQuery
+        // This might happen due to message timing in pipeline mode
+        // Just mark as ready for more queries
+        this.readyForQuery = true
       }
     }
 
@@ -808,6 +813,12 @@ class Client extends EventEmitter {
     this._pipelining = false
     this._pipelineActive = false
 
+    // Clear any pending sync timer
+    if (this._pipelineSyncTimer) {
+      clearTimeout(this._pipelineSyncTimer)
+      this._pipelineSyncTimer = null
+    }
+
     // Send exit pipeline mode command to server
     this.connection.exitPipelineMode()
   }
@@ -845,9 +856,27 @@ class Client extends EventEmitter {
           this._pipelineQueue.splice(index, 1)
         }
       })
+    } else {
+      // Schedule a sync after a short delay to allow batching
+      this._schedulePipelineSync()
     }
 
     return result
+  }
+
+  _schedulePipelineSync() {
+    // Clear any existing sync timer
+    if (this._pipelineSyncTimer) {
+      clearTimeout(this._pipelineSyncTimer)
+    }
+
+    // Schedule a sync after a short delay to allow multiple queries to batch
+    this._pipelineSyncTimer = setTimeout(() => {
+      if (this._pipelining && this._pipelineQueue.length > 0) {
+        this.connection.pipelineSync()
+      }
+      this._pipelineSyncTimer = null
+    }, 0) // Use 0 delay to sync on next tick
   }
 
   _submitPipelineQuery(query) {
