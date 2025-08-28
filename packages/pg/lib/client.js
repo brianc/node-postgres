@@ -471,6 +471,11 @@ class Client extends EventEmitter {
   _handleCommandComplete(msg) {
     const query = this._getCurrentQuery()
     if (query == null) {
+      // In pipeline mode, commandComplete might be received after query is processed
+      // This can happen due to message timing, so we can safely ignore it
+      if (this._pipelining) {
+        return
+      }
       const error = new Error('Received unexpected commandComplete message from backend.')
       this._handleErrorEvent(error)
       return
