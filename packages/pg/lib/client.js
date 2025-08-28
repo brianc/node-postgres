@@ -488,7 +488,7 @@ class Client extends EventEmitter {
   }
 
   _handleParseComplete() {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getCurrentQuery()
     if (activeQuery == null) {
       const error = new Error('Received unexpected parseComplete message from backend.')
       this._handleErrorEvent(error)
