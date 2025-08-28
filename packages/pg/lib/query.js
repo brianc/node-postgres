@@ -247,6 +247,41 @@ class Query extends EventEmitter {
   handleCopyData(msg, connection) {
     // noop
   }
+
+  preparePipeline(connection) {
+    if (!this.hasBeenParsed(connection)) {
+      connection.parse({
+        text: this.text,
+        name: this.name,
+        types: this.types,
+      })
+    }
+
+    try {
+      connection.bind({
+        portal: this.portal,
+        statement: this.name,
+        values: this.values,
+        binary: this.binary,
+        valueMapper: utils.prepareValue,
+      })
+    } catch (err) {
+      this.handleError(err, connection)
+      return
+    }
+
+    connection.describe({
+      type: 'P',
+      name: this.portal || '',
+    })
+
+    connection.execute({
+      portal: this.portal,
+      rows: this.rows,
+    })
+    
+    connection.flush()
+  }
 }
 
 module.exports = Query

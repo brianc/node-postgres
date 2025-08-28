@@ -217,6 +217,16 @@ class Connection extends EventEmitter {
   sendCopyFail(msg) {
     this._send(serialize.copyFail(msg))
   }
+
+  enterPipelineMode() {
+    this._pipelineMode = true
+  }
+
+  exitPipelineMode() {
+    // Send sync to end pipeline mode
+    this.sync()
+    this._pipelineMode = false
+  }
 }
 
 module.exports = Connection

@@ -83,6 +83,9 @@ class Client extends EventEmitter {
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
+    this._pipelining = false
+    this._pipelineQueue = []
+    this._pipelineActive = false
     this.ssl = this.connectionParameters.ssl || false
     // As with Password, make SSL->Key (the private key) non-enumerable.
     // It won't show up in stack traces
@@ -125,6 +128,12 @@ class Client extends EventEmitter {
 
     this._queryQueue.forEach(enqueueError)
     this._queryQueue.length = 0
+
+    // Also error all pipeline queries
+    if (this._pipelineQueue) {
+      this._pipelineQueue.forEach(enqueueError)
+      this._pipelineQueue.length = 0
+    }
   }
 
   _connect(callback) {
@@ -354,6 +363,11 @@ class Client extends EventEmitter {
       }
       this.emit('connect')
     }
+
+    if (this._pipelining) {
+      return this._handlePipelineReadyForQuery(msg)
+    }
+
     const activeQuery = this._getActiveQuery()
     this._activeQuery = null
     this.readyForQuery = true
@@ -361,6 +375,22 @@ class Client extends EventEmitter {
       activeQuery.handleReadyForQuery(this.connection)
     }
     this._pulseQueryQueue()
+  }
+
+  _handlePipelineReadyForQuery(msg) {
+    // In pipeline mode, handle completed queries
+    if (this._pipelineQueue.length > 0) {
+      const completedQuery = this._pipelineQueue.shift()
+      if (completedQuery) {
+        completedQuery.handleReadyForQuery(this.connection)
+      }
+    }
+
+    // If no more queries in pipeline, we're ready for more
+    if (this._pipelineQueue.length === 0) {
+      this.readyForQuery = true
+      this.emit('drain')
+    }
   }
 
   // if we receive an error event or error message
@@ -408,33 +438,53 @@ class Client extends EventEmitter {
 
   _handleRowDescription(msg) {
     // delegate rowDescription to active query
-    this._getActiveQuery().handleRowDescription(msg)
+    const query = this._getCurrentQuery()
+    if (query) {
+      query.handleRowDescription(msg)
+    }
   }
 
   _handleDataRow(msg) {
     // delegate dataRow to active query
-    this._getActiveQuery().handleDataRow(msg)
+    const query = this._getCurrentQuery()
+    if (query) {
+      query.handleDataRow(msg)
+    }
   }
 
   _handlePortalSuspended(msg) {
     // delegate portalSuspended to active query
-    this._getActiveQuery().handlePortalSuspended(this.connection)
+    const query = this._getCurrentQuery()
+    if (query) {
+      query.handlePortalSuspended(this.connection)
+    }
   }
 
   _handleEmptyQuery(msg) {
     // delegate emptyQuery to active query
-    this._getActiveQuery().handleEmptyQuery(this.connection)
+    const query = this._getCurrentQuery()
+    if (query) {
+      query.handleEmptyQuery(this.connection)
+    }
   }
 
   _handleCommandComplete(msg) {
-    const activeQuery = this._getActiveQuery()
-    if (activeQuery == null) {
+    const query = this._getCurrentQuery()
+    if (query == null) {
       const error = new Error('Received unexpected commandComplete message from backend.')
       this._handleErrorEvent(error)
       return
     }
     // delegate commandComplete to active query
-    activeQuery.handleCommandComplete(msg, this.connection)
+    query.handleCommandComplete(msg, this.connection)
+  }
+
+  _getCurrentQuery() {
+    if (this._pipelining) {
+      // In pipeline mode, return the first query in the pipeline queue
+      return this._pipelineQueue.length > 0 ? this._pipelineQueue[0] : null
+    }
+    return this._getActiveQuery()
   }
 
   _handleParseComplete() {
@@ -644,6 +694,10 @@ class Client extends EventEmitter {
       return result
     }
 
+    if (this._pipelining) {
+      return this._pipelineQuery(query, result)
+    }
+
     this._queryQueue.push(query)
     this._pulseQueryQueue()
     return result
@@ -688,6 +742,125 @@ class Client extends EventEmitter {
   get queryQueue() {
     queryQueueDeprecationNotice()
     return this._queryQueue
+  }
+
+  get pipelining() {
+    return this._pipelining
+  }
+
+  set pipelining(value) {
+    if (typeof value !== 'boolean') {
+      throw new TypeError('pipelining must be a boolean')
+    }
+    
+    if (this._pipelining === value) {
+      return
+    }
+
+    if (value && !this._connected) {
+      throw new Error('Cannot enable pipelining mode before connection is established')
+    }
+
+    if (value && this._getActiveQuery()) {
+      throw new Error('Cannot enable pipelining mode while a query is active')
+    }
+
+    if (value) {
+      this._enterPipelineMode()
+    } else {
+      this._exitPipelineMode()
+    }
+  }
+
+  _enterPipelineMode() {
+    if (this._pipelining) {
+      return
+    }
+    
+    this._pipelining = true
+    this._pipelineActive = true
+    this._pipelineQueue = []
+    
+    // Send pipeline mode command to server
+    this.connection.enterPipelineMode()
+  }
+
+  _exitPipelineMode() {
+    if (!this._pipelining) {
+      return
+    }
+
+    // Process any remaining queries in pipeline
+    if (this._pipelineQueue.length > 0) {
+      throw new Error('Cannot exit pipeline mode with pending queries')
+    }
+
+    this._pipelining = false
+    this._pipelineActive = false
+    
+    // Send exit pipeline mode command to server
+    this.connection.exitPipelineMode()
+  }
+
+  _pipelineQuery(query, result) {
+    // Validate query for pipeline mode
+    if (query.text && typeof query.text === 'string' && query.text.includes(';')) {
+      const error = new Error('Multiple SQL commands in a single query are not allowed in pipeline mode')
+      process.nextTick(() => {
+        query.handleError(error, this.connection)
+      })
+      return result
+    }
+
+    // Disallow simple query protocol in pipeline mode
+    if (!query.requiresPreparation()) {
+      const error = new Error('Simple query protocol is not allowed in pipeline mode. Use parameterized queries.')
+      process.nextTick(() => {
+        query.handleError(error, this.connection)
+      })
+      return result
+    }
+
+    // Add query to pipeline queue
+    this._pipelineQueue.push(query)
+    
+    // Submit query using pipeline-specific method
+    const queryError = this._submitPipelineQuery(query)
+    if (queryError) {
+      process.nextTick(() => {
+        query.handleError(queryError, this.connection)
+        // Remove from pipeline queue on error
+        const index = this._pipelineQueue.indexOf(query)
+        if (index > -1) {
+          this._pipelineQueue.splice(index, 1)
+        }
+      })
+    }
+
+    return result
+  }
+
+  _submitPipelineQuery(query) {
+    if (typeof query.text !== 'string' && typeof query.name !== 'string') {
+      return new Error('A query must have either text or a name. Supplying neither is unsupported.')
+    }
+    const previous = this.connection.parsedStatements[query.name]
+    if (query.text && previous && query.text !== previous) {
+      return new Error(`Prepared statements must be unique - '${query.name}' was used for a different statement`)
+    }
+    if (query.values && !Array.isArray(query.values)) {
+      return new Error('Query values must be an array')
+    }
+
+    // In pipeline mode, we always use extended query protocol
+    this.connection.stream.cork && this.connection.stream.cork()
+    try {
+      query.preparePipeline(this.connection)
+    } finally {
+      this.connection.stream.uncork && this.connection.stream.uncork()
+    }
+    
+    return null
   }
 }
 
