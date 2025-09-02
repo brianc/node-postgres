@@ -39,7 +39,7 @@
     "pgpass": "1.0.5"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "0.8.23",
+    "@cloudflare/vitest-pool-workers": "0.8.68",
     "@cloudflare/workers-types": "^4.20230404.0",
     "async": "2.6.4",
     "bluebird": "3.7.2",
