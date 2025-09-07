@@ -18,6 +18,16 @@ Some ways I've done it in the past:
  2. Install PostgreSQL (`http://www.postgresql.org/download/windows/`)
  3. Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
  4. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
+- On Docker:
+```Docker
+FROM node:24-slim
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get -y install libpq-dev python3 g++ make \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+```
 
 Afterwards `pg_config` should be in your path. Then...
 
