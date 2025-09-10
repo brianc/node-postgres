@@ -11,25 +11,13 @@ You need PostgreSQL client libraries & tools installed. An easy way to check is 
 Some ways I've done it in the past:
 
 - On macOS: `brew install libpq`
-- On Ubuntu/Debian: `apt-get install libpq-dev g++ make`
+- On Ubuntu/Debian and Debian-based Node images: `apt-get install libpq-dev python3 g++ make`
 - On RHEL/CentOS: `yum install postgresql-devel`
 - On Windows:
   1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
-  1. Install PostgreSQL (http://www.postgresql.org/download/windows/)
-  1. Add your Postgre Installation's bin folder to the system path (i.e. C:\Program Files\PostgreSQL\9.3\bin).
-  1. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
-- On Docker:
-```Docker
-FROM node:24-slim
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update \
-    && apt-get -y install libpq-dev python3 g++ make \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
-```
+  2. Install PostgreSQL (http://www.postgresql.org/download/windows/)
+  3. Add your Postgre Installation's bin folder to the system path (i.e. C:\Program Files\PostgreSQL\9.3\bin).
+  4. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
 
 Install `pg` and `pg-native` them:
 
