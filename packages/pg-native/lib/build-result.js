@@ -33,9 +33,8 @@ class Result {
   }
 
   consumeRows(pq) {
-    const tupleCount = pq.ntuples()
-    this.rows = new Array(tupleCount)
-    for (let i = 0; i < tupleCount; i++) {
+    this.rows = new Array(this.rowCount)
+    for (let i = 0; i < this.rowCount; i++) {
       this.rows[i] = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
     }
   }
