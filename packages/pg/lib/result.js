@@ -64,12 +64,9 @@ class Result {
     const row = { ...this._prebuiltEmptyResultObject }
     for (let i = 0, len = rowData.length; i < len; i++) {
       const rawValue = rowData[i]
-      const field = this.fields[i].name
       if (rawValue !== null) {
-        const v = this.fields[i].format === 'binary' ? Buffer.from(rawValue) : rawValue
-        row[field] = this._parsers[i](v)
-      } else {
-        row[field] = null
+        const field = this.fields[i]
+        row[field.name] = this._parsers[i](field.format === 'binary' ? Buffer.from(rawValue) : rawValue)
       }
     }
     return row
