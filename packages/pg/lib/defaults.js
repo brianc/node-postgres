@@ -5,7 +5,7 @@ module.exports = {
   host: 'localhost',
 
   // database user's name
-  user: process.platform === 'win32' ? process.env.USERNAME : process.env.USER,
+  user: 'postgres',
 
   // name of database to connect
   database: undefined,
