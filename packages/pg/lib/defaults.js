@@ -1,8 +1,8 @@
 'use strict'
 
-let defaultUser = 'postgres'
+let user
 try {
-  defaultUser = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
+  user = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
 } catch {
   // ignore, e.g., Deno without --allow-env
 }
@@ -12,7 +12,7 @@ module.exports = {
   host: 'localhost',
 
   // database user's name
-  user: defaultUser,
+  user,
 
   // name of database to connect
   database: undefined,
