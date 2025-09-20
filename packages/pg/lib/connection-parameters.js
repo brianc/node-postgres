@@ -7,7 +7,7 @@ const defaults = require('./defaults')
 const parse = require('pg-connection-string').parse // parses a connection string
 
 const val = function (key, config, envVar) {
-  if (config[key] !== undefined) {
+  if (config[key]) {
     return config[key]
   }
 
