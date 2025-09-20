@@ -36,12 +36,15 @@ const PG = function (clientConstructor) {
 
 let clientConstructor = Client
 
+let forceNative = false
 try {
-  if (process.env.NODE_PG_FORCE_NATIVE) {
-    clientConstructor = require('./native')
-  }
+  forceNative = !!process.env.NODE_PG_FORCE_NATIVE
 } catch {
   // ignore, e.g., Deno without --allow-env
+}
+
+if (forceNative) {
+  clientConstructor = require('./native')
 }
 
 module.exports = new PG(clientConstructor)
