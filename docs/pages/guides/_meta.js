@@ -1,0 +1,6 @@
+export default {
+  'project-structure': 'Suggested Code Structure',
+  'async-express': 'Express with Async/Await',
+  'pool-sizing': 'Pool Sizing',
+  upgrading: 'Upgrading',
+}

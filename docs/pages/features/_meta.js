@@ -1,0 +1,11 @@
+export default {
+  connecting: 'Connecting',
+  queries: 'Queries',
+  pooling: 'Pooling',
+  transactions: 'Transactions',
+  types: 'Data Types',
+  ssl: 'SSL',
+  native: 'Native',
+  esm: 'ESM',
+  callbacks: 'Callbacks',
+}
