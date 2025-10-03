@@ -177,7 +177,8 @@ const escapeLiteral = function (str) {
     return "''"
   }
   let hasBackslash = false
-  if (str.length < 15) {
+  if (str.length < 13) {
+    // This methid is a bit faster for short strings
     let escaped = "'"
 
     for (let i = 0; i < str.length; i++) {
