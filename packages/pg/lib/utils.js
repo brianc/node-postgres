@@ -177,19 +177,42 @@ const escapeLiteral = function (str) {
     return "''"
   }
   let hasBackslash = false
-  let escaped = str
-    .replace(/\\/g, () => {
+  if (str.length < 15) {
+    let escaped = "'"
+
+    for (let i = 0; i < str.length; i++) {
+      const c = str[i]
+      if (c === "'") {
+        escaped += c + c
+      } else if (c === '\\') {
+        escaped += c + c
         hasBackslash = true
-        return '\\\\'
-    })
-    .replace(/'/g, "''")
+      } else {
+        escaped += c
+      }
+    }
   
-  if (hasBackslash) {
-    escaped = ` E'${escaped}'`
+    escaped += "'"
+  
+    if (hasBackslash === true) {
+      escaped = ' E' + escaped
+    }
+    return escaped
   } else {
-    escaped = `'${escaped}'`
+    let escaped = str
+        .replace(/\\/g, () => {
+            hasBackslash = true
+            return '\\\\'
+        })
+        .replace(/'/g, "''")
+    
+    if (hasBackslash) {
+        escaped = ` E'${escaped}'`
+    } else {
+        escaped = `'${escaped}'`
+    }
+    return escaped
   }
-  return escaped
 }
 
 module.exports = {
