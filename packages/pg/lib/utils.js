@@ -138,7 +138,6 @@ function dateToStringUTC(date) {
   if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
     throw new TypeError('Cannot serialize invalid date')
   }
-  
   let year = date.getUTCFullYear()
   const isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
