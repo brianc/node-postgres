@@ -314,3 +314,28 @@ testEscapeIdentifier(
   'hello \\ \' " world',
   '"hello \\ \' "" world"'
 )
+
+test('prepareValue: invalid date from undefined throws error', function () {
+  assert.throws(() => {
+    utils.prepareValue(new Date(undefined))
+  }, /Cannot serialize invalid date/)
+})
+
+test('prepareValue: invalid date from NaN throws error', function () {
+  assert.throws(() => {
+    utils.prepareValue(new Date(NaN))
+  }, /Cannot serialize invalid date/)
+})
+
+test('prepareValue: invalid date from invalid string throws error', function () {
+  assert.throws(() => {
+    utils.prepareValue(new Date('invalid'))
+  }, /Cannot serialize invalid date/)
+})
+
+test('prepareValue: valid date still works correctly', function () {
+  const date = new Date('2024-01-01T12:00:00Z')
+  const result = utils.prepareValue(date)
+  assert(typeof result === 'string')
+  assert(result.includes('2024'))
+})

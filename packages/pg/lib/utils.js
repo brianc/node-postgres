@@ -97,9 +97,8 @@ function dateToString(date) {
   // Invalid dates can occur from new Date(undefined), new Date(NaN), etc.
   // See https://github.com/brianc/node-postgres/issues/3318
   if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-    throw new TypeError('Cannot serialize invalid date');
+    throw new TypeError('Cannot serialize invalid date')
   }
-  
   let offset = -date.getTimezoneOffset()
   let year = date.getFullYear()
   const isBCYear = year < 1
@@ -137,7 +136,7 @@ function dateToStringUTC(date) {
   // Invalid dates can occur from new Date(undefined), new Date(NaN), etc.
   // See https://github.com/brianc/node-postgres/issues/3318
   if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-    throw new TypeError('Cannot serialize invalid date');
+    throw new TypeError('Cannot serialize invalid date')
   }
   
   let year = date.getUTCFullYear()
