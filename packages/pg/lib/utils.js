@@ -93,8 +93,14 @@ function prepareObject(val, seen) {
 }
 
 function dateToString(date) {
+  // Validate date to prevent serialization of invalid dates as "NaN-NaN-NaN..."
+  // Invalid dates can occur from new Date(undefined), new Date(NaN), etc.
+  // See https://github.com/brianc/node-postgres/issues/3318
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    throw new TypeError('Cannot serialize invalid date');
+  }
+  
   let offset = -date.getTimezoneOffset()
-
   let year = date.getFullYear()
   const isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
@@ -127,6 +133,13 @@ function dateToString(date) {
 }
 
 function dateToStringUTC(date) {
+  // Validate date to prevent serialization of invalid dates as "NaN-NaN-NaN..."
+  // Invalid dates can occur from new Date(undefined), new Date(NaN), etc.
+  // See https://github.com/brianc/node-postgres/issues/3318
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    throw new TypeError('Cannot serialize invalid date');
+  }
+  
   let year = date.getUTCFullYear()
   const isBCYear = year < 1
   if (isBCYear) year = Math.abs(year) + 1 // negative years are 1 off their BC representation
