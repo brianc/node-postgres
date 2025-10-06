@@ -183,13 +183,7 @@ const escapeLiteral = function (str) {
           return '\\\\'
       })
       .replace(/'/g, "''")
-
-  if (hasBackslash) {
-      escaped = ` E'${escaped}'`
-  } else {
-      escaped = `'${escaped}'`
-  }
-  return escaped
+  return hasBackslash ? ` E'${escaped}'` : `'${escaped}'`
 }
 
 module.exports = {
