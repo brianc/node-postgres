@@ -160,7 +160,15 @@ const bind = (config: BindOpts = {}): Buffer => {
   // all results use the same format code
   writer.addInt16(1)
   // format code
-  writer.addInt16(binary ? ParamType.BINARY : ParamType.STRING)
+  if (binary) {
+    const columnFormatCount = 1
+    writer.addInt16(columnFormatCount)
+    writer.addInt16(ParamType.BINARY)
+  } else {
+    const columnFormatCount = 0
+    writer.addInt16(columnFormatCount)
+  }
+
   return writer.flush(code.bind)
 }
 
