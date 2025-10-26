@@ -66,8 +66,7 @@ class Result {
       const rawValue = rowData[i]
       const field = this.fields[i].name
       if (rawValue !== null) {
-        const v = this.fields[i].format === 'binary' ? Buffer.from(rawValue) : rawValue
-        row[field] = this._parsers[i](v)
+        row[field] = this._parsers[i](rawValue)
       } else {
         row[field] = null
       }
