@@ -164,3 +164,31 @@ suite.test('handles socket error during pool.query and destroys it immediately',
     }, 100)
   }
 })
+
+// suite.test('unexpected handling packet error emit catchable errors', () => {
+//   const pool = new pg.Pool()
+//   pool.connect(
+//     assert.success((client, done) => {
+//       client.once(
+//         'error',
+//         // After unexpected packed error, the client will receive an unexpected commandComplete message from backend
+//         assert.calls((err) => {
+//           assert.equal(`${err}`, 'Error: Received unexpected commandComplete message from backend.')
+//           done()
+//         })
+//       )
+//       client.query(
+//         // Retrieve a field which length cannot be handled by JS
+//         `SELECT repeat('A', 536870889)`,
+//         assert.calls((err) => {
+//           if (helper.args.native) {
+//             assert.ok(err)
+//           } else {
+//             assert.equal(err.message, 'unexpected error handling packet: Error: Cannot create a string longer than 0x1fffffe8 characters')
+//             assert.equal(err.length, 536870899)
+//           }
+//         })
+//       )
+//     })
+//   )
+// })
