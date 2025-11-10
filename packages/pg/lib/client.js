@@ -588,6 +588,10 @@ class Client extends EventEmitter {
           Error.captureStackTrace(err)
           throw err
         })
+      } else {
+        if(!(typeof values === 'function')){
+          throw new Error('callback is not a function')
+        }
       }
     }
 
