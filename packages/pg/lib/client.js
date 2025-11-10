@@ -589,7 +589,7 @@ class Client extends EventEmitter {
           throw err
         })
       } else {
-        if( !(typeof values === 'function') ){
+        if (!(typeof values === 'function')) {
           throw new Error('callback is not a function')
         }
       }
