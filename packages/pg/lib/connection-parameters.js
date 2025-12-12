@@ -7,6 +7,10 @@ const defaults = require('./defaults')
 const parse = require('pg-connection-string').parse // parses a connection string
 
 const val = function (key, config, envVar) {
+  if (config[key]) {
+    return config[key]
+  }
+
   if (envVar === undefined) {
     envVar = process.env['PG' + key.toUpperCase()]
   } else if (envVar === false) {
@@ -15,7 +19,7 @@ const val = function (key, config, envVar) {
     envVar = process.env[envVar]
   }
 
-  return config[key] || envVar || defaults[key]
+  return envVar || defaults[key]
 }
 
 const readSSLConfigFromEnvironment = function () {
