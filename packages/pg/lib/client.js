@@ -11,6 +11,7 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
+const Deque = require('./deque')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
@@ -79,7 +80,7 @@ class Client extends EventEmitter {
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
       })
-    this._queryQueue = []
+    this._queryQueue = new Deque()
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -124,7 +125,7 @@ class Client extends EventEmitter {
     }
 
     this._queryQueue.forEach(enqueueError)
-    this._queryQueue.length = 0
+    this._queryQueue.clear()
   }
 
   _connect(callback) {
@@ -608,10 +609,7 @@ class Client extends EventEmitter {
         query.callback = () => {}
 
         // Remove from queue
-        const index = this._queryQueue.indexOf(query)
-        if (index > -1) {
-          this._queryQueue.splice(index, 1)
-        }
+        this._queryQueue.remove(query)
 
         this._pulseQueryQueue()
       }, readTimeout)
