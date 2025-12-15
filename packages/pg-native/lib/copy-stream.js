@@ -2,11 +2,10 @@ const { Duplex, Writable } = require('stream')
 
 module.exports = class CopyStream extends Duplex {
   constructor(pq, options) {
-    super(options);
-    this.pq = pq;
-    this._reading = false;
+    super(options)
+    this.pq = pq
+    this._reading = false
   }
-
 
   // writer methods
   _write(chunk, encoding, cb) {
