@@ -8,9 +8,6 @@ const CopyStream = require('./lib/copy-stream')
 class ClientClass extends EventEmitter {
   constructor(config) {
     super()
-    if (!(this instanceof Client)) {
-      return new Client(config)
-    }
 
     config = config || {}
 
@@ -329,5 +326,5 @@ const throwIfError = function (pq) {
 module.exports.version = require('./package.json').version
 
 module.exports = function Client(config) {
-  return new ClientClass(config);
+  return new ClientClass(config)
 }
