@@ -5,7 +5,7 @@ const types = require('pg-types')
 const buildResult = require('./lib/build-result')
 const CopyStream = require('./lib/copy-stream')
 
-module.exports = class Client extends EventEmitter {
+class ClientClass extends EventEmitter {
   constructor(config) {
     super()
     if (!(this instanceof Client)) {
@@ -327,3 +327,7 @@ const throwIfError = function (pq) {
 
 // export the version number so we can check it in node-postgres
 module.exports.version = require('./package.json').version
+
+module.exports = function Client(config) {
+  return new ClientClass(config);
+}
