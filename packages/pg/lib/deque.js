@@ -1,66 +1,81 @@
 class Deque {
   constructor() {
-    this._store = Object.create(null)
-    this._head = 0
-    this._tail = 0
+    this._head = null
+    this._tail = null
+    this._size = 0
+    this._index = new WeakMap()
   }
 
   push(item) {
-    this._store[this._tail++] = item
+    const node = { value: item, prev: this._tail, next: null }
+
+    if (this._tail) {
+      node.prev = this._tail
+      this._tail.next = node
+      this._tail = node
+    } else {
+      this._head = this._tail = node
+    }
+
+    this._index.set(item, node)
+    this._size++
   }
 
   shift() {
-    if (this._head === this._tail) return undefined
-    const item = this._store[this._head]
-    this._store[this._head] = undefined
-    this._head++
+    if (!this._head) return undefined
 
-    if (this._head === this._tail) {
-      this._head = 0
-      this._tail = 0
+    const node = this._head
+    const value = node.value
+
+    this._head = node.next
+    if (this._head) {
+      this._head.prev = null
+    } else {
+      this._tail = null
     }
 
-    return item
+    this._index.delete(value)
+    this._size--
+
+    node.prev = node.next = null
+
+    return value
   }
 
   get length() {
-    return this._tail - this._head
+    return this._size
   }
 
   clear() {
-    this._store = Object.create(null)
-    this._head = 0
-    this._tail = 0
+    this._head = null
+    this._tail = null
+    this._size = 0
+    this._index = new WeakMap()
   }
 
   remove(item) {
-    if (this._head === this._tail) return
+    const node = this._index.get(item)
+    if (!node) return false
 
-    const store = this._store
-    let write = this._head
+    if (node.prev) node.prev.next = node.next
+    else this._head = node.next
 
-    for (let read = this._head; read < this._tail; read++) {
-      const current = store[read]
-      if (current !== item) {
-        store[write++] = current
-      }
-    }
+    if (node.next) node.next.prev = node.prev
+    else this._tail = node.prev
 
-    for (let i = write; i < this._tail; i++) {
-      store[i] = undefined
-    }
+    this._index.delete(item)
+    this._size--
 
-    this._tail = write
+    node.prev = node.next = null
 
-    if (this._head === this._tail) {
-      this._head = 0
-      this._tail = 0
-    }
+    return true
   }
 
   forEach(fn) {
-    for (let i = this._head; i < this._tail; i++) {
-      fn(this._store[i])
+    let curr = this._head
+    while (curr) {
+      fn(curr.value)
+      curr = curr.next
     }
   }
 }
