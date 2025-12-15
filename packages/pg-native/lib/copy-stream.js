@@ -1,7 +1,4 @@
-const Duplex = require('stream').Duplex
-const Writable = require('stream').Writable
-const util = require('util')
-
+const { Duplex, Writable } = require('stream')
 
 class CopyStream extends Duplex {
   constructor(pq, options) {
