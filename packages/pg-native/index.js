@@ -1,13 +1,13 @@
 const Libpq = require('libpq')
 const EventEmitter = require('events').EventEmitter
-const util = require('util')
 const assert = require('assert')
 const types = require('pg-types')
 const buildResult = require('./lib/build-result')
 const CopyStream = require('./lib/copy-stream')
 
 module.exports = class Client extends EventEmitter {
-  constructor (config) {
+  constructor(config) {
+    super()
     if (!(this instanceof Client)) {
       return new Client(config)
     }
