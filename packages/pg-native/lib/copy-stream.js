@@ -1,6 +1,6 @@
 const { Duplex, Writable } = require('stream')
 
-class CopyStream extends Duplex {
+module.exports = class CopyStream extends Duplex {
   constructor(pq, options) {
     super(options);
     this.pq = pq;
