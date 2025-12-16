@@ -125,7 +125,7 @@ class Pool extends EventEmitter {
     if (this.ending) {
       this.log('pulse queue on ending')
       if (this._idle.length) {
-        this._idle.slice().map((item) => {
+        for (const item of this._idle) {
           this._remove(item.client)
         })
       }
