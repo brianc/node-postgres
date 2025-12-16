@@ -11,7 +11,7 @@ You need PostgreSQL client libraries & tools installed. An easy way to check is 
 Some ways I've done it in the past:
 
 - On macOS: `brew install libpq`
-- On Ubuntu/Debian: `apt-get install libpq-dev g++ make`
+- On Ubuntu/Debian and Debian-based Node images: `apt-get install libpq-dev python3 g++ make`
 - On RHEL/CentOS: `yum install postgresql-devel`
 - On Windows:
  1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
