@@ -127,7 +127,7 @@ class Pool extends EventEmitter {
       if (this._idle.length) {
         for (const item of this._idle) {
           this._remove(item.client)
-        })
+        }
       }
       if (!this._clients.length) {
         this.ended = true
