@@ -1,0 +1,22 @@
+{
+  "name": "pg-transaction",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "pretest": "yarn build",
+    "test": "node dist/index.test.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.9",
+    "@types/node": "^24.0.14",
+    "pg": "^8.11.3",
+    "typescript": "^5.8.3"
+  }
+}
