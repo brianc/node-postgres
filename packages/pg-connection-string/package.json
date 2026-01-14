@@ -1,6 +1,6 @@
 {
   "name": "pg-connection-string",
-  "version": "2.9.1",
+  "version": "2.10.0",
   "description": "Functions for dealing with a PostgresSQL connection string",
   "main": "./index.js",
   "types": "./index.d.ts",
