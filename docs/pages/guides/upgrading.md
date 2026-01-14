@@ -3,6 +3,10 @@ title: Upgrading
 slug: /guides/upgrading
 ---
 
+## node version support
+
+I have maintained legacy apps in production for many years. I get it...upgrading node and your entire dependency tree is rough, but so is missing out on critical fixes.  I've taken pride over the years in not introducing breaking changes without a need because I've spent too much of my own time in my own apps upgrading a semver major version of a library with many breaking changes.  That being said: node-postgres only _officially_ supports node versions which are still under the [LTS lifetime](https://nodejs.org/en/about/previous-releases). The [CI matrix](https://github.com/brianc/node-postgres/blob/master/.github/workflows/ci.yml#L39) is the most official and enforced compatiblity matrix; however, I may drop support for node versions outside of node's LTS lifetime at any time, with any semver minor release, if it is required to land new features or bug fixes on supported versions of node.  I recommend in general to use a lockfile, and, if you're on an older version of node nearing EOL use absolutely pinned versions for as many of your modules as you can, including this one.
+
 # Upgrading to 8.0
 
 node-postgres at 8.0 introduces a breaking change to ssl-verified connections. If you connect with ssl and use
@@ -22,10 +26,6 @@ The rest of the changes are relatively minor and unlikely to cause issues; see [
 # Upgrading to 7.0
 
 node-postgres at 7.0 introduces somewhat significant breaking changes to the public API.
-
-## node version support
-
-Starting with `pg@7.0` the earliest version of node supported will be `node@4.x LTS`. Support for `node@0.12.x` and `node@.10.x` is dropped, and the module wont work as it relies on new es6 features not available in older versions of node.
 
 ## pg singleton
 
