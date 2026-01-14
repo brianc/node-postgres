@@ -1,11 +1,18 @@
 'use strict'
 
+let user
+try {
+  user = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
+} catch {
+  // ignore, e.g., Deno without --allow-env
+}
+
 module.exports = {
   // database host. defaults to localhost
   host: 'localhost',
 
   // database user's name
-  user: process.platform === 'win32' ? process.env.USERNAME : process.env.USER,
+  user,
 
   // name of database to connect
   database: undefined,
