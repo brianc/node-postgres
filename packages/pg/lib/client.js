@@ -213,7 +213,7 @@ class Client extends EventEmitter {
         if (error) {
           reject(error)
         } else {
-          resolve()
+          resolve(this)
         }
       })
     })
