@@ -3,18 +3,20 @@
   "version": "1.0.0",
   "description": "",
   "main": "next.config.js",
+  "type": "module",
   "scripts": {
-    "start": "next dev",
-    "build": "next build && next export"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "next": "^12.3.1",
-    "nextra": "2.0.0-beta.29",
-    "nextra-theme-docs": "2.0.0-beta.29",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "next": "^13.5.11",
+    "nextra": "^3.3.1",
+    "nextra-theme-docs": "^3.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   }
 }
