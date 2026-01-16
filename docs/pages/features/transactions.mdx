@@ -4,7 +4,201 @@ title: Transactions
 
 import { Alert } from '/components/alert.tsx'
 
-To execute a transaction with node-postgres you simply execute `BEGIN / COMMIT / ROLLBACK` queries yourself through a client. Because node-postgres strives to be low level and un-opinionated, it doesn't provide any higher level abstractions specifically around transactions.
+PostgreSQL transactions ensure that a series of database operations either all succeed or all fail together, maintaining data consistency. Node-postgres provides two approaches for handling transactions: manual transaction management and the very slightly higher-level `pg-transaction` module.
+
+## pg-transaction Module
+
+The `pg-transaction` module provides a tiny level of abstraction for handling transactions, automatically running `BEGIN`, `COMMIT`, and/or `ROLLBACK`.
+
+The motivation for this module was I pretty much write the same exact thing in every project I start. Sounds like a good thing to just publish widely.
+
+### Installation
+
+The `pg-transaction` module is included as part of the node-postgres monorepo:
+
+```bash
+npm install pg-transaction
+```
+
+### Basic Usage
+
+The `transaction` function accepts either a `Client` or `Pool` instance and a callback function:
+
+```js
+import { Pool } from 'pg'
+import { transaction } from 'pg-transaction'
+
+const pool = new Pool()
+
+// Using with a Pool (recommended)
+const result = await transaction(pool, async (client) => {
+  const userResult = await client.query(
+    'INSERT INTO users(name) VALUES($1) RETURNING id',
+    ['Alice']
+  )
+  
+  await client.query(
+    'INSERT INTO photos(user_id, photo_url) VALUES ($1, $2)',
+    [userResult.rows[0].id, 's3.bucket.foo']
+  )
+  
+  return userResult.rows[0]
+})
+
+console.log('User created:', result)
+```
+
+### API Reference
+
+#### `transaction(clientOrPool, callback)`
+
+**Parameters:**
+- `clientOrPool`: A `pg.Client` or `pg.Pool` instance
+- `callback`: An async function that receives a client and returns a promise
+
+**Returns:** A promise that resolves to the return value of the callback
+
+**Behavior:**
+- Automatically executes `BEGIN` before the callback
+- Executes `COMMIT` if the callback completes successfully
+- Executes `ROLLBACK` if the callback throws an error, then re-throws the error for you to handle
+- When using a Pool, automatically acquires and releases a client
+- When using a Client, uses the provided client directly. The client __must__ be connected already.
+
+### Usage Examples
+
+#### With Pool (Recommended)
+
+```js
+import { Pool } from 'pg'
+import { transaction } from 'pg-transaction'
+
+const pool = new Pool()
+
+try {
+  const userId = await transaction(pool, async (client) => {
+    // All queries within this callback are part of the same transaction
+    const userResult = await client.query(
+      'INSERT INTO users(name, email) VALUES($1, $2) RETURNING id',
+      ['John Doe', 'john@example.com']
+    )
+    
+    const profileResult = await client.query(
+      'INSERT INTO user_profiles(user_id, bio) VALUES($1, $2)',
+      [userResult.rows[0].id, 'Software developer']
+    )
+    
+    // Return the user ID
+    return userResult.rows[0].id
+  })
+  
+  console.log('Created user with ID:', userId)
+} catch (error) {
+  console.error('Transaction failed:', error)
+  // All changes have been automatically rolled back
+}
+```
+
+#### With Client
+
+```js
+import { Client } from 'pg'
+import { transaction } from 'pg-transaction'
+
+const client = new Client()
+await client.connect()
+
+try {
+  await transaction(client, async (client) => {
+    await client.query('UPDATE accounts SET balance = balance - 100 WHERE id = $1', [1])
+    await client.query('UPDATE accounts SET balance = balance + 100 WHERE id = $1', [2])
+  })
+  console.log('Transfer completed successfully')
+} catch (error) {
+  console.error('Transfer failed:', error)
+} finally {
+  await client.end()
+}
+```
+
+#### Binding for Reuse
+
+You can bind the transaction function to a specific pool or client for convenient reuse. I usually do this as a module level singleton I export after I define my pool.
+
+```js
+import { Pool } from 'pg'
+import { transaction } from 'pg-transaction'
+
+const pool = new Pool()
+const txn = transaction.bind(null, pool)
+
+// Now you can use txn directly
+await txn(async (client) => {
+  await client.query('INSERT INTO logs(message) VALUES($1)', ['Operation 1'])
+})
+
+await txn(async (client) => {
+  await client.query('INSERT INTO logs(message) VALUES($1)', ['Operation 2'])
+})
+```
+
+#### Error Handling and Rollback
+
+The transaction function automatically handles rollbacks when errors occur:
+
+```js
+import { transaction } from 'pg-transaction'
+
+try {
+  await transaction(pool, async (client) => {
+    await client.query('INSERT INTO orders(user_id, total) VALUES($1, $2)', [userId, 100])
+    
+    // This will cause the transaction to rollback
+    if (Math.random() > 0.5) {
+      throw new Error('Payment processing failed')
+    }
+    
+    await client.query('UPDATE inventory SET quantity = quantity - 1 WHERE product_id = $1', [productId])
+  })
+} catch (error) {
+  // The transaction has been automatically rolled back
+  console.error('Order creation failed:', error.message)
+}
+```
+
+### Migration from Manual Transactions
+
+If you're currently using manual transaction handling, migrating to `pg-transaction` is straightforward:
+
+**Before (Manual):**
+```js
+const client = await pool.connect()
+try {
+  await client.query('BEGIN')
+  const result = await client.query('INSERT INTO users(name) VALUES($1) RETURNING id', ['Alice'])
+  await client.query('INSERT INTO profiles(user_id) VALUES($1)', [result.rows[0].id])
+  await client.query('COMMIT')
+  return result.rows[0]
+} catch (error) {
+  await client.query('ROLLBACK')
+  throw error
+} finally {
+  client.release()
+}
+```
+
+**After (pg-transaction):**
+```js
+return await transaction(pool, async (client) => {
+  const result = await client.query('INSERT INTO users(name) VALUES($1) RETURNING id', ['Alice'])
+  await client.query('INSERT INTO profiles(user_id) VALUES($1)', [result.rows[0].id])
+  return result.rows[0]
+})
+```
+
+## Manual Transaction Handling
+
+For cases where you need more control or prefer to handle transactions manually, you can execute `BEGIN`, `COMMIT`, and `ROLLBACK` queries directly.
 
 <Alert>
   You <strong>must</strong> use the <em>same</em> client instance for all statements within a transaction. PostgreSQL
@@ -13,7 +207,8 @@ To execute a transaction with node-postgres you simply execute `BEGIN / COMMIT /
   the <span className="code">pool.query</span> method.
 </Alert>
 
-## Examples
+
+### Manual Transaction Example
 
 ```js
 import { Pool } from 'pg'
