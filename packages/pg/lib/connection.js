@@ -22,7 +22,6 @@ class Connection extends EventEmitter {
 
     this._keepAlive = config.keepAlive
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
-    this.lastBuffer = false
     this.parsedStatements = {}
     this.ssl = config.ssl || false
     this._ending = false
