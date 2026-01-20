@@ -1,7 +1,5 @@
 'use strict'
 
-const { emitWarning } = require('process')
-
 //Parse method copied from https://github.com/brianc/node-postgres
 //Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
 //MIT License
@@ -213,9 +211,9 @@ function parseIntoClientConfig(str) {
 }
 
 function deprecatedSslModeWarning(sslmode) {
-  if (!deprecatedSslModeWarning.warned) {
+  if (!deprecatedSslModeWarning.warned && typeof process !== 'undefined' && process.emitWarning) {
     deprecatedSslModeWarning.warned = true
-    emitWarning(`SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+    process.emitWarning(`SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
 In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
 
 To prepare for this change:
