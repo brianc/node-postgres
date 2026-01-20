@@ -1,4 +1,4 @@
-import assert from 'node:assert'
+import assert from 'assert'
 import { describe, it } from 'node:test'
 import { CloudflareSocket } from 'pg-cloudflare'
 
