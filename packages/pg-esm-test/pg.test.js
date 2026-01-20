@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { describe, it } from 'test'
+import { describe, it } from 'node:test'
 import pg, {
   Client,
   Pool,

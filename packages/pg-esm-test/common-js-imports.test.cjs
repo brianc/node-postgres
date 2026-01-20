@@ -1,5 +1,5 @@
 const assert = require('assert')
-const test = require('test')
+const test = require('node:test')
 const { describe, it } = test
 
 const paths = [
