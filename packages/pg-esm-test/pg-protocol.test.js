@@ -1,6 +1,6 @@
 import protocol, { NoticeMessage, DatabaseError } from 'pg-protocol/dist/messages.js'
-import { describe, it } from 'node:test'
-import { strict as assert } from 'node:assert'
+import { describe, it } from 'test'
+import { strict as assert } from 'assert'
 
 describe('pg-protocol', () => {
   it('should export database error', () => {

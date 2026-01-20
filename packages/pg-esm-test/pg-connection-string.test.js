@@ -1,5 +1,5 @@
-import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import assert from 'assert'
+import { describe, it } from 'test'
 import { parse, toClientConfig, parseIntoClientConfig } from 'pg-connection-string'
 
 describe('pg-connection-string', () => {

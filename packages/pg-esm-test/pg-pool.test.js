@@ -1,5 +1,5 @@
-import assert from 'node:assert'
-import { describe, it } from 'node:test'
+import assert from 'assert'
+import { describe, it } from 'test'
 import Pool from 'pg-pool'
 
 describe('pg-pool', () => {
