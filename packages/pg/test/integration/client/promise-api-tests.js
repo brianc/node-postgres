@@ -13,6 +13,14 @@ suite.test('valid connection completes promise', () => {
   })
 })
 
+suite.test('valid connection returns the client', () => {
+  const client = new pg.Client()
+  return client.connect().then((clientInside) => {
+    assert.equal(client, clientInside)
+    return client.end().then(() => {})
+  })
+})
+
 suite.test('valid connection completes promise', () => {
   const client = new pg.Client()
   return client.connect().then(() => {
