@@ -1,6 +1,6 @@
 {
   "name": "pg-protocol",
-  "version": "1.10.3",
+  "version": "1.11.0",
   "description": "The postgres client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -4,6 +4,7 @@ import { parse } from '.'
 import assert from 'assert'
 import { PassThrough } from 'stream'
 import { BackendMessage } from './messages'
+import { Parser } from './parser'
 
 const authOkBuffer = buffers.authenticationOk()
 const paramStatusBuffer = buffers.parameterStatus('client_encoding', 'UTF8')
@@ -564,5 +565,11 @@ describe('PgPacketStream', function () {
         return Promise.all([splitAndVerifyTwoMessages(8), splitAndVerifyTwoMessages(1)])
       })
     })
+  })
+
+  it('cleans up the reader after handling a packet', function () {
+    const parser = new Parser()
+    parser.parse(oneFieldBuf, () => {})
+    assert.strictEqual((parser as any).reader.buffer.byteLength, 0)
   })
 })

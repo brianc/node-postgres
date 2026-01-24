@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events').EventEmitter
 const utils = require('./utils')
-const nodeUtils = require('node:util')
+const nodeUtils = require('util')
 const sasl = require('./crypto/sasl')
 const TypeOverrides = require('./type-overrides')
 

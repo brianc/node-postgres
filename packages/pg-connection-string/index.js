@@ -1,6 +1,6 @@
 'use strict'
 
-const { emitWarning } = require('node:process')
+const { emitWarning } = require('process')
 
 //Parse method copied from https://github.com/brianc/node-postgres
 //Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
