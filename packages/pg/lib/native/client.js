@@ -135,7 +135,7 @@ Client.prototype.connect = function (callback) {
       if (error) {
         reject(error)
       } else {
-        resolve()
+        resolve(this)
       }
     })
   })
