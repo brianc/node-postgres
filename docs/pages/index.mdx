@@ -44,8 +44,7 @@ The simplest possible way to connect, query, and disconnect is with async/await:
 
 ```js
 import { Client } from 'pg'
-const client = new Client()
-await client.connect()
+const client = await new Client().connect();
 
 const res = await client.query('SELECT $1::text as message', ['Hello world!'])
 console.log(res.rows[0].message) // Hello world!
@@ -83,5 +82,3 @@ console.log(res.rows[0].message) // Hello world!
 ```
 
 Our real-world apps are almost always more complicated than that, and I urge you to read on!
-
-

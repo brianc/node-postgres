@@ -119,7 +119,7 @@ Client.prototype._connect = function (cb) {
       self.emit('connect')
       self._pulseQueryQueue(true)
 
-      cb()
+      cb(null, this)
     })
   })
 }
@@ -135,7 +135,7 @@ Client.prototype.connect = function (callback) {
       if (error) {
         reject(error)
       } else {
-        resolve()
+        resolve(this)
       }
     })
   })
