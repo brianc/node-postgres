@@ -10,6 +10,7 @@ class Result {
     this.fields = []
     this.rows = []
     this._prebuiltEmptyResultObject = null
+    this._parsers = []
   }
 
   consumeCommand(pq) {
@@ -21,13 +22,16 @@ class Result {
     const nfields = pq.nfields()
     this.fields = new Array(nfields)
     const row = {}
+    this._parsers = new Array(nfields)
     for (let x = 0; x < nfields; x++) {
       const name = pq.fname(x)
       row[name] = null
+      const typeId = pq.ftype(x)
       this.fields[x] = {
         name: name,
-        dataTypeID: pq.ftype(x),
+        dataTypeID: typeId,
       }
+      this._parsers[x] = this._types.getTypeParser(typeId)
     }
     this._prebuiltEmptyResultObject = { ...row }
   }
@@ -61,8 +65,7 @@ class Result {
     if (rawValue === '' && pq.getisnull(rowIndex, colIndex)) {
       return null
     }
-    const dataTypeId = this.fields[colIndex].dataTypeID
-    return this._types.getTypeParser(dataTypeId)(rawValue)
+    return this._parsers[colIndex](rawValue)
   }
 }
 
