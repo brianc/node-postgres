@@ -44,7 +44,7 @@ The simplest possible way to connect, query, and disconnect is with async/await:
 
 ```js
 import { Client } from 'pg'
-const client = await new Client().connect();
+const client = await new Client().connect()
 
 const res = await client.query('SELECT $1::text as message', ['Hello world!'])
 console.log(res.rows[0].message) // Hello world!
@@ -55,10 +55,9 @@ await client.end()
 
 For the sake of simplicity, these docs will assume that the methods are successful. In real life use, make sure to properly handle errors thrown in the methods. A `try/catch` block is a great way to do so:
 
-```ts
+```js
 import { Client } from 'pg'
-const client = new Client()
-await client.connect()
+const client = await new Client().connect()
 
 try {
    const res = await client.query('SELECT $1::text as message', ['Hello world!'])
