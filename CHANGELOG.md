@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.18.0
+
+- [Return the client instance](https://github.com/brianc/node-postgres/pull/3564) as the result of calling `connect` (previously it was `void`).
+
 ## pg@8.17.0
 
 - Throw correct error if database URL parsing [fails](https://github.com/brianc/node-postgres/issues/3513).
