@@ -407,23 +407,47 @@ class Client extends EventEmitter {
   }
 
   _handleRowDescription(msg) {
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
+      const error = new Error('Received unexpected rowDescription message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // delegate rowDescription to active query
-    this._getActiveQuery().handleRowDescription(msg)
+    activeQuery.handleRowDescription(msg)
   }
 
   _handleDataRow(msg) {
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
+      const error = new Error('Received unexpected dataRow message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // delegate dataRow to active query
-    this._getActiveQuery().handleDataRow(msg)
+    activeQuery.handleDataRow(msg)
   }
 
   _handlePortalSuspended(msg) {
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
+      const error = new Error('Received unexpected portalSuspended message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // delegate portalSuspended to active query
-    this._getActiveQuery().handlePortalSuspended(this.connection)
+    activeQuery.handlePortalSuspended(this.connection)
   }
 
   _handleEmptyQuery(msg) {
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
+      const error = new Error('Received unexpected emptyQuery message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
     // delegate emptyQuery to active query
-    this._getActiveQuery().handleEmptyQuery(this.connection)
+    activeQuery.handleEmptyQuery(this.connection)
   }
 
   _handleCommandComplete(msg) {
@@ -453,11 +477,23 @@ class Client extends EventEmitter {
   }
 
   _handleCopyInResponse(msg) {
-    this._getActiveQuery().handleCopyInResponse(this.connection)
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
+      const error = new Error('Received unexpected copyInResponse message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
+    activeQuery.handleCopyInResponse(this.connection)
   }
 
   _handleCopyData(msg) {
-    this._getActiveQuery().handleCopyData(msg, this.connection)
+    const activeQuery = this._getActiveQuery()
+    if (activeQuery == null) {
+      const error = new Error('Received unexpected copyData message from backend.')
+      this._handleErrorEvent(error)
+      return
+    }
+    activeQuery.handleCopyData(msg, this.connection)
   }
 
   _handleNotification(msg) {
