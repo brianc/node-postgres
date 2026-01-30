@@ -165,4 +165,10 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
 if (!helper.args.native) {
   testErrorBuffer('parseComplete', buffers.parseComplete())
   testErrorBuffer('commandComplete', buffers.commandComplete('f'))
+  testErrorBuffer('rowDescription', buffers.rowDescription())
+  testErrorBuffer('dataRow', buffers.dataRow())
+  testErrorBuffer('portalSuspended', buffers.portalSuspended())
+  testErrorBuffer('emptyQuery', buffers.emptyQuery())
+  testErrorBuffer('copyIn', buffers.copyIn(0))
+  testErrorBuffer('copyData', buffers.copyData(Buffer.from([1, 2, 3])))
 }
