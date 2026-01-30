@@ -118,4 +118,20 @@ buffers.portalSuspended = function () {
   return new BufferList().join(true, 's')
 }
 
+buffers.copyIn = function (cols) {
+  const list = new BufferList()
+    // text mode
+    .add(Buffer.from([0]))
+    // column count
+    .addInt16(cols)
+  for (let i = 0; i < cols; i++) {
+    list.addInt16(i)
+  }
+  return list.join(true, 'G')
+}
+
+buffers.copyData = function (bytes) {
+  return new BufferList().add(bytes).join(true, 'd')
+}
+
 module.exports = buffers
