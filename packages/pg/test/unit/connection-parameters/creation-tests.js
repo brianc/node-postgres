@@ -163,7 +163,7 @@ const getDNSHost = async function (host) {
   })
 }
 
-suite.testAsync('builds simple string', async function () {
+suite.test('builds simple string', async function () {
   const config = {
     user: 'brian',
     password: 'xyz',

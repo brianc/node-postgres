@@ -21,7 +21,7 @@ pool.connect(function (err, client, done) {
     })
   })
 
-  suite.testAsync('date comes out as a date', async function () {
+  suite.test('date comes out as a date', async function () {
     const { rows } = await client.query('SELECT NOW()::DATE AS date')
     assert(rows[0].date instanceof Date)
   })

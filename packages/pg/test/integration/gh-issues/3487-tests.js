@@ -3,7 +3,7 @@ const assert = require('assert')
 
 const suite = new helper.Suite()
 
-suite.testAsync('allows you to switch between format modes for arrays', async () => {
+suite.test('allows you to switch between format modes for arrays', async () => {
   const client = new helper.pg.Client()
   await client.connect()
 

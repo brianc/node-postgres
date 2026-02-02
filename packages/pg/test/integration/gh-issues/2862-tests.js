@@ -6,7 +6,7 @@ const vm = require('vm')
 
 const suite = new helper.Suite()
 
-suite.testAsync('Handle date objects as Date', async () => {
+suite.test('Handle date objects as Date', async () => {
   const crossRealmDate = await vm.runInNewContext('new Date()')
   assert(!(crossRealmDate instanceof Date))
   const date = new Date(crossRealmDate.getTime())

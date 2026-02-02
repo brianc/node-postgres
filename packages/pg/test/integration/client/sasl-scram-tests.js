@@ -37,15 +37,15 @@ const config = {
 }
 
 if (native) {
-  suite.testAsync('skipping SCRAM tests (on native)', () => {})
+  suite.test('skipping SCRAM tests (on native)', () => {})
   return
 }
 if (!config.user || !config.password) {
-  suite.testAsync('skipping SCRAM tests (missing env)', () => {})
+  suite.test('skipping SCRAM tests (missing env)', () => {})
   return
 }
 
-suite.testAsync('can connect using sasl/scram with channel binding enabled (if using SSL)', async () => {
+suite.test('can connect using sasl/scram with channel binding enabled (if using SSL)', async () => {
   const client = new pg.Client({ ...config, enableChannelBinding: true })
   let usingChannelBinding = false
   let hasPeerCert = false
@@ -58,7 +58,7 @@ suite.testAsync('can connect using sasl/scram with channel binding enabled (if u
   await client.end()
 })
 
-suite.testAsync('can connect using sasl/scram with channel binding disabled', async () => {
+suite.test('can connect using sasl/scram with channel binding disabled', async () => {
   const client = new pg.Client({ ...config, enableChannelBinding: false })
   let usingSASLWithoutChannelBinding = false
   client.connection.once('authenticationSASLContinue', () => {
@@ -69,7 +69,7 @@ suite.testAsync('can connect using sasl/scram with channel binding disabled', as
   await client.end()
 })
 
-suite.testAsync('sasl/scram fails when password is wrong', async () => {
+suite.test('sasl/scram fails when password is wrong', async () => {
   const client = new pg.Client({
     ...config,
     password: config.password + 'append-something-to-make-it-bad',
@@ -88,7 +88,7 @@ suite.testAsync('sasl/scram fails when password is wrong', async () => {
   assert.ok(usingSasl, 'Should be using SASL for authentication')
 })
 
-suite.testAsync('sasl/scram fails when password is empty', async () => {
+suite.test('sasl/scram fails when password is empty', async () => {
   const client = new pg.Client({
     ...config,
     // We use a password function here so the connection defaults do not

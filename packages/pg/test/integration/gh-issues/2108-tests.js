@@ -7,7 +7,7 @@ suite.test('Closing an unconnected client calls callback', (done) => {
   client.end(done)
 })
 
-suite.testAsync('Closing an unconnected client resolves promise', () => {
+suite.test('Closing an unconnected client resolves promise', () => {
   const client = new helper.pg.Client()
   return client.end()
 })

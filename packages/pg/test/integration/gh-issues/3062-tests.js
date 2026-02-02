@@ -4,7 +4,7 @@ const assert = require('assert')
 const suite = new helper.Suite()
 
 // https://github.com/brianc/node-postgres/issues/3062
-suite.testAsync('result fields with the same name should pick the last value', async () => {
+suite.test('result fields with the same name should pick the last value', async () => {
   const client = new helper.pg.Client()
   await client.connect()
 

@@ -58,7 +58,7 @@ suite.test('sasl/scram', function () {
   })
 
   suite.test('continueSession', function () {
-    suite.testAsync('fails when last session message was not SASLInitialResponse', async function () {
+    suite.test('fails when last session message was not SASLInitialResponse', async function () {
       assert.rejects(
         function () {
           return sasl.continueSession({}, '', '')
@@ -69,7 +69,7 @@ suite.test('sasl/scram', function () {
       )
     })
 
-    suite.testAsync('fails when nonce is missing in server message', function () {
+    suite.test('fails when nonce is missing in server message', function () {
       assert.rejects(
         function () {
           return sasl.continueSession(
@@ -86,7 +86,7 @@ suite.test('sasl/scram', function () {
       )
     })
 
-    suite.testAsync('fails when salt is missing in server message', function () {
+    suite.test('fails when salt is missing in server message', function () {
       assert.rejects(
         function () {
           return sasl.continueSession(
@@ -103,7 +103,7 @@ suite.test('sasl/scram', function () {
       )
     })
 
-    suite.testAsync('fails when client password is not a string', function () {
+    suite.test('fails when client password is not a string', function () {
       for (const badPasswordValue of [null, undefined, 123, new Date(), {}]) {
         assert.rejects(
           function () {
@@ -123,7 +123,7 @@ suite.test('sasl/scram', function () {
       }
     })
 
-    suite.testAsync('fails when client password is an empty string', function () {
+    suite.test('fails when client password is an empty string', function () {
       assert.rejects(
         function () {
           return sasl.continueSession(
@@ -141,7 +141,7 @@ suite.test('sasl/scram', function () {
       )
     })
 
-    suite.testAsync('fails when iteration is missing in server message', function () {
+    suite.test('fails when iteration is missing in server message', function () {
       assert.rejects(
         function () {
           return sasl.continueSession(
@@ -158,7 +158,7 @@ suite.test('sasl/scram', function () {
       )
     })
 
-    suite.testAsync('fails when server nonce does not start with client nonce', function () {
+    suite.test('fails when server nonce does not start with client nonce', function () {
       assert.rejects(
         function () {
           return sasl.continueSession(
@@ -176,7 +176,7 @@ suite.test('sasl/scram', function () {
       )
     })
 
-    suite.testAsync('sets expected session data (SCRAM-SHA-256)', async function () {
+    suite.test('sets expected session data (SCRAM-SHA-256)', async function () {
       const session = {
         message: 'SASLInitialResponse',
         clientNonce: 'a',
@@ -190,7 +190,7 @@ suite.test('sasl/scram', function () {
       assert.equal(session.response, 'c=biws,r=ab,p=mU8grLfTjDrJer9ITsdHk0igMRDejG10EJPFbIBL3D0=')
     })
 
-    suite.testAsync('sets expected session data (SCRAM-SHA-256, channel binding enabled)', async function () {
+    suite.test('sets expected session data (SCRAM-SHA-256, channel binding enabled)', async function () {
       const session = {
         message: 'SASLInitialResponse',
         clientNonce: 'a',
@@ -204,7 +204,7 @@ suite.test('sasl/scram', function () {
       assert.equal(session.response, 'c=eSws,r=ab,p=YVTEOwOD7khu/NulscjFegHrZoTXJBFI/7L61AN9khc=')
     })
 
-    suite.testAsync('sets expected session data (SCRAM-SHA-256-PLUS)', async function () {
+    suite.test('sets expected session data (SCRAM-SHA-256-PLUS)', async function () {
       const session = {
         message: 'SASLInitialResponse',
         mechanism: 'SCRAM-SHA-256-PLUS',
