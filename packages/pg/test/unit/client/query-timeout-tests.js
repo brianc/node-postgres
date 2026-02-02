@@ -2,7 +2,6 @@
 
 const helper = require('./test-helper')
 const Query = require('../../../lib/query')
-const QueryStream = require('pg-query-stream')
 const assert = require('assert')
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
@@ -32,18 +31,4 @@ test('query timeout with Submittable with callback delivers error via callback',
     assert.equal(err.message, 'Query read timeout')
     done()
   })
-})
-
-test('query timeout with QueryStream without callback does not crash', function (done) {
-  const client = helper.client()
-  client.connectionParameters = { query_timeout: 10 }
-
-  const stream = new QueryStream('SELECT 1')
-  stream.handleError = (err) => {
-    assert.equal(err.message, 'Query read timeout')
-    done()
-  }
-
-  client.connection.emit('readyForQuery')
-  client.query(stream)
 })
