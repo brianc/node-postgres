@@ -132,7 +132,8 @@ class ConnectionParameters {
     this.pipelineBatchSize =
       config.pipelineBatchSize !== undefined ? parseInt(config.pipelineBatchSize, 10) : defaults.pipelineBatchSize
     this.pipelineBatchTimeout =
-      config.pipelineBatchTimeout !== undefined ? parseInt(config.pipelineBatchTimeout, 10) : defaults.pipelineBatchTimeout
+      config.pipelineBatchTimeout !== undefined
+        ? parseInt(config.pipelineBatchTimeout, 10) : defaults.pipelineBatchTimeout
   }
 
   getLibpqConnectionString(cb) {
