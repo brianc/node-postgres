@@ -13,23 +13,23 @@ const Connection = require('./connection')
 const crypto = require('./crypto/utils')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
-  () => { },
+  () => {},
   'Client.activeQuery is deprecated and will be removed in a future version.'
 )
 
 const queryQueueDeprecationNotice = nodeUtils.deprecate(
-  () => { },
+  () => {},
   'Client.queryQueue is deprecated and will be removed in a future version.'
 )
 
 const pgPassDeprecationNotice = nodeUtils.deprecate(
-  () => { },
+  () => {},
   'pgpass support is deprecated and will be removed in a future version. ' +
   'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this funciton you can call the pgpass module in your own code.'
 )
 
 const byoPromiseDeprecationNotice = nodeUtils.deprecate(
-  () => { },
+  () => {},
   'Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in a future version.'
 )
 
@@ -145,7 +145,7 @@ class Client extends EventEmitter {
     // Clear pipeline pending queries
     this._activePipelineBatch.forEach(enqueueError)
     this._activePipelineBatch.length = 0
-    this._pendingPipelineBatches.forEach(batch => batch.forEach(enqueueError))
+    this._pendingPipelineBatches.forEach((batch) => batch.forEach(enqueueError))
     this._pendingPipelineBatches.length = 0
     this._pipelineCurrentIndex = 0
 
@@ -883,7 +883,7 @@ class Client extends EventEmitter {
     }
 
     if (readTimeout) {
-      queryCallback = query.callback || (() => { })
+      queryCallback = query.callback || (() => {})
 
       readTimeoutTimer = setTimeout(() => {
         const error = new Error('Query read timeout')
@@ -896,7 +896,7 @@ class Client extends EventEmitter {
 
         // we already returned an error,
         // just do nothing if query completes
-        query.callback = () => { }
+        query.callback = () => {}
 
         // Remove from queue
         const index = this._queryQueue.indexOf(query)
