@@ -628,7 +628,7 @@ class Client extends EventEmitter {
     }
 
     if (readTimeout) {
-      queryCallback = query.callback
+      queryCallback = query.callback || (() => {})
 
       readTimeoutTimer = setTimeout(() => {
         const error = new Error('Query read timeout')

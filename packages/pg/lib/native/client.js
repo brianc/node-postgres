@@ -184,7 +184,7 @@ Client.prototype.query = function (config, values, callback) {
   }
 
   if (readTimeout) {
-    queryCallback = query.callback
+    queryCallback = query.callback || (() => {})
 
     readTimeoutTimer = setTimeout(() => {
       const error = new Error('Query read timeout')

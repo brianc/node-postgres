@@ -170,4 +170,24 @@ describe('error recovery', () => {
     conn.release()
     await pool.end()
   })
+
+  it('does not crash when query_timeout fires without callback', async () => {
+    const client = new Client({ query_timeout: 50 })
+    await client.connect()
+
+    const stream = new QueryStream('SELECT pg_sleep(10)')
+
+    // cursor.on('error') fires synchronously when handleError is called
+    // stream.on('error') fires asynchronously via destroy()
+    // Use cursor for immediate error detection
+    const errorPromise = new Promise<Error>((resolve) => {
+      stream.cursor.on('error', resolve)
+    })
+
+    client.query(stream)
+
+    const error = await errorPromise
+    assert.equal(error.message, 'Query read timeout')
+    await client.end()
+  })
 })
