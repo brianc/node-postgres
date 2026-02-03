@@ -17,7 +17,7 @@ suite.test('pipeline mode can be enabled via config', (done) => {
   const client = new helper.Client({
     pipelineMode: true,
     pipelineBatchSize: 50,
-    pipelineBatchTimeout: 100
+    pipelineBatchTimeout: 100,
   })
   assert.strictEqual(client.pipelineMode, true, 'pipelineMode should be true')
   assert.strictEqual(client._pipelineBatchSize, 50, 'pipelineBatchSize should be 50')
@@ -27,7 +27,7 @@ suite.test('pipeline mode can be enabled via config', (done) => {
 
 suite.testAsync('pipeline mode executes multiple queries', async () => {
   const client = new helper.Client({
-    pipelineMode: true
+    pipelineMode: true,
   })
   await client.connect()
 
@@ -39,7 +39,7 @@ suite.testAsync('pipeline mode executes multiple queries', async () => {
     const [r1, r2, r3] = await Promise.all([
       client.query('INSERT INTO pipeline_test(val) VALUES($1) RETURNING id', ['first']),
       client.query('INSERT INTO pipeline_test(val) VALUES($1) RETURNING id', ['second']),
-      client.query('SELECT count(*)::int AS count FROM pipeline_test')
+      client.query('SELECT count(*)::int AS count FROM pipeline_test'),
     ])
 
     assert.strictEqual(r1.rows[0].id, 1, 'first insert should return id 1')
@@ -54,7 +54,7 @@ suite.testAsync('pipeline mode executes multiple queries', async () => {
 
 suite.testAsync('pipeline mode handles errors correctly', async () => {
   const client = new helper.Client({
-    pipelineMode: true
+    pipelineMode: true,
   })
   await client.connect()
 
@@ -63,7 +63,7 @@ suite.testAsync('pipeline mode handles errors correctly', async () => {
     const results = await Promise.allSettled([
       client.query('SELECT 1 AS num'),
       client.query('SELECT * FROM nonexistent_table_12345'), // This should fail
-      client.query('SELECT 2 AS num')
+      client.query('SELECT 2 AS num'),
     ])
 
     assert.strictEqual(results[0].status, 'fulfilled', 'first query should succeed')
@@ -80,7 +80,7 @@ suite.testAsync('pipeline mode handles errors correctly', async () => {
 
 suite.testAsync('pipeline mode with prepared statements', async () => {
   const client = new helper.Client({
-    pipelineMode: true
+    pipelineMode: true,
   })
   await client.connect()
 
@@ -92,7 +92,7 @@ suite.testAsync('pipeline mode with prepared statements', async () => {
     const results = await Promise.all([
       client.query({ name: 'insert-val', text: 'INSERT INTO prep_test(val) VALUES($1) RETURNING id', values: ['a'] }),
       client.query({ name: 'insert-val', text: 'INSERT INTO prep_test(val) VALUES($1) RETURNING id', values: ['b'] }),
-      client.query({ name: 'insert-val', text: 'INSERT INTO prep_test(val) VALUES($1) RETURNING id', values: ['c'] })
+      client.query({ name: 'insert-val', text: 'INSERT INTO prep_test(val) VALUES($1) RETURNING id', values: ['c'] }),
     ])
 
     assert.strictEqual(results.length, 3, 'should have 3 results')
@@ -106,7 +106,7 @@ suite.testAsync('pipeline mode with prepared statements', async () => {
 
 suite.testAsync('non-pipeline mode still works', async () => {
   const client = new helper.Client({
-    pipelineMode: false
+    pipelineMode: false,
   })
   await client.connect()
 
