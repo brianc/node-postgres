@@ -250,7 +250,10 @@ Client.prototype.end = function (cb) {
       cb = (err) => (err ? reject(err) : resolve())
     })
   }
+
   this.native.end(function () {
+    self._connected = false
+
     self._errorAllQueries(new Error('Connection terminated'))
 
     process.nextTick(() => {
@@ -305,4 +308,8 @@ Client.prototype.setTypeParser = function (oid, format, parseFn) {
 
 Client.prototype.getTypeParser = function (oid, format) {
   return this._types.getTypeParser(oid, format)
+}
+
+Client.prototype.isConnected = function () {
+  return this._connected
 }

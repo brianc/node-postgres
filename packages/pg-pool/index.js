@@ -241,10 +241,16 @@ class Pool extends EventEmitter {
     let timeoutHit = false
     if (this.options.connectionTimeoutMillis) {
       tid = setTimeout(() => {
-        this.log('ending client due to timeout')
-        timeoutHit = true
-        // force kill the node driver, and let libpq do its teardown
-        client.connection ? client.connection.stream.destroy() : client.end()
+        if (client.connection) {
+          this.log('ending client due to timeout')
+          timeoutHit = true
+          client.connection.stream.destroy()
+        } else if (!client.isConnected()) {
+          this.log('ending client due to timeout')
+          timeoutHit = true
+          // force kill the node driver, and let libpq do its teardown
+          client.end()
+        }
       }, this.options.connectionTimeoutMillis)
     }
 
