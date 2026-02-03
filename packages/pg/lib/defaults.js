@@ -77,6 +77,19 @@ module.exports = {
   keepalives: 1,
 
   keepalives_idle: 0,
+
+  // Pipeline mode - send multiple queries without waiting for individual responses
+  // false = disabled (default), true = enabled
+  pipelineMode: false,
+
+  // Maximum number of queries to batch before sending a Sync message
+  // Only applies when pipelineMode is true
+  pipelineBatchSize: 100,
+
+  // Timeout in milliseconds before automatically sending a Sync message
+  // Set to 0 to disable (sync only on batch size or when queue is empty)
+  // Only applies when pipelineMode is true
+  pipelineBatchTimeout: 0,
 }
 
 const pgTypes = require('pg-types')
