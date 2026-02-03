@@ -25,7 +25,7 @@ const queryQueueDeprecationNotice = nodeUtils.deprecate(
 const pgPassDeprecationNotice = nodeUtils.deprecate(
   () => {},
   'pgpass support is deprecated and will be removed in a future version. ' +
-  'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this funciton you can call the pgpass module in your own code.'
+    'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this funciton you can call the pgpass module in your own code.'
 )
 
 const byoPromiseDeprecationNotice = nodeUtils.deprecate(
