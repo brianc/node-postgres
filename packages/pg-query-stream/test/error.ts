@@ -1,7 +1,7 @@
 import assert from 'assert'
-import { Client, Pool } from 'pg'
-import QueryStream from '../src'
 import helper from './helper'
+import QueryStream from '../src'
+import { Pool, Client } from 'pg'
 
 helper('error', function (client) {
   it('receives error on stream', function (done) {
