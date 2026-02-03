@@ -4,7 +4,7 @@ const assert = require('assert')
 
 const suite = new helper.Suite()
 
-suite.testAsync('BoundPool can be subclassed', async () => {
+suite.test('BoundPool can be subclassed', async () => {
   const Pool = helper.pg.Pool
   class SubPool extends Pool {}
   const subPool = new SubPool()

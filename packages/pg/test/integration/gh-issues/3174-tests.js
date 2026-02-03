@@ -85,7 +85,7 @@ const delay = (ms) =>
   })
 
 const testErrorBuffer = (bufferName, errorBuffer) => {
-  suite.testAsync(`Out of order ${bufferName} on simple query is catchable`, async () => {
+  suite.test(`Out of order ${bufferName} on simple query is catchable`, async () => {
     const closeServer = await new Promise((resolve, reject) => {
       return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
     })
@@ -110,7 +110,7 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
     await closeServer()
   })
 
-  suite.testAsync(`Out of order ${bufferName} on extended query is catchable`, async () => {
+  suite.test(`Out of order ${bufferName} on extended query is catchable`, async () => {
     const closeServer = await new Promise((resolve, reject) => {
       return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
     })
@@ -137,7 +137,7 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
     await closeServer()
   })
 
-  suite.testAsync(`Out of order ${bufferName} on pool is catchable`, async () => {
+  suite.test(`Out of order ${bufferName} on pool is catchable`, async () => {
     const closeServer = await new Promise((resolve, reject) => {
       return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
     })

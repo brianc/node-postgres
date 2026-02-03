@@ -1,6 +1,11 @@
 'use strict'
 
 const async = require('async')
+const { deprecate } = require('util')
+
+const deprecatedTestAsync = deprecate(function (name, cb) {
+  this.test(name, cb)
+}, 'Suite#testAsync is deprecated. Use Suite#test instead - it handles promises & async functions just fine.')
 
 class Test {
   constructor(name, cb) {
@@ -29,7 +34,7 @@ class Test {
       }
       result.then(() => cb()).catch((err) => cb(err || new Error('Unhandled promise rejection')))
     } else {
-      this.action.call(this, cb)
+      this.action(cb)
     }
   }
 }
@@ -71,18 +76,8 @@ class Suite {
     this._queue.push(test)
   }
 
-  /**
-   * Run an async test that can return a Promise. If the Promise resolves
-   * successfully then the test will pass. If the Promise rejects with an
-   * error then the test will be considered failed.
-   */
-  testAsync(name, action) {
-    const test = new Test(name, (cb) => {
-      Promise.resolve()
-        .then(action)
-        .then(() => cb(null), cb)
-    })
-    this._queue.push(test)
+  testAsync(name, cb) {
+    return deprecatedTestAsync.call(this, name, cb)
   }
 }
 

@@ -174,7 +174,7 @@ const suite = new helper.Suite()
     checkForResults(query)
   })
 
-  suite.testAsync('with no data response and rows', async function () {
+  suite.test('with no data response and rows', async function () {
     const result = await client.query({
       name: 'some insert',
       text: '',

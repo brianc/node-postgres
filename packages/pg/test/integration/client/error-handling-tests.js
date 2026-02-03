@@ -47,7 +47,7 @@ suite.test('re-using connections results in error callback', (done) => {
   })
 })
 
-suite.testAsync('re-using connections results in promise rejection', () => {
+suite.test('re-using connections results in promise rejection', () => {
   const client = new Client()
   return client.connect().then(() => {
     return helper.rejection(client.connect()).then((err) => {
