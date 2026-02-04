@@ -22,6 +22,7 @@ class Query extends EventEmitter {
     this.portal = config.portal || ''
     this.callback = config.callback
     this._rowMode = config.rowMode
+    this.pipelineMode = config.pipelineMode || false
     if (process.domain && config.callback) {
       this.callback = process.domain.bind(config.callback)
     }
@@ -33,6 +34,11 @@ class Query extends EventEmitter {
   }
 
   requiresPreparation() {
+    // In pipeline mode, always use extended query protocol
+    if (this.pipelineMode) {
+      return true
+    }
+
     if (this.queryMode === 'extended') {
       return true
     }

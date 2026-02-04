@@ -126,6 +126,9 @@ class ConnectionParameters {
     if (typeof config.keepAliveInitialDelayMillis === 'number') {
       this.keepalives_idle = Math.floor(config.keepAliveInitialDelayMillis / 1000)
     }
+
+    // Pipeline mode configuration - enables sending multiple queries without waiting for responses
+    this.pipelineMode = val('pipelineMode', config, false)
   }
 
   getLibpqConnectionString(cb) {
