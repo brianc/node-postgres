@@ -133,3 +133,72 @@ const query = {
   },
 }
 ```
+
+## Pipeline Mode
+
+Pipeline mode allows you to send multiple queries to the PostgreSQL server without waiting for the results of previous queries. This can significantly reduce network latency, especially for batch operations or high-latency connections.
+
+### Enabling Pipeline Mode
+
+Pipeline mode is opt-in and can be enabled when creating a client or pool:
+
+```js
+// With Client
+const client = new Client({ pipelineMode: true })
+await client.connect()
+
+// With Pool - all clients will have pipeline mode enabled
+const pool = new Pool({ pipelineMode: true })
+```
+
+When pipeline mode is enabled, you can submit multiple queries and they will be sent to the server immediately:
+
+```js
+// All three queries are sent immediately to the server
+const [result1, result2, result3] = await Promise.all([
+  client.query('SELECT 1 as num'),
+  client.query('SELECT 2 as num'),
+  client.query('SELECT 3 as num'),
+])
+```
+
+### Error Isolation
+
+If one query fails in pipeline mode, other queries continue to execute:
+
+```js
+const results = await Promise.allSettled([
+  client.query('SELECT 1 as num'),
+  client.query('SELECT * FROM nonexistent_table'), // This will fail
+  client.query('SELECT 3 as num'),
+])
+
+console.log(results[0].status) // 'fulfilled'
+console.log(results[1].status) // 'rejected'
+console.log(results[2].status) // 'fulfilled' - still succeeds!
+```
+
+### Prepared Statements in Pipeline Mode
+
+Prepared statements work in pipeline mode, including concurrent queries with the same statement name:
+
+```js
+const results = await Promise.all([
+  client.query({ name: 'get-user', text: 'SELECT $1::int as id', values: [1] }),
+  client.query({ name: 'get-user', text: 'SELECT $1::int as id', values: [2] }),
+  client.query({ name: 'get-user', text: 'SELECT $1::int as id', values: [3] }),
+])
+```
+
+### Pipeline Mode Restrictions
+
+- **No multi-statement queries**: Queries with multiple SQL statements separated by `;` are rejected
+- **No COPY operations**: COPY commands are not supported in pipeline mode
+- **JavaScript client only**: Pipeline mode is not available in `pg-native`
+
+### When to Use Pipeline Mode
+
+Pipeline mode is most beneficial when:
+- You have many independent queries to execute
+- Network latency is high (cloud databases, cross-region connections)
+- You're doing batch operations
