@@ -16,9 +16,8 @@ const enum code {
   copyFail = 0x66,
 }
 
-const writer = new Writer()
-
 const startup = (opts: Record<string, string>): Buffer => {
+  const writer = new Writer()
   // protocol version
   writer.addInt16(3).addInt16(0)
   for (const key of Object.keys(opts)) {
@@ -43,10 +42,12 @@ const requestSsl = (): Buffer => {
 }
 
 const password = (password: string): Buffer => {
-  return writer.addCString(password).flush(code.startup)
+  return new Writer().addCString(password).flush(code.startup)
 }
 
 const sendSASLInitialResponseMessage = function (mechanism: string, initialResponse: string): Buffer {
+  const writer = new Writer()
+
   // 0x70 = 'p'
   writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
 
@@ -54,11 +55,11 @@ const sendSASLInitialResponseMessage = function (mechanism: string, initialRespo
 }
 
 const sendSCRAMClientFinalMessage = function (additionalData: string): Buffer {
-  return writer.addString(additionalData).flush(code.startup)
+  return new Writer().addString(additionalData).flush(code.startup)
 }
 
 const query = (text: string): Buffer => {
-  return writer.addCString(text).flush(code.query)
+  return new Writer().addCString(text).flush(code.query)
 }
 
 type ParseOpts = {
@@ -70,6 +71,7 @@ type ParseOpts = {
 const emptyArray: any[] = []
 
 const parse = (query: ParseOpts): Buffer => {
+  const writer = new Writer()
   // expect something like this:
   // { name: 'queryName',
   //   text: 'select * from blah',
@@ -110,15 +112,15 @@ type BindOpts = {
   valueMapper?: ValueMapper
 }
 
-const paramWriter = new Writer()
-
 // make this a const enum so typescript will inline the value
 const enum ParamType {
   STRING = 0,
   BINARY = 1,
 }
 
-const writeValues = function (values: any[], valueMapper?: ValueMapper): void {
+const writeValues = function (writer: Writer, values: any[], valueMapper?: ValueMapper): Buffer {
+  const paramWriter = new Writer()
+
   for (let i = 0; i < values.length; i++) {
     const mappedVal = valueMapper ? valueMapper(values[i], i) : values[i]
     if (mappedVal == null) {
@@ -139,9 +141,13 @@ const writeValues = function (values: any[], valueMapper?: ValueMapper): void {
       paramWriter.addString(mappedVal)
     }
   }
+
+  return paramWriter.flush()
 }
 
 const bind = (config: BindOpts = {}): Buffer => {
+  const writer = new Writer()
+
   // normalize config
   const portal = config.portal || ''
   const statement = config.statement || ''
@@ -152,10 +158,10 @@ const bind = (config: BindOpts = {}): Buffer => {
   writer.addCString(portal).addCString(statement)
   writer.addInt16(len)
 
-  writeValues(values, config.valueMapper)
+  const paramValues = writeValues(writer, values, config.valueMapper)
 
   writer.addInt16(len)
-  writer.add(paramWriter.flush())
+  writer.add(paramValues)
 
   // all results use the same format code
   writer.addInt16(1)
@@ -219,8 +225,8 @@ const cstringMessage = (code: code, string: string): Buffer => {
   return buffer
 }
 
-const emptyDescribePortal = writer.addCString('P').flush(code.describe)
-const emptyDescribeStatement = writer.addCString('S').flush(code.describe)
+const emptyDescribePortal = new Writer().addCString('P').flush(code.describe)
+const emptyDescribeStatement = new Writer().addCString('S').flush(code.describe)
 
 const describe = (msg: PortalOpts): Buffer => {
   return msg.name
@@ -236,7 +242,7 @@ const close = (msg: PortalOpts): Buffer => {
 }
 
 const copyData = (chunk: Buffer): Buffer => {
-  return writer.add(chunk).flush(code.copyFromChunk)
+  return new Writer().add(chunk).flush(code.copyFromChunk)
 }
 
 const copyFail = (message: string): Buffer => {
