@@ -211,6 +211,37 @@ await client.query('INSERT INTO t VALUES (2)') // also fails: transaction aborte
 await client.query('COMMIT') // returns ROLLBACK command
 ```
 
+### Backpressure
+
+When submitting a large number of queries in pipeline mode, you may want to limit how many queries are pending at once to prevent memory issues. The client supports configurable backpressure:
+
+```js
+const client = new Client({
+  pipelineMode: true,
+  pipelineMaxQueries: 100, // default is 1000
+})
+```
+
+When the number of pending queries reaches `pipelineMaxQueries`, new queries are queued internally and will be sent once space becomes available. The client emits events to help you monitor backpressure:
+
+```js
+client.on('pipelineFull', () => {
+  console.log('Pipeline is full, new queries will wait')
+})
+
+client.on('pipelineDrain', () => {
+  console.log('Pipeline has drained, accepting new queries')
+})
+```
+
+You can also check the current pipeline depth:
+
+```js
+console.log(client.pendingQueryCount) // number of queries waiting for results
+```
+
+The `pipelineDrain` event is emitted when the pending query count drops below 75% of `pipelineMaxQueries` (the "low water mark").
+
 ### When to Use Pipeline Mode
 
 Pipeline mode is most beneficial when:

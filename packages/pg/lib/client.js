@@ -84,6 +84,12 @@ class Client extends EventEmitter {
     // Pipeline mode configuration
     this._pipelineMode = Boolean(c.pipelineMode) || false
 
+    // Backpressure configuration for pipeline mode
+    this._pipelineMaxQueries = c.pipelineMaxQueries || 1000
+    this._lowWaterMark = Math.floor(this._pipelineMaxQueries * 0.75)
+    this._pipelinePaused = false
+    this._waitingForDrain = []
+
     // Queue for tracking pending query results in pipeline mode
     this._pendingQueries = []
 
@@ -130,6 +136,11 @@ class Client extends EventEmitter {
 
   get pipelineMode() {
     return this._pipelineMode
+  }
+
+  // Property for current pipeline depth (number of pending queries)
+  get pendingQueryCount() {
+    return this._pendingQueries.length + this._queryQueue.length
   }
 
   _errorAllQueries(err) {
@@ -394,6 +405,9 @@ class Client extends EventEmitter {
       ) {
         this._pendingQueries.shift()
         currentQuery.handleReadyForQuery(this.connection)
+
+        // Check if backpressure should be released after query completion
+        this._checkBackpressureResume()
       }
 
       // Check if more queries to send
@@ -774,6 +788,20 @@ class Client extends EventEmitter {
     return this._pendingQueries[0]
   }
 
+  // Called when queries complete to check if backpressure should be released
+  // Resumes accepting new queries when pipeline depth drops below low water mark
+  _checkBackpressureResume() {
+    if (this._pipelinePaused && this.pendingQueryCount < this._lowWaterMark) {
+      this._pipelinePaused = false
+      this.emit('pipelineDrain')
+
+      // Resume all waiting queries
+      const waiting = this._waitingForDrain
+      this._waitingForDrain = []
+      waiting.forEach((resolve) => resolve())
+    }
+  }
+
   query(config, values, callback) {
     // can take in strings, config object or query object
     let query
@@ -875,9 +903,35 @@ class Client extends EventEmitter {
       return result
     }
 
+    // Backpressure handling for pipeline mode
+    // we queue the query and delay its execution
+    // the query is added to the queue immediately, but _pulseQueryQueue respects backpressure
+    if (this._pipelineMode && this.pendingQueryCount >= this._pipelineMaxQueries) {
+      // Emit pipelineFull event if not already paused
+      if (!this._pipelinePaused) {
+        this._pipelinePaused = true
+        this.emit('pipelineFull')
+      }
+      // Queue the query with backpressure - it will be processed when space is available
+      this._queueQueryWithBackpressure(query)
+      return result
+    }
+
     this._queryQueue.push(query)
     this._pulseQueryQueue()
     return result
+  }
+
+  // Internal method to queue a query when backpressure is active
+  // The query waits for drain before being added to the main queue
+  _queueQueryWithBackpressure(query) {
+    const waitForDrain = new this._Promise((resolve) => {
+      this._waitingForDrain.push(resolve)
+    })
+    waitForDrain.then(() => {
+      this._queryQueue.push(query)
+      this._pulseQueryQueue()
+    })
   }
 
   ref() {

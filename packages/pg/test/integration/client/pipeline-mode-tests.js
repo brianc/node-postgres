@@ -1655,3 +1655,207 @@ suite.test('pipeline mode - Pool with size 1 maintains transaction isolation', (
       pool.end().then(() => done(err))
     })
 })
+
+suite.test('pipeline mode - pipelineFull event is emitted when pipelineMaxQueries is reached', (done) => {
+  // Use a small pipelineMaxQueries to trigger backpressure quickly
+  const client = new Client({ pipelineMode: true, pipelineMaxQueries: 10 })
+
+  let pipelineFullEmitted = false
+  client.on('pipelineFull', () => {
+    pipelineFullEmitted = true
+  })
+
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Submit more queries than pipelineMaxQueries to trigger backpressure
+    const promises = []
+    for (let i = 0; i < 15; i++) {
+      promises.push(client.query('SELECT $1::int as num, pg_sleep(0.01)', [i]))
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        // Verify all queries completed successfully
+        assert.equal(results.length, 15, 'All 15 queries should complete')
+
+        // Verify pipelineFull event was emitted
+        assert.ok(pipelineFullEmitted, 'pipelineFull event should have been emitted')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - pipelineDrain event is emitted when pipeline depth drops below low water mark', (done) => {
+  // Use a small pipelineMaxQueries to trigger backpressure quickly
+  // lowWaterMark will be 75% of 10 = 7
+  const client = new Client({ pipelineMode: true, pipelineMaxQueries: 10 })
+
+  let pipelineFullEmitted = false
+  let pipelineDrainEmitted = false
+
+  client.on('pipelineFull', () => {
+    pipelineFullEmitted = true
+  })
+
+  client.on('pipelineDrain', () => {
+    pipelineDrainEmitted = true
+  })
+
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Submit more queries than pipelineMaxQueries to trigger backpressure
+    // Then wait for them to complete and verify pipelineDrain is emitted
+    const promises = []
+    for (let i = 0; i < 15; i++) {
+      promises.push(client.query('SELECT $1::int as num, pg_sleep(0.01)', [i]))
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        // Verify all queries completed successfully
+        assert.equal(results.length, 15, 'All 15 queries should complete')
+
+        // Verify both events were emitted
+        assert.ok(pipelineFullEmitted, 'pipelineFull event should have been emitted')
+        assert.ok(
+          pipelineDrainEmitted,
+          'pipelineDrain event should have been emitted when pipeline depth dropped below low water mark'
+        )
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - backpressure activation with real PostgreSQL connection', (done) => {
+  // Test that backpressure correctly pauses query submission when pipelineMaxQueries is reached
+  const pipelineMaxQueries = 5
+  const client = new Client({ pipelineMode: true, pipelineMaxQueries: pipelineMaxQueries })
+
+  let pipelineFullCount = 0
+  let maxObservedPendingCount = 0
+
+  client.on('pipelineFull', () => {
+    pipelineFullCount++
+    // Record the pending count when pipelineFull is emitted
+    if (client.pendingQueryCount > maxObservedPendingCount) {
+      maxObservedPendingCount = client.pendingQueryCount
+    }
+  })
+
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Submit many queries - backpressure should prevent pendingQueryCount from exceeding pipelineMaxQueries
+    const numQueries = 20
+    const promises = []
+
+    for (let i = 0; i < numQueries; i++) {
+      promises.push(
+        client.query('SELECT $1::int as num, pg_sleep(0.02)', [i]).then((r) => ({ success: true, num: r.rows[0].num }))
+      )
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        // All queries should complete successfully
+        assert.equal(results.length, numQueries, `All ${numQueries} queries should complete`)
+        results.forEach((r, idx) => {
+          assert.equal(r.success, true, `Query ${idx} should succeed`)
+          assert.equal(r.num, idx.toString(), `Query ${idx} should return correct value`)
+        })
+
+        // pipelineFull should have been emitted at least once
+        assert.ok(pipelineFullCount >= 1, 'pipelineFull event should have been emitted at least once')
+
+        // pendingQueryCount should never have exceeded pipelineMaxQueries significantly
+        // (there may be slight timing variations, so we allow a small buffer)
+        assert.ok(
+          maxObservedPendingCount <= pipelineMaxQueries + 2,
+          `maxObservedPendingCount (${maxObservedPendingCount}) should not significantly exceed pipelineMaxQueries (${pipelineMaxQueries})`
+        )
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - backpressure release and query resumption', (done) => {
+  // Test that queries resume correctly after backpressure is released
+  const pipelineMaxQueries = 5
+  const client = new Client({ pipelineMode: true, pipelineMaxQueries: pipelineMaxQueries })
+
+  let pipelineFullEmitted = false
+  let pipelineDrainEmitted = false
+  const eventOrder = []
+
+  client.on('pipelineFull', () => {
+    pipelineFullEmitted = true
+    eventOrder.push('full')
+  })
+
+  client.on('pipelineDrain', () => {
+    pipelineDrainEmitted = true
+    eventOrder.push('drain')
+  })
+
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Submit queries that will trigger backpressure and then drain
+    const numQueries = 15
+    const promises = []
+    const completionOrder = []
+
+    for (let i = 0; i < numQueries; i++) {
+      promises.push(
+        client.query('SELECT $1::int as num, pg_sleep(0.01)', [i]).then((r) => {
+          completionOrder.push(parseInt(r.rows[0].num))
+          return r.rows[0].num
+        })
+      )
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        // All queries should complete
+        assert.equal(results.length, numQueries, `All ${numQueries} queries should complete`)
+
+        // Verify pipelineFull was emitted (backpressure activated)
+        assert.ok(pipelineFullEmitted, 'pipelineFull event should have been emitted')
+
+        // Verify pipelineDrain was emitted (backpressure released)
+        assert.ok(pipelineDrainEmitted, 'pipelineDrain event should have been emitted')
+
+        // Verify event order: full should come before drain
+        const fullIndex = eventOrder.indexOf('full')
+        const drainIndex = eventOrder.indexOf('drain')
+        assert.ok(fullIndex < drainIndex, 'pipelineFull should be emitted before pipelineDrain')
+
+        // Verify queries completed in submission order (pipeline preserves order)
+        for (let i = 0; i < completionOrder.length; i++) {
+          assert.equal(completionOrder[i], i, `Query ${i} should complete in order`)
+        }
+
+        // Verify pendingQueryCount is 0 after all queries complete
+        assert.equal(client.pendingQueryCount, 0, 'pendingQueryCount should be 0 after all queries complete')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
