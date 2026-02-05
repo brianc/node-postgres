@@ -599,3 +599,190 @@ suite.test('pipeline mode - prepared statements do not leak memory', (done) => {
       })
   })
 })
+
+suite.test('pipeline mode - Pool with multiple concurrent clients', (done) => {
+  const Pool = pg.Pool
+  const pool = new Pool({ pipelineMode: true, max: 5 })
+
+  // Simulate 10 concurrent "users" each doing multiple queries
+  const userTasks = []
+  for (let userId = 0; userId < 10; userId++) {
+    const task = pool.connect().then((client) => {
+      // Each user does 5 queries
+      const queries = []
+      for (let q = 0; q < 5; q++) {
+        queries.push(client.query('SELECT $1::int as user_id, $2::int as query_num', [userId, q]))
+      }
+      return Promise.all(queries).then((results) => {
+        client.release()
+        return { userId, results }
+      })
+    })
+    userTasks.push(task)
+  }
+
+  Promise.all(userTasks)
+    .then((allResults) => {
+      // Verify each user got correct results
+      assert.equal(allResults.length, 10, 'Should have results from 10 users')
+
+      allResults.forEach(({ userId, results }) => {
+        assert.equal(results.length, 5, `User ${userId} should have 5 results`)
+        results.forEach((r, idx) => {
+          assert.equal(r.rows[0].user_id, userId, `User ${userId} query ${idx} should have correct user_id`)
+          assert.equal(r.rows[0].query_num, idx, `User ${userId} query ${idx} should have correct query_num`)
+        })
+      })
+
+      return pool.end()
+    })
+    .then(() => done())
+    .catch((err) => {
+      pool.end().then(() => done(err))
+    })
+})
+
+suite.test('pipeline mode - error in transaction with rapid fire queries', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Send all queries as fast as possible without awaiting
+    const p1 = client.query('BEGIN')
+    const p2 = client.query('CREATE TEMP TABLE rapid_test (id int PRIMARY KEY)')
+    const p3 = client.query('INSERT INTO rapid_test VALUES (1)')
+    const p4 = client.query('INSERT INTO rapid_test VALUES (1)') // DUPLICATE - will fail
+    const p5 = client.query('INSERT INTO rapid_test VALUES (2)') // Should fail - tx aborted
+    const p6 = client.query('INSERT INTO rapid_test VALUES (3)') // Should fail - tx aborted
+    const p7 = client.query('COMMIT') // PostgreSQL converts this to ROLLBACK on aborted tx
+
+    Promise.allSettled([p1, p2, p3, p4, p5, p6, p7])
+      .then((results) => {
+        // p1, p2, p3 should succeed
+        assert.equal(results[0].status, 'fulfilled', 'BEGIN should succeed')
+        assert.equal(results[1].status, 'fulfilled', 'CREATE TABLE should succeed')
+        assert.equal(results[2].status, 'fulfilled', 'First INSERT should succeed')
+
+        // p4 should fail (duplicate key)
+        assert.equal(results[3].status, 'rejected', 'Duplicate INSERT should fail')
+
+        // p5, p6 should fail (transaction aborted)
+        assert.equal(results[4].status, 'rejected', 'Query after error should fail')
+        assert.equal(results[5].status, 'rejected', 'Query after error should fail')
+
+        // p7 (COMMIT) succeeds but PostgreSQL converts it to ROLLBACK
+        // This is standard PostgreSQL behavior - COMMIT on aborted transaction = implicit ROLLBACK
+        assert.equal(results[6].status, 'fulfilled', 'COMMIT should succeed (converted to ROLLBACK)')
+        assert.equal(results[6].value.command, 'ROLLBACK', 'COMMIT on aborted tx returns ROLLBACK command')
+
+        // Connection should already be usable (no explicit ROLLBACK needed)
+        return client.query('SELECT 1 as test')
+      })
+      .then((r) => {
+        assert.equal(r.rows[0].test, '1', 'Connection should be usable after aborted transaction')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.query('ROLLBACK').finally(() => client.end(() => done(err)))
+      })
+  })
+})
+
+suite.test('pipeline mode - Promise.all results are correctly ordered', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Create queries with different execution times using pg_sleep
+    // Results MUST come back in the order they were submitted
+    const queries = [
+      client.query('SELECT 1 as num, pg_sleep(0.05)'), // slow
+      client.query('SELECT 2 as num'), // fast
+      client.query('SELECT 3 as num, pg_sleep(0.03)'), // medium
+      client.query('SELECT 4 as num'), // fast
+      client.query('SELECT 5 as num, pg_sleep(0.01)'), // slightly slow
+    ]
+
+    Promise.all(queries)
+      .then((results) => {
+        // Results MUST be in submission order, not completion order
+        assert.equal(results[0].rows[0].num, '1', 'First result should be query 1')
+        assert.equal(results[1].rows[0].num, '2', 'Second result should be query 2')
+        assert.equal(results[2].rows[0].num, '3', 'Third result should be query 3')
+        assert.equal(results[3].rows[0].num, '4', 'Fourth result should be query 4')
+        assert.equal(results[4].rows[0].num, '5', 'Fifth result should be query 5')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - async/await ordering with mixed success/failure', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect(async (err) => {
+    if (err) return done(err)
+
+    try {
+      // Submit queries in rapid succession
+      const p1 = client.query('SELECT 1 as num')
+      const p2 = client.query('SELECT 2 as num')
+      const p3 = client.query('SELECT * FROM nonexistent_xyz') // will fail
+      const p4 = client.query('SELECT 4 as num')
+      const p5 = client.query('SELECT 5 as num')
+
+      // Await them individually to verify ordering
+      const r1 = await p1
+      assert.equal(r1.rows[0].num, '1', 'Query 1 should return 1')
+
+      const r2 = await p2
+      assert.equal(r2.rows[0].num, '2', 'Query 2 should return 2')
+
+      // Query 3 should fail
+      let error3 = null
+      try {
+        await p3
+      } catch (e) {
+        error3 = e
+      }
+      assert.ok(error3, 'Query 3 should have failed')
+
+      // Queries 4 and 5 should still succeed (error isolation in autocommit)
+      const r4 = await p4
+      assert.equal(r4.rows[0].num, '4', 'Query 4 should return 4')
+
+      const r5 = await p5
+      assert.equal(r5.rows[0].num, '5', 'Query 5 should return 5')
+
+      client.end(done)
+    } catch (err) {
+      client.end(() => done(err))
+    }
+  })
+})
+
+suite.test('pipeline mode - Pool.query shorthand with pipeline', (done) => {
+  const Pool = pg.Pool
+  const pool = new Pool({ pipelineMode: true, max: 3 })
+
+  // Use pool.query directly (not pool.connect)
+  const queries = []
+  for (let i = 0; i < 20; i++) {
+    queries.push(pool.query('SELECT $1::int as num', [i]))
+  }
+
+  Promise.all(queries)
+    .then((results) => {
+      assert.equal(results.length, 20, 'Should have 20 results')
+      results.forEach((r, idx) => {
+        assert.equal(r.rows[0].num, idx, `Query ${idx} should return ${idx}`)
+      })
+      return pool.end()
+    })
+    .then(() => done())
+    .catch((err) => {
+      pool.end().then(() => done(err))
+    })
+})
