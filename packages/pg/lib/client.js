@@ -825,23 +825,6 @@ class Client extends EventEmitter {
       query._result._types = this._types
     }
 
-    // Pipeline mode restriction: reject multi-statement queries
-    if (this._pipelineMode) {
-      const queryText = typeof config === 'string' ? config : config && config.text
-      if (queryText && typeof queryText === 'string' && queryText.includes(';')) {
-        // Count non-empty statements separated by semicolons
-        const multiStatementCheck = queryText.split(';').filter((s) => s.trim()).length
-        if (multiStatementCheck > 1) {
-          const error = new Error('Multiple SQL statements are not allowed in pipeline mode')
-          if (query.callback) {
-            process.nextTick(() => query.callback(error))
-            return result
-          }
-          return Promise.reject(error)
-        }
-      }
-    }
-
     if (!this._queryable) {
       process.nextTick(() => {
         query.handleError(new Error('Client has encountered a connection error and is not queryable'), this.connection)

@@ -229,14 +229,34 @@ suite.test('pipeline mode - concurrent prepared statements with same name', (don
   })
 })
 
-suite.test('pipeline mode - rejects multi-statement queries', (done) => {
+suite.test('pipeline mode - handles queries with semicolons in string literals', (done) => {
   const client = new Client({ pipelineMode: true })
   client.connect((err) => {
     if (err) return done(err)
 
+    // Query with semicolon inside a string - should work fine
+    client
+      .query("SELECT ';' as semicolon")
+      .then((r) => {
+        assert.equal(r.rows[0].semicolon, ';', 'Should handle semicolon in string literal')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - multi-statement queries fail at server level', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Multi-statement queries are rejected by PostgreSQL in extended query protocol
+    // The server returns an error, not the client
     client.query('SELECT 1; SELECT 2').catch((err) => {
-      assert.ok(err instanceof Error)
-      assert.equal(err.message, 'Multiple SQL statements are not allowed in pipeline mode')
+      assert.ok(err instanceof Error, 'Should receive an error from server')
+      // The error message comes from PostgreSQL
       client.end(done)
     })
   })

@@ -330,39 +330,24 @@ suite.test('pipeline mode - connection end triggers _errorAllQueries for pending
   }, 10)
 })
 
-// Multi-statement validation tests (Requirement 6.2)
-suite.test('pipeline mode - rejects multi-statement query with callback', function (done) {
+// Multi-statement query tests - validation removed, server handles errors
+// We removed client-side multi-statement validation because queries like
+// SELECT * FROM punctuation WHERE c = ';' would be incorrectly rejected
+
+suite.test('pipeline mode - sends multi-statement query to server (server will reject)', function (done) {
   const client = createPipelineClient()
 
   // Simulate connection ready
   client.connection.emit('readyForQuery')
 
-  // Submit a multi-statement query with callback
-  let capturedError = null
-  client.query('SELECT 1; SELECT 2', function (err) {
-    capturedError = err
-  })
+  // Submit a multi-statement query - should be sent to server
+  // The server will reject it, not the client
+  client.query('SELECT 1; SELECT 2')
 
-  process.nextTick(() => {
-    assert.ok(capturedError, 'Should have received an error')
-    assert.equal(capturedError.message, 'Multiple SQL statements are not allowed in pipeline mode')
-    done()
-  })
-})
-
-suite.test('pipeline mode - rejects multi-statement query with Promise', async function () {
-  const client = createPipelineClient()
-
-  // Simulate connection ready
-  client.connection.emit('readyForQuery')
-
-  // Submit a multi-statement query (Promise-based)
-  try {
-    await client.query('SELECT 1; SELECT 2')
-    assert.fail('Should have thrown an error')
-  } catch (err) {
-    assert.equal(err.message, 'Multiple SQL statements are not allowed in pipeline mode')
-  }
+  // Verify query was added to pending queries (sent to server)
+  assert.ok(client._pendingQueries.length > 0, 'Query should be added to pending queries')
+  assert.equal(client._pendingQueries[0].text, 'SELECT 1; SELECT 2')
+  done()
 })
 
 suite.test('pipeline mode - allows single statement with trailing semicolon', function (done) {
@@ -395,42 +380,20 @@ suite.test('pipeline mode - allows single statement without semicolon', function
   done()
 })
 
-suite.test('pipeline mode - rejects multi-statement query with config object', function (done) {
+suite.test('pipeline mode - allows query with semicolon in string literal', function (done) {
   const client = createPipelineClient()
 
   // Simulate connection ready
   client.connection.emit('readyForQuery')
 
-  // Submit a multi-statement query using config object
-  let capturedError = null
-  client.query({ text: 'SELECT 1; SELECT 2' }, function (err) {
-    capturedError = err
-  })
+  // Submit a query with semicolon in string literal - should be allowed
+  // This was the reason we removed client-side validation
+  client.query("SELECT ';' as semicolon")
 
-  process.nextTick(() => {
-    assert.ok(capturedError, 'Should have received an error')
-    assert.equal(capturedError.message, 'Multiple SQL statements are not allowed in pipeline mode')
-    done()
-  })
-})
-
-suite.test('pipeline mode - rejects query with multiple statements and whitespace', function (done) {
-  const client = createPipelineClient()
-
-  // Simulate connection ready
-  client.connection.emit('readyForQuery')
-
-  // Submit a multi-statement query with whitespace
-  let capturedError = null
-  client.query('SELECT 1;   SELECT 2;  ', function (err) {
-    capturedError = err
-  })
-
-  process.nextTick(() => {
-    assert.ok(capturedError, 'Should have received an error')
-    assert.equal(capturedError.message, 'Multiple SQL statements are not allowed in pipeline mode')
-    done()
-  })
+  // Verify query was added to pending queries (not rejected)
+  assert.ok(client._pendingQueries.length > 0, 'Query should be added to pending queries')
+  assert.equal(client._pendingQueries[0].text, "SELECT ';' as semicolon")
+  done()
 })
 
 suite.test('non-pipeline mode - allows multi-statement queries', function (done) {
