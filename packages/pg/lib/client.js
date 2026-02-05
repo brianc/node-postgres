@@ -656,10 +656,19 @@ class Client extends EventEmitter {
         return
       }
       // In pipeline mode, send all queued queries immediately
-      while (this._queryQueue.length > 0) {
-        const query = this._queryQueue.shift()
-        this._pendingQueries.push(query)
-        this._submitPipelineQuery(query)
+      // Cork the stream once for all queries to avoid unnecessary cork/uncork per query
+      if (this._queryQueue.length > 0) {
+        const connection = this.connection
+        connection.stream.cork && connection.stream.cork()
+        try {
+          while (this._queryQueue.length > 0) {
+            const query = this._queryQueue.shift()
+            this._pendingQueries.push(query)
+            this._submitPipelineQuery(query)
+          }
+        } finally {
+          connection.stream.uncork && connection.stream.uncork()
+        }
       }
     } else {
       // Existing non-pipeline behavior
@@ -688,62 +697,53 @@ class Client extends EventEmitter {
 
   // Submit a query using the Extended Query Protocol for pipeline mode
   // Sends Parse/Bind/Describe/Execute/Sync for each query
+  // Note: cork/uncork is handled by the caller (_pulseQueryQueue) for batching
   _submitPipelineQuery(query) {
     const connection = this.connection
 
-    // Use cork/uncork to buffer messages before sending them all at once
-    // This optimizes network performance by avoiding multiple small writes
-    connection.stream.cork && connection.stream.cork()
-    try {
-      // Parse - only if the statement hasn't been parsed before (for named statements)
-      // In pipeline mode, we also track "in-flight" prepared statements to avoid
-      // sending duplicate Parse commands for the same named statement
-      const needsParse = query.name && !query.hasBeenParsed(connection) && !this._pendingParsedStatements[query.name]
+    // Parse - only if the statement hasn't been parsed before (for named statements)
+    // In pipeline mode, we also track "in-flight" prepared statements to avoid
+    // sending duplicate Parse commands for the same named statement
+    const needsParse = query.name && !query.hasBeenParsed(connection) && !this._pendingParsedStatements[query.name]
 
-      if (!query.name || needsParse) {
-        // For unnamed queries, always parse
-        // For named queries, only parse if not already parsed or in-flight
-        if (query.name) {
-          // Track this statement as "in-flight" to prevent duplicate Parse commands
-          this._pendingParsedStatements[query.name] = query.text
-        }
-        connection.parse({
-          text: query.text,
-          name: query.name,
-          types: query.types,
-        })
+    if (!query.name || needsParse) {
+      // For unnamed queries, always parse
+      // For named queries, only parse if not already parsed or in-flight
+      if (query.name) {
+        // Track this statement as "in-flight" to prevent duplicate Parse commands
+        this._pendingParsedStatements[query.name] = query.text
       }
-
-      // Bind - map user values to postgres wire protocol compatible values
-      // This could throw an exception, so we handle it in the try block
-      connection.bind({
-        portal: query.portal,
-        statement: query.name,
-        values: query.values,
-        binary: query.binary,
-        valueMapper: utils.prepareValue,
+      connection.parse({
+        text: query.text,
+        name: query.name,
+        types: query.types,
       })
-
-      // Describe - request description of the portal
-      connection.describe({
-        type: 'P',
-        name: query.portal || '',
-      })
-
-      // Execute - execute the query
-      connection.execute({
-        portal: query.portal,
-        rows: query.rows,
-      })
-
-      // Sync - establishes synchronization point
-      // This tells the server to process all messages up to this point
-      connection.sync()
-    } finally {
-      // Always uncork the stream, even if an error occurs
-      // This prevents the client from becoming unresponsive
-      connection.stream.uncork && connection.stream.uncork()
     }
+
+    // Bind - map user values to postgres wire protocol compatible values
+    connection.bind({
+      portal: query.portal,
+      statement: query.name,
+      values: query.values,
+      binary: query.binary,
+      valueMapper: utils.prepareValue,
+    })
+
+    // Describe - request description of the portal
+    connection.describe({
+      type: 'P',
+      name: query.portal || '',
+    })
+
+    // Execute - execute the query
+    connection.execute({
+      portal: query.portal,
+      rows: query.rows,
+    })
+
+    // Sync - establishes synchronization point
+    // This tells the server to process all messages up to this point
+    connection.sync()
   }
 
   // Returns the current query being processed in pipeline mode
