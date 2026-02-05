@@ -382,7 +382,8 @@ class Client extends EventEmitter {
       const currentQuery = this._pendingQueries[0]
       if (
         currentQuery &&
-        (currentQuery._gotRowDescription || currentQuery._gotError || currentQuery._gotCommandComplete)) {
+        (currentQuery._gotRowDescription || currentQuery._gotError || currentQuery._gotCommandComplete)
+      ) {
         this._pendingQueries.shift()
         currentQuery.handleReadyForQuery(this.connection)
       }
