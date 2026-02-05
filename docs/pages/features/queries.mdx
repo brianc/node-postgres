@@ -190,12 +190,26 @@ const results = await Promise.all([
 ])
 ```
 
-### Pipeline Mode Restrictions
+### Restrictions and Limitations
 
-- **No multi-statement queries**: Queries with multiple SQL statements separated by `;` are rejected
 - **No COPY operations**: COPY commands are not supported in pipeline mode
-- **No pg-cursor**: Custom submittables like `pg-cursor` are not supported in pipeline mode
+- **No pg-cursor/pg-query-stream**: Custom submittables are not supported in pipeline mode
 - **JavaScript client only**: Pipeline mode is not available in `pg-native`
+
+Note: Multi-statement queries (e.g., `SELECT 1; SELECT 2`) are rejected by PostgreSQL when using the extended query protocol, which pipeline mode uses. This is a PostgreSQL limitation.
+
+### Transaction Behavior
+
+Errors inside a transaction will abort subsequent queries until `ROLLBACK`. This is standard PostgreSQL behavior. If you send `COMMIT` on an aborted transaction, PostgreSQL automatically converts it to `ROLLBACK`:
+
+```js
+// In a transaction, if one query fails, subsequent queries also fail
+await client.query('BEGIN')
+await client.query('INSERT INTO t VALUES (1)')
+await client.query('INSERT INTO t VALUES (1)') // fails: duplicate key
+await client.query('INSERT INTO t VALUES (2)') // also fails: transaction aborted
+await client.query('COMMIT') // returns ROLLBACK command
+```
 
 ### When to Use Pipeline Mode
 
