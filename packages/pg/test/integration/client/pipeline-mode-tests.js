@@ -487,11 +487,7 @@ suite.test('pipeline mode - errors inside transaction abort subsequent queries',
   })
 })
 
-// Tests to verify ChatGPT review claims are incorrect
-
 suite.test('pipeline mode - large result set is fully received (not closed early)', (done) => {
-  // ChatGPT claimed: "Query completata troppo presto dopo RowDescription"
-  // This test proves that's wrong - all rows are received correctly
   const client = new Client({ pipelineMode: true })
   client.connect((err) => {
     if (err) return done(err)
@@ -543,8 +539,6 @@ suite.test('pipeline mode - multiple large result sets in parallel', (done) => {
 })
 
 suite.test('pipeline mode - transactions ARE supported and work correctly', (done) => {
-  // ChatGPT claimed: "Bloccare transazioni in pipeline" - this is unnecessary
-  // This test proves transactions work correctly in pipeline mode
   const client = new Client({ pipelineMode: true })
   client.connect((err) => {
     if (err) return done(err)
@@ -568,8 +562,6 @@ suite.test('pipeline mode - transactions ARE supported and work correctly', (don
 })
 
 suite.test('pipeline mode - prepared statements do not leak memory', (done) => {
-  // ChatGPT correctly identified this issue - we fixed it
-  // This test verifies the fix works
   const client = new Client({ pipelineMode: true })
   client.connect((err) => {
     if (err) return done(err)
