@@ -128,7 +128,8 @@ class ConnectionParameters {
     }
 
     // Pipeline mode configuration - enables sending multiple queries without waiting for responses
-    this.pipelineMode = val('pipelineMode', config, false)
+    // Read from config only (not from connection string or environment variables)
+    this.pipelineMode = config.pipelineMode || false
   }
 
   getLibpqConnectionString(cb) {
