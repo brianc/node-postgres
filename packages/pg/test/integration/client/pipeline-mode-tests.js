@@ -486,3 +486,124 @@ suite.test('pipeline mode - errors inside transaction abort subsequent queries',
       })
   })
 })
+
+// Tests to verify ChatGPT review claims are incorrect
+
+suite.test('pipeline mode - large result set is fully received (not closed early)', (done) => {
+  // ChatGPT claimed: "Query completata troppo presto dopo RowDescription"
+  // This test proves that's wrong - all rows are received correctly
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Generate 1000 rows - if query was closed after RowDescription, we'd get fewer
+    client
+      .query('SELECT generate_series(1, 1000) as num')
+      .then((r) => {
+        assert.equal(r.rows.length, 1000, 'Should receive all 1000 rows, not close early')
+        // Verify first and last values
+        assert.equal(r.rows[0].num, '1')
+        assert.equal(r.rows[999].num, '1000')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - multiple large result sets in parallel', (done) => {
+  // Further proof that queries are not closed prematurely
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    Promise.all([
+      client.query('SELECT generate_series(1, 500) as num'),
+      client.query('SELECT generate_series(501, 1000) as num'),
+      client.query('SELECT generate_series(1001, 1500) as num'),
+    ])
+      .then((results) => {
+        assert.equal(results[0].rows.length, 500, 'First query should have 500 rows')
+        assert.equal(results[1].rows.length, 500, 'Second query should have 500 rows')
+        assert.equal(results[2].rows.length, 500, 'Third query should have 500 rows')
+
+        // Verify correct data
+        assert.equal(results[0].rows[0].num, '1')
+        assert.equal(results[0].rows[499].num, '500')
+        assert.equal(results[1].rows[0].num, '501')
+        assert.equal(results[2].rows[499].num, '1500')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - transactions ARE supported and work correctly', (done) => {
+  // ChatGPT claimed: "Bloccare transazioni in pipeline" - this is unnecessary
+  // This test proves transactions work correctly in pipeline mode
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    client
+      .query('CREATE TEMP TABLE tx_test (id serial, value int)')
+      .then(() => client.query('BEGIN'))
+      .then(() => client.query('INSERT INTO tx_test (value) VALUES (1)'))
+      .then(() => client.query('INSERT INTO tx_test (value) VALUES (2)'))
+      .then(() => client.query('INSERT INTO tx_test (value) VALUES (3)'))
+      .then(() => client.query('COMMIT'))
+      .then(() => client.query('SELECT SUM(value) as total FROM tx_test'))
+      .then((r) => {
+        assert.equal(r.rows[0].total, '6', 'Transaction should commit all 3 inserts')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.query('ROLLBACK').finally(() => client.end(() => done(err)))
+      })
+  })
+})
+
+suite.test('pipeline mode - prepared statements do not leak memory', (done) => {
+  // ChatGPT correctly identified this issue - we fixed it
+  // This test verifies the fix works
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Execute same prepared statement multiple times
+    const promises = []
+    for (let i = 0; i < 100; i++) {
+      promises.push(
+        client.query({
+          name: 'memory-test',
+          text: 'SELECT $1::int as num',
+          values: [i],
+        })
+      )
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        // Verify all queries succeeded
+        assert.equal(results.length, 100)
+        assert.equal(results[0].rows[0].num, 0)
+        assert.equal(results[99].rows[0].num, 99)
+
+        // Verify _pendingParsedStatements is cleaned up (no leak)
+        assert.equal(
+          Object.keys(client._pendingParsedStatements).length,
+          0,
+          '_pendingParsedStatements should be empty after queries complete'
+        )
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
