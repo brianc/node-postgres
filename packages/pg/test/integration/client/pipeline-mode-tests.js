@@ -1287,9 +1287,7 @@ suite.test('pipeline mode - Pool stress test with concurrent connections', (done
     const task = pool.connect().then((client) => {
       const queries = []
       for (let q = 0; q < queriesPerUser; q++) {
-        queries.push(
-          client.query('SELECT $1::int as user_id, $2::int as query_num, pg_sleep(0.01)', [userId, q])
-        )
+        queries.push(client.query('SELECT $1::int as user_id, $2::int as query_num, pg_sleep(0.01)', [userId, q]))
       }
       return Promise.all(queries).then((results) => {
         client.release()
@@ -1318,7 +1316,6 @@ suite.test('pipeline mode - Pool stress test with concurrent connections', (done
       pool.end().then(() => done(err))
     })
 })
-
 
 suite.test('pipeline mode - query cancellation removes from queue', (done) => {
   const client = new Client({ pipelineMode: true })
