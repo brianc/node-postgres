@@ -1018,3 +1018,29 @@ suite.test('pipeline mode - rowMode array works', (done) => {
       })
   })
 })
+
+suite.test('pipeline mode - pg-cursor is rejected', (done) => {
+  let Cursor
+  try {
+    Cursor = require('pg-cursor')
+  } catch (e) {
+    console.log('  (skipped - pg-cursor not installed)')
+    return done()
+  }
+
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const cursor = new Cursor('SELECT generate_series(1, 100) as num')
+
+    // Cursor should receive an error
+    cursor.on('error', (err) => {
+      assert.ok(err instanceof Error, 'Should receive an error')
+      assert.ok(err.message.includes('pipeline'), 'Error should mention pipeline mode')
+      client.end(done)
+    })
+
+    client.query(cursor)
+  })
+})

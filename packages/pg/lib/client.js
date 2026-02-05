@@ -120,6 +120,14 @@ class Client extends EventEmitter {
     return this._activeQuery
   }
 
+  // Returns the query that should receive the current message
+  _getMessageTarget() {
+    if (this._pipelineMode) {
+      return this._getCurrentPipelineQuery()
+    }
+    return this._getActiveQuery()
+  }
+
   get pipelineMode() {
     return this._pipelineMode
   }
@@ -464,7 +472,7 @@ class Client extends EventEmitter {
   }
 
   _handleRowDescription(msg) {
-    const activeQuery = this._pipelineMode ? this._getCurrentPipelineQuery() : this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected rowDescription message from backend.')
       this._handleErrorEvent(error)
@@ -479,7 +487,7 @@ class Client extends EventEmitter {
   }
 
   _handleDataRow(msg) {
-    const activeQuery = this._pipelineMode ? this._getCurrentPipelineQuery() : this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected dataRow message from backend.')
       this._handleErrorEvent(error)
@@ -490,7 +498,7 @@ class Client extends EventEmitter {
   }
 
   _handlePortalSuspended(msg) {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected portalSuspended message from backend.')
       this._handleErrorEvent(error)
@@ -501,7 +509,7 @@ class Client extends EventEmitter {
   }
 
   _handleEmptyQuery(msg) {
-    const activeQuery = this._pipelineMode ? this._getCurrentPipelineQuery() : this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected emptyQuery message from backend.')
       this._handleErrorEvent(error)
@@ -516,7 +524,7 @@ class Client extends EventEmitter {
   }
 
   _handleCommandComplete(msg) {
-    const activeQuery = this._pipelineMode ? this._getCurrentPipelineQuery() : this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected commandComplete message from backend.')
       this._handleErrorEvent(error)
@@ -531,7 +539,7 @@ class Client extends EventEmitter {
   }
 
   _handleParseComplete() {
-    const activeQuery = this._pipelineMode ? this._getCurrentPipelineQuery() : this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected parseComplete message from backend.')
       this._handleErrorEvent(error)
@@ -777,6 +785,15 @@ class Client extends EventEmitter {
     if (config === null || config === undefined) {
       throw new TypeError('Client was passed a null or undefined query')
     } else if (typeof config.submit === 'function') {
+      // Check if this is a custom submittable (not our Query class)
+      // Custom submittables like pg-cursor are not supported in pipeline mode
+      if (this._pipelineMode && config.submit !== Query.prototype.submit) {
+        const error = new Error('Custom submittables are not supported in pipeline mode')
+        process.nextTick(() => {
+          config.handleError(error, this.connection)
+        })
+        return config
+      }
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       result = query = config
       if (typeof values === 'function') {

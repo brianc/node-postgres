@@ -194,6 +194,7 @@ const results = await Promise.all([
 
 - **No multi-statement queries**: Queries with multiple SQL statements separated by `;` are rejected
 - **No COPY operations**: COPY commands are not supported in pipeline mode
+- **No pg-cursor**: Custom submittables like `pg-cursor` are not supported in pipeline mode
 - **JavaScript client only**: Pipeline mode is not available in `pg-native`
 
 ### When to Use Pipeline Mode
