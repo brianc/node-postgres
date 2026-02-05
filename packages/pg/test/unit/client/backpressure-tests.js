@@ -125,11 +125,11 @@ test('backpressure configuration', function () {
 
   // Validates: Requirements 1.6
   test('pipelineFull event emission when high water mark is reached', function () {
-    // Create a Client with pipelineMode: true and a small pipelineMaxQueries alue for easier testing
-    const maxPendingQueries = 5
+    // Create a Client with pipelineMode: true and a small pipelineMaxQueries value for easier testing
+    const pipelineMaxQueries = 5
     const client = new Client({
       pipelineMode: true,
-      maxPendingQueries: maxPendingQueries,
+      pipelineMaxQueries: pipelineMaxQueries,
     })
 
     // Track pipelineFull event emissions
@@ -154,16 +154,16 @@ test('backpressure configuration', function () {
     client._queryQueue.push({ text: 'SELECT 4' })
     client._queryQueue.push({ text: 'SELECT 5' })
 
-    // Verify pendingQueryCount equals maxPendingQueries
+    // Verify pendingQueryCount equals pipelineMaxQueries
     assert.equal(
       client.pendingQueryCount,
-      maxPendingQueries,
-      `Expected pendingQueryCount to be ${maxPendingQueries}, got ${client.pendingQueryCount}`
+      pipelineMaxQueries,
+      `Expected pendingQueryCount to be ${pipelineMaxQueries}, got ${client.pendingQueryCount}`
     )
 
     // Simulate the backpressure check by directly testing the condition and emitting the event
     // This mimics what happens in the query() method when the high water mark is reached
-    if (client.pendingQueryCount >= client._maxPendingQueries) {
+    if (client.pendingQueryCount >= client._pipelineMaxQueries) {
       if (!client._pipelinePaused) {
         client._pipelinePaused = true
         client.emit('pipelineFull')
@@ -181,7 +181,7 @@ test('backpressure configuration', function () {
     assert.equal(client._pipelinePaused, true, 'Expected _pipelinePaused to be true after reaching high water mark')
 
     // Simulate calling the backpressure check again (should NOT emit pipelineFull again)
-    if (client.pendingQueryCount >= client._maxPendingQueries) {
+    if (client.pendingQueryCount >= client._pipelineMaxQueries) {
       if (!client._pipelinePaused) {
         client._pipelinePaused = true
         client.emit('pipelineFull')
