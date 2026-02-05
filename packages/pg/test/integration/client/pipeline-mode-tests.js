@@ -1600,3 +1600,58 @@ suite.test('pipeline mode - query with many parameters', (done) => {
       })
   })
 })
+
+suite.test('pipeline mode - Pool with size 1 maintains transaction isolation', (done) => {
+  // This test verifies that pool + pipeline mode doesn't break transaction isolation
+  // With pool size 1, both "users" must share the same connection
+  // A failure in one transaction should NOT affect the other
+  const Pool = pg.Pool
+  const pool = new Pool({ pipelineMode: true, max: 1 })
+
+  // User 1: successful transaction
+  const user1 = pool.connect().then(async (client) => {
+    try {
+      await client.query('BEGIN')
+      await client.query('CREATE TEMP TABLE user1_test (id int)')
+      await client.query('INSERT INTO user1_test VALUES (1)')
+      await client.query('COMMIT')
+      const result = await client.query('SELECT * FROM user1_test')
+      return { success: true, rows: result.rows.length }
+    } finally {
+      client.release()
+    }
+  })
+
+  // User 2: transaction that fails
+  const user2 = pool.connect().then(async (client) => {
+    try {
+      await client.query('BEGIN')
+      await client.query('CREATE TEMP TABLE user2_test (id int PRIMARY KEY)')
+      await client.query('INSERT INTO user2_test VALUES (1)')
+      await client.query('INSERT INTO user2_test VALUES (1)') // DUPLICATE - will fail
+      await client.query('COMMIT') // This becomes ROLLBACK
+      return { success: true }
+    } catch (err) {
+      await client.query('ROLLBACK')
+      return { success: false, error: err.message }
+    } finally {
+      client.release()
+    }
+  })
+
+  Promise.all([user1, user2])
+    .then(([result1, result2]) => {
+      // User 1 should succeed
+      assert.equal(result1.success, true, 'User 1 transaction should succeed')
+      assert.equal(result1.rows, 1, 'User 1 should have 1 row')
+
+      // User 2 should fail (duplicate key or transaction aborted)
+      assert.equal(result2.success, false, 'User 2 transaction should fail')
+
+      return pool.end()
+    })
+    .then(() => done())
+    .catch((err) => {
+      pool.end().then(() => done(err))
+    })
+})
