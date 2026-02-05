@@ -1044,3 +1044,336 @@ suite.test('pipeline mode - pg-cursor is rejected', (done) => {
     client.query(cursor)
   })
 })
+
+suite.test('pipeline mode - stress test with 200+ concurrent queries', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const numQueries = 200
+    const promises = []
+
+    for (let i = 0; i < numQueries; i++) {
+      promises.push(
+        client.query('SELECT $1::int as num, $2::text as txt', [i, `query-${i}`]).then((r) => ({
+          expected: i,
+          actual: parseInt(r.rows[0].num),
+          txt: r.rows[0].txt,
+        }))
+      )
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        assert.equal(results.length, numQueries, `Should have ${numQueries} results`)
+        results.forEach((r) => {
+          assert.equal(r.actual, r.expected, `Query ${r.expected} should return correct num`)
+          assert.equal(r.txt, `query-${r.expected}`, `Query ${r.expected} should return correct txt`)
+        })
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - mixed query types (INSERT, UPDATE, DELETE, SELECT)', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Setup table
+    client
+      .query('CREATE TEMP TABLE mixed_ops (id serial PRIMARY KEY, value int, name text)')
+      .then(() => {
+        // Send all operations in rapid succession
+        const p1 = client.query("INSERT INTO mixed_ops (value, name) VALUES (1, 'one') RETURNING id")
+        const p2 = client.query("INSERT INTO mixed_ops (value, name) VALUES (2, 'two') RETURNING id")
+        const p3 = client.query("INSERT INTO mixed_ops (value, name) VALUES (3, 'three') RETURNING id")
+        const p4 = client.query('UPDATE mixed_ops SET value = value * 10 WHERE value = 2 RETURNING value')
+        const p5 = client.query('DELETE FROM mixed_ops WHERE value = 1 RETURNING id')
+        const p6 = client.query('SELECT * FROM mixed_ops ORDER BY id')
+
+        return Promise.all([p1, p2, p3, p4, p5, p6])
+      })
+      .then((results) => {
+        // Verify INSERT results
+        assert.ok(results[0].rows[0].id, 'First INSERT should return id')
+        assert.ok(results[1].rows[0].id, 'Second INSERT should return id')
+        assert.ok(results[2].rows[0].id, 'Third INSERT should return id')
+
+        // Verify UPDATE result
+        assert.equal(results[3].rows[0].value, 20, 'UPDATE should multiply value by 10')
+        assert.equal(results[3].rowCount, 1, 'UPDATE should affect 1 row')
+
+        // Verify DELETE result
+        assert.equal(results[4].rowCount, 1, 'DELETE should affect 1 row')
+
+        // Verify final SELECT - should have 2 rows (one deleted)
+        assert.equal(results[5].rows.length, 2, 'Should have 2 rows after DELETE')
+        const values = results[5].rows.map((r) => parseInt(r.value)).sort((a, b) => a - b)
+        assert.deepEqual(values, [3, 20], 'Should have correct values after all operations')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - SAVEPOINT handling (nested transactions)', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    client
+      .query('CREATE TEMP TABLE savepoint_test (id serial, value int)')
+      .then(() => client.query('BEGIN'))
+      .then(() => client.query('INSERT INTO savepoint_test (value) VALUES (1)'))
+      .then(() => client.query('SAVEPOINT sp1'))
+      .then(() => client.query('INSERT INTO savepoint_test (value) VALUES (2)'))
+      .then(() => client.query('SAVEPOINT sp2'))
+      .then(() => client.query('INSERT INTO savepoint_test (value) VALUES (3)'))
+      .then(() => client.query('ROLLBACK TO SAVEPOINT sp2')) // Undo value=3
+      .then(() => client.query('INSERT INTO savepoint_test (value) VALUES (4)'))
+      .then(() => client.query('ROLLBACK TO SAVEPOINT sp1')) // Undo value=2 and value=4
+      .then(() => client.query('INSERT INTO savepoint_test (value) VALUES (5)'))
+      .then(() => client.query('COMMIT'))
+      .then(() => client.query('SELECT value FROM savepoint_test ORDER BY value'))
+      .then((r) => {
+        // Should only have values 1 and 5 (2, 3, 4 were rolled back)
+        const values = r.rows.map((row) => parseInt(row.value))
+        assert.deepEqual(values, [1, 5], 'Should only have values 1 and 5 after savepoint rollbacks')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.query('ROLLBACK').finally(() => client.end(() => done(err)))
+      })
+  })
+})
+
+suite.test('pipeline mode - rapid SAVEPOINT operations', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    client
+      .query('CREATE TEMP TABLE rapid_sp (id serial, value int)')
+      .then(() => {
+        // Send all savepoint operations in rapid succession
+        const ops = [
+          client.query('BEGIN'),
+          client.query('INSERT INTO rapid_sp (value) VALUES (1)'),
+          client.query('SAVEPOINT a'),
+          client.query('INSERT INTO rapid_sp (value) VALUES (2)'),
+          client.query('SAVEPOINT b'),
+          client.query('INSERT INTO rapid_sp (value) VALUES (3)'),
+          client.query('RELEASE SAVEPOINT b'), // Keep value=3
+          client.query('ROLLBACK TO SAVEPOINT a'), // Undo value=2 and value=3
+          client.query('INSERT INTO rapid_sp (value) VALUES (4)'),
+          client.query('COMMIT'),
+        ]
+        return Promise.all(ops)
+      })
+      .then(() => client.query('SELECT value FROM rapid_sp ORDER BY value'))
+      .then((r) => {
+        const values = r.rows.map((row) => parseInt(row.value))
+        assert.deepEqual(values, [1, 4], 'Should only have values 1 and 4')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.query('ROLLBACK').finally(() => client.end(() => done(err)))
+      })
+  })
+})
+
+suite.test('pipeline mode - connection interruption handling', (done) => {
+  const client = new Client({ pipelineMode: true })
+
+  let errorReceived = false
+  let endReceived = false
+
+  client.on('error', (err) => {
+    errorReceived = true
+  })
+
+  client.on('end', () => {
+    endReceived = true
+  })
+
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Start some queries
+    const p1 = client.query('SELECT pg_sleep(0.5), 1 as num')
+    const p2 = client.query('SELECT 2 as num')
+    const p3 = client.query('SELECT 3 as num')
+
+    // Destroy the connection after a short delay
+    setTimeout(() => {
+      client.connection.stream.destroy()
+    }, 50)
+
+    // All queries should fail
+    Promise.allSettled([p1, p2, p3]).then((results) => {
+      // At least some queries should have failed
+      const failedCount = results.filter((r) => r.status === 'rejected').length
+      assert.ok(failedCount > 0, 'At least some queries should fail when connection is destroyed')
+
+      // Error event should have been emitted
+      assert.ok(errorReceived || endReceived, 'Should receive error or end event')
+
+      done()
+    })
+  })
+})
+
+suite.test('pipeline mode - stress test with mixed success/failure', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const promises = []
+
+    // Mix of successful and failing queries
+    for (let i = 0; i < 50; i++) {
+      if (i % 10 === 5) {
+        // Every 10th query (at position 5, 15, 25, 35, 45) will fail
+        promises.push(client.query('SELECT * FROM nonexistent_table_' + i))
+      } else {
+        promises.push(client.query('SELECT $1::int as num', [i]))
+      }
+    }
+
+    Promise.allSettled(promises)
+      .then((results) => {
+        let successCount = 0
+        let failCount = 0
+
+        results.forEach((r, idx) => {
+          if (r.status === 'fulfilled') {
+            successCount++
+            if (idx % 10 !== 5) {
+              assert.equal(r.value.rows[0].num, idx, `Query ${idx} should return correct value`)
+            }
+          } else {
+            failCount++
+            assert.equal(idx % 10, 5, `Only queries at position 5, 15, 25, 35, 45 should fail`)
+          }
+        })
+
+        assert.equal(successCount, 45, 'Should have 45 successful queries')
+        assert.equal(failCount, 5, 'Should have 5 failed queries')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - Pool stress test with concurrent connections', (done) => {
+  const Pool = pg.Pool
+  const pool = new Pool({ pipelineMode: true, max: 10 })
+
+  const numUsers = 20
+  const queriesPerUser = 10
+  const userTasks = []
+
+  for (let userId = 0; userId < numUsers; userId++) {
+    const task = pool.connect().then((client) => {
+      const queries = []
+      for (let q = 0; q < queriesPerUser; q++) {
+        queries.push(
+          client.query('SELECT $1::int as user_id, $2::int as query_num, pg_sleep(0.01)', [userId, q])
+        )
+      }
+      return Promise.all(queries).then((results) => {
+        client.release()
+        return { userId, results }
+      })
+    })
+    userTasks.push(task)
+  }
+
+  Promise.all(userTasks)
+    .then((allResults) => {
+      assert.equal(allResults.length, numUsers, `Should have results from ${numUsers} users`)
+
+      allResults.forEach(({ userId, results }) => {
+        assert.equal(results.length, queriesPerUser, `User ${userId} should have ${queriesPerUser} results`)
+        results.forEach((r, idx) => {
+          assert.equal(parseInt(r.rows[0].user_id), userId, `User ${userId} query ${idx} should have correct user_id`)
+          assert.equal(parseInt(r.rows[0].query_num), idx, `User ${userId} query ${idx} should have correct query_num`)
+        })
+      })
+
+      return pool.end()
+    })
+    .then(() => done())
+    .catch((err) => {
+      pool.end().then(() => done(err))
+    })
+})
+
+
+suite.test('pipeline mode - query cancellation removes from queue', (done) => {
+  const client = new Client({ pipelineMode: true })
+
+  // Queue queries before connecting
+  const p1 = client.query('SELECT 1 as num')
+  const p2 = client.query('SELECT 2 as num')
+  const p3 = client.query('SELECT 3 as num')
+
+  // Remove p2 from queue before it's sent
+  const idx = client._queryQueue.indexOf(p2._result ? p2 : client._queryQueue[1])
+  if (idx > -1) {
+    client._queryQueue.splice(idx, 1)
+  }
+
+  client.connect((err) => {
+    if (err) return done(err)
+
+    Promise.allSettled([p1, p3])
+      .then((results) => {
+        assert.equal(results[0].status, 'fulfilled', 'Query 1 should succeed')
+        assert.equal(results[1].status, 'fulfilled', 'Query 3 should succeed')
+        assert.equal(results[0].value.rows[0].num, '1')
+        assert.equal(results[1].value.rows[0].num, '3')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - very large batch (500 queries)', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const numQueries = 500
+    const promises = []
+
+    for (let i = 0; i < numQueries; i++) {
+      promises.push(client.query('SELECT $1::int as i', [i]))
+    }
+
+    Promise.all(promises)
+      .then((results) => {
+        assert.equal(results.length, numQueries)
+        // Verify first, middle, and last
+        assert.equal(results[0].rows[0].i, '0')
+        assert.equal(results[250].rows[0].i, '250')
+        assert.equal(results[499].rows[0].i, '499')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
