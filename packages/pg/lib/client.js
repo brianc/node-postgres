@@ -376,15 +376,15 @@ class Client extends EventEmitter {
     this.readyForQuery = true
 
     if (this._pipelineMode) {
-      // In pipeline mode, complete the current pending query
-      // A query is ready to complete when it has received results or an error
+      // In pipeline mode, complete the current pending query if it has received results
+      // The flags check ensures we don't complete a query that hasn't started processing yet
+      // (e.g., the initial readyForQuery after connection shouldn't complete pending queries)
       const currentQuery = this._pendingQueries[0]
       if (
         currentQuery &&
-        (currentQuery._gotRowDescription || currentQuery._gotError || currentQuery._gotCommandComplete)
-      ) {
-        const completedQuery = this._pendingQueries.shift()
-        completedQuery.handleReadyForQuery(this.connection)
+        (currentQuery._gotRowDescription || currentQuery._gotError || currentQuery._gotCommandComplete)) {
+        this._pendingQueries.shift()
+        currentQuery.handleReadyForQuery(this.connection)
       }
 
       // Check if more queries to send
