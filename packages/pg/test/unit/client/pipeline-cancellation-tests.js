@@ -113,3 +113,29 @@ test('pipeline: cancelled query does not affect others', function (done) {
 
   done()
 })
+
+test('pipeline: cancel() preserved through .then().catch() chain', function () {
+  const client = helper.client()
+  client._pipelineMode = true
+  client._connected = true
+
+  const con = client.connection
+  con.parse = function () {}
+  con.bind = function () {}
+  con.describe = function () {}
+  con.execute = function () {}
+  con.sync = function () {}
+  con.flush = function () {}
+  con.stream = { cork: function () {}, uncork: function () {} }
+
+  const result = client
+    .query({ text: 'SELECT 1' })
+    .then(function (r) {
+      return r
+    })
+    .catch(function (err) {
+      throw err
+    })
+
+  assert.equal(typeof result.cancel, 'function', 'cancel() should be preserved through .then().catch() chain')
+})

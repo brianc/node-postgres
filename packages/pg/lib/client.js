@@ -992,45 +992,47 @@ class Client extends EventEmitter {
   }
 
   // Wrap a promise result with cancel() method for pipeline mode
+  // Creates a CancellablePromise that preserves cancel() through the chain
   _wrapResultWithCancel(promise, query) {
     const client = this
-    const wrappedPromise = promise.then(
-      (value) => value,
-      (err) => {
-        throw err
-      }
-    )
-
-    wrappedPromise.cancel = function () {
+    const cancelFn = function () {
       client._cancelPipelineQuery(query)
     }
 
-    // Preserve promise methods
-    const originalThen = wrappedPromise.then.bind(wrappedPromise)
-    const originalCatch = wrappedPromise.catch.bind(wrappedPromise)
-    const originalFinally = wrappedPromise.finally ? wrappedPromise.finally.bind(wrappedPromise) : undefined
+    // Recursively wrap a promise to preserve cancel through chains
+    const wrapPromise = (p) => {
+      // Add cancel method
+      p.cancel = cancelFn
 
-    wrappedPromise.then = function (onFulfilled, onRejected) {
-      const newPromise = originalThen(onFulfilled, onRejected)
-      newPromise.cancel = wrappedPromise.cancel
-      return newPromise
-    }
+      // Store original methods
+      const origThen = p.then.bind(p)
+      const origCatch = p.catch.bind(p)
+      const origFinally = p.finally ? p.finally.bind(p) : undefined
 
-    wrappedPromise.catch = function (onRejected) {
-      const newPromise = originalCatch(onRejected)
-      newPromise.cancel = wrappedPromise.cancel
-      return newPromise
-    }
-
-    if (originalFinally) {
-      wrappedPromise.finally = function (onFinally) {
-        const newPromise = originalFinally(onFinally)
-        newPromise.cancel = wrappedPromise.cancel
-        return newPromise
+      // Override then to wrap the returned promise
+      p.then = function (onFulfilled, onRejected) {
+        const newPromise = origThen(onFulfilled, onRejected)
+        return wrapPromise(newPromise)
       }
+
+      // Override catch to wrap the returned promise
+      p.catch = function (onRejected) {
+        const newPromise = origCatch(onRejected)
+        return wrapPromise(newPromise)
+      }
+
+      // Override finally if available
+      if (origFinally) {
+        p.finally = function (onFinally) {
+          const newPromise = origFinally(onFinally)
+          return wrapPromise(newPromise)
+        }
+      }
+
+      return p
     }
 
-    return wrappedPromise
+    return wrapPromise(promise)
   }
 
   // Internal method to queue a query when backpressure is active
