@@ -534,6 +534,8 @@ class Client extends EventEmitter {
     // it again on the same client
     if (activeQuery.name) {
       this.connection.parsedStatements[activeQuery.name] = activeQuery.text
+      // Remove from in-flight tracker (pipeline mode) to prevent memory leak
+      delete this._pendingParsedStatements[activeQuery.name]
     }
   }
 
