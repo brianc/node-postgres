@@ -525,11 +525,6 @@ class Client extends EventEmitter {
   _handleParseComplete() {
     const activeQuery = this._pipelineMode ? this._getCurrentPipelineQuery() : this._getActiveQuery()
     if (activeQuery == null) {
-      // In pipeline mode, parseComplete can arrive before we've processed the query
-      // This is expected behavior - just ignore it if we don't have a query yet
-      if (this._pipelineMode) {
-        return
-      }
       const error = new Error('Received unexpected parseComplete message from backend.')
       this._handleErrorEvent(error)
       return
