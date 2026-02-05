@@ -412,3 +412,77 @@ suite.test('pipeline mode - connection remains usable after error', (done) => {
       })
   })
 })
+
+// Tests for error isolation behavior (autocommit vs transaction)
+// These tests verify the behavior discussed in the PR comments
+
+suite.test('pipeline mode - errors in autocommit mode do not cascade', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // In autocommit mode (no BEGIN), each query is its own transaction
+    // An error in one query should NOT affect other queries
+    const p1 = client.query('SELECT 1 as num')
+    const p2 = client.query('SELECT * FROM nonexistent_table_xyz') // This will fail
+    const p3 = client.query('SELECT 3 as num') // This should still succeed
+
+    Promise.allSettled([p1, p2, p3]).then((results) => {
+      // Query 1 should succeed
+      assert.equal(results[0].status, 'fulfilled', 'Query 1 should succeed')
+      assert.equal(results[0].value.rows[0].num, '1')
+
+      // Query 2 should fail
+      assert.equal(results[1].status, 'rejected', 'Query 2 should fail')
+
+      // Query 3 should ALSO succeed - errors don't cascade in autocommit mode
+      assert.equal(results[2].status, 'fulfilled', 'Query 3 should succeed despite Query 2 failing')
+      assert.equal(results[2].value.rows[0].num, '3')
+
+      client.end(done)
+    })
+  })
+})
+
+suite.test('pipeline mode - errors inside transaction abort subsequent queries', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Inside a transaction, an error aborts all subsequent queries until ROLLBACK
+    client
+      .query('BEGIN')
+      .then(() => {
+        // Send multiple queries in the transaction
+        const p1 = client.query('SELECT 1 as num')
+        const p2 = client.query('SELECT * FROM nonexistent_table_xyz') // This will fail
+        const p3 = client.query('SELECT 3 as num') // This should fail because transaction is aborted
+
+        return Promise.allSettled([p1, p2, p3])
+      })
+      .then((results) => {
+        // Query 1 should succeed (executed before the error)
+        assert.equal(results[0].status, 'fulfilled', 'Query 1 should succeed')
+
+        // Query 2 should fail
+        assert.equal(results[1].status, 'rejected', 'Query 2 should fail')
+
+        // Query 3 should ALSO fail - transaction is aborted
+        assert.equal(results[2].status, 'rejected', 'Query 3 should fail because transaction is aborted')
+
+        // Rollback to clean up
+        return client.query('ROLLBACK')
+      })
+      .then(() => {
+        // Verify connection is still usable after rollback
+        return client.query('SELECT 42 as answer')
+      })
+      .then((r) => {
+        assert.equal(r.rows[0].answer, '42', 'Connection should work after ROLLBACK')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.query('ROLLBACK').finally(() => client.end(() => done(err)))
+      })
+  })
+})
