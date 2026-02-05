@@ -665,6 +665,64 @@ class Client extends EventEmitter {
     }
   }
 
+  // Cancel a query in pipeline mode
+  // Returns true if cancellation was initiated, false if query already completed
+  _cancelPipelineQuery(query) {
+    // Check if query is still in the queue (not yet sent to server)
+    const queueIndex = this._queryQueue.indexOf(query)
+    if (queueIndex > -1) {
+      // Remove from queue and reject with cancellation error
+      this._queryQueue.splice(queueIndex, 1)
+      const error = new Error('Query was cancelled')
+      error.cancelled = true
+      process.nextTick(() => {
+        query.handleError(error, this.connection)
+      })
+      return true
+    }
+
+    // Check if query is in pending (sent to server, awaiting response)
+    const pendingIndex = this._pendingQueries.indexOf(query)
+    if (pendingIndex > -1) {
+      // Query is in-flight - we can only cancel if it's the current query being processed
+      // PostgreSQL cancel request cancels the current query on the backend
+      if (pendingIndex === 0) {
+        // This is the current query - send cancel request via new connection
+        this._sendCancelRequest()
+        return true
+      } else {
+        // Query is queued on server but not yet executing
+        // We cannot selectively cancel it - PostgreSQL limitation
+        // Mark it for cancellation when it becomes active
+        query._cancelRequested = true
+        return true
+      }
+    }
+
+    // Query already completed - no-op
+    return false
+  }
+
+  // Send a cancel request to PostgreSQL via a new connection
+  _sendCancelRequest() {
+    const Connection = require('./connection')
+    const cancelConnection = new Connection({ stream: this.connection.stream.constructor })
+
+    if (this.host && this.host.indexOf('/') === 0) {
+      cancelConnection.connect(this.host + '/.s.PGSQL.' + this.port)
+    } else {
+      cancelConnection.connect(this.port, this.host)
+    }
+
+    cancelConnection.on('connect', () => {
+      cancelConnection.cancel(this.processID, this.secretKey)
+    })
+
+    cancelConnection.on('error', () => {
+      // Ignore errors on cancel connection
+    })
+  }
+
   setTypeParser(oid, format, parseFn) {
     return this._types.setTypeParser(oid, format, parseFn)
   }
@@ -914,12 +972,65 @@ class Client extends EventEmitter {
       }
       // Queue the query with backpressure - it will be processed when space is available
       this._queueQueryWithBackpressure(query)
+
+      // Wrap result with cancel() for pipeline mode
+      if (result && typeof result.then === 'function') {
+        return this._wrapResultWithCancel(result, query)
+      }
       return result
     }
 
     this._queryQueue.push(query)
     this._pulseQueryQueue()
+
+    // In pipeline mode, wrap the result with cancel() method
+    if (this._pipelineMode && result && typeof result.then === 'function') {
+      return this._wrapResultWithCancel(result, query)
+    }
+
     return result
+  }
+
+  // Wrap a promise result with cancel() method for pipeline mode
+  _wrapResultWithCancel(promise, query) {
+    const client = this
+    const wrappedPromise = promise.then(
+      (value) => value,
+      (err) => {
+        throw err
+      }
+    )
+
+    wrappedPromise.cancel = function () {
+      client._cancelPipelineQuery(query)
+    }
+
+    // Preserve promise methods
+    const originalThen = wrappedPromise.then.bind(wrappedPromise)
+    const originalCatch = wrappedPromise.catch.bind(wrappedPromise)
+    const originalFinally = wrappedPromise.finally ? wrappedPromise.finally.bind(wrappedPromise) : undefined
+
+    wrappedPromise.then = function (onFulfilled, onRejected) {
+      const newPromise = originalThen(onFulfilled, onRejected)
+      newPromise.cancel = wrappedPromise.cancel
+      return newPromise
+    }
+
+    wrappedPromise.catch = function (onRejected) {
+      const newPromise = originalCatch(onRejected)
+      newPromise.cancel = wrappedPromise.cancel
+      return newPromise
+    }
+
+    if (originalFinally) {
+      wrappedPromise.finally = function (onFinally) {
+        const newPromise = originalFinally(onFinally)
+        newPromise.cancel = wrappedPromise.cancel
+        return newPromise
+      }
+    }
+
+    return wrappedPromise
   }
 
   // Internal method to queue a query when backpressure is active

@@ -1859,3 +1859,135 @@ suite.test('pipeline mode - backpressure release and query resumption', (done) =
       })
   })
 })
+
+suite.test('pipeline mode - query result has cancel() method', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const result = client.query('SELECT 1 as num')
+
+    // Result should have cancel method
+    assert.equal(typeof result.cancel, 'function', 'query result should have cancel() method')
+
+    result
+      .then(() => {
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - cancel() on long-running query', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Start a long-running query
+    const longQuery = client.query('SELECT pg_sleep(10)')
+
+    // Cancel it after a short delay
+    setTimeout(() => {
+      longQuery.cancel()
+    }, 100)
+
+    longQuery
+      .then(() => {
+        client.end(() => done(new Error('Query should have been cancelled')))
+      })
+      .catch((err) => {
+        // Query was cancelled - this is expected
+        assert.ok(err instanceof Error, 'Should receive an error')
+        // The error could be from PostgreSQL (query_canceled) or our cancellation
+        client.end(done)
+      })
+  })
+})
+
+suite.test('pipeline mode - cancel() does not affect other queries', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Submit multiple queries
+    const p1 = client.query('SELECT 1 as num')
+    const p2 = client.query('SELECT pg_sleep(5), 2 as num') // This one will be cancelled
+    const p3 = client.query('SELECT 3 as num')
+
+    // Cancel the second query
+    setTimeout(() => {
+      p2.cancel()
+    }, 50)
+
+    Promise.allSettled([p1, p2, p3])
+      .then((results) => {
+        // First query should succeed
+        assert.equal(results[0].status, 'fulfilled', 'First query should succeed')
+        assert.equal(results[0].value.rows[0].num, '1')
+
+        // Second query should be cancelled/rejected
+        assert.equal(results[1].status, 'rejected', 'Second query should be cancelled')
+
+        // Third query should succeed
+        assert.equal(results[2].status, 'fulfilled', 'Third query should succeed')
+        assert.equal(results[2].value.rows[0].num, '3')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - cancel() on already completed query is no-op', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const result = client.query('SELECT 1 as num')
+
+    result
+      .then((r) => {
+        assert.equal(r.rows[0].num, '1')
+
+        // Cancel after completion - should not throw
+        assert.doesNotThrow(() => {
+          result.cancel()
+        }, 'cancel() on completed query should not throw')
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - cancel preserves through .then() chain', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const result = client
+      .query('SELECT pg_sleep(10)')
+      .then((r) => r)
+      .catch((err) => {
+        throw err
+      })
+
+    // cancel() should still be available after .then()
+    assert.equal(typeof result.cancel, 'function', 'cancel() should be preserved through .then()')
+
+    setTimeout(() => {
+      result.cancel()
+    }, 50)
+
+    result.catch(() => {
+      // Expected - query was cancelled
+      client.end(done)
+    })
+  })
+})
