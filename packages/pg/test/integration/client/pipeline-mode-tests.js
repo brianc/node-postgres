@@ -786,3 +786,38 @@ suite.test('pipeline mode - Pool.query shorthand with pipeline', (done) => {
       pool.end().then(() => done(err))
     })
 })
+
+suite.test('pipeline mode - COPY operations are rejected', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Create a temp table for COPY test
+    client
+      .query('CREATE TEMP TABLE copy_test (id int, name text)')
+      .then(() => {
+        // Attempt COPY FROM STDIN - should fail in pipeline mode
+        return client.query('COPY copy_test FROM STDIN')
+      })
+      .then(() => {
+        client.end(() => done(new Error('COPY should have been rejected')))
+      })
+      .catch((err) => {
+        assert.ok(err instanceof Error, 'Should receive an error')
+        assert.ok(
+          err.message.includes('COPY') || err.message.includes('pipeline'),
+          'Error should mention COPY or pipeline mode'
+        )
+        // Connection should still be usable after COPY rejection
+        client
+          .query('SELECT 1 as test')
+          .then((r) => {
+            assert.equal(r.rows[0].test, '1', 'Connection should still work after COPY rejection')
+            client.end(done)
+          })
+          .catch((err2) => {
+            client.end(() => done(err2))
+          })
+      })
+  })
+})

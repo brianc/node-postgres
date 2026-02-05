@@ -543,11 +543,15 @@ class Client extends EventEmitter {
     // In pipeline mode, COPY operations are not supported
     if (this._pipelineMode) {
       const activeQuery = this._getCurrentPipelineQuery()
+      const error = new Error('COPY operations are not supported in pipeline mode')
+      // Send CopyFail to terminate the COPY operation
+      this.connection.sendCopyFail('COPY not supported in pipeline mode')
+      // Send Sync to get ReadyForQuery and restore connection state
+      this.connection.sync()
       if (activeQuery) {
-        const error = new Error('COPY operations are not supported in pipeline mode')
+        activeQuery._gotError = true
         activeQuery.handleError(error, this.connection)
       } else {
-        const error = new Error('Received unexpected copyInResponse message from backend.')
         this._handleErrorEvent(error)
       }
       return
