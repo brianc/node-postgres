@@ -470,8 +470,10 @@ class Client extends EventEmitter {
       this._handleErrorEvent(error)
       return
     }
-    // Mark that this query has started receiving results (for pipeline mode)
-    activeQuery._gotRowDescription = true
+    // Mark that this query has started receiving results (for pipeline mode completion tracking)
+    if (this._pipelineMode) {
+      activeQuery._gotRowDescription = true
+    }
     // delegate rowDescription to active query
     activeQuery.handleRowDescription(msg)
   }
@@ -499,11 +501,15 @@ class Client extends EventEmitter {
   }
 
   _handleEmptyQuery(msg) {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._pipelineMode ? this._getCurrentPipelineQuery() : this._getActiveQuery()
     if (activeQuery == null) {
       const error = new Error('Received unexpected emptyQuery message from backend.')
       this._handleErrorEvent(error)
       return
+    }
+    // Mark that this query has completed (for pipeline mode completion tracking)
+    if (this._pipelineMode) {
+      activeQuery._gotCommandComplete = true
     }
     // delegate emptyQuery to active query
     activeQuery.handleEmptyQuery(this.connection)
@@ -516,8 +522,10 @@ class Client extends EventEmitter {
       this._handleErrorEvent(error)
       return
     }
-    // Mark that this query has completed (for pipeline mode)
-    activeQuery._gotCommandComplete = true
+    // Mark that this query has completed (for pipeline mode completion tracking)
+    if (this._pipelineMode) {
+      activeQuery._gotCommandComplete = true
+    }
     // delegate commandComplete to active query
     activeQuery.handleCommandComplete(msg, this.connection)
   }
@@ -809,6 +817,14 @@ class Client extends EventEmitter {
         const index = this._queryQueue.indexOf(query)
         if (index > -1) {
           this._queryQueue.splice(index, 1)
+        }
+
+        // In pipeline mode, also remove from pending queries
+        if (this._pipelineMode) {
+          const pendingIndex = this._pendingQueries.indexOf(query)
+          if (pendingIndex > -1) {
+            this._pendingQueries.splice(pendingIndex, 1)
+          }
         }
 
         this._pulseQueryQueue()

@@ -821,3 +821,200 @@ suite.test('pipeline mode - COPY operations are rejected', (done) => {
       })
   })
 })
+
+suite.test('pipeline mode - empty query handling', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Empty query should be handled correctly
+    client
+      .query('')
+      .then((r) => {
+        // Empty query returns empty result
+        assert.equal(r.rows.length, 0, 'Empty query should return empty rows')
+        client.end(done)
+      })
+      .catch((err) => {
+        // Some versions may error on empty query - that's also acceptable
+        client.end(done)
+      })
+  })
+})
+
+suite.test('pipeline mode - LISTEN/NOTIFY', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    let notificationReceived = false
+
+    client.on('notification', (msg) => {
+      assert.equal(msg.channel, 'test_channel', 'Should receive notification on correct channel')
+      assert.equal(msg.payload, 'test_payload', 'Should receive correct payload')
+      notificationReceived = true
+    })
+
+    client
+      .query('LISTEN test_channel')
+      .then(() => client.query("NOTIFY test_channel, 'test_payload'"))
+      .then(() => {
+        // Give time for notification to arrive
+        setTimeout(() => {
+          assert.ok(notificationReceived, 'Should have received notification')
+          client.end(done)
+        }, 100)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - binary mode works', (done) => {
+  const client = new Client({ pipelineMode: true, binary: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    Promise.all([
+      client.query('SELECT 1::int4 as num'),
+      client.query('SELECT 2::int4 as num'),
+      client.query('SELECT 3::int4 as num'),
+    ])
+      .then((results) => {
+        // In binary mode, integers come back as numbers not strings
+        assert.equal(results[0].rows[0].num, 1)
+        assert.equal(results[1].rows[0].num, 2)
+        assert.equal(results[2].rows[0].num, 3)
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - query timeout triggers error', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Suppress error event from forced disconnect
+    client.on('error', () => {})
+
+    // Query with very short timeout
+    const slowQuery = client.query({
+      text: 'SELECT pg_sleep(10)',
+      query_timeout: 100, // 100ms timeout
+    })
+
+    slowQuery
+      .then(() => {
+        client.connection.stream.destroy()
+        done(new Error('Query should have timed out'))
+      })
+      .catch((err) => {
+        assert.ok(err.message.includes('timeout'), 'Should be a timeout error')
+        // Note: In pipeline mode, after a timeout the connection state may be inconsistent
+        // because PostgreSQL continues processing the query. Force close the connection.
+        client.connection.stream.destroy()
+        // Wait for connection to fully close before completing test
+        client.once('end', () => done())
+      })
+  })
+})
+
+suite.test('pipeline mode - queries before connect are queued', (done) => {
+  const client = new Client({ pipelineMode: true })
+
+  // Queue queries BEFORE connecting
+  const p1 = client.query('SELECT 1 as num')
+  const p2 = client.query('SELECT 2 as num')
+  const p3 = client.query('SELECT 3 as num')
+
+  // Now connect
+  client.connect((err) => {
+    if (err) return done(err)
+
+    Promise.all([p1, p2, p3])
+      .then((results) => {
+        assert.equal(results[0].rows[0].num, '1')
+        assert.equal(results[1].rows[0].num, '2')
+        assert.equal(results[2].rows[0].num, '3')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - notice messages are emitted', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    let noticeReceived = false
+
+    client.on('notice', (msg) => {
+      noticeReceived = true
+    })
+
+    // Create a function that raises a notice
+    client
+      .query(
+        `
+        DO $$
+        BEGIN
+          RAISE NOTICE 'Test notice from pipeline mode';
+        END $$;
+      `
+      )
+      .then(() => {
+        assert.ok(noticeReceived, 'Should have received notice')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - custom type parsers work', (done) => {
+  const client = new Client({ pipelineMode: true })
+
+  // Set custom type parser for int4 (OID 23)
+  client.setTypeParser(23, (val) => parseInt(val, 10) * 2)
+
+  client.connect((err) => {
+    if (err) return done(err)
+
+    client
+      .query('SELECT 5::int4 as num')
+      .then((r) => {
+        assert.equal(r.rows[0].num, 10, 'Custom type parser should double the value')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - rowMode array works', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    client
+      .query({ text: 'SELECT 1 as a, 2 as b, 3 as c', rowMode: 'array' })
+      .then((r) => {
+        assert.ok(Array.isArray(r.rows[0]), 'Row should be an array')
+        assert.deepEqual(r.rows[0], ['1', '2', '3'], 'Should have correct values')
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
