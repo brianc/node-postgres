@@ -1374,3 +1374,229 @@ suite.test('pipeline mode - very large batch (500 queries)', (done) => {
       })
   })
 })
+
+suite.test('pipeline mode - concurrent different prepared statements', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Multiple different prepared statements sent concurrently
+    const promises = [
+      client.query({ name: 'stmt-int', text: 'SELECT $1::int as val', values: [1] }),
+      client.query({ name: 'stmt-text', text: 'SELECT $1::text as val', values: ['hello'] }),
+      client.query({ name: 'stmt-bool', text: 'SELECT $1::boolean as val', values: [true] }),
+      client.query({ name: 'stmt-int', text: 'SELECT $1::int as val', values: [2] }), // reuse stmt-int
+      client.query({ name: 'stmt-float', text: 'SELECT $1::float as val', values: [3.14] }),
+      client.query({ name: 'stmt-text', text: 'SELECT $1::text as val', values: ['world'] }), // reuse stmt-text
+      client.query({ name: 'stmt-int', text: 'SELECT $1::int as val', values: [3] }), // reuse stmt-int again
+    ]
+
+    Promise.all(promises)
+      .then((results) => {
+        assert.equal(results[0].rows[0].val, 1)
+        assert.equal(results[1].rows[0].val, 'hello')
+        assert.equal(results[2].rows[0].val, true)
+        assert.equal(results[3].rows[0].val, 2)
+        assert.equal(parseFloat(results[4].rows[0].val).toFixed(2), '3.14')
+        assert.equal(results[5].rows[0].val, 'world')
+        assert.equal(results[6].rows[0].val, 3)
+
+        // Verify no memory leak in _pendingParsedStatements
+        assert.equal(Object.keys(client._pendingParsedStatements).length, 0)
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - large bytea data', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Create buffers of different sizes
+    const small = Buffer.alloc(1024, 'a') // 1KB
+    const medium = Buffer.alloc(64 * 1024, 'b') // 64KB
+    const large = Buffer.alloc(256 * 1024, 'c') // 256KB
+
+    client
+      .query('CREATE TEMP TABLE bytea_test (id serial, data bytea)')
+      .then(() => {
+        // Insert all sizes concurrently
+        return Promise.all([
+          client.query('INSERT INTO bytea_test (data) VALUES ($1) RETURNING id', [small]),
+          client.query('INSERT INTO bytea_test (data) VALUES ($1) RETURNING id', [medium]),
+          client.query('INSERT INTO bytea_test (data) VALUES ($1) RETURNING id', [large]),
+        ])
+      })
+      .then((insertResults) => {
+        // Read them back concurrently
+        return Promise.all([
+          client.query('SELECT data FROM bytea_test WHERE id = $1', [insertResults[0].rows[0].id]),
+          client.query('SELECT data FROM bytea_test WHERE id = $1', [insertResults[1].rows[0].id]),
+          client.query('SELECT data FROM bytea_test WHERE id = $1', [insertResults[2].rows[0].id]),
+        ])
+      })
+      .then((selectResults) => {
+        assert.equal(selectResults[0].rows[0].data.length, 1024, 'Small buffer should be 1KB')
+        assert.equal(selectResults[1].rows[0].data.length, 64 * 1024, 'Medium buffer should be 64KB')
+        assert.equal(selectResults[2].rows[0].data.length, 256 * 1024, 'Large buffer should be 256KB')
+
+        // Verify content
+        assert.ok(
+          selectResults[0].rows[0].data.every((b) => b === 97),
+          'Small buffer content should be all "a"'
+        )
+        assert.ok(
+          selectResults[1].rows[0].data.every((b) => b === 98),
+          'Medium buffer content should be all "b"'
+        )
+        assert.ok(
+          selectResults[2].rows[0].data.every((b) => b === 99),
+          'Large buffer content should be all "c"'
+        )
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - JSON/JSONB operations', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    const complexJson = {
+      name: 'test',
+      nested: { a: 1, b: [1, 2, 3], c: { deep: true } },
+      array: [{ id: 1 }, { id: 2 }],
+    }
+
+    client
+      .query('CREATE TEMP TABLE json_test (id serial, data jsonb)')
+      .then(() => {
+        // Multiple JSON operations concurrently
+        return Promise.all([
+          client.query('INSERT INTO json_test (data) VALUES ($1) RETURNING id', [JSON.stringify(complexJson)]),
+          client.query('INSERT INTO json_test (data) VALUES ($1) RETURNING id', [JSON.stringify({ simple: true })]),
+          client.query('INSERT INTO json_test (data) VALUES ($1) RETURNING id', [JSON.stringify([1, 2, 3])]),
+        ])
+      })
+      .then(() => {
+        // Query with JSON operators concurrently
+        return Promise.all([
+          client.query("SELECT data->'nested'->'a' as val FROM json_test WHERE data->>'name' = 'test'"),
+          client.query("SELECT data->'nested'->'b' as val FROM json_test WHERE data->>'name' = 'test'"),
+          client.query("SELECT jsonb_array_length(data->'array') as len FROM json_test WHERE data->>'name' = 'test'"),
+          client.query('SELECT data FROM json_test ORDER BY id'),
+        ])
+      })
+      .then((results) => {
+        assert.equal(results[0].rows[0].val, 1)
+        assert.deepEqual(results[1].rows[0].val, [1, 2, 3])
+        assert.equal(results[2].rows[0].len, '2')
+        assert.equal(results[3].rows.length, 3)
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - PostgreSQL array types', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    client
+      .query('CREATE TEMP TABLE array_test (id serial, int_arr int[], text_arr text[])')
+      .then(() => {
+        // Insert arrays concurrently
+        return Promise.all([
+          client.query('INSERT INTO array_test (int_arr, text_arr) VALUES ($1, $2) RETURNING id', [
+            [1, 2, 3],
+            ['a', 'b', 'c'],
+          ]),
+          client.query('INSERT INTO array_test (int_arr, text_arr) VALUES ($1, $2) RETURNING id', [
+            [4, 5, 6],
+            ['d', 'e', 'f'],
+          ]),
+          client.query("INSERT INTO array_test (int_arr, text_arr) VALUES ('{7,8,9}', '{g,h,i}') RETURNING id"),
+        ])
+      })
+      .then(() => {
+        // Query with array operators concurrently
+        return Promise.all([
+          client.query('SELECT int_arr[1] as first FROM array_test ORDER BY id'),
+          client.query('SELECT array_length(text_arr, 1) as len FROM array_test ORDER BY id'),
+          client.query('SELECT * FROM array_test WHERE int_arr @> ARRAY[2]'),
+          client.query('SELECT unnest(int_arr) as val FROM array_test WHERE id = 1'),
+        ])
+      })
+      .then((results) => {
+        // First elements
+        assert.equal(results[0].rows[0].first, '1')
+        assert.equal(results[0].rows[1].first, '4')
+        assert.equal(results[0].rows[2].first, '7')
+
+        // Array lengths
+        assert.equal(results[1].rows[0].len, '3')
+
+        // Contains query
+        assert.equal(results[2].rows.length, 1)
+
+        // Unnest
+        assert.equal(results[3].rows.length, 3)
+        assert.deepEqual(
+          results[3].rows.map((r) => r.val),
+          ['1', '2', '3']
+        )
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
+
+suite.test('pipeline mode - query with many parameters', (done) => {
+  const client = new Client({ pipelineMode: true })
+  client.connect((err) => {
+    if (err) return done(err)
+
+    // Generate 50 parameters
+    const numParams = 50
+    const values = []
+    const placeholders = []
+    for (let i = 0; i < numParams; i++) {
+      values.push(i)
+      placeholders.push(`$${i + 1}::int`)
+    }
+
+    const query = `SELECT ${placeholders.join(' + ')} as total`
+
+    // Send multiple queries with many parameters concurrently
+    Promise.all([client.query(query, values), client.query(query, values), client.query(query, values)])
+      .then((results) => {
+        // Sum of 0 to 49 = 1225
+        const expectedSum = (numParams * (numParams - 1)) / 2
+        assert.equal(results[0].rows[0].total, expectedSum.toString())
+        assert.equal(results[1].rows[0].total, expectedSum.toString())
+        assert.equal(results[2].rows[0].total, expectedSum.toString())
+
+        client.end(done)
+      })
+      .catch((err) => {
+        client.end(() => done(err))
+      })
+  })
+})
