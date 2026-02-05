@@ -544,6 +544,9 @@ class Client extends EventEmitter {
       if (activeQuery) {
         const error = new Error('COPY operations are not supported in pipeline mode')
         activeQuery.handleError(error, this.connection)
+      } else {
+        const error = new Error('Received unexpected copyInResponse message from backend.')
+        this._handleErrorEvent(error)
       }
       return
     }
