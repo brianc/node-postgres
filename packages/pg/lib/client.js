@@ -373,10 +373,9 @@ class Client extends EventEmitter {
       this.emit('connect')
     }
 
-    if (this._pipelineMode) {
-      // In pipeline mode, we're always ready to send more queries
-      this.readyForQuery = true
+    this.readyForQuery = true
 
+    if (this._pipelineMode) {
       // In pipeline mode, complete the current pending query
       // A query is ready to complete when it has received results or an error
       const currentQuery = this._pendingQueries[0]
@@ -399,7 +398,6 @@ class Client extends EventEmitter {
       // Existing non-pipeline behavior
       const activeQuery = this._getActiveQuery()
       this._activeQuery = null
-      this.readyForQuery = true
       if (activeQuery) {
         activeQuery.handleReadyForQuery(this.connection)
       }
