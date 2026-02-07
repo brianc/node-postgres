@@ -48,11 +48,13 @@ const run = async () => {
   const results = {
     simple: {},
     complex: {},
+    concurrent: {},
   }
 
   const warmupMs = 1000
   const benchMs = 5000
   const iterations = 3
+  const concurrentBatchSize = 10
 
   // Warmup
   console.log('Warming up...')
@@ -107,6 +109,40 @@ const run = async () => {
       results.complex['Native+Pipeline'].push(result.qps)
     }
 
+    // Concurrent query benchmarks (where pipeline mode shines)
+    console.log(`\nConcurrent queries (${concurrentBatchSize} queries in parallel):`)
+
+    const concurrentBench = async (name, client, durationMs) => {
+      const start = performance.now()
+      let count = 0
+      while (performance.now() - start < durationMs) {
+        const promises = []
+        for (let j = 0; j < concurrentBatchSize; j++) {
+          promises.push(promisify(client, simpleQuery))
+        }
+        await Promise.all(promises)
+        count += concurrentBatchSize
+      }
+      const elapsed = performance.now() - start
+      const qps = Math.round((count / elapsed) * 1000)
+      return { name, count, elapsed, qps }
+    }
+
+    result = await concurrentBench('pg.native', pureClient, benchMs)
+    console.log(`  pg.native:         ${result.qps} qps (${result.count} queries in ${Math.round(result.elapsed)}ms)`)
+    results.concurrent['pg.native'] = results.concurrent['pg.native'] || []
+    results.concurrent['pg.native'].push(result.qps)
+
+    // Native without pipeline doesn't support concurrent queries on same connection
+    console.log(`  Native:            N/A (concurrent queries not supported without pipeline)`)
+
+    if (pipelineSupported) {
+      result = await concurrentBench('Native+Pipeline', nativePipeline, benchMs)
+      console.log(`  Native+Pipeline:   ${result.qps} qps (${result.count} queries in ${Math.round(result.elapsed)}ms)`)
+      results.concurrent['Native+Pipeline'] = results.concurrent['Native+Pipeline'] || []
+      results.concurrent['Native+Pipeline'].push(result.qps)
+    }
+
     console.log('')
   }
 
@@ -137,6 +173,17 @@ const run = async () => {
     console.log(`  ${name.padEnd(18)} ${avgQps} qps${improvement}`)
   }
 
+  console.log(`\nConcurrent queries (${concurrentBatchSize} in parallel):`)
+  for (const [name, qps] of Object.entries(results.concurrent)) {
+    const avgQps = avg(qps)
+    const improvement =
+      name !== 'pg.native'
+        ? ` (${((avgQps / avg(results.concurrent['pg.native']) - 1) * 100).toFixed(1)}% vs pg.native)`
+        : ''
+    console.log(`  ${name.padEnd(18)} ${avgQps} qps${improvement}`)
+  }
+  console.log(`  ${'Native'.padEnd(18)} N/A (not supported)`)
+
   if (pipelineSupported) {
     const pipelineVsNativeSimple = (
       (avg(results.simple['Native+Pipeline']) / avg(results.simple['Native']) - 1) *
@@ -146,9 +193,14 @@ const run = async () => {
       (avg(results.complex['Native+Pipeline']) / avg(results.complex['Native']) - 1) *
       100
     ).toFixed(1)
-    console.log('\nPipeline mode impact:')
-    console.log(`  Simple query:  ${pipelineVsNativeSimple}% vs Native without pipeline`)
-    console.log(`  Complex query: ${pipelineVsNativeComplex}% vs Native without pipeline`)
+    const pipelineVsPgNativeConcurrent = (
+      (avg(results.concurrent['Native+Pipeline']) / avg(results.concurrent['pg.native']) - 1) *
+      100
+    ).toFixed(1)
+    console.log('\nPipeline mode impact (vs Native without pipeline):')
+    console.log(`  Simple query:       ${pipelineVsNativeSimple}%`)
+    console.log(`  Complex query:      ${pipelineVsNativeComplex}%`)
+    console.log(`  Concurrent queries: ${pipelineVsPgNativeConcurrent}% (vs pg.native, Native N/A)`)
   }
 
   console.log('\n' + '='.repeat(60))
