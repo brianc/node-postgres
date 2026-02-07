@@ -533,8 +533,13 @@ Client.prototype._readPipeline = function () {
     this._pipelineCallbacks.forEach((pending) => {
       if (pending.cb) pending.cb(err)
     })
+    // Also notify queued queries
+    this._pipelineQueue.forEach((queued) => {
+      if (queued.cb) queued.cb(err)
+    })
     this._pipelineCallbacks = []
     this._pipelinePendingCount = 0
+    this._pipelineQueue = []
     return
   }
 
