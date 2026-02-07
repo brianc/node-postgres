@@ -615,6 +615,10 @@ Client.prototype._readPipeline = function () {
     this._processQueuedPipelineQueries()
   }
 
+  if (loopCount >= maxLoops) {
+    this.emit('error', new Error('Pipeline read loop exceeded max iterations - possible infinite loop detected'))
+  }
+
   // Check for notifications
   let notice = pq.notifies()
   while (notice) {
