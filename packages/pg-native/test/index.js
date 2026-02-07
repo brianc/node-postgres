@@ -7,7 +7,7 @@ describe('connection', function () {
   })
 
   it('connects with args', function (done) {
-    Client().connect('host=localhost', done)
+    Client().connect(`host=${process.env.PGHOST || 'localhost'}`, done)
   })
 
   it('errors out with bad connection args', function (done) {
