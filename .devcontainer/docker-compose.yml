@@ -39,7 +39,7 @@ services:
       - db:db
 
   db:
-    image: postgres:14-alpine
+    image: postgres:14
     restart: unless-stopped
     ports: 
       - 5432:5432
