@@ -390,6 +390,11 @@ Client.prototype._exitPipelineMode = function () {
   }
   const result = this.pq.exitPipelineMode()
   if (result) {
+    // Notify all pending callbacks with an error before clearing
+    const err = new Error('Pipeline mode exited with pending queries')
+    this._pipelineCallbacks.forEach((p) => p.cb && p.cb(err))
+    this._pipelineQueue.forEach((q) => q.cb && q.cb(err))
+
     this._pipelineEnabled = false
     this._pipelineQueue = []
     this._pipelinePendingCount = 0
