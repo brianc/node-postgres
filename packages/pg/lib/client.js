@@ -357,7 +357,7 @@ class Client extends EventEmitter {
     }
     const activeQuery = this._getActiveQuery()
     this._activeQuery = null
-    this._txStatus = msg.status
+    this._txStatus = msg?.status ?? null
     this.readyForQuery = true
     if (activeQuery) {
       activeQuery.handleReadyForQuery(this.connection)
