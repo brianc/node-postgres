@@ -5,9 +5,13 @@ const describe = require('mocha').describe
 const it = require('mocha').it
 const Pool = require('..')
 
-describe('poison connection pool defense (_txStatus check)', function () {
+describe('leaked connection pool guard', function () {
   it('removes a client with an open transaction on release', async function () {
-    const pool = new Pool({ max: 1 })
+    const logMessages = []
+    const pool = new Pool({
+      max: 1,
+      log: (msg) => logMessages.push(msg),
+    })
     const client = await pool.connect()
     await client.query('BEGIN')
     expect(client._txStatus).to.be('T')
@@ -15,10 +19,14 @@ describe('poison connection pool defense (_txStatus check)', function () {
     client.release()
     expect(pool.totalCount).to.be(0)
     expect(pool.idleCount).to.be(0)
+    expect(logMessages).to.contain('remove client with leaked transaction')
 
-    // pool should still work by creating a fresh connection
+    // pool recovers by creating a fresh connection
     const { rows } = await pool.query('SELECT 1 as num')
     expect(rows[0].num).to.be(1)
+    expect(pool.totalCount).to.be(1)
+    expect(pool.idleCount).to.be(1)
+
     await pool.end()
   })
 
@@ -45,9 +53,12 @@ describe('poison connection pool defense (_txStatus check)', function () {
     expect(pool.totalCount).to.be(0)
     expect(pool.idleCount).to.be(0)
 
-    // pool should still work
+    // pool recovers by creating a fresh connection
     const { rows } = await pool.query('SELECT 1 as num')
     expect(rows[0].num).to.be(1)
+    expect(pool.totalCount).to.be(1)
+    expect(pool.idleCount).to.be(1)
+
     await pool.end()
   })
 
@@ -57,7 +68,7 @@ describe('poison connection pool defense (_txStatus check)', function () {
     const clientB = await pool.connect()
     const clientC = await pool.connect()
 
-    // Client A: open transaction (poisoned)
+    // Client A: open transaction (leaked)
     await clientA.query('BEGIN')
     expect(clientA._txStatus).to.be('T')
 
@@ -78,5 +89,51 @@ describe('poison connection pool defense (_txStatus check)', function () {
     expect(pool.totalCount).to.be(2)
     expect(pool.idleCount).to.be(2)
     await pool.end()
+  })
+
+  describe('pool.query', function () {
+    it('removes a client after pool.query leaks transaction via BEGIN', async function () {
+      const logMessages = []
+      const pool = new Pool({ max: 1, log: (msg) => logMessages.push(msg) })
+
+      await pool.query('BEGIN')
+
+      // Client auto-released with txStatus='T', should be removed
+      expect(pool.totalCount).to.be(0)
+      expect(pool.idleCount).to.be(0)
+      expect(logMessages).to.contain('remove client with leaked transaction')
+
+      // Verify pool recovers
+      const { rows } = await pool.query('SELECT 1 as num')
+      expect(rows[0].num).to.be(1)
+      expect(pool.totalCount).to.be(1)
+      expect(pool.idleCount).to.be(1)
+
+      await pool.end()
+    })
+
+    it('removes a client after pool.query in failed transaction state', async function () {
+      const pool = new Pool({ max: 1 })
+
+      await pool.query('BEGIN')
+
+      try {
+        await pool.query('SELECT invalid_column FROM nonexistent_table')
+      } catch (e) {
+        // Expected error
+      }
+
+      // Client with txStatus='E' should be removed
+      expect(pool.totalCount).to.be(0)
+      expect(pool.idleCount).to.be(0)
+
+      // Pool recovers
+      const { rows } = await pool.query('SELECT 1 as num')
+      expect(rows[0].num).to.be(1)
+      expect(pool.totalCount).to.be(1)
+      expect(pool.idleCount).to.be(1)
+
+      await pool.end()
+    })
   })
 })
