@@ -116,6 +116,10 @@ class Pool extends EventEmitter {
     return this._clients.length > this.options.min
   }
 
+  _hasActiveTransaction(client) {
+    return client && (client._txStatus === 'T' || client._txStatus === 'E')
+  }
+
   _pulseQueue() {
     this.log('pulse queue')
     if (this.ended) {
@@ -364,12 +368,14 @@ class Pool extends EventEmitter {
       this.ending ||
       !client._queryable ||
       client._ending ||
-      client._txStatus === 'T' ||
-      client._txStatus === 'E' ||
+      this._hasActiveTransaction(client) ||
       client._poolUseCount >= this.options.maxUses
     ) {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
+      }
+      if (this._hasActiveTransaction(client)) {
+        this.log('remove client with leaked transaction')
       }
 
       return this._remove(client, this._pulseQueue.bind(this))
