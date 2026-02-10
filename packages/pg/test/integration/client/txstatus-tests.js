@@ -53,8 +53,10 @@ suite.test('txStatus error state', function (done) {
               client.query('INVALID SQL SYNTAX', function (err) {
                 assert(err, 'should receive error from invalid query')
 
-                // Use setImmediate to allow ReadyForQuery message to be processed
-                setImmediate(function () {
+                // Issue a sync query to ensure ReadyForQuery has been processed
+                // This guarantees _txStatus has been updated
+                client.query('SELECT 1', function () {
+                  // This callback fires after ReadyForQuery is processed
                   assert.equal(client._txStatus, 'E', 'should be in error state')
 
                   // Rollback to recover
