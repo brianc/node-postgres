@@ -25,7 +25,7 @@ function parse(str, options = {}) {
   try {
     try {
       result = new URL(str, 'postgres://base')
-    } catch (e) {
+    } catch {
       // The URL is invalid so try again with a dummy host
       result = new URL(str.replace('@/', '@___DUMMY___/'), 'postgres://base')
       dummyHost = true
