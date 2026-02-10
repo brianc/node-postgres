@@ -4,12 +4,14 @@ const suite = new helper.Suite()
 const pg = helper.pg
 const assert = require('assert')
 
-suite.test('txStatus tracking', function (done) {
-  const client = new pg.Client()
-  client.connect(
-    assert.success(function () {
-      // Run a simple query to initialize txStatus
-      client.query(
+// txStatus tracking is not implemented in native client
+if (!helper.args.native) {
+  suite.test('txStatus tracking', function (done) {
+    const client = new pg.Client()
+    client.connect(
+      assert.success(function () {
+        // Run a simple query to initialize txStatus
+        client.query(
         'SELECT 1',
         assert.success(function () {
           // Test 1: Initial state after query (should be idle)
@@ -35,48 +37,48 @@ suite.test('txStatus tracking', function (done) {
         })
       )
     })
-  )
-})
+  })
 
-suite.test('txStatus error state', function (done) {
-  const client = new pg.Client()
-  client.connect(
-    assert.success(function () {
-      // Run a simple query to initialize txStatus
-      client.query(
-        'SELECT 1',
-        assert.success(function () {
-          client.query(
-            'BEGIN',
-            assert.success(function () {
-              // Execute invalid SQL to trigger error state
-              client.query('INVALID SQL SYNTAX', function (err) {
-                assert(err, 'should receive error from invalid query')
+  suite.test('txStatus error state', function (done) {
+    const client = new pg.Client()
+    client.connect(
+      assert.success(function () {
+        // Run a simple query to initialize txStatus
+        client.query(
+          'SELECT 1',
+          assert.success(function () {
+            client.query(
+              'BEGIN',
+              assert.success(function () {
+                // Execute invalid SQL to trigger error state
+                client.query('INVALID SQL SYNTAX', function (err) {
+                  assert(err, 'should receive error from invalid query')
 
-                // Issue a sync query to ensure ReadyForQuery has been processed
-                // This guarantees transaction status has been updated
-                client.query('SELECT 1', function () {
-                  // This callback fires after ReadyForQuery is processed
-                  assert.equal(client.getTransactionStatus(), 'E', 'should be in error state')
+                  // Issue a sync query to ensure ReadyForQuery has been processed
+                  // This guarantees transaction status has been updated
+                  client.query('SELECT 1', function () {
+                    // This callback fires after ReadyForQuery is processed
+                    assert.equal(client.getTransactionStatus(), 'E', 'should be in error state')
 
-                  // Rollback to recover
-                  client.query(
-                    'ROLLBACK',
-                    assert.success(function () {
-                      assert.equal(
-                        client.getTransactionStatus(),
-                        'I',
-                        'should return to idle after rollback from error'
-                      )
-                      client.end(done)
-                    })
-                  )
+                    // Rollback to recover
+                    client.query(
+                      'ROLLBACK',
+                      assert.success(function () {
+                        assert.equal(
+                          client.getTransactionStatus(),
+                          'I',
+                          'should return to idle after rollback from error'
+                        )
+                        client.end(done)
+                      })
+                    )
+                  })
                 })
               })
-            })
-          )
-        })
-      )
-    })
-  )
-})
+            )
+          })
+        )
+      })
+    )
+  })
+}
