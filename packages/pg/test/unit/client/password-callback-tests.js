@@ -31,7 +31,10 @@ suite.test('password callback is called with conenction params', async function 
     user: 'foo',
     database: 'bar',
     host: 'baz',
-    password: async () => {
+    password: async (params) => {
+      assert.equal(params.user, 'foo')
+      assert.equal(params.database, 'bar')
+      assert.equal(params.host, 'baz')
       wait.done(10)
       return 'password'
     },
@@ -47,7 +50,7 @@ suite.test('password callback is called with conenction params', async function 
 suite.test('cleartext password auth does not crash with null password using pg-pass', async function () {
   process.env.PGPASSFILE = `${__dirname}/pgpass.file`
   // set this to undefined so pgpass will use the file
-  process.env.PGPASSWORD = undefined
+  delete process.env.PGPASSWORD
   const wait = new Wait()
   console.log()
   console.log('hit hit hit')
@@ -66,7 +69,6 @@ suite.test('cleartext password auth does not crash with null password using pg-p
     database: 'bar',
     user: 'baz',
     password: (params) => {
-      console.log('in password callback')
       return new Promise((resolve) => {
         pgpass(params, (pass) => {
           console.log('in pgpass callback. read password:', pass)
