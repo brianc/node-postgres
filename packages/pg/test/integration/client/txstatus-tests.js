@@ -4,7 +4,7 @@ const suite = new helper.Suite()
 const pg = helper.pg
 const assert = require('assert')
 
-// txStatus tracking is not implemented in native client
+// txStatus tracking is not supported in native client
 if (!helper.args.native) {
   suite.test('txStatus tracking', function (done) {
     const client = new pg.Client()
@@ -12,31 +12,32 @@ if (!helper.args.native) {
       assert.success(function () {
         // Run a simple query to initialize txStatus
         client.query(
-        'SELECT 1',
-        assert.success(function () {
-          // Test 1: Initial state after query (should be idle)
-          assert.equal(client.getTransactionStatus(), 'I', 'should start in idle state')
+          'SELECT 1',
+          assert.success(function () {
+            // Test 1: Initial state after query (should be idle)
+            assert.equal(client.getTransactionStatus(), 'I', 'should start in idle state')
 
-          // Test 2: BEGIN transaction
-          client.query(
-            'BEGIN',
-            assert.success(function () {
-              assert.equal(client.getTransactionStatus(), 'T', 'should be in transaction state')
+            // Test 2: BEGIN transaction
+            client.query(
+              'BEGIN',
+              assert.success(function () {
+                assert.equal(client.getTransactionStatus(), 'T', 'should be in transaction state')
 
-              // Test 3: COMMIT
-              client.query(
-                'COMMIT',
-                assert.success(function () {
-                  assert.equal(client.getTransactionStatus(), 'I', 'should return to idle after commit')
+                // Test 3: COMMIT
+                client.query(
+                  'COMMIT',
+                  assert.success(function () {
+                    assert.equal(client.getTransactionStatus(), 'I', 'should return to idle after commit')
 
-                  client.end(done)
-                })
-              )
-            })
-          )
-        })
-      )
-    })
+                    client.end(done)
+                  })
+                )
+              })
+            )
+          })
+        )
+      })
+    )
   })
 
   suite.test('txStatus error state', function (done) {

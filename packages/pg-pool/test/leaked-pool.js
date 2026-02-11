@@ -16,7 +16,7 @@ describe('leaked connection pool', function () {
       })
       const client = await pool.connect()
       await client.query('BEGIN')
-      expect(client._txStatus).to.be('T')
+      expect(client.getTransactionStatus()).to.be('T')
 
       client.release()
       expect(pool.totalCount).to.be(0)
@@ -43,13 +43,13 @@ describe('leaked connection pool', function () {
       }
       // The ReadyForQuery message with status 'E' may arrive on a separate I/O event.
       // Issue a follow-up query to ensure it has been processed — this will also fail
-      // (since the transaction is aborted) but guarantees _txStatus is updated.
+      // (since the transaction is aborted) but guarantees transaction status is updated.
       try {
         await client.query('SELECT 1')
       } catch (e) {
         // expected — "current transaction is aborted"
       }
-      expect(client._txStatus).to.be('E')
+      expect(client.getTransactionStatus()).to.be('E')
 
       client.release()
       expect(pool.totalCount).to.be(0)
@@ -72,16 +72,16 @@ describe('leaked connection pool', function () {
 
       // Client A: open transaction (leaked)
       await clientA.query('BEGIN')
-      expect(clientA._txStatus).to.be('T')
+      expect(clientA.getTransactionStatus()).to.be('T')
 
       // Client B: normal query (idle)
       await clientB.query('SELECT 1')
-      expect(clientB._txStatus).to.be('I')
+      expect(clientB.getTransactionStatus()).to.be('I')
 
       // Client C: committed transaction (idle)
       await clientC.query('BEGIN')
       await clientC.query('COMMIT')
-      expect(clientC._txStatus).to.be('I')
+      expect(clientC.getTransactionStatus()).to.be('I')
 
       clientA.release()
       clientB.release()
@@ -150,7 +150,7 @@ describe('leaked connection pool', function () {
       })
       const client = await pool.connect()
       await client.query('BEGIN')
-      expect(client._txStatus).to.be('T')
+      expect(client.getTransactionStatus()).to.be('T')
 
       client.release()
       expect(pool.totalCount).to.be(1) // NOT removed
@@ -172,7 +172,7 @@ describe('leaked connection pool', function () {
       })
       const client = await pool.connect()
       await client.query('BEGIN')
-      expect(client._txStatus).to.be('T')
+      expect(client.getTransactionStatus()).to.be('T')
 
       client.release()
       expect(pool.totalCount).to.be(1) // NOT removed
@@ -195,13 +195,13 @@ describe('leaked connection pool', function () {
       } catch (e) {
         // swallow the error
       }
-      // Issue a follow-up query to ensure _txStatus is updated to 'E'
+      // Issue a follow-up query to ensure transaction status is updated to 'E'
       try {
         await client.query('SELECT 1')
       } catch (e) {
         // expected — "current transaction is aborted"
       }
-      expect(client._txStatus).to.be('E')
+      expect(client.getTransactionStatus()).to.be('E')
 
       client.release()
       expect(pool.totalCount).to.be(1) // NOT removed
@@ -226,13 +226,13 @@ describe('leaked connection pool', function () {
       } catch (e) {
         // swallow the error
       }
-      // Issue a follow-up query to ensure _txStatus is updated to 'E'
+      // Issue a follow-up query to ensure transaction status is updated to 'E'
       try {
         await client.query('SELECT 1')
       } catch (e) {
         // expected — "current transaction is aborted"
       }
-      expect(client._txStatus).to.be('E')
+      expect(client.getTransactionStatus()).to.be('E')
 
       client.release()
       expect(pool.totalCount).to.be(1) // NOT removed
@@ -261,16 +261,16 @@ describe('leaked connection pool', function () {
 
       // Client A: open transaction (leaked)
       await clientA.query('BEGIN')
-      expect(clientA._txStatus).to.be('T')
+      expect(clientA.getTransactionStatus()).to.be('T')
 
       // Client B: normal query (idle)
       await clientB.query('SELECT 1')
-      expect(clientB._txStatus).to.be('I')
+      expect(clientB.getTransactionStatus()).to.be('I')
 
       // Client C: committed transaction (idle)
       await clientC.query('BEGIN')
       await clientC.query('COMMIT')
-      expect(clientC._txStatus).to.be('I')
+      expect(clientC.getTransactionStatus()).to.be('I')
 
       clientA.release()
       clientB.release()
