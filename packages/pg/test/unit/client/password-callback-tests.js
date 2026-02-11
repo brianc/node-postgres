@@ -54,6 +54,10 @@ suite.test('cleartext password auth does not crash with null password using pg-p
   if (!fs.existsSync(process.env.PGPASSFILE)) {
     throw new Error('PGPASSFILE does not exist')
   }
+  // print the contents of the file
+  console.log('contents of the file:', fs.readFileSync(process.env.PGPASSFILE, 'utf8'))
+  // print the mode of the file
+  console.log('stats of the file:', fs.statSync(process.env.PGPASSFILE))
   const client = helper.client({
     host: 'foo',
     port: 5432,
