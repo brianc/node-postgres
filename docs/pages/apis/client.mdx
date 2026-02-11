@@ -173,6 +173,63 @@ await client.end()
 console.log('client has disconnected')
 ```
 
+## client.getTransactionStatus
+
+`client.getTransactionStatus() => string | null`
+
+Returns the current transaction status of the client connection. This can be useful for debugging transaction state issues or implementing custom transaction management logic.
+
+**Return values:**
+
+- `'I'` - Idle (not in a transaction)
+- `'T'` - Transaction active (BEGIN has been issued)
+- `'E'` - Error (transaction aborted, requires ROLLBACK)
+- `null` - Initial state or not supported (native client)
+
+The transaction status is updated after each query completes based on the PostgreSQL backend's `ReadyForQuery` message.
+
+**Example: Checking transaction state**
+
+```js
+import { Client } from 'pg'
+const client = new Client()
+await client.connect()
+
+await client.query('BEGIN')
+console.log(client.getTransactionStatus()) // 'T' - in transaction
+
+await client.query('SELECT * FROM users')
+console.log(client.getTransactionStatus()) // 'T' - still in transaction
+
+await client.query('COMMIT')
+console.log(client.getTransactionStatus()) // 'I' - idle
+
+await client.end()
+```
+
+**Example: Handling transaction errors**
+
+```js
+import { Client } from 'pg'
+const client = new Client()
+await client.connect()
+
+await client.query('BEGIN')
+try {
+  await client.query('INVALID SQL')
+} catch (err) {
+  console.log(client.getTransactionStatus()) // 'E' - error state
+
+  // Must rollback to recover
+  await client.query('ROLLBACK')
+  console.log(client.getTransactionStatus()) // 'I' - idle again
+}
+
+await client.end()
+```
+
+**Note:** This method is not supported in the native client and will always return `null`.
+
 ## events
 
 ### error

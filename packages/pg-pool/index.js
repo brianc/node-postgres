@@ -118,7 +118,7 @@ class Pool extends EventEmitter {
   }
 
   _hasActiveTransaction(client) {
-    return client && (client._txStatus === 'T' || client._txStatus === 'E')
+    return client && (client.getTransactionStatus() === 'T' || client.getTransactionStatus() === 'E')
   }
 
   _pulseQueue() {

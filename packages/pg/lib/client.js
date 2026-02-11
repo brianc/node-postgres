@@ -695,6 +695,10 @@ class Client extends EventEmitter {
     this.connection.unref()
   }
 
+  getTransactionStatus() {
+    return this._txStatus
+  }
+
   end(cb) {
     this._ending = true
 
