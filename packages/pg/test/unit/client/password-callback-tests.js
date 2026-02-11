@@ -1,9 +1,7 @@
-'use strict'
 const helper = require('./test-helper')
 const assert = require('assert')
 const suite = new helper.Suite()
 const pgpass = require('pgpass')
-const fs = require('fs')
 
 class Wait {
   constructor() {
@@ -52,17 +50,6 @@ suite.test('cleartext password auth does not crash with null password using pg-p
   // set this to undefined so pgpass will use the file
   delete process.env.PGPASSWORD
   const wait = new Wait()
-  console.log()
-  console.log('hit hit hit')
-  console.log('PGPASSFILE', process.env.PGPASSFILE)
-  // check if file exists
-  if (!fs.existsSync(process.env.PGPASSFILE)) {
-    throw new Error('PGPASSFILE does not exist')
-  }
-  // print the contents of the file
-  console.log('contents of the file:', fs.readFileSync(process.env.PGPASSFILE, 'utf8'))
-  // print the mode of the file
-  console.log('stats of the file:', fs.statSync(process.env.PGPASSFILE))
   const client = helper.client({
     host: 'foo',
     port: 5432,
@@ -71,7 +58,6 @@ suite.test('cleartext password auth does not crash with null password using pg-p
     password: (params) => {
       return new Promise((resolve) => {
         pgpass(params, (pass) => {
-          console.log('in pgpass callback. read password:', pass)
           wait.done(10)
           resolve(pass)
         })
