@@ -46,6 +46,8 @@ suite.test('password callback is called with conenction params', async function 
 
 suite.test('cleartext password auth does not crash with null password using pg-pass', async function () {
   process.env.PGPASSFILE = `${__dirname}/pgpass.file`
+  // set this to undefined so pgpass will use the file
+  process.env.PGPASSWORD = undefined
   const wait = new Wait()
   console.log()
   console.log('hit hit hit')
