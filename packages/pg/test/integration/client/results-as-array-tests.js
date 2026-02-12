@@ -11,7 +11,7 @@ const conInfo = helper.config
 suite.test('returns results as array', function () {
   const client = new Client(conInfo)
   const checkRow = function (row) {
-    assert(util.isArray(row), 'row should be an array')
+    assert(Array.isArray(row), 'row should be an array')
     assert.equal(row.length, 4)
     assert.equal(row[0].getFullYear(), new Date().getFullYear())
     assert.strictEqual(row[1], 1)

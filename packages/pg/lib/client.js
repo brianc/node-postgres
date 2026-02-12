@@ -1,5 +1,3 @@
-'use strict'
-
 const EventEmitter = require('events').EventEmitter
 const utils = require('./utils')
 const nodeUtils = require('util')
@@ -14,23 +12,28 @@ const crypto = require('./crypto/utils')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
-  'Client.activeQuery is deprecated and will be removed in a future version.'
+  'Client.activeQuery is deprecated and will be removed in pg@9.0'
 )
 
 const queryQueueDeprecationNotice = nodeUtils.deprecate(
   () => {},
-  'Client.queryQueue is deprecated and will be removed in a future version.'
+  'Client.queryQueue is deprecated and will be removed in pg@9.0.'
 )
 
 const pgPassDeprecationNotice = nodeUtils.deprecate(
   () => {},
-  'pgpass support is deprecated and will be removed in a future version. ' +
+  'pgpass support is deprecated and will be removed in pg@9.0. ' +
     'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this funciton you can call the pgpass module in your own code.'
 )
 
 const byoPromiseDeprecationNotice = nodeUtils.deprecate(
   () => {},
-  'Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in a future version.'
+  'Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in pg@9.0.'
+)
+
+const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use asycn/await or an external async flow control mechanism instead.'
 )
 
 class Client extends EventEmitter {
@@ -680,6 +683,9 @@ class Client extends EventEmitter {
       return result
     }
 
+    if (this._queryQueue.length > 0) {
+      queryQueueLengthDeprecationNotice()
+    }
     this._queryQueue.push(query)
     this._pulseQueryQueue()
     return result
