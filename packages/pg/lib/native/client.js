@@ -1,5 +1,4 @@
-'use strict'
-
+const nodeUtils = require('util')
 // eslint-disable-next-line
 var Native
 // eslint-disable-next-line no-useless-catch
@@ -15,6 +14,11 @@ const util = require('util')
 const ConnectionParameters = require('../connection-parameters')
 
 const NativeQuery = require('./query')
+
+const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use asycn/await or an external async flow control mechanism instead.'
+)
 
 const Client = (module.exports = function (config) {
   EventEmitter.call(this)
@@ -228,6 +232,10 @@ Client.prototype.query = function (config, values, callback) {
       query.handleError(new Error('Client was closed and is not queryable'))
     })
     return result
+  }
+
+  if (this._queryQueue.length > 0) {
+    queryQueueLengthDeprecationNotice()
   }
 
   this._queryQueue.push(query)
