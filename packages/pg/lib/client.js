@@ -249,7 +249,7 @@ class Client extends EventEmitter {
     if (typeof this.password === 'function') {
       this._Promise
         .resolve()
-        .then(() => this.password())
+        .then(() => this.password(this.connectionParameters))
         .then((pass) => {
           if (pass !== undefined) {
             if (typeof pass !== 'string') {

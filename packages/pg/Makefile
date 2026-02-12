@@ -27,6 +27,7 @@ bench:
 	@find benchmark -name "*-bench.js" | $(node-command)
 
 test-unit:
+	@chmod 600 test/unit/client/pgpass.file
 	@find test/unit -name "*-tests.js" | $(node-command)
 
 test-connection:
