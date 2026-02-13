@@ -609,8 +609,12 @@ class Client extends EventEmitter {
     } else if (typeof config.submit === 'function') {
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       result = query = config
-      if (typeof values === 'function') {
-        query.callback = query.callback || values
+      if (!query.callback) {
+        if (typeof values === 'function') {
+          query.callback = values
+        } else if (callback) {
+          query.callback = callback
+        }
       }
     } else {
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout

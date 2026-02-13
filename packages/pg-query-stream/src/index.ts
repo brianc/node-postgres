@@ -13,6 +13,7 @@ class QueryStream extends Readable implements Submittable {
   cursor: any
   _result: any
 
+  callback: Function
   handleRowDescription: Function
   handleDataRow: Function
   handlePortalSuspended: Function
@@ -26,6 +27,13 @@ class QueryStream extends Readable implements Submittable {
 
     super({ objectMode: true, autoDestroy: true, highWaterMark: batchSize || highWaterMark })
     this.cursor = new Cursor(text, values, config)
+    this.cursor
+      .on('end', (result) => {
+        this.callback && this.callback(null, result)
+      })
+      .on('error', (err) => {
+        this.callback && this.callback(err)
+      })
 
     // delegate Submittable callbacks to cursor
     this.handleRowDescription = this.cursor.handleRowDescription.bind(this.cursor)
