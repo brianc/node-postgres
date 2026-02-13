@@ -1,8 +1,8 @@
 'use strict'
-var args = require('../test/cli')
-var pg = require('../lib')
+const args = require('../test/cli')
+const pg = require('../lib')
 
-var people = [
+const people = [
   { name: 'Aaron', age: 10 },
   { name: 'Brian', age: 20 },
   { name: 'Chris', age: 30 },
@@ -31,41 +31,26 @@ var people = [
   { name: 'Zanzabar', age: 260 },
 ]
 
-var con = new pg.Client({
-  host: args.host,
-  port: args.port,
-  user: args.user,
-  password: args.password,
-  database: args.database,
-})
-
-con.connect((err) => {
-  if (err) {
-    throw err
-  }
-
-  con.query(
-    'DROP TABLE IF EXISTS person;' + ' CREATE TABLE person (id serial, name varchar(10), age integer)',
-    (err) => {
-      if (err) {
-        throw err
-      }
-
-      console.log('Created table person')
-      console.log('Filling it with people')
-
-      con.query(
-        'INSERT INTO person (name, age) VALUES' +
-          people.map((person) => ` ('${person.name}', ${person.age})`).join(','),
-        (err, result) => {
-          if (err) {
-            throw err
-          }
-
-          console.log(`Inserted ${result.rowCount} people`)
-          con.end()
-        }
-      )
-    }
+async function run() {
+  const con = new pg.Client({
+    user: args.user,
+    password: args.password,
+    host: args.host,
+    port: args.port,
+    database: args.database,
+  })
+  console.log('creating test dataset')
+  await con.connect()
+  await con.query('DROP TABLE IF EXISTS person')
+  await con.query('CREATE TABLE person (id serial, name varchar(10), age integer)')
+  await con.query(
+    'INSERT INTO person (name, age) VALUES' + people.map((person) => ` ('${person.name}', ${person.age})`).join(',')
   )
+  await con.end()
+  console.log('created test dataset')
+}
+
+run().catch((e) => {
+  console.log('setup failed', e)
+  process.exit(255)
 })

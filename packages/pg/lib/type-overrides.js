@@ -1,6 +1,6 @@
 'use strict'
 
-var types = require('pg-types')
+const types = require('pg-types')
 
 function TypeOverrides(userTypes) {
   this._types = userTypes || types

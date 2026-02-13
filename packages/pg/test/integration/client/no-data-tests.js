@@ -1,11 +1,12 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 const suite = new helper.Suite()
+const assert = require('assert')
 
 suite.test('noData message handling', function () {
-  var client = helper.client()
+  const client = helper.client()
 
-  var q = client.query({
+  client.query({
     name: 'boom',
     text: 'create temp table boom(id serial, size integer)',
   })
@@ -29,14 +30,14 @@ suite.test('noData message handling', function () {
     values: [101],
   })
 
-  var query = client.query(
+  client.query(
     {
       name: 'fetch',
       text: 'select size from boom where size < $1',
       values: [101],
     },
     (err, res) => {
-      var row = res.rows[0]
+      const row = res.rows[0]
       assert.strictEqual(row.size, 100)
     }
   )

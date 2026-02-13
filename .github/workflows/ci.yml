@@ -7,58 +7,70 @@ permissions:
 
 jobs:
   lint:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: yarn
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       - run: yarn lint
   build:
+    timeout-minutes: 15
     needs: lint
-    runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:11
+        image: ghcr.io/railwayapp-templates/postgres-ssl
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: ci_db_test
           POSTGRES_HOST_AUTH_METHOD: 'md5'
+          POSTGRES_DB: ci_db_test
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
+      fail-fast: false
       matrix:
-        node: ['10', '12', '14', '16', '18']
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    name: Node.js ${{ matrix.node }} (${{ matrix.os }})
+        node:
+          - '16'
+          - '18'
+          - '20'
+          - '22'
+          - '24'
+          - '25'
+        os:
+          - ubuntu-latest
+    name: Node.js ${{ matrix.node }}
+    runs-on: ubuntu-latest
     env:
-        PGUSER: postgres
-        PGHOST: localhost
-        PGPASSWORD: postgres
-        PGDATABASE: ci_db_test
-        PGTESTNOSSL: 'true'
-        SCRAM_TEST_PGUSER: scram_test
-        SCRAM_TEST_PGPASSWORD: test4scram
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGDATABASE: ci_db_test
+      PGTESTNOSSL: 'true'
+      SCRAM_TEST_PGUSER: scram_test
+      SCRAM_TEST_PGPASSWORD: test4scram
     steps:
+      - name: Show OS
+        run: |
+          uname -a
       - run: |
           psql \
             -c "SET password_encryption = 'scram-sha-256'" \
             -c "CREATE ROLE scram_test LOGIN PASSWORD 'test4scram'"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-      - run: yarn install
-      # TODO(bmc): get ssl tests working in ci
+      - run: yarn install --frozen-lockfile
       - run: yarn test

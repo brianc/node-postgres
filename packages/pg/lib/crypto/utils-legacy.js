@@ -10,13 +10,18 @@ function md5(string) {
 
 // See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
 function postgresMd5PasswordHash(user, password, salt) {
-  var inner = md5(password + user)
-  var outer = md5(Buffer.concat([Buffer.from(inner), salt]))
+  const inner = md5(password + user)
+  const outer = md5(Buffer.concat([Buffer.from(inner), salt]))
   return 'md5' + outer
 }
 
 function sha256(text) {
   return nodeCrypto.createHash('sha256').update(text).digest()
+}
+
+function hashByName(hashName, text) {
+  hashName = hashName.replace(/(\D)-/, '$1') // e.g. SHA-256 -> SHA256
+  return nodeCrypto.createHash(hashName).update(text).digest()
 }
 
 function hmacSha256(key, msg) {
@@ -32,6 +37,7 @@ module.exports = {
   randomBytes: nodeCrypto.randomBytes,
   deriveKey,
   sha256,
+  hashByName,
   hmacSha256,
   md5,
 }

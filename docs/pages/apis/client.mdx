@@ -13,16 +13,21 @@ type Config = {
   user?: string, // default process.env.PGUSER || process.env.USER
   password?: string or function, //default process.env.PGPASSWORD
   host?: string, // default process.env.PGHOST
-  database?: string, // default process.env.PGDATABASE || user
   port?: number, // default process.env.PGPORT
+  database?: string, // default process.env.PGDATABASE || user
   connectionString?: string, // e.g. postgres://user:password@host:5432/database
   ssl?: any, // passed directly to node.TLSSocket, supports all tls.connect options
   types?: any, // custom type parsers
   statement_timeout?: number, // number of milliseconds before a statement in query will time out, default is no timeout
   query_timeout?: number, // number of milliseconds before a query call will timeout, default is no timeout
+  lock_timeout?: number, // number of milliseconds a query is allowed to be en lock state before it's cancelled due to lock timeout
   application_name?: string, // The name of the application that created this Client instance
   connectionTimeoutMillis?: number, // number of milliseconds to wait for connection, default is no timeout
-  idle_in_transaction_session_timeout?: number // number of milliseconds before terminating any session with an open idle transaction, default is no timeout
+  keepAliveInitialDelayMillis?: number, // set the initial delay before the first keepalive probe is sent on an idle socket
+  idle_in_transaction_session_timeout?: number, // number of milliseconds before terminating any session with an open idle transaction, default is no timeout
+  client_encoding?: string, // specifies the character set encoding that the database uses for sending data to the client
+  fallback_application_name?: string, // provide an application name to use if application_name is not set
+  options?: string // command-line options to be sent to the server
 }
 ```
 
@@ -32,11 +37,11 @@ example to create a client with specific connection information:
 import { Client } from 'pg'
 
 const client = new Client({
+  user: 'database-user',
+  password: 'secretpassword!!',
   host: 'my.database-server.com',
   port: 5334,
   database: 'database-name',
-  user: 'database-user',
-  password: 'secretpassword!!',
 })
 ```
 
@@ -72,6 +77,9 @@ type QueryConfig {
 
   // custom type parsers just for this query result
   types?: Types;
+
+  // TODO: document
+  queryMode?: string;
 }
 ```
 
@@ -173,7 +181,7 @@ console.log('client has disconnected')
 client.on('error', (err: Error) => void) => void
 ```
 
-When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and foward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
+When the client is in the process of connecting, dispatching a query, or disconnecting it will catch and forward errors from the PostgreSQL server to the respective `client.connect` `client.query` or `client.end` promise; however, the client maintains a long-lived connection to the PostgreSQL back-end and due to network partitions, back-end crashes, fail-overs, etc the client can (and over a long enough time period _will_) eventually be disconnected while it is idle. To handle this you may want to attach an error listener to a client to catch errors. Here's a contrived example:
 
 ```js
 const client = new pg.Client()

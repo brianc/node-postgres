@@ -1,15 +1,16 @@
 'use strict'
 
-var EventEmitter = require('events').EventEmitter
-var util = require('util')
-var utils = require('../utils')
+const EventEmitter = require('events').EventEmitter
+const util = require('util')
+const utils = require('../utils')
 
-var NativeQuery = (module.exports = function (config, values, callback) {
+const NativeQuery = (module.exports = function (config, values, callback) {
   EventEmitter.call(this)
   config = utils.normalizeQueryConfig(config, values, callback)
   this.text = config.text
   this.values = config.values
   this.name = config.name
+  this.queryMode = config.queryMode
   this.callback = config.callback
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
@@ -18,7 +19,7 @@ var NativeQuery = (module.exports = function (config, values, callback) {
   // then emit them as they come in
   // without setting singleRowMode to true
   // this has almost no meaning because libpq
-  // reads all rows into memory befor returning any
+  // reads all rows into memory before returning any
   this._emitRowEvents = false
   this.on(
     'newListener',
@@ -30,8 +31,7 @@ var NativeQuery = (module.exports = function (config, values, callback) {
 
 util.inherits(NativeQuery, EventEmitter)
 
-var errorFieldMap = {
-  /* eslint-disable quote-props */
+const errorFieldMap = {
   sqlState: 'code',
   statementPosition: 'position',
   messagePrimary: 'message',
@@ -48,10 +48,10 @@ var errorFieldMap = {
 
 NativeQuery.prototype.handleError = function (err) {
   // copy pq error fields into the error object
-  var fields = this.native.pq.resultErrorFields()
+  const fields = this.native.pq.resultErrorFields()
   if (fields) {
-    for (var key in fields) {
-      var normalizedFieldName = errorFieldMap[key] || key
+    for (const key in fields) {
+      const normalizedFieldName = errorFieldMap[key] || key
       err[normalizedFieldName] = fields[key]
     }
   }
@@ -84,11 +84,11 @@ NativeQuery.prototype._getPromise = function () {
 
 NativeQuery.prototype.submit = function (client) {
   this.state = 'running'
-  var self = this
+  const self = this
   this.native = client.native
   client.native.arrayMode = this._arrayMode
 
-  var after = function (err, rows, results) {
+  let after = function (err, rows, results) {
     client.native.arrayMode = false
     setImmediate(function () {
       self.emit('_done')
@@ -129,13 +129,11 @@ NativeQuery.prototype.submit = function (client) {
   // named query
   if (this.name) {
     if (this.name.length > 63) {
-      /* eslint-disable no-console */
       console.error('Warning! Postgres only supports 63 characters for query names.')
       console.error('You supplied %s (%s)', this.name, this.name.length)
       console.error('This can cause conflicts and silent errors executing queries')
-      /* eslint-enable no-console */
     }
-    var values = (this.values || []).map(utils.prepareValue)
+    const values = (this.values || []).map(utils.prepareValue)
 
     // check if the client has already executed this named query
     // if so...just execute it again - skip the planning phase
@@ -157,8 +155,10 @@ NativeQuery.prototype.submit = function (client) {
       const err = new Error('Query values must be an array')
       return after(err)
     }
-    var vals = this.values.map(utils.prepareValue)
+    const vals = this.values.map(utils.prepareValue)
     client.native.query(this.text, vals, after)
+  } else if (this.queryMode === 'extended') {
+    client.native.query(this.text, [], after)
   } else {
     client.native.query(this.text, after)
   }

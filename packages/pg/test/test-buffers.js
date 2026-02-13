@@ -3,7 +3,7 @@ require('./test-helper')
 const BufferList = require('./buffer-list')
 // http://developer.postgresql.org/pgdocs/postgres/protocol-message-formats.html
 
-var buffers = {}
+const buffers = {}
 buffers.readyForQuery = function () {
   return new BufferList().add(Buffer.from('I')).join(true, 'Z')
 }
@@ -49,7 +49,7 @@ buffers.commandComplete = function (string) {
 
 buffers.rowDescription = function (fields) {
   fields = fields || []
-  var buf = new BufferList()
+  const buf = new BufferList()
   buf.addInt16(fields.length)
   fields.forEach(function (field) {
     buf
@@ -66,13 +66,13 @@ buffers.rowDescription = function (fields) {
 
 buffers.dataRow = function (columns) {
   columns = columns || []
-  var buf = new BufferList()
+  const buf = new BufferList()
   buf.addInt16(columns.length)
   columns.forEach(function (col) {
     if (col == null) {
       buf.addInt32(-1)
     } else {
-      var strBuf = Buffer.from(col, 'utf8')
+      const strBuf = Buffer.from(col, 'utf8')
       buf.addInt32(strBuf.length)
       buf.add(strBuf)
     }
@@ -88,9 +88,9 @@ buffers.notice = function (fields) {
   return errorOrNotice(fields).join(true, 'N')
 }
 
-var errorOrNotice = function (fields) {
+const errorOrNotice = function (fields) {
   fields = fields || []
-  var buf = new BufferList()
+  const buf = new BufferList()
   fields.forEach(function (field) {
     buf.addChar(field.type)
     buf.addCString(field.value)
@@ -116,6 +116,22 @@ buffers.emptyQuery = function () {
 
 buffers.portalSuspended = function () {
   return new BufferList().join(true, 's')
+}
+
+buffers.copyIn = function (cols) {
+  const list = new BufferList()
+    // text mode
+    .add(Buffer.from([0]))
+    // column count
+    .addInt16(cols)
+  for (let i = 0; i < cols; i++) {
+    list.addInt16(i)
+  }
+  return list.join(true, 'G')
+}
+
+buffers.copyData = function (bytes) {
+  return new BufferList().add(bytes).join(true, 'd')
 }
 
 module.exports = buffers

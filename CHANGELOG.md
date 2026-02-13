@@ -4,6 +4,34 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.18.0
+
+- [Return the client instance](https://github.com/brianc/node-postgres/pull/3564) as the result of calling `connect` (previously it was `void`).
+
+## pg@8.17.0
+
+- Throw correct error if database URL parsing [fails](https://github.com/brianc/node-postgres/issues/3513).
+
+## pg@8.16.0
+
+- Add support for [min connection pool size](https://github.com/brianc/node-postgres/pull/3438).
+
+## pg@8.15.0
+
+- Add support for [esm](https://github.com/brianc/node-postgres/pull/3423) importing. CommonJS importing is still also supported.
+
+## pg@8.14.0
+
+- Add support from SCRAM-SAH-256-PLUS i.e. [channel binding](https://github.com/brianc/node-postgres/pull/3356).
+
+## pg@8.13.0
+
+- Add ability to specify query timeout on [per-query basis](https://github.com/brianc/node-postgres/pull/3074).
+
+## pg@8.12.0
+
+- Add `queryMode` config option to [force use of the extended query protocol](https://github.com/brianc/node-postgres/pull/3214) on queries without any parameters.
+
 ## pg-pool@8.10.0
 
 - Emit `release` event when client is returned to [the pool](https://github.com/brianc/node-postgres/pull/2845).
@@ -64,7 +92,7 @@ We do not include break-fix version release in this file.
 
 ### pg@8.2.0
 
-- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster. This is the first work to land in an on-going performance improvment initiative I'm working on. Stay tuned as things are set to get much faster still! :rocket:
+- Switch internal protocol parser & serializer to [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol). The change is backwards compatible but results in a significant performance improvement across the board, with some queries as much as 50% faster. This is the first work to land in an on-going performance improvement initiative I'm working on. Stay tuned as things are set to get much faster still! :rocket:
 
 ### pg-cursor@2.2.0
 

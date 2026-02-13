@@ -4,7 +4,6 @@ const expect = require('expect.js')
 
 const describe = require('mocha').describe
 const it = require('mocha').it
-const path = require('path')
 
 const Pool = require('../')
 
@@ -33,7 +32,7 @@ describe('lifetime timeout', () => {
     'can remove expired clients and recreate them',
     co.wrap(function* () {
       const pool = new Pool({ maxLifetimeSeconds: 1 })
-      let query = pool.query('SELECT pg_sleep(1.4)')
+      const query = pool.query('SELECT pg_sleep(1.4)')
       expect(pool.expiredCount).to.equal(0)
       expect(pool.totalCount).to.equal(1)
       yield query

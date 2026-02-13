@@ -1,8 +1,8 @@
 {
   "name": "pg-cloudflare",
-  "version": "1.1.1",
+  "version": "1.3.0",
   "description": "A socket implementation that can run on Cloudflare Workers using native TCP connections.",
-  "main": "dist/empty.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
   "devDependencies": {
@@ -10,8 +10,14 @@
     "typescript": "^4.0.3"
   },
   "exports": {
-    "workerd": "./dist/index.js",
-    "default": "./dist/empty.js"
+    ".": {
+      "workerd": {
+        "import": "./esm/index.mjs",
+        "require": "./dist/index.js"
+      },
+      "default": "./dist/empty.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "build": "tsc",
@@ -26,6 +32,7 @@
   },
   "files": [
     "/dist/*{js,ts,map}",
-    "/src"
+    "/src",
+    "/esm"
   ]
 }

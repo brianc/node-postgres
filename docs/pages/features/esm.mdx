@@ -1,0 +1,37 @@
+---
+title: ESM
+---
+
+## ESM Support
+
+As of v8.15.x node-postgres supporters the __ECMAScript Module__ (ESM) format. This means you can use `import` statements instead of `require` or `import pg from 'pg'`.
+
+CommonJS modules are still supported. The ESM format is an opt-in feature and will not affect existing codebases that use CommonJS.
+
+The docs have been changed to show ESM usage, but in a CommonJS context you can still use the same code, you just need to change the import format.
+
+If you're using CommonJS, you can use the following code to import the `pg` module:
+
+```js
+  const pg = require('pg')
+  const { Client } = pg
+  // etc...
+```
+
+### ESM Usage
+
+If you're using ESM, you can use the following code to import the `pg` module:
+
+```js
+  import { Client } from 'pg'
+  // etc...
+```
+
+
+Previously if you were using ESM you would have to use the following code:
+
+```js
+  import pg from 'pg'
+  const { Client } = pg
+  // etc...
+```

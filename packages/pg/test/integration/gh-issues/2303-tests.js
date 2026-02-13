@@ -25,7 +25,6 @@ suite.test('SSL Key should not exist in util.inspect output', () => {
 suite.test('SSL Key should not exist in json.stringfy output', () => {
   const pool = new helper.pg.Pool({ ssl: { key: secret_value } })
   const client = new helper.pg.Client({ ssl: { key: secret_value } })
-  const depth = 20
   assert(JSON.stringify(pool).indexOf(secret_value) === -1)
   assert(JSON.stringify(client).indexOf(secret_value) === -1)
 })

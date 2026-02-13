@@ -87,6 +87,7 @@ class Pool extends EventEmitter {
     }
 
     this.options.max = this.options.max || this.options.poolSize || 10
+    this.options.min = this.options.min || 0
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
@@ -109,6 +110,10 @@ class Pool extends EventEmitter {
 
   _isFull() {
     return this._clients.length >= this.options.max
+  }
+
+  _isAboveMin() {
+    return this._clients.length > this.options.min
   }
 
   _pulseQueue() {
@@ -156,7 +161,7 @@ class Pool extends EventEmitter {
     throw new Error('unexpected condition')
   }
 
-  _remove(client) {
+  _remove(client, callback) {
     const removed = removeWhere(this._idle, (item) => item.client === client)
 
     if (removed !== undefined) {
@@ -164,8 +169,14 @@ class Pool extends EventEmitter {
     }
 
     this._clients = this._clients.filter((c) => c !== client)
-    client.end()
-    this.emit('remove', client)
+    const context = this
+    client.end(() => {
+      context.emit('remove', client)
+
+      if (typeof callback === 'function') {
+        callback()
+      }
+    })
   }
 
   connect(cb) {
@@ -205,6 +216,10 @@ class Pool extends EventEmitter {
         response.callback(new Error('timeout exceeded when trying to connect'))
       }, this.options.connectionTimeoutMillis)
 
+      if (tid.unref) {
+        tid.unref()
+      }
+
       this._pendingQueue.push(pendingItem)
       return result
     }
@@ -226,10 +241,16 @@ class Pool extends EventEmitter {
     let timeoutHit = false
     if (this.options.connectionTimeoutMillis) {
       tid = setTimeout(() => {
-        this.log('ending client due to timeout')
-        timeoutHit = true
-        // force kill the node driver, and let libpq do its teardown
-        client.connection ? client.connection.stream.destroy() : client.end()
+        if (client.connection) {
+          this.log('ending client due to timeout')
+          timeoutHit = true
+          client.connection.stream.destroy()
+        } else if (!client.isConnected()) {
+          this.log('ending client due to timeout')
+          timeoutHit = true
+          // force kill the node driver, and let libpq do its teardown
+          client.end()
+        }
       }, this.options.connectionTimeoutMillis)
     }
 
@@ -244,7 +265,7 @@ class Pool extends EventEmitter {
         // remove the dead client from our list of clients
         this._clients = this._clients.filter((c) => c !== client)
         if (timeoutHit) {
-          err.message = 'Connection terminated due to connection timeout'
+          err = new Error('Connection terminated due to connection timeout', { cause: err })
         }
 
         // this client won’t be released, so move on immediately
@@ -342,26 +363,25 @@ class Pool extends EventEmitter {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
-      this._remove(client)
-      this._pulseQueue()
-      return
+
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     const isExpired = this._expired.has(client)
     if (isExpired) {
       this.log('remove expired client')
       this._expired.delete(client)
-      this._remove(client)
-      this._pulseQueue()
-      return
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     // idle timeout
     let tid
-    if (this.options.idleTimeoutMillis) {
+    if (this.options.idleTimeoutMillis && this._isAboveMin()) {
       tid = setTimeout(() => {
-        this.log('remove idle client')
-        this._remove(client)
+        if (this._isAboveMin()) {
+          this.log('remove idle client')
+          this._remove(client, this._pulseQueue.bind(this))
+        }
       }, this.options.idleTimeoutMillis)
 
       if (this.options.allowExitOnIdle) {

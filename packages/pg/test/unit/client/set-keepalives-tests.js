@@ -2,6 +2,7 @@
 const net = require('net')
 const pg = require('../../../lib/index.js')
 const helper = require('./test-helper')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 

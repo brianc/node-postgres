@@ -1,9 +1,10 @@
 'use strict'
-var async = require('async')
-var helper = require('../test-helper')
+const async = require('async')
+const helper = require('../test-helper')
 const suite = new helper.Suite()
+const assert = require('assert')
 
-var db = helper.client()
+const db = helper.client()
 
 function createTableFoo(callback) {
   db.query('create temp table foo(column1 int, column2 int)', callback)
@@ -54,7 +55,7 @@ function doTransaction(callback) {
   })
 }
 
-var steps = [createTableFoo, createTableBar, doTransaction, insertDataBar]
+const steps = [createTableFoo, createTableBar, doTransaction, insertDataBar]
 
 suite.test('test if query fails', function (done) {
   async.series(
@@ -67,8 +68,8 @@ suite.test('test if query fails', function (done) {
 })
 
 suite.test('test if prepare works but bind fails', function (done) {
-  var client = helper.client()
-  var q = {
+  const client = helper.client()
+  const q = {
     text: 'SELECT $1::int as name',
     values: ['brian'],
     name: 'test',

@@ -10,22 +10,22 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "yarn lerna exec yarn test",
+    "test": "yarn lerna exec --concurrency 1 yarn test",
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
     "docs:build": "cd docs && yarn build",
     "docs:start": "cd docs && yarn start",
     "pretest": "yarn build",
     "prepublish": "yarn build",
-    "lint": "eslint '*/**/*.{js,ts,tsx}'"
+    "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}'"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.4.0",
-    "@typescript-eslint/parser": "^4.4.0",
-    "eslint": "^7.11.0",
-    "eslint-config-prettier": "^8.5.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-prettier": "^5.1.2",
     "lerna": "^3.19.0",
     "prettier": "3.0.3",
     "typescript": "^4.0.3"

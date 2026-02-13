@@ -1,6 +1,6 @@
 'use strict'
-var helper = require('./../test-helper')
-var assert = require('assert')
+const helper = require('./../test-helper')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 
@@ -10,7 +10,7 @@ if (process.env.PGTESTNOSSL) {
   return
 }
 
-suite.testAsync('it should connect over ssl', async () => {
+suite.test('it should connect over ssl', async () => {
   const ssl = helper.args.native
     ? 'require'
     : {
@@ -23,7 +23,7 @@ suite.testAsync('it should connect over ssl', async () => {
   await client.end()
 })
 
-suite.testAsync('it should fail with self-signed cert error w/o rejectUnauthorized being passed', async () => {
+suite.test('it should fail with self-signed cert error w/o rejectUnauthorized being passed', async () => {
   const ssl = helper.args.native ? 'verify-ca' : {}
   const client = new helper.pg.Client({ ssl })
   try {

@@ -1,12 +1,14 @@
 'use strict'
-var helper = require('./test-helper')
-var Connection = require('../../../lib/connection')
-var net = require('net')
+const helper = require('./test-helper')
+const Connection = require('../../../lib/connection')
+const net = require('net')
+const assert = require('assert')
 
 const suite = new helper.Suite()
+const { MemoryStream } = helper
 
 suite.test('connection emits stream errors', function (done) {
-  var con = new Connection({ stream: new MemoryStream() })
+  const con = new Connection({ stream: new MemoryStream() })
   assert.emits(con, 'error', function (err) {
     assert.equal(err.message, 'OMG!')
     done()
@@ -16,28 +18,28 @@ suite.test('connection emits stream errors', function (done) {
 })
 
 suite.test('connection emits ECONNRESET errors during normal operation', function (done) {
-  var con = new Connection({ stream: new MemoryStream() })
+  const con = new Connection({ stream: new MemoryStream() })
   con.connect()
   assert.emits(con, 'error', function (err) {
     assert.equal(err.code, 'ECONNRESET')
     done()
   })
-  var e = new Error('Connection Reset')
+  const e = new Error('Connection Reset')
   e.code = 'ECONNRESET'
   con.stream.emit('error', e)
 })
 
 suite.test('connection does not emit ECONNRESET errors during disconnect', function (done) {
-  var con = new Connection({ stream: new MemoryStream() })
+  const con = new Connection({ stream: new MemoryStream() })
   con.connect()
-  var e = new Error('Connection Reset')
+  const e = new Error('Connection Reset')
   e.code = 'ECONNRESET'
   con.end()
   con.stream.emit('error', e)
   done()
 })
 
-var SSLNegotiationPacketTests = [
+const SSLNegotiationPacketTests = [
   {
     testName: 'connection does not emit ECONNRESET errors during disconnect also when using SSL',
     errorMessage: null,
@@ -61,8 +63,8 @@ var SSLNegotiationPacketTests = [
 for (const tc of SSLNegotiationPacketTests) {
   suite.test(tc.testName, function (done) {
     // our fake postgres server
-    var socket
-    var server = net.createServer(function (c) {
+    let socket
+    const server = net.createServer(function (c) {
       socket = c
       c.once('data', function (data) {
         c.write(Buffer.from(tc.response))
@@ -70,7 +72,7 @@ for (const tc of SSLNegotiationPacketTests) {
     })
 
     server.listen(7778, function () {
-      var con = new Connection({ ssl: true })
+      const con = new Connection({ ssl: true })
       con.connect(7778, 'localhost')
       assert.emits(con, tc.responseType, function (err) {
         if (tc.errorMessage !== null || err) {

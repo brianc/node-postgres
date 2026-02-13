@@ -26,7 +26,7 @@ import { Pool } from 'pg'
 
 const pool = new Pool()
 
-export const query = (text, params) => pool.query(text, params);
+export const query = (text, params) => pool.query(text, params)
 ```
 
 Then I will install [express-promise-router](https://www.npmjs.com/package/express-promise-router) and use it to define my routes. Here is my `routes/user.js` file:

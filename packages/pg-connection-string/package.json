@@ -1,13 +1,20 @@
 {
   "name": "pg-connection-string",
-  "version": "2.6.2",
+  "version": "2.11.0",
   "description": "Functions for dealing with a PostgresSQL connection string",
   "main": "./index.js",
   "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./esm/index.mjs",
+      "require": "./index.js",
+      "default": "./index.js"
+    }
+  },
   "scripts": {
-    "test": "istanbul cover _mocha && npm run check-coverage",
-    "check-coverage": "istanbul check-coverage --statements 100 --branches 100 --lines 100 --functions 100",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
+    "test": "nyc --reporter=lcov mocha && npm run check-coverage",
+    "check-coverage": "nyc check-coverage --statements 100 --branches 100 --lines 100 --functions 100"
   },
   "repository": {
     "type": "git",
@@ -27,13 +34,18 @@
   },
   "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string",
   "devDependencies": {
+    "@types/pg": "^8.12.0",
     "chai": "^4.1.1",
     "coveralls": "^3.0.4",
     "istanbul": "^0.4.5",
-    "mocha": "^7.1.2"
+    "mocha": "^10.5.2",
+    "nyc": "^15",
+    "tsx": "^4.19.4",
+    "typescript": "^4.0.3"
   },
   "files": [
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "esm"
   ]
 }

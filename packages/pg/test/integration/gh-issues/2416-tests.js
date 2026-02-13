@@ -1,8 +1,9 @@
 const helper = require('../test-helper')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 
-suite.testAsync('it sets search_path on connection', async () => {
+suite.test('it sets search_path on connection', async () => {
   const client = new helper.pg.Client({
     options: '--search_path=foo',
   })

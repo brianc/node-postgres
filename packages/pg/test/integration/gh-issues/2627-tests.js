@@ -1,6 +1,7 @@
 'use strict'
 const net = require('net')
 const helper = require('./../test-helper')
+const assert = require('assert')
 
 const suite = new helper.Suite()
 

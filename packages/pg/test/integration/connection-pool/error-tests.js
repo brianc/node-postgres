@@ -1,7 +1,8 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
 const pg = helper.pg
 const native = helper.args.native
+const assert = require('assert')
 
 const suite = new helper.Suite()
 suite.test('connecting to invalid port', (cb) => {
@@ -18,14 +19,13 @@ suite.test('errors emitted on checked-out clients', (cb) => {
       client.query('SELECT NOW()', function () {
         pool.connect(
           assert.success(function (client2, done2) {
-            var pidColName = 'procpid'
             helper.versionGTE(
               client2,
               90200,
               assert.success(function (isGreater) {
-                var killIdleQuery =
+                let killIdleQuery =
                   'SELECT pid, (SELECT pg_terminate_backend(pid)) AS killed FROM pg_stat_activity WHERE state = $1'
-                var params = ['idle']
+                let params = ['idle']
                 if (!isGreater) {
                   killIdleQuery =
                     'SELECT procpid, (SELECT pg_terminate_backend(procpid)) AS killed FROM pg_stat_activity WHERE current_query LIKE $1'

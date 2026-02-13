@@ -7,7 +7,8 @@ title: Connecting
 node-postgres uses the same [environment variables](https://www.postgresql.org/docs/9.1/static/libpq-envars.html) as libpq and psql to connect to a PostgreSQL server. Both individual clients & pools will use these environment variables. Here's a tiny program connecting node.js to the PostgreSQL server:
 
 ```js
-import { Pool, Client } from 'pg'
+import pg from 'pg'
+const { Pool, Client } = pg
 
 // pools will use environment variables
 // for connection information
@@ -30,10 +31,10 @@ To run the above program and specify which database to connect to we can invoke 
 
 ```sh
 $ PGUSER=dbuser \
-  PGHOST=database.server.com \
   PGPASSWORD=secretpassword \
-  PGDATABASE=mydb \
+  PGHOST=database.server.com \
   PGPORT=3211 \
+  PGDATABASE=mydb \
   node script.js
 ```
 
@@ -42,11 +43,11 @@ This allows us to write our programs without having to specify connection inform
 The default values for the environment variables used are:
 
 ```
-PGHOST=localhost
 PGUSER=process.env.USER
-PGDATABASE=process.env.USER
 PGPASSWORD=null
+PGHOST=localhost
 PGPORT=5432
+PGDATABASE=process.env.USER
 ```
 
 ## Programmatic
@@ -54,24 +55,25 @@ PGPORT=5432
 node-postgres also supports configuring a pool or client programmatically with connection information. Here's our same script from above modified to use programmatic (hard-coded in this case) values. This can be useful if your application already has a way to manage config values or you don't want to use environment variables.
 
 ```js
-import { Pool, Client } from 'pg'
+import pg from 'pg'
+const { Pool, Client } = pg
 
 const pool = new Pool({
   user: 'dbuser',
-  host: 'database.server.com',
-  database: 'mydb',
   password: 'secretpassword',
+  host: 'database.server.com',
   port: 3211,
+  database: 'mydb',
 })
 
 console.log(await pool.query('SELECT NOW()'))
 
 const client = new Client({
   user: 'dbuser',
-  host: 'database.server.com',
-  database: 'mydb',
   password: 'secretpassword',
+  host: 'database.server.com',
   port: 3211,
+  database: 'mydb',
 })
 
 await client.connect()
@@ -84,7 +86,8 @@ await client.end()
 Many cloud providers include alternative methods for connecting to database instances using short-lived authentication tokens. node-postgres supports dynamic passwords via a callback function, either synchronous or asynchronous. The callback function must resolve to a string.
 
 ```js
-import { Pool } from 'pg'
+import pg from 'pg'
+const { Pool } = pg
 import { RDS } from 'aws-sdk'
 
 const signerOptions = {
@@ -98,16 +101,16 @@ const signerOptions = {
   username: 'api-user',
 }
 
-const signer = new RDS.Signer()
+const signer = new RDS.Signer(signerOptions)
 
-const getPassword = () => signer.getAuthToken(signerOptions)
+const getPassword = () => signer.getAuthToken()
 
 const pool = new Pool({
+  user: signerOptions.username,
+  password: getPassword,
   host: signerOptions.hostname,
   port: signerOptions.port,
-  user: signerOptions.username,
   database: 'my-db',
-  password: getPassword,
 })
 ```
 
@@ -116,11 +119,12 @@ const pool = new Pool({
 Connections to unix sockets can also be made. This can be useful on distros like Ubuntu, where authentication is managed via the socket connection instead of a password.
 
 ```js
-import { Client } from 'pg'
+import pg from 'pg'
+const { Client } = pg
 client = new Client({
-  host: '/cloudsql/myproject:zone:mydb',
   user: 'username',
   password: 'password',
+  host: '/cloudsql/myproject:zone:mydb',
   database: 'database_name',
 })
 ```
@@ -130,7 +134,8 @@ client = new Client({
 You can initialize both a pool and a client with a connection string URI as well. This is common in environments like Heroku where the database connection string is supplied to your application dyno through an environment variable. Connection string parsing brought to you by [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string).
 
 ```js
-import { Pool, Client } from 'pg'
+import pg from 'pg'
+const { Pool, Client } = pg
 const connectionString = 'postgresql://dbuser:secretpassword@database.server.com:3211/mydb'
 
 const pool = new Pool({

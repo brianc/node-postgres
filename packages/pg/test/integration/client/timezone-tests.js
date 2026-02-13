@@ -1,11 +1,11 @@
 'use strict'
-var helper = require('./../test-helper')
-var exec = require('child_process').exec
+const helper = require('./../test-helper')
+const assert = require('assert')
 
-var oldTz = process.env.TZ
+const oldTz = process.env.TZ
 process.env.TZ = 'Europe/Berlin'
 
-var date = new Date()
+const date = new Date()
 
 const pool = new helper.pg.Pool()
 const suite = new helper.Suite()
@@ -19,6 +19,11 @@ pool.connect(function (err, client, done) {
       assert.equal(result.rows[0].val.getTime(), date.getTime())
       cb()
     })
+  })
+
+  suite.test('date comes out as a date', async function () {
+    const { rows } = await client.query('SELECT NOW()::DATE AS date')
+    assert(rows[0].date instanceof Date)
   })
 
   suite.test('timestamp with time zone', function (cb) {

@@ -1,18 +1,18 @@
 'use strict'
-var helper = require('./test-helper')
-var Query = helper.pg.Query
+const helper = require('./test-helper')
+const Query = helper.pg.Query
 
-var suite = new helper.Suite()
+const assert = require('assert')
+const suite = new helper.Suite()
 
 ;(function () {
-  var client = helper.client()
+  const client = helper.client()
   client.on('drain', client.end.bind(client))
 
-  var queryName = 'user by age and like name'
-  var parseCount = 0
+  const queryName = 'user by age and like name'
 
   suite.test('first named prepared statement', function (done) {
-    var query = client.query(
+    const query = client.query(
       new Query({
         text: 'select name from person where age <= $1 and name LIKE $2',
         values: [20, 'Bri%'],
@@ -28,7 +28,7 @@ var suite = new helper.Suite()
   })
 
   suite.test('second named prepared statement with same name & text', function (done) {
-    var cachedQuery = client.query(
+    const cachedQuery = client.query(
       new Query({
         text: 'select name from person where age <= $1 and name LIKE $2',
         name: queryName,
@@ -44,7 +44,7 @@ var suite = new helper.Suite()
   })
 
   suite.test('with same name, but without query text', function (done) {
-    var q = client.query(
+    const q = client.query(
       new Query({
         name: queryName,
         values: [30, '%n%'],
@@ -81,15 +81,15 @@ var suite = new helper.Suite()
   })
 })()
 ;(function () {
-  var statementName = 'differ'
-  var statement1 = 'select count(*)::int4 as count from person'
-  var statement2 = 'select count(*)::int4 as count from person where age < $1'
+  const statementName = 'differ'
+  const statement1 = 'select count(*)::int4 as count from person'
+  const statement2 = 'select count(*)::int4 as count from person where age < $1'
 
-  var client1 = helper.client()
-  var client2 = helper.client()
+  const client1 = helper.client()
+  const client2 = helper.client()
 
   suite.test('client 1 execution', function (done) {
-    var query = client1.query(
+    client1.query(
       {
         name: statementName,
         text: statement1,
@@ -103,7 +103,7 @@ var suite = new helper.Suite()
   })
 
   suite.test('client 2 execution', function (done) {
-    var query = client2.query(
+    const query = client2.query(
       new Query({
         name: statementName,
         text: statement2,
@@ -125,13 +125,13 @@ var suite = new helper.Suite()
   })
 })()
 ;(function () {
-  var client = helper.client()
+  const client = helper.client()
   client.query('CREATE TEMP TABLE zoom(name varchar(100));')
   client.query("INSERT INTO zoom (name) VALUES ('zed')")
   client.query("INSERT INTO zoom (name) VALUES ('postgres')")
   client.query("INSERT INTO zoom (name) VALUES ('node postgres')")
 
-  var checkForResults = function (q) {
+  const checkForResults = function (q) {
     assert.emits(q, 'row', function (row) {
       assert.equal(row.name, 'node postgres')
 
@@ -146,7 +146,7 @@ var suite = new helper.Suite()
   }
 
   suite.test('with small row count', function (done) {
-    var query = client.query(
+    const query = client.query(
       new Query(
         {
           name: 'get names',
@@ -161,7 +161,7 @@ var suite = new helper.Suite()
   })
 
   suite.test('with large row count', function (done) {
-    var query = client.query(
+    const query = client.query(
       new Query(
         {
           name: 'get names',
@@ -174,7 +174,7 @@ var suite = new helper.Suite()
     checkForResults(query)
   })
 
-  suite.testAsync('with no data response and rows', async function () {
+  suite.test('with no data response and rows', async function () {
     const result = await client.query({
       name: 'some insert',
       text: '',

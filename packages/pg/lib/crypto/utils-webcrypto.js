@@ -5,6 +5,7 @@ module.exports = {
   randomBytes,
   deriveKey,
   sha256,
+  hashByName,
   hmacSha256,
   md5,
 }
@@ -13,6 +14,7 @@ module.exports = {
  * The Web Crypto API - grabbed from the Node.js library or the global
  * @type Crypto
  */
+// eslint-disable-next-line no-undef
 const webCrypto = nodeCrypto.webcrypto || globalThis.crypto
 /**
  * The SubtleCrypto API for low level crypto operations.
@@ -47,8 +49,8 @@ async function md5(string) {
 
 // See AuthenticationMD5Password at https://www.postgresql.org/docs/current/static/protocol-flow.html
 async function postgresMd5PasswordHash(user, password, salt) {
-  var inner = await md5(password + user)
-  var outer = await md5(Buffer.concat([Buffer.from(inner), salt]))
+  const inner = await md5(password + user)
+  const outer = await md5(Buffer.concat([Buffer.from(inner), salt]))
   return 'md5' + outer
 }
 
@@ -58,6 +60,10 @@ async function postgresMd5PasswordHash(user, password, salt) {
  */
 async function sha256(text) {
   return await subtleCrypto.digest('SHA-256', text)
+}
+
+async function hashByName(hashName, text) {
+  return await subtleCrypto.digest(hashName, text)
 }
 
 /**

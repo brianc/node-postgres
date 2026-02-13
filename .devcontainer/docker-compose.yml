@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 
-version: '3'
+version: '3.9'
 services:
   web:
     # Uncomment the next line to use a non-root user for all processes. You can also
@@ -32,16 +32,21 @@ services:
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
 
-    links:
+    depends_on:
       - db
 
+    links:
+      - db:db
+
   db:
-    image: postgres
+    image: postgres:14
     restart: unless-stopped
     ports: 
       - 5432:5432
+    command: postgres -c password_encryption=md5
     environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_INITDB_ARGS: "--auth-local=md5"
       POSTGRES_PASSWORD: pass
       POSTGRES_USER: user
       POSTGRES_DB: data
- 

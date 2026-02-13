@@ -1,11 +1,12 @@
 'use strict'
-var buffers = require('../../test-buffers')
-var helper = require('./test-helper')
-var suite = new helper.Suite()
+const buffers = require('../../test-buffers')
+const helper = require('./test-helper')
+const suite = new helper.Suite()
+const assert = require('assert')
 
-var net = require('net')
+const net = require('net')
 
-var Server = function (response) {
+const Server = function (response) {
   this.server = undefined
   this.socket = undefined
   this.response = response
@@ -57,11 +58,11 @@ Server.prototype.close = function (cb) {
   this.server.close(cb)
 }
 
-var testServer = function (server, cb) {
+const testServer = function (server, cb) {
   // wait for our server to start
   server.start(function (options) {
     // connect a client to it
-    var client = new helper.Client(options)
+    const client = new helper.Client(options)
     client.connect().catch((err) => {
       assert(err instanceof Error)
       clearTimeout(timeoutId)
@@ -76,7 +77,7 @@ var testServer = function (server, cb) {
     })
 
     // blow up if we don't receive an error
-    var timeoutId = setTimeout(function () {
+    const timeoutId = setTimeout(function () {
       throw new Error('Client should have emitted an error but it did not.')
     }, 5000)
   })

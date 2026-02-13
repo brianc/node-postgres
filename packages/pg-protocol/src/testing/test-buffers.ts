@@ -47,7 +47,7 @@ const buffers = {
 
   rowDescription: function (fields: any[]) {
     fields = fields || []
-    var buf = new BufferList()
+    const buf = new BufferList()
     buf.addInt16(fields.length)
     fields.forEach(function (field) {
       buf
@@ -64,7 +64,7 @@ const buffers = {
 
   parameterDescription: function (dataTypeIDs: number[]) {
     dataTypeIDs = dataTypeIDs || []
-    var buf = new BufferList()
+    const buf = new BufferList()
     buf.addInt16(dataTypeIDs.length)
     dataTypeIDs.forEach(function (dataTypeID) {
       buf.addInt32(dataTypeID)
@@ -74,13 +74,13 @@ const buffers = {
 
   dataRow: function (columns: any[]) {
     columns = columns || []
-    var buf = new BufferList()
+    const buf = new BufferList()
     buf.addInt16(columns.length)
     columns.forEach(function (col) {
       if (col == null) {
         buf.addInt32(-1)
       } else {
-        var strBuf = Buffer.from(col, 'utf8')
+        const strBuf = Buffer.from(col, 'utf8')
         buf.addInt32(strBuf.length)
         buf.add(strBuf)
       }
@@ -98,7 +98,7 @@ const buffers = {
 
   errorOrNotice: function (fields: any) {
     fields = fields || []
-    var buf = new BufferList()
+    const buf = new BufferList()
     fields.forEach(function (field: any) {
       buf.addChar(field.type)
       buf.addCString(field.value)

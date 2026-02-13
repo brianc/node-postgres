@@ -1,17 +1,18 @@
 'use strict'
-var EventEmitter = require('events').EventEmitter
+const EventEmitter = require('events').EventEmitter
 
-var helper = require('../test-helper')
-var Connection = require('../../lib/connection')
+const helper = require('../test-helper')
+const Connection = require('../../lib/connection')
+const { Client } = helper
 
-global.MemoryStream = function () {
+const MemoryStream = function () {
   EventEmitter.call(this)
   this.packets = []
 }
 
 helper.sys.inherits(MemoryStream, EventEmitter)
 
-var p = MemoryStream.prototype
+const p = MemoryStream.prototype
 
 p.connect = function () {
   // NOOP
@@ -35,8 +36,8 @@ p.closed = false
 p.writable = true
 
 const createClient = function () {
-  var stream = new MemoryStream()
-  var client = new Client({
+  const stream = new MemoryStream()
+  const client = new Client({
     connection: new Connection({ stream: stream }),
   })
   client.connect()
@@ -45,4 +46,5 @@ const createClient = function () {
 
 module.exports = Object.assign({}, helper, {
   createClient: createClient,
+  MemoryStream: MemoryStream,
 })

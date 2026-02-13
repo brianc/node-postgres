@@ -46,9 +46,15 @@ You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that
 
 ## Sponsorship :two_hearts:
 
-node-postgres's continued development has been made possible in part by generous finanical support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
+node-postgres's continued development has been made possible in part by generous financial support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
 
 If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable [please consider supporting](https://github.com/sponsors/brianc) its development.
+
+### Featured sponsor
+
+Special thanks to [medplum](https://medplum.com) for their generous and thoughtful support of node-postgres!
+
+![medplum](https://raw.githubusercontent.com/medplum/medplum-logo/refs/heads/main/medplum-logo.png)
 
 ## Contributing
 

@@ -6,7 +6,20 @@ metaTitle: bar
 
 Native bindings between node.js & [libpq](https://www.postgresql.org/docs/9.5/static/libpq.html) are provided by the [node-pg-native](https://github.com/brianc/node-pg-native) package. node-postgres can consume this package & use the native bindings to access the PostgreSQL server while giving you the same interface that is used with the JavaScript version of the library.
 
-To use the native bindings first you'll need to install them:
+You need PostgreSQL client libraries & tools installed. An easy way to check is to type `pg_config`. If `pg_config` is in your path, you should be good to go. If it's not in your path you'll need to consult operating specific instructions on how to go about getting it there.
+
+Some ways I've done it in the past:
+
+- On macOS: `brew install libpq`
+- On Ubuntu/Debian and Debian-based Node images: `apt-get install libpq-dev python3 g++ make`
+- On RHEL/CentOS: `yum install postgresql-devel`
+- On Windows:
+ 1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
+ 2. Install PostgreSQL (`http://www.postgresql.org/download/windows/`)
+ 3. Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
+ 4. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
+
+Install `pg` and `pg-native` them:
 
 ```sh
 $ npm install pg pg-native
@@ -15,7 +28,8 @@ $ npm install pg pg-native
 Once `pg-native` is installed instead of requiring a `Client` or `Pool` constructor from `pg` you do the following:
 
 ```js
-import { native } from 'pg'
+import pg from 'pg'
+const { native } = pg
 const { Client, Pool } = native
 ```
 

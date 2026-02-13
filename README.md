@@ -12,10 +12,17 @@ This repo is a monorepo which contains the core [pg](https://github.com/brianc/n
 
 - [pg](https://github.com/brianc/node-postgres/tree/master/packages/pg)
 - [pg-pool](https://github.com/brianc/node-postgres/tree/master/packages/pg-pool)
+- [pg-native](https://github.com/brianc/node-postgres/tree/master/packages/pg-native)
 - [pg-cursor](https://github.com/brianc/node-postgres/tree/master/packages/pg-cursor)
 - [pg-query-stream](https://github.com/brianc/node-postgres/tree/master/packages/pg-query-stream)
 - [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string)
 - [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol)
+
+## Install
+
+```
+npm install pg
+```
 
 ## Documentation
 
@@ -59,6 +66,12 @@ node-postgres's continued development has been made possible in part by generous
 
 If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable [please consider supporting](https://github.com/sponsors/brianc) its development.
 
+### Featured sponsor
+
+Special thanks to [medplum](https://medplum.com) for their generous and thoughtful support of node-postgres!
+
+![medplum](https://raw.githubusercontent.com/medplum/medplum-logo/refs/heads/main/medplum-logo.png)
+
 ## Contributing
 
 **:heart: contributions!**
@@ -74,10 +87,11 @@ If your change involves breaking backwards compatibility please please point tha
 ### Setting up for local development
 
 1. Clone the repo
-2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
-3. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
-4. Ensure you have the proper environment variables configured for connecting to the instance
-5. Run `yarn test` to run all the tests
+2. Ensure you have installed libpq-dev in your system.
+3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
+5. Ensure you have the proper environment variables configured for connecting to the instance
+6. Run `yarn test` to run all the tests
 
 ## Troubleshooting and FAQ
 

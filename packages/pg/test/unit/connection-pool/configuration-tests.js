@@ -2,8 +2,9 @@
 
 const assert = require('assert')
 const helper = require('../test-helper')
+const suite = new helper.Suite()
 
-test('pool with copied settings includes password', () => {
+suite.test('pool with copied settings includes password', () => {
   const original = new helper.pg.Pool({
     password: 'original',
   })

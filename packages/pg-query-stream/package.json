@@ -1,9 +1,16 @@
 {
   "name": "pg-query-stream",
-  "version": "4.5.3",
+  "version": "4.12.0",
   "description": "Postgres query result returned as readable stream",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.ts"
   },
@@ -21,7 +28,8 @@
   ],
   "files": [
     "/dist/*{js,ts,map}",
-    "/src"
+    "/src",
+    "/esm"
   ],
   "author": "Brian M. Carlson",
   "license": "MIT",
@@ -30,14 +38,14 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.13",
-    "@types/mocha": "^8.0.3",
+    "@types/mocha": "^10.0.7",
     "@types/node": "^14.0.0",
     "@types/pg": "^7.14.5",
     "JSONStream": "~1.3.5",
     "concat-stream": "~1.0.1",
-    "eslint-plugin-promise": "^6.0.1",
-    "mocha": "^7.1.2",
-    "pg": "^8.11.3",
+    "eslint-plugin-promise": "^7.2.1",
+    "mocha": "^10.5.2",
+    "pg": "^8.18.0",
     "stream-spec": "~0.3.5",
     "ts-node": "^8.5.4",
     "typescript": "^4.0.3"
@@ -46,6 +54,6 @@
     "pg": "^8"
   },
   "dependencies": {
-    "pg-cursor": "^2.10.3"
+    "pg-cursor": "^2.17.0"
   }
 }

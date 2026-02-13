@@ -31,8 +31,8 @@ import { Pool } from 'pg'
 
 const pool = new Pool()
 
-export const query = (text, params, callback) => {
-  return pool.query(text, params, callback)
+export const query = (text, params) => {
+  return pool.query(text, params)
 }
 ```
 
@@ -41,7 +41,7 @@ That's it. But now everywhere else in my application instead of requiring `pg` d
 ```js
 // notice here I'm requiring my database adapter file
 // and not requiring node-postgres directly
-import * as db from '../db.js'
+import * as db from '../db/index.js'
 
 app.get('/:id', async (req, res, next) => {
   const result = await db.query('SELECT * FROM users WHERE id = $1', [req.params.id])
@@ -85,13 +85,13 @@ export const query = async (text, params) => {
   console.log('executed query', { text, duration, rows: res.rowCount })
   return res
 }
-  
+
 export const getClient = () => {
   return pool.connect()
 }
 ```
 
-Okay. Great - the simplest thing that could possibly work. It seems like one of our routes that checks out a client to run a transaction is forgetting to call `done` in some situation! Oh no! We are leaking a client & have hundreds of these routes to go audit. Good thing we have all our client access going through this single file. Lets add some deeper diagnostic information here to help us track down where the client leak is happening.
+Okay. Great - the simplest thing that could possibly work. It seems like one of our routes that checks out a client to run a transaction is forgetting to call `release` in some situation! Oh no! We are leaking a client & have hundreds of these routes to go audit. Good thing we have all our client access going through this single file. Lets add some deeper diagnostic information here to help us track down where the client leak is happening.
 
 ```js
 export const query = async (text, params) => {

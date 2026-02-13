@@ -1,6 +1,6 @@
 ---
 title: pg.Cursor
-slug: /api/cursor
+slug: /apis/cursor
 ---
 
 A cursor can be used to efficiently read through large result sets without loading the entire result-set into memory ahead of time. It's useful to simulate a 'streaming' style read of data, or exit early from a large result set. The cursor is passed to `client.query` and is dispatched internally in a way very similar to how normal queries are sent, but the API it presents for consuming the result set is different.
@@ -28,11 +28,9 @@ const values = [10]
 
 const cursor = client.query(new Cursor(text, values))
 
-cursor.read(100, (err, rows) => {
-  cursor.close(() => {
-    client.release()
-  })
-})
+const { rows } = await cursor.read(100)
+console.log(rows.length) // 100 (unless the table has fewer than 100 rows)
+client.release()
 ```
 
 ```ts

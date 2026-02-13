@@ -25,7 +25,6 @@ suite.test('Password should not exist in util.inspect output', () => {
 suite.test('Password should not exist in json.stringfy output', () => {
   const pool = new helper.pg.Pool({ password })
   const client = new helper.pg.Client({ password })
-  const depth = 20
   assert(JSON.stringify(pool).indexOf(password) === -1)
   assert(JSON.stringify(client).indexOf(password) === -1)
 })

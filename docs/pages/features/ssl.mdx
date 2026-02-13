@@ -15,10 +15,9 @@ const config = {
   host: 'host-or-ip',
   // this object will be passed to the TLSSocket constructor
   ssl: {
-    rejectUnauthorized: false,
-    ca: fs.readFileSync('/path/to/server-certificates/root.crt').toString(),
-    key: fs.readFileSync('/path/to/client-key/postgresql.key').toString(),
-    cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt').toString(),
+    ca: fs.readFileSync('/path/to/server-certificates/root.crt'),
+    key: fs.readFileSync('/path/to/client-key/postgresql.key'),
+    cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt'),
   },
 }
 
@@ -45,8 +44,21 @@ const config = {
   connectionString: 'postgres://user:password@host:port/db?sslmode=require',
   // Beware! The ssl object is overwritten when parsing the connectionString
   ssl: {
-    rejectUnauthorized: false,
-    ca: fs.readFileSync('/path/to/server-certificates/root.crt').toString(),
+    ca: fs.readFileSync('/path/to/server-certificates/root.crt'),
   },
 }
+```
+
+## Channel binding
+
+If the PostgreSQL server offers SCRAM-SHA-256-PLUS (i.e. channel binding) for TLS/SSL connections, you can enable this as follows:
+
+```js
+const client = new Client({ ...config, enableChannelBinding: true})
+```
+
+or
+
+```js
+const pool = new Pool({ ...config, enableChannelBinding: true})
 ```

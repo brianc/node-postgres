@@ -1,8 +1,10 @@
 'use strict'
-var helper = require('./test-helper')
+const helper = require('./test-helper')
+const assert = require('assert')
+const suite = new helper.Suite()
 
-test('passes connection notification', function () {
-  var client = helper.client()
+suite.test('passes connection notification', function () {
+  const client = helper.client()
   assert.emits(client, 'notice', function (msg) {
     assert.equal(msg, 'HAY!!')
   })

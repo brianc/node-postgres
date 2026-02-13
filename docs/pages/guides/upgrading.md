@@ -3,15 +3,19 @@ title: Upgrading
 slug: /guides/upgrading
 ---
 
+## node version support
+
+I have maintained legacy apps in production for many years. I get it...upgrading node and your entire dependency tree is rough, but so is missing out on critical fixes.  I've taken pride over the years in not introducing breaking changes without a need because I've spent too much of my own time in my own apps upgrading a semver major version of a library with many breaking changes.  That being said: node-postgres only _officially_ supports node versions which are still under the [LTS lifetime](https://nodejs.org/en/about/previous-releases). The [CI matrix](https://github.com/brianc/node-postgres/blob/master/.github/workflows/ci.yml#L39) is the most official and enforced compatiblity matrix; however, I may drop support for node versions outside of node's LTS lifetime at any time, with any semver minor release, if it is required to land new features or bug fixes on supported versions of node.  I recommend in general to use a lockfile, and, if you're on an older version of node nearing EOL use absolutely pinned versions for as many of your modules as you can, including this one.
+
 # Upgrading to 8.0
 
-node-postgres at 8.0 introduces a breaking change to ssl-verified connections.  If you connect with ssl and use
+node-postgres at 8.0 introduces a breaking change to ssl-verified connections. If you connect with ssl and use
 
 ```
 const client = new Client({ ssl: true })
 ```
 
-and the server's SSL certificate is self-signed, connections will fail as of node-postgres 8.0.  To keep the existing behavior, modify the invocation to
+and the server's SSL certificate is self-signed, connections will fail as of node-postgres 8.0. To keep the existing behavior, modify the invocation to
 
 ```
 const client = new Client({ ssl: { rejectUnauthorized: false } })
@@ -23,10 +27,6 @@ The rest of the changes are relatively minor and unlikely to cause issues; see [
 
 node-postgres at 7.0 introduces somewhat significant breaking changes to the public API.
 
-## node version support
-
-Starting with `pg@7.0` the earliest version of node supported will be `node@4.x LTS`. Support for `node@0.12.x` and `node@.10.x` is dropped, and the module wont work as it relies on new es6 features not available in older versions of node.
-
 ## pg singleton
 
 In the past there was a singleton pool manager attached to the root `pg` object in the package. This singleton could be used to provision connection pools automatically by calling `pg.connect`. This API caused a lot of confusion for users. It also introduced a opaque module-managed singleton which was difficult to reason about, debug, error-prone, and inflexible. Starting in pg@6.0 the methods' documentation was removed, and starting in pg@6.3 the methods were deprecated with a warning message.
@@ -37,7 +37,7 @@ If your application still relies on these they will be _gone_ in `pg@7.0`. In or
 // old way, deprecated in 6.3.0:
 
 // connection using global singleton
-pg.connect(function(err, client, done) {
+pg.connect(function (err, client, done) {
   client.query(/* etc, etc */)
   done()
 })
@@ -50,10 +50,10 @@ pg.end()
 // new way, available since 6.0.0:
 
 // create a pool
-var pool = new pg.Pool()
+const pool = new pg.Pool()
 
 // connection using created pool
-pool.connect(function(err, client, done) {
+pool.connect(function (err, client, done) {
   client.query(/* etc, etc */)
   done()
 })
@@ -102,11 +102,12 @@ If you do **not** pass a callback `client.query` will return an instance of a `P
 `client.query` has always accepted any object that has a `.submit` method on it. In this scenario the client calls `.submit` on the object, delegating execution responsibility to it. In this situation the client also **returns the instance it was passed**. This is how [pg-cursor](https://github.com/brianc/node-pg-cursor) and [pg-query-stream](https://github.com/brianc/node-pg-query-stream) work. So, if you need the event emitter functionality on your queries for some reason, it is still possible because `Query` is an instance of `Submittable`:
 
 ```js
-import { Client, Query } from 'pg'
+import pg from 'pg'
+const { Client, Query } = pg
 const query = client.query(new Query('SELECT NOW()'))
-query.on('row', row => {})
-query.on('end', res => {})
-query.on('error', res => {})
+query.on('row', (row) => {})
+query.on('end', (res) => {})
+query.on('error', (res) => {})
 ```
 
 `Query` is considered a public, documented part of the API of node-postgres and this form will be supported indefinitely.
