@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { Pool } from 'pg'
 import QueryStream from '../src'
 
@@ -10,7 +9,7 @@ describe('pool', function () {
     query.on('data', (row) => {
       // just consume the whole stream
     })
-    await q 
+    await q
     query.on('end', () => {
       pool.end()
     })
