@@ -91,6 +91,7 @@ class Pool extends EventEmitter {
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
+    this.options.evictOnOpenTransaction = this.options.evictOnOpenTransaction || false
     this.log = this.options.log || function () {}
     this.Client = this.options.Client || Client || require('pg').Client
     this.Promise = this.options.Promise || global.Promise
@@ -114,6 +115,10 @@ class Pool extends EventEmitter {
 
   _isAboveMin() {
     return this._clients.length > this.options.min
+  }
+
+  _hasActiveTransaction(client) {
+    return client && (client.getTransactionStatus() === 'T' || client.getTransactionStatus() === 'E')
   }
 
   _pulseQueue() {
@@ -363,7 +368,11 @@ class Pool extends EventEmitter {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
+      return this._remove(client, this._pulseQueue.bind(this))
+    }
 
+    if (this.options.evictOnOpenTransaction && this._hasActiveTransaction(client)) {
+      this.log('remove client due to open transaction')
       return this._remove(client, this._pulseQueue.bind(this))
     }
 
