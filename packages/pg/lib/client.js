@@ -80,6 +80,22 @@ class Client extends EventEmitter {
         encoding: this.connectionParameters.client_encoding || 'utf8',
       })
     this._queryQueue = []
+
+    // Pipeline mode configuration
+    this._pipelineMode = Boolean(c.pipelineMode) || false
+
+    // Backpressure configuration for pipeline mode
+    this._pipelineMaxQueries = c.pipelineMaxQueries || 1000
+    this._lowWaterMark = Math.floor(this._pipelineMaxQueries * 0.75)
+    this._pipelinePaused = false
+    this._waitingForDrain = []
+
+    // Queue for tracking pending query results in pipeline mode
+    this._pendingQueries = []
+
+    // Track prepared statements that have been sent but not yet confirmed (for pipeline mode)
+    this._pendingParsedStatements = {}
+
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -110,6 +126,23 @@ class Client extends EventEmitter {
     return this._activeQuery
   }
 
+  // Returns the query that should receive the current message
+  _getMessageTarget() {
+    if (this._pipelineMode) {
+      return this._getCurrentPipelineQuery()
+    }
+    return this._getActiveQuery()
+  }
+
+  get pipelineMode() {
+    return this._pipelineMode
+  }
+
+  // Property for current pipeline depth (number of pending queries)
+  get pendingQueryCount() {
+    return this._pendingQueries.length + this._queryQueue.length
+  }
+
   _errorAllQueries(err) {
     const enqueueError = (query) => {
       process.nextTick(() => {
@@ -122,6 +155,10 @@ class Client extends EventEmitter {
       enqueueError(activeQuery)
       this._activeQuery = null
     }
+
+    // Also error all pending queries in pipeline mode
+    this._pendingQueries.forEach(enqueueError)
+    this._pendingQueries.length = 0
 
     this._queryQueue.forEach(enqueueError)
     this._queryQueue.length = 0
@@ -354,13 +391,41 @@ class Client extends EventEmitter {
       }
       this.emit('connect')
     }
-    const activeQuery = this._getActiveQuery()
-    this._activeQuery = null
+
     this.readyForQuery = true
-    if (activeQuery) {
-      activeQuery.handleReadyForQuery(this.connection)
+
+    if (this._pipelineMode) {
+      // In pipeline mode, complete the current pending query if it has received results
+      // The flags check ensures we don't complete a query that hasn't started processing yet
+      // (e.g., the initial readyForQuery after connection shouldn't complete pending queries)
+      const currentQuery = this._pendingQueries[0]
+      if (
+        currentQuery &&
+        (currentQuery._gotRowDescription || currentQuery._gotError || currentQuery._gotCommandComplete)
+      ) {
+        this._pendingQueries.shift()
+        currentQuery.handleReadyForQuery(this.connection)
+
+        // Check if backpressure should be released after query completion
+        this._checkBackpressureResume()
+      }
+
+      // Check if more queries to send
+      this._pulseQueryQueue()
+
+      // Emit drain when all queries complete
+      if (this._pendingQueries.length === 0 && this._queryQueue.length === 0) {
+        this.emit('drain')
+      }
+    } else {
+      // Existing non-pipeline behavior
+      const activeQuery = this._getActiveQuery()
+      this._activeQuery = null
+      if (activeQuery) {
+        activeQuery.handleReadyForQuery(this.connection)
+      }
+      this._pulseQueryQueue()
     }
-    this._pulseQueryQueue()
   }
 
   // if we receive an error event or error message
@@ -395,6 +460,20 @@ class Client extends EventEmitter {
     if (this._connecting) {
       return this._handleErrorWhileConnecting(msg)
     }
+
+    if (this._pipelineMode) {
+      // In pipeline mode, error affects only the current query
+      // The connection remains usable for subsequent queries
+      const currentQuery = this._getCurrentPipelineQuery()
+      if (currentQuery) {
+        // Mark that this query received an error (for pipeline mode completion tracking)
+        currentQuery._gotError = true
+        currentQuery.handleError(msg, this.connection)
+      }
+      return
+    }
+
+    // Existing non-pipeline error handling
     const activeQuery = this._getActiveQuery()
 
     if (!activeQuery) {
@@ -407,18 +486,22 @@ class Client extends EventEmitter {
   }
 
   _handleRowDescription(msg) {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected rowDescription message from backend.')
       this._handleErrorEvent(error)
       return
+    }
+    // Mark that this query has started receiving results (for pipeline mode completion tracking)
+    if (this._pipelineMode) {
+      activeQuery._gotRowDescription = true
     }
     // delegate rowDescription to active query
     activeQuery.handleRowDescription(msg)
   }
 
   _handleDataRow(msg) {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected dataRow message from backend.')
       this._handleErrorEvent(error)
@@ -429,7 +512,7 @@ class Client extends EventEmitter {
   }
 
   _handlePortalSuspended(msg) {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected portalSuspended message from backend.')
       this._handleErrorEvent(error)
@@ -440,29 +523,37 @@ class Client extends EventEmitter {
   }
 
   _handleEmptyQuery(msg) {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected emptyQuery message from backend.')
       this._handleErrorEvent(error)
       return
+    }
+    // Mark that this query has completed (for pipeline mode completion tracking)
+    if (this._pipelineMode) {
+      activeQuery._gotCommandComplete = true
     }
     // delegate emptyQuery to active query
     activeQuery.handleEmptyQuery(this.connection)
   }
 
   _handleCommandComplete(msg) {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected commandComplete message from backend.')
       this._handleErrorEvent(error)
       return
+    }
+    // Mark that this query has completed (for pipeline mode completion tracking)
+    if (this._pipelineMode) {
+      activeQuery._gotCommandComplete = true
     }
     // delegate commandComplete to active query
     activeQuery.handleCommandComplete(msg, this.connection)
   }
 
   _handleParseComplete() {
-    const activeQuery = this._getActiveQuery()
+    const activeQuery = this._getMessageTarget()
     if (activeQuery == null) {
       const error = new Error('Received unexpected parseComplete message from backend.')
       this._handleErrorEvent(error)
@@ -473,10 +564,30 @@ class Client extends EventEmitter {
     // it again on the same client
     if (activeQuery.name) {
       this.connection.parsedStatements[activeQuery.name] = activeQuery.text
+      // Remove from in-flight tracker (pipeline mode) to prevent memory leak
+      delete this._pendingParsedStatements[activeQuery.name]
     }
   }
 
   _handleCopyInResponse(msg) {
+    // In pipeline mode, COPY operations are not supported
+    if (this._pipelineMode) {
+      const activeQuery = this._getCurrentPipelineQuery()
+      const error = new Error('COPY operations are not supported in pipeline mode')
+      // Send CopyFail to terminate the COPY operation
+      this.connection.sendCopyFail('COPY not supported in pipeline mode')
+      // Send Sync to get ReadyForQuery and restore connection state
+      this.connection.sync()
+      if (activeQuery) {
+        activeQuery._gotError = true
+        activeQuery.handleError(error, this.connection)
+      } else {
+        this._handleErrorEvent(error)
+      }
+      return
+    }
+
+    // Existing COPY handling for non-pipeline mode
     const activeQuery = this._getActiveQuery()
     if (activeQuery == null) {
       const error = new Error('Received unexpected copyInResponse message from backend.')
@@ -554,6 +665,64 @@ class Client extends EventEmitter {
     }
   }
 
+  // Cancel a query in pipeline mode
+  // Returns true if cancellation was initiated, false if query already completed
+  _cancelPipelineQuery(query) {
+    // Check if query is still in the queue (not yet sent to server)
+    const queueIndex = this._queryQueue.indexOf(query)
+    if (queueIndex > -1) {
+      // Remove from queue and reject with cancellation error
+      this._queryQueue.splice(queueIndex, 1)
+      const error = new Error('Query was cancelled')
+      error.cancelled = true
+      process.nextTick(() => {
+        query.handleError(error, this.connection)
+      })
+      return true
+    }
+
+    // Check if query is in pending (sent to server, awaiting response)
+    const pendingIndex = this._pendingQueries.indexOf(query)
+    if (pendingIndex > -1) {
+      // Query is in-flight - we can only cancel if it's the current query being processed
+      // PostgreSQL cancel request cancels the current query on the backend
+      if (pendingIndex === 0) {
+        // This is the current query - send cancel request via new connection
+        this._sendCancelRequest()
+        return true
+      } else {
+        // Query is queued on server but not yet executing
+        // We cannot selectively cancel it - PostgreSQL limitation
+        // Mark it for cancellation when it becomes active
+        query._cancelRequested = true
+        return true
+      }
+    }
+
+    // Query already completed - no-op
+    return false
+  }
+
+  // Send a cancel request to PostgreSQL via a new connection
+  _sendCancelRequest() {
+    const Connection = require('./connection')
+    const cancelConnection = new Connection({ stream: this.connection.stream.constructor })
+
+    if (this.host && this.host.indexOf('/') === 0) {
+      cancelConnection.connect(this.host + '/.s.PGSQL.' + this.port)
+    } else {
+      cancelConnection.connect(this.port, this.host)
+    }
+
+    cancelConnection.on('connect', () => {
+      cancelConnection.cancel(this.processID, this.secretKey)
+    })
+
+    cancelConnection.on('error', () => {
+      // Ignore errors on cancel connection
+    })
+  }
+
   setTypeParser(oid, format, parseFn) {
     return this._types.setTypeParser(oid, format, parseFn)
   }
@@ -574,25 +743,120 @@ class Client extends EventEmitter {
   }
 
   _pulseQueryQueue() {
-    if (this.readyForQuery === true) {
-      this._activeQuery = this._queryQueue.shift()
-      const activeQuery = this._getActiveQuery()
-      if (activeQuery) {
-        this.readyForQuery = false
-        this.hasExecuted = true
-
-        const queryError = activeQuery.submit(this.connection)
-        if (queryError) {
-          process.nextTick(() => {
-            activeQuery.handleError(queryError, this.connection)
-            this.readyForQuery = true
-            this._pulseQueryQueue()
-          })
-        }
-      } else if (this.hasExecuted) {
-        this._activeQuery = null
-        this.emit('drain')
+    if (this._pipelineMode) {
+      // In pipeline mode, we can send queries as soon as we're connected
+      // We don't need to wait for readyForQuery between queries
+      if (!this._connected) {
+        return
       }
+      // In pipeline mode, send all queued queries immediately
+      // Cork the stream once for all queries to avoid unnecessary cork/uncork per query
+      if (this._queryQueue.length > 0) {
+        const connection = this.connection
+        connection.stream.cork && connection.stream.cork()
+        try {
+          while (this._queryQueue.length > 0) {
+            const query = this._queryQueue.shift()
+            this._pendingQueries.push(query)
+            this._submitPipelineQuery(query)
+          }
+        } finally {
+          connection.stream.uncork && connection.stream.uncork()
+        }
+      }
+    } else {
+      // Existing non-pipeline behavior
+      if (this.readyForQuery === true) {
+        this._activeQuery = this._queryQueue.shift()
+        const activeQuery = this._getActiveQuery()
+        if (activeQuery) {
+          this.readyForQuery = false
+          this.hasExecuted = true
+
+          const queryError = activeQuery.submit(this.connection)
+          if (queryError) {
+            process.nextTick(() => {
+              activeQuery.handleError(queryError, this.connection)
+              this.readyForQuery = true
+              this._pulseQueryQueue()
+            })
+          }
+        } else if (this.hasExecuted) {
+          this._activeQuery = null
+          this.emit('drain')
+        }
+      }
+    }
+  }
+
+  // Submit a query using the Extended Query Protocol for pipeline mode
+  // Sends Parse/Bind/Describe/Execute/Sync for each query
+  // Note: cork/uncork is handled by the caller (_pulseQueryQueue) for batching
+  _submitPipelineQuery(query) {
+    const connection = this.connection
+
+    // Parse - only if the statement hasn't been parsed before (for named statements)
+    // In pipeline mode, we also track "in-flight" prepared statements to avoid
+    // sending duplicate Parse commands for the same named statement
+    const needsParse = query.name && !query.hasBeenParsed(connection) && !this._pendingParsedStatements[query.name]
+
+    if (!query.name || needsParse) {
+      // For unnamed queries, always parse
+      // For named queries, only parse if not already parsed or in-flight
+      if (query.name) {
+        // Track this statement as "in-flight" to prevent duplicate Parse commands
+        this._pendingParsedStatements[query.name] = query.text
+      }
+      connection.parse({
+        text: query.text,
+        name: query.name,
+        types: query.types,
+      })
+    }
+
+    // Bind - map user values to postgres wire protocol compatible values
+    connection.bind({
+      portal: query.portal,
+      statement: query.name,
+      values: query.values,
+      binary: query.binary,
+      valueMapper: utils.prepareValue,
+    })
+
+    // Describe - request description of the portal
+    connection.describe({
+      type: 'P',
+      name: query.portal || '',
+    })
+
+    // Execute - execute the query
+    connection.execute({
+      portal: query.portal,
+      rows: query.rows,
+    })
+
+    // Sync - establishes synchronization point
+    // This tells the server to process all messages up to this point
+    connection.sync()
+  }
+
+  // Returns the current query being processed in pipeline mode
+  // This is the first element of _pendingQueries (the oldest query awaiting results)
+  _getCurrentPipelineQuery() {
+    return this._pendingQueries[0]
+  }
+
+  // Called when queries complete to check if backpressure should be released
+  // Resumes accepting new queries when pipeline depth drops below low water mark
+  _checkBackpressureResume() {
+    if (this._pipelinePaused && this.pendingQueryCount < this._lowWaterMark) {
+      this._pipelinePaused = false
+      this.emit('pipelineDrain')
+
+      // Resume all waiting queries
+      const waiting = this._waitingForDrain
+      this._waitingForDrain = []
+      waiting.forEach((resolve) => resolve())
     }
   }
 
@@ -607,6 +871,15 @@ class Client extends EventEmitter {
     if (config === null || config === undefined) {
       throw new TypeError('Client was passed a null or undefined query')
     } else if (typeof config.submit === 'function') {
+      // Check if this is a custom submittable (not our Query class)
+      // Custom submittables like pg-cursor are not supported in pipeline mode
+      if (this._pipelineMode && config.submit !== Query.prototype.submit) {
+        const error = new Error('Custom submittables are not supported in pipeline mode')
+        process.nextTick(() => {
+          config.handleError(error, this.connection)
+        })
+        return config
+      }
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       result = query = config
       if (!query.callback) {
@@ -653,6 +926,14 @@ class Client extends EventEmitter {
           this._queryQueue.splice(index, 1)
         }
 
+        // In pipeline mode, also remove from pending queries
+        if (this._pipelineMode) {
+          const pendingIndex = this._pendingQueries.indexOf(query)
+          if (pendingIndex > -1) {
+            this._pendingQueries.splice(pendingIndex, 1)
+          }
+        }
+
         this._pulseQueryQueue()
       }, readTimeout)
 
@@ -684,9 +965,90 @@ class Client extends EventEmitter {
       return result
     }
 
+    // Backpressure handling for pipeline mode
+    // we queue the query and delay its execution
+    // the query is added to the queue immediately, but _pulseQueryQueue respects backpressure
+    if (this._pipelineMode && this.pendingQueryCount >= this._pipelineMaxQueries) {
+      // Emit pipelineFull event if not already paused
+      if (!this._pipelinePaused) {
+        this._pipelinePaused = true
+        this.emit('pipelineFull')
+      }
+      // Queue the query with backpressure - it will be processed when space is available
+      this._queueQueryWithBackpressure(query)
+
+      // Wrap result with cancel() for pipeline mode
+      if (result && typeof result.then === 'function') {
+        return this._wrapResultWithCancel(result, query)
+      }
+      return result
+    }
+
     this._queryQueue.push(query)
     this._pulseQueryQueue()
+
+    // In pipeline mode, wrap the result with cancel() method
+    if (this._pipelineMode && result && typeof result.then === 'function') {
+      return this._wrapResultWithCancel(result, query)
+    }
+
     return result
+  }
+
+  // Wrap a promise result with cancel() method for pipeline mode
+  // Creates a CancellablePromise that preserves cancel() through the chain
+  _wrapResultWithCancel(promise, query) {
+    const client = this
+    const cancelFn = function () {
+      client._cancelPipelineQuery(query)
+    }
+
+    // Recursively wrap a promise to preserve cancel through chains
+    const wrapPromise = (p) => {
+      // Add cancel method
+      p.cancel = cancelFn
+
+      // Store original methods
+      const origThen = p.then.bind(p)
+      const origCatch = p.catch.bind(p)
+      const origFinally = p.finally ? p.finally.bind(p) : undefined
+
+      // Override then to wrap the returned promise
+      p.then = function (onFulfilled, onRejected) {
+        const newPromise = origThen(onFulfilled, onRejected)
+        return wrapPromise(newPromise)
+      }
+
+      // Override catch to wrap the returned promise
+      p.catch = function (onRejected) {
+        const newPromise = origCatch(onRejected)
+        return wrapPromise(newPromise)
+      }
+
+      // Override finally if available
+      if (origFinally) {
+        p.finally = function (onFinally) {
+          const newPromise = origFinally(onFinally)
+          return wrapPromise(newPromise)
+        }
+      }
+
+      return p
+    }
+
+    return wrapPromise(promise)
+  }
+
+  // Internal method to queue a query when backpressure is active
+  // The query waits for drain before being added to the main queue
+  _queueQueryWithBackpressure(query) {
+    const waitForDrain = new this._Promise((resolve) => {
+      this._waitingForDrain.push(resolve)
+    })
+    waitForDrain.then(() => {
+      this._queryQueue.push(query)
+      this._pulseQueryQueue()
+    })
   }
 
   ref() {
@@ -706,6 +1068,24 @@ class Client extends EventEmitter {
         cb()
       } else {
         return this._Promise.resolve()
+      }
+    }
+
+    // In pipeline mode, wait for pending queries to complete before ending
+    if (this._pipelineMode && this._pendingQueries.length > 0) {
+      // Wait for all pending queries to complete (drain event)
+      const endConnection = () => {
+        this.connection.end()
+      }
+      this.once('drain', endConnection)
+
+      if (cb) {
+        this.connection.once('end', cb)
+        return
+      } else {
+        return new this._Promise((resolve) => {
+          this.connection.once('end', resolve)
+        })
       }
     }
 
