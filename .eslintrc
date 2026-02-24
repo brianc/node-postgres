@@ -4,7 +4,7 @@
   "extends": ["eslint:recommended", "plugin:prettier/recommended", "prettier"],
   "ignorePatterns": ["node_modules", "coverage", "packages/pg-protocol/dist/**/*", "packages/pg-query-stream/dist/**/*"],
   "parserOptions": {
-    "ecmaVersion": 2017,
+    "ecmaVersion": 2022,
     "sourceType": "module"
   },
   "env": {

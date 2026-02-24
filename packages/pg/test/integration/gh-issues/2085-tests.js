@@ -28,7 +28,7 @@ suite.test('it should fail with self-signed cert error w/o rejectUnauthorized be
   const client = new helper.pg.Client({ ssl })
   try {
     await client.connect()
-  } catch (e) {
+  } catch {
     return
   }
   throw new Error('this test should have thrown an error due to self-signed cert')
