@@ -23,7 +23,7 @@ const queryQueueDeprecationNotice = nodeUtils.deprecate(
 const pgPassDeprecationNotice = nodeUtils.deprecate(
   () => {},
   'pgpass support is deprecated and will be removed in pg@9.0. ' +
-    'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this funciton you can call the pgpass module in your own code.'
+    'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this function you can call the pgpass module in your own code.'
 )
 
 const byoPromiseDeprecationNotice = nodeUtils.deprecate(
@@ -252,7 +252,7 @@ class Client extends EventEmitter {
     if (typeof this.password === 'function') {
       this._Promise
         .resolve()
-        .then(() => this.password())
+        .then(() => this.password(this.connectionParameters))
         .then((pass) => {
           if (pass !== undefined) {
             if (typeof pass !== 'string') {
@@ -612,8 +612,12 @@ class Client extends EventEmitter {
     } else if (typeof config.submit === 'function') {
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       result = query = config
-      if (typeof values === 'function') {
-        query.callback = query.callback || values
+      if (!query.callback) {
+        if (typeof values === 'function') {
+          query.callback = values
+        } else if (callback) {
+          query.callback = callback
+        }
       }
     } else {
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout
