@@ -16,11 +16,11 @@ describe('close', function () {
   it('can close a finished cursor without a callback', function (done) {
     const cursor = new Cursor(text)
     this.client.query(cursor)
-    this.client.query('SELECT NOW()', done)
     cursor.read(100, function (err) {
       assert.ifError(err)
       cursor.close()
     })
+    this.client.once('drain', done)
   })
 
   it('can close a finished cursor a promise', function (done) {
@@ -37,11 +37,11 @@ describe('close', function () {
   it('closes cursor early', function (done) {
     const cursor = new Cursor(text)
     this.client.query(cursor)
-    this.client.query('SELECT NOW()', done)
     cursor.read(25, function (err) {
       assert.ifError(err)
       cursor.close()
     })
+    this.client.once('drain', done)
   })
 
   it('works with callback style', function (done) {
