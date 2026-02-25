@@ -42,7 +42,7 @@
     "concat-stream": "^1.4.6",
     "generic-pool": "^2.1.1",
     "lodash": "^4.17.21",
-    "mocha": "10.5.2",
+    "mocha": "11.7.5",
     "node-gyp": ">=10.x",
     "okay": "^0.3.0",
     "semver": "^7.7.2"
