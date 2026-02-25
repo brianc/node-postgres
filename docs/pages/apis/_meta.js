@@ -1,0 +1,8 @@
+export default {
+  client: 'pg.Client',
+  pool: 'pg.Pool',
+  result: 'pg.Result',
+  types: 'pg.Types',
+  cursor: 'Cursor',
+  utilities: 'Utilities',
+}
