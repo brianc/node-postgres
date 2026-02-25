@@ -1,6 +1,6 @@
 {
   "name": "pg-bundler-test",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Test bundlers with pg-cloudflare, https://github.com/brianc/node-postgres/issues/3452",
   "license": "MIT",
   "private": true,
