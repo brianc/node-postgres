@@ -71,6 +71,7 @@ class Client extends EventEmitter {
     this._connectionError = false
     this._queryable = true
     this._activeQuery = null
+    this._txStatus = null
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.connection =
@@ -359,6 +360,7 @@ class Client extends EventEmitter {
     }
     const activeQuery = this._getActiveQuery()
     this._activeQuery = null
+    this._txStatus = msg?.status ?? null
     this.readyForQuery = true
     if (activeQuery) {
       activeQuery.handleReadyForQuery(this.connection)
@@ -701,6 +703,10 @@ class Client extends EventEmitter {
 
   unref() {
     this.connection.unref()
+  }
+
+  getTransactionStatus() {
+    return this._txStatus
   }
 
   end(cb) {
