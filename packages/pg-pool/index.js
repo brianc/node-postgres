@@ -24,7 +24,7 @@ class PendingItem {
 }
 
 function throwOnDoubleRelease() {
-  throw new Error('Release called on client which has already been released to the pool.')
+  throw new PoolError('Release called on client which has already been released to the pool.', 'Z0003')
 }
 
 function promisify(Promise, callback) {
@@ -60,6 +60,14 @@ function makeIdleListener(pool, client) {
     // TODO - document that once the pool emits an error
     // the client has already been closed & purged and is unusable
     pool.emit('error', err, client)
+  }
+}
+
+class PoolError extends Error {
+  // A PoolError is an error thrown during a Pool operation. Each type of error contains a specific "code", documented in pg-pool’s README.
+  constructor(message, code) {
+    super(message)
+    this.code = code
   }
 }
 
@@ -158,7 +166,7 @@ class Pool extends EventEmitter {
     if (!this._isFull()) {
       return this.newClient(pendingItem)
     }
-    throw new Error('unexpected condition')
+    throw new PoolError('unexpected condition', 'Z0009')
   }
 
   _remove(client, callback) {
@@ -181,7 +189,7 @@ class Pool extends EventEmitter {
 
   connect(cb) {
     if (this.ending) {
-      const err = new Error('Cannot use a pool after calling end on the pool')
+      const err = new PoolError('Cannot use a pool after calling end on the pool', 'Z0001')
       return cb ? cb(err) : this.Promise.reject(err)
     }
 
@@ -213,7 +221,7 @@ class Pool extends EventEmitter {
         // we're going to call it with a timeout error
         removeWhere(this._pendingQueue, (i) => i.callback === queueCallback)
         pendingItem.timedOut = true
-        response.callback(new Error('timeout exceeded when trying to connect'))
+        response.callback(new PoolError('timeout exceeded when trying to connect', 'Z0005'))
       }, this.options.connectionTimeoutMillis)
 
       if (tid.unref) {
@@ -403,7 +411,9 @@ class Pool extends EventEmitter {
     if (typeof text === 'function') {
       const response = promisify(this.Promise, text)
       setImmediate(function () {
-        return response.callback(new Error('Passing a function as the first parameter to pool.query is not supported'))
+        return response.callback(
+          new PoolError('Passing a function as the first parameter to pool.query is not supported', 'Z0002')
+        )
       })
       return response.result
     }
@@ -458,7 +468,7 @@ class Pool extends EventEmitter {
   end(cb) {
     this.log('ending')
     if (this.ending) {
-      const err = new Error('Called end on pool more than once')
+      const err = new PoolError('Called end on pool more than once', 'Z0004')
       return cb ? cb(err) : this.Promise.reject(err)
     }
     this.ending = true
@@ -485,3 +495,5 @@ class Pool extends EventEmitter {
   }
 }
 module.exports = Pool
+module.exports.Pool = Pool
+module.exports.PoolError = PoolError
