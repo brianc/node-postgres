@@ -1,6 +1,5 @@
 /**
  * Netezza DBOS Type Definitions
- * Based on nzpy core.py and nzgo conn.go
  */
 
 // Netezza data types
