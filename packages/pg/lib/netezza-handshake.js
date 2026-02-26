@@ -3,7 +3,7 @@
 /**
  * Netezza Handshake Implementation
  * Based on nzpy handshake protocol: https://github.com/IBM/nzpy/blob/master/nzpy/handshake.py
- * 
+ *
  * This module implements the Netezza-specific connection handshake protocol
  * to enable PostgreSQL client compatibility with Netezza databases.
  */
@@ -378,10 +378,16 @@ class NetezzaHandshake {
         this.log('TLS connection established')
         // Update stream reference to the TLS socket
         this.stream = tlsSocket
+
+        // Clear any old buffer data from the non-TLS connection
+        this.buffer = Buffer.alloc(0)
         this.setupDataHandler()
-        setTimeout(() => {
+
+        // Use setImmediate to ensure we're in the next event loop tick
+        setImmediate(() => {
+          this.log(`TLS socket ready, buffer size: ${this.buffer.length}`)
           resolve()
-        }, 50)
+        })
       })
 
       tlsSocket.once('error', (err) => {
@@ -412,12 +418,14 @@ class NetezzaHandshake {
         continue
       }
 
-      const payload = step.data 
-        ? Buffer.concat([this.packShort(step.opcode), step.data])
-        : this.packShort(step.opcode)
+      const payload = step.data ? Buffer.concat([this.packShort(step.opcode), step.data]) : this.packShort(step.opcode)
 
-      this.stream.write(this.packInt(payload.length + 4))
-      this.stream.write(payload)
+      // Write and ensure it's flushed before waiting for response
+      await new Promise((resolve) => {
+        this.stream.write(this.packInt(payload.length + 4), () => {
+          this.stream.write(payload, resolve)
+        })
+      })
 
       if (step.opcode === HSV2_CLIENT_DONE) {
         return true
@@ -437,7 +445,7 @@ class NetezzaHandshake {
 
   async sendHandshakeVersion4(user, pgOptions) {
     const userBuffer = Buffer.from(user, 'utf8')
-    
+
     const steps = [
       { opcode: HSV2_USER, data: Buffer.concat([userBuffer, NULL_BYTE]) },
       { opcode: HSV2_APPNAME, data: Buffer.concat([Buffer.from(this.appName, 'utf8'), NULL_BYTE]) },
@@ -461,12 +469,14 @@ class NetezzaHandshake {
         continue
       }
 
-      const payload = step.data 
-        ? Buffer.concat([this.packShort(step.opcode), step.data])
-        : this.packShort(step.opcode)
+      const payload = step.data ? Buffer.concat([this.packShort(step.opcode), step.data]) : this.packShort(step.opcode)
 
-      this.stream.write(this.packInt(payload.length + 4))
-      this.stream.write(payload)
+      // Write and ensure it's flushed before waiting for response
+      await new Promise((resolve) => {
+        this.stream.write(this.packInt(payload.length + 4), () => {
+          this.stream.write(payload, resolve)
+        })
+      })
 
       if (step.opcode === HSV2_CLIENT_DONE) {
         return true
@@ -525,7 +535,7 @@ class NetezzaHandshake {
       const hash = crypto.createHash('md5')
       hash.update(Buffer.concat([salt, passwordBuffer]))
       const md5pwd = hash.digest('base64').replace(/=+$/, '')
-      
+
       const payload = Buffer.concat([Buffer.from(md5pwd, 'utf8'), NULL_BYTE])
       this.stream.write(this.packInt(payload.length + 4))
       this.stream.write(payload)
@@ -536,7 +546,7 @@ class NetezzaHandshake {
       const hash = crypto.createHash('sha256')
       hash.update(Buffer.concat([salt, passwordBuffer]))
       const sha256pwd = hash.digest('base64').replace(/=+$/, '')
-      
+
       const payload = Buffer.concat([Buffer.from(sha256pwd, 'utf8'), NULL_BYTE])
       this.stream.write(this.packInt(payload.length + 4))
       this.stream.write(payload)
@@ -683,7 +693,7 @@ class NetezzaHandshake {
           this.stream.removeListener('error', errorHandler)
           // Re-attach the original data handler
           this.stream.on('data', this.dataHandler)
-          reject(new Error('Stream ended before reading required bytes'))
+          reject(new Error(`Stream ended before reading required bytes. Needed ${count}, have ${this.buffer.length}`))
         }
       }
 
@@ -693,6 +703,9 @@ class NetezzaHandshake {
       this.stream.on('data', tempDataHandler)
       this.stream.once('error', errorHandler)
       this.stream.once('end', endHandler)
+
+      // Check immediately in case data arrived between buffer check and handler setup
+      checkAndResolve()
     })
   }
 }

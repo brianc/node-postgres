@@ -3,6 +3,7 @@
 const EventEmitter = require('events').EventEmitter
 const utils = require('./utils')
 const nodeUtils = require('node:util')
+const os = require('os')
 const sasl = require('./crypto/sasl')
 const TypeOverrides = require('./type-overrides')
 
@@ -11,6 +12,7 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
+const { NZ_NODE_CLIENT_VERSION } = require('./version')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
@@ -68,6 +70,7 @@ class Client extends EventEmitter {
     this._connectionError = false
     this._queryable = true
     this._activeQuery = null
+    this._runningInitQueries = false
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     // Netezza-specific configuration
@@ -152,6 +155,7 @@ class Client extends EventEmitter {
       return
     }
     this._connecting = true
+    this._runningInitQueries = true
 
     if (this.netezzaDebug) {
       console.log('[Client] Connecting to Netezza server...')
@@ -179,15 +183,30 @@ class Client extends EventEmitter {
 
     // once connection is established, Netezza handshake is performed in connection.js
     con.on('connect', function () {
-      // Netezza handshake complete, attach listeners and mark as connected
+      // Netezza handshake complete, send initialization queries
       if (self.netezzaDebug) {
-        console.log('[Client] Connection established successfully')
+        console.log('[Client] Connection established, sending initialization queries')
       }
-      self._connecting = false
-      self._connected = true
-      if (self._connectionCallback) {
-        self._connectionCallback(null)
-      }
+
+      // Set flag to indicate we're running init queries
+      self._runningInitQueries = true
+
+      // Send Netezza initialization queries for Guardium audit logging
+      // Wait for them to complete before marking client as connected
+      self._sendNetezzaInitQueries(() => {
+        // Mark init queries as complete
+        self._runningInitQueries = false
+
+        // Mark as connected only after init queries complete
+        self._connecting = false
+        self._connected = true
+
+        if (self._connectionCallback) {
+          self._connectionCallback(null)
+          self._connectionCallback = null
+        }
+        self.emit('connect')
+      })
     })
 
     con.on('sslconnect', function () {
@@ -265,6 +284,7 @@ class Client extends EventEmitter {
     con.on('copyInResponse', this._handleCopyInResponse.bind(this))
     con.on('copyData', this._handleCopyData.bind(this))
     con.on('notification', this._handleNotification.bind(this))
+    con.on('netezzaPortalName', this._handleNetezzaPortalName.bind(this))
   }
 
   _getPassword(cb) {
@@ -363,7 +383,9 @@ class Client extends EventEmitter {
   }
 
   _handleReadyForQuery(msg) {
-    if (this._connecting) {
+    // Don't mark as connected if we're still running init queries
+    // The 'connect' event handler will handle this after init queries complete
+    if (this._connecting && !this._runningInitQueries) {
       this._connecting = false
       this._connected = true
       clearTimeout(this.connectionTimeoutHandle)
@@ -517,6 +539,19 @@ class Client extends EventEmitter {
 
   _handleNotice(msg) {
     this.emit('notice', msg)
+    // Also add notice to the active query result
+    if (this._activeQuery && this._activeQuery.handleNotice) {
+      this._activeQuery.handleNotice(msg)
+    }
+  }
+
+  _handleNetezzaPortalName(msg) {
+    // Netezza sends a portal name message before row data
+    // This is informational only and should be silently ignored
+    // See nzgo conn.go line 1239: case 'P': just reads and breaks
+    if (this.netezzaDebug) {
+      console.log('[Client] Received Netezza portal name:', msg.portalName, '- ignoring')
+    }
   }
 
   getStartupConf() {
@@ -706,6 +741,59 @@ class Client extends EventEmitter {
 
   unref() {
     this.connection.unref()
+  }
+
+  _sendNetezzaInitQueries(callback) {
+    // Send initialization queries for Netezza Guardium audit logging
+    // These queries configure the session and log client information
+    // Execute them synchronously before allowing user queries
+
+    const queries = [
+      // Query 1: Set client version
+      `SET CLIENT_VERSION = '${NZ_NODE_CLIENT_VERSION}'`,
+
+      // Query 2: Send client information (for Guardium audit logs)
+      `select version(), 'Netezza Node.js Client Version: ${NZ_NODE_CLIENT_VERSION}', '${os.arch()}', 'OS Platform: ${os.platform()}', 'OS Username: ${
+        os.userInfo().username
+      }'`,
+
+      // Query 3: Set DateStyle to ISO
+      "set DateStyle to 'ISO'",
+
+      // Query 4: Set encoding to UTF-8
+      "set nz_encoding to 'utf8'",
+    ]
+
+    let completedCount = 0
+    const totalQueries = queries.length
+
+    const checkComplete = () => {
+      completedCount++
+      if (completedCount === totalQueries) {
+        if (this.netezzaDebug) {
+          console.log('[Client] All init queries completed')
+        }
+        if (callback) callback()
+      }
+    }
+
+    // Execute queries in order
+    queries.forEach((sql) => {
+      if (this.netezzaDebug) {
+        console.log('[Client] Queuing init query:', sql)
+      }
+      const query = new Query(sql, [], (err) => {
+        if (err && this.netezzaDebug) {
+          console.error('[Client] Init query failed (non-critical):', sql, err.message)
+        }
+        checkComplete()
+      })
+      // Add to queue
+      this._queryQueue.push(query)
+    })
+
+    // Start processing the queue
+    this._pulseQueryQueue()
   }
 
   end(cb) {

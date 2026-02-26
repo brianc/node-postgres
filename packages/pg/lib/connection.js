@@ -58,6 +58,7 @@ class Connection extends EventEmitter {
     const self = this
 
     this._connecting = true
+    this._handshakeComplete = false
     this.stream.setNoDelay(true)
     this.stream.connect(port, host)
 
@@ -74,6 +75,18 @@ class Connection extends EventEmitter {
             console.log('[Connection] Handshake completed, setting up message parser')
           }
 
+          // Mark handshake as complete
+          self._handshakeComplete = true
+
+          // If stream changed (TLS upgrade), remove old handlers
+          if (self.stream !== result.stream) {
+            if (self.debug) {
+              console.log('[Connection] Stream changed (TLS upgrade), removing old handlers')
+            }
+            self.stream.removeAllListeners('error')
+            self.stream.removeAllListeners('close')
+          }
+
           self.stream = result.stream
           if (self.debug) {
             console.log('[Connection] Updated stream reference after handshake')
@@ -83,6 +96,23 @@ class Connection extends EventEmitter {
           if (self.debug) {
             console.log('[Connection] Initialized Netezza command number to 0')
           }
+
+          // Attach error and close handlers to the new stream
+          const reportStreamError = function (error) {
+            // errors about disconnections should be ignored during disconnect
+            if (self._ending && (error.code === 'ECONNRESET' || error.code === 'EPIPE' || error.code === 'ETIMEDOUT')) {
+              return
+            }
+            self.emit('error', error)
+          }
+          self.stream.on('error', reportStreamError)
+
+          self.stream.on('close', function () {
+            if (self.debug) {
+              console.log('[Connection] Stream closed')
+            }
+            self.emit('end')
+          })
 
           // Attach message listeners AFTER handshake completes
           self.attachListeners(self.stream)
@@ -100,7 +130,8 @@ class Connection extends EventEmitter {
           }
           self.emit('readyForQuery')
 
-          // Emit connect event - client will be marked as connected and can start sending queries
+          // Emit connect event - client will be marked as connected
+          // Initialization queries will be sent by the client after connection
           self.emit('connect')
         })
         .catch((err) => {
@@ -110,7 +141,7 @@ class Connection extends EventEmitter {
 
     const reportStreamError = function (error) {
       // errors about disconnections should be ignored during disconnect
-      if (self._ending && (error.code === 'ECONNRESET' || error.code === 'EPIPE')) {
+      if (self._ending && (error.code === 'ECONNRESET' || error.code === 'EPIPE' || error.code === 'ETIMEDOUT')) {
         return
       }
       self.emit('error', error)
@@ -118,6 +149,13 @@ class Connection extends EventEmitter {
     this.stream.on('error', reportStreamError)
 
     this.stream.on('close', function () {
+      // Ignore close events during handshake (TLS upgrade can cause underlying socket to close)
+      if (!self._handshakeComplete) {
+        if (self.debug) {
+          console.log('[Connection] Stream closed during handshake (ignored)')
+        }
+        return
+      }
       if (self.debug) {
         console.log('[Connection] Stream closed')
       }
@@ -157,6 +195,11 @@ class Connection extends EventEmitter {
 
   attachListeners(stream) {
     const self = this
+
+    // Parse incoming messages
+    // Note: We don't add a separate 'data' listener for debugging because
+    // it would interfere with the parser's data listener. Instead, we log
+    // parsed messages below.
     parse(stream, (msg) => {
       if (self.debug) {
         console.log('[Connection] Received message:', msg.name, msg.length ? `(${msg.length} bytes)` : '')
@@ -211,29 +254,26 @@ class Connection extends EventEmitter {
       console.log(`[Connection] Sending Netezza query: ${text}`)
     }
 
-    // Format: 'P' + 3 zero bytes + 1-byte command number + query string + null byte
+    // Use Netezza-specific query format
     if (this.commandNumber !== -1) {
       this.commandNumber++
       if (this.commandNumber > 100000) {
         this.commandNumber = 1
       }
 
-      // Build Netezza query message
-      const queryBuffer = Buffer.from(text, 'utf8')
-      const nullByte = Buffer.from([0])
-
-      const header = Buffer.from([0x50, 0x00, 0x00, 0x00, this.commandNumber & 0xff])
-
-      const message = Buffer.concat([header, queryBuffer, nullByte])
+      const message = serialize.netezzaQuery(text, this.commandNumber)
 
       if (this.debug) {
         console.log(
           `[Connection] Netezza query format: type=P, commandNumber=${this.commandNumber}, length=${message.length}`
         )
+        console.log(`[Connection] Query buffer hex: ${message.toString('hex')}`)
+        console.log(`[Connection] Query buffer: ${message}`)
       }
 
       this._send(message)
     } else {
+      // Fallback to standard PostgreSQL query format (shouldn't happen for Netezza)
       this._send(serialize.query(text))
     }
   }
@@ -260,7 +300,6 @@ class Connection extends EventEmitter {
   }
 
   sync() {
-    this._ending = true
     this._send(syncBuffer)
   }
 
@@ -279,7 +318,17 @@ class Connection extends EventEmitter {
       this.stream.end()
       return
     }
+
+    // Set a timeout to force close the stream if it doesn't close gracefully
+    const forceCloseTimeout = setTimeout(() => {
+      if (this.debug) {
+        console.log('[Connection] Force closing stream after timeout')
+      }
+      this.stream.destroy()
+    }, 1000) // 1 second timeout
+
     return this.stream.write(endBuffer, () => {
+      clearTimeout(forceCloseTimeout)
       this.stream.end()
     })
   }

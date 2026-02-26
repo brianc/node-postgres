@@ -119,6 +119,10 @@ class Query extends EventEmitter {
     }
   }
 
+  handleNotice(msg) {
+    this._result.addNotice(msg)
+  }
+
   handleError(err, connection) {
     // need to sync after error during a prepared statement
     if (this._canceledDueToError) {
