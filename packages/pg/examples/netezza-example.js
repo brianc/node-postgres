@@ -14,7 +14,7 @@ async function basicExample() {
   console.log('=== Basic Netezza Connection Example ===\n')
 
   const client = new Client({
-    host: process.env.NETEZZA_HOST || 'abs-nzlite1.fyre.ibm.com',
+    host: process.env.NETEZZA_HOST || 'localhost',
     port: parseInt(process.env.NETEZZA_PORT || '5480'),
     database: process.env.NETEZZA_DATABASE || 'system',
     user: process.env.NETEZZA_USER || 'admin',
