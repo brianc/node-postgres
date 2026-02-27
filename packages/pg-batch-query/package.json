@@ -1,0 +1,45 @@
+{
+  "name": "pg-batch-query",
+  "version": "1.0.0",
+  "description": "Postgres Batch Query for performant response time.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "test": "mocha -r ts-node/register test/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-postgres.git",
+    "directory": "packages/pg-batch-query"
+  },
+  "keywords": [
+    "postgres",
+    "batch-query",
+    "pg",
+    "query"
+  ],
+  "files": [
+    "/dist/*{js,ts,map}",
+    "/src"
+  ],
+  "author": "Ankush Chadda",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brianc/node-postgres/issues"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.13",
+    "@types/mocha": "^8.0.3",
+    "@types/node": "^14.0.0",
+    "@types/pg": "^8.10.2",
+    "eslint-plugin-promise": "^6.0.1",
+    "mocha": "^7.1.2",
+    "pg": "^8.10.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "peerDependencies": {
+    "pg": "^8"
+  }
+}
