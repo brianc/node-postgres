@@ -39,7 +39,12 @@ class Connection extends EventEmitter {
 
     this._connecting = true
     this.stream.setNoDelay(true)
-    this.stream.connect(port, host)
+    // 2021/06/14
+    // Support custom lookup function in ssl options
+    const connOpt = {port, host}
+    if(this.ssl && this.ssl.lookup && (typeof this.ssl.lookup === 'function'))
+      connOpt.lookup = this.ssl.lookup
+    this.stream.connect(connOpt)
 
     this.stream.once('connect', function () {
       if (self._keepAlive) {
