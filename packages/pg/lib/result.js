@@ -2,7 +2,7 @@
 
 const types = require('pg-types')
 
-const matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
+const matchRegexp = /^([A-Za-z]+(?: [A-Za-z]+)*)(?: (\d+))?(?: (\d+))?/
 
 // result object returned from query
 // in the 'end' event and also
@@ -14,6 +14,7 @@ class Result {
     this.oid = null
     this.rows = []
     this.fields = []
+    this.notices = [] // Array to store NOTICE messages
     this._parsers = undefined
     this._types = types
     this.RowCtor = null
@@ -103,6 +104,10 @@ class Result {
     }
 
     this._prebuiltEmptyResultObject = { ...row }
+  }
+
+  addNotice(notice) {
+    this.notices.push(notice)
   }
 }
 

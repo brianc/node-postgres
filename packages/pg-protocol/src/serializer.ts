@@ -61,6 +61,32 @@ const query = (text: string): Buffer => {
   return writer.addCString(text).flush(code.query)
 }
 
+/**
+ * Netezza-specific query format
+ * Format: 'P' + 4-byte command number + query string (null-terminated)
+ */
+const netezzaQuery = (text: string, commandNumber: number = 1): Buffer => {
+  // Netezza uses 'P' (0x50) message type with a 4-byte command number
+  // Format: P + commandNumber (4 bytes) + query string (null-terminated)
+  const queryBytes = Buffer.from(text + '\0', 'utf8')
+  const buffer = Buffer.allocUnsafe(1 + 4 + queryBytes.length)
+
+  buffer[0] = code.parse // 'P' = 0x50
+
+  // Write command number as 4 bytes
+  // Use 0xFFFFFFFF for initial queries, or incrementing number
+  if (commandNumber === -1) {
+    buffer.writeUInt32BE(0xffffffff, 1)
+  } else {
+    buffer.writeUInt32BE(commandNumber, 1)
+  }
+
+  // Copy query string with null terminator
+  queryBytes.copy(buffer, 5)
+
+  return buffer
+}
+
 type ParseOpts = {
   name?: string
   types?: number[]
@@ -257,6 +283,7 @@ const serialize = {
   sendSASLInitialResponseMessage,
   sendSCRAMClientFinalMessage,
   query,
+  netezzaQuery,
   parse,
   bind,
   execute,

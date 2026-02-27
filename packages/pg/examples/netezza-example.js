@@ -12,42 +12,117 @@ const { Client } = require('../lib')
 
 async function basicExample() {
   console.log('=== Basic Netezza Connection Example ===\n')
-  
+
   const client = new Client({
     host: process.env.NETEZZA_HOST || 'localhost',
     port: parseInt(process.env.NETEZZA_PORT || '5480'),
     database: process.env.NETEZZA_DATABASE || 'system',
     user: process.env.NETEZZA_USER || 'admin',
     password: process.env.NETEZZA_PASSWORD || 'password',
-    debug: true
+    debug: false,
   })
 
   try {
     console.log('Connecting to Netezza...')
     await client.connect()
-    console.log('✓ Connected successfully!\n')
+    console.log('Connected successfully!\n')
 
-    // Simple query
-    console.log('Executing query: SELECT CURRENT_TIMESTAMP')
-    const result = await client.query('SELECT CURRENT_TIMESTAMP')
-    console.log('Result:', result.rows[0])
+    // Drop table
+    // console.log('Dropping table...')
+    // const dropResultt = await client.query('DROP TABLE example_tablee')
+    // console.log('✓ DROP TABLE result:')
+    // console.log('  - command:', dropResultt.command)
+    // console.log('  - rowCount:', dropResultt.rowCount)
+    // console.log()
+    console.log('Creating Database db1')
+    const createDatabaseResult = await client.query('create database db1;')
+    console.log('CREATE Database result:')
+    console.log('  - command:', createDatabaseResult.command)
     console.log()
 
-    // Query with parameters
-    console.log('Executing parameterized query...')
-    const paramResult = await client.query(
-      'SELECT $1::text as message, $2::int as number',
-      ['Hello Netezza', 42]
-    )
-    console.log('Result:', paramResult.rows[0])
+    //Demonstrate CommandComplete message with CREATE TABLE
+    console.log('Creating Schema db1.s1;')
+    const createResult = await client.query('CREATE schema db1.s1;')
+    console.log('CREATE SCHEMA RESULT:')
+    console.log('  - command:', createResult.command)
     console.log()
 
+    console.log('Creating Table t1;')
+    const createTableResult = await client.query('CREATE TABLE db1.s1.t1(i int, j varchar(20));')
+    console.log('CREATE TABLE RESULT:')
+    console.log('  - command:', createTableResult.command)
+    console.log()
+
+    // Insert data
+    console.log('Inserting data into t1;')
+    // const insertResult = await client.query("INSERT INTO example_table VALUES (1, 'Netezza')")
+    const insertSingleResult = await client.query("INSERT INTO db1.s1.t1 VALUES (1, 'Netezza')")
+    console.log('✓ INSERT result:')
+    console.log('  - command:', insertSingleResult.command)
+    console.log('  - rowCount:', insertSingleResult.rowCount)
+    console.log()
+
+    // //Insert data
+    // console.log('Inserting data...')
+    // // const insertResult = await client.query("INSERT INTO example_table VALUES (1, 'Netezza')")
+    // const insertResult = await client.query('INSERT INTO example_tablee SELECT * from example_tablee;')
+    // console.log('✓ INSERT result:')
+    // console.log('  - command:', insertResult.command)
+    // console.log('  - rowCount:', insertResult.rowCount)
+    // console.log()
+
+    //Select data
+    console.log('Selecting data from t1')
+    const selectResult = await client.query('SELECT * from db1.s1.t1 limit 5;')
+    // console.log('✓ SELECT result:', selectResult)
+    console.log('  - command:', selectResult.command)
+    console.log('  - rowCount:', selectResult.rowCount)
+    console.log('  - rows:', JSON.stringify(selectResult.rows, null, 2))
+    console.log()
+
+    //
+    console.log('NOTICE - show AUTOMAINT;')
+    const selectRowResult = await client.query('show AUTOMAINT;')
+    // console.log('✓ SELECT result:', selectRowResult)
+    console.log('NOTICE result:', selectRowResult.notices[0].message)
+    console.log('  - command:', selectRowResult.command)
+    console.log()
+
+    // console.log('Error query;')
+    // const errorResult = await client.query('showw AUTOMAINT;')
+    // // console.log('✓ SELECT result:', selectRowResult)
+    // console.log('✓ NOTICE result:', errorResult.notices[0].message)
+    // console.log('  - command:', errorResult.command)
+    // // console.log('  - rowCount:', selectRowResult.rowCount)
+    // // console.log('  - rows:', JSON.stringify(selectRowResult.rows, null, 2))
+    // console.log()
+    //Select data
+    // console.log('SELECT CURRENT_TIMESTAMP')
+    // const select1Result = await client.query('SELECT CURRENT_TIMESTAMP;')
+    // console.log('✓ SELECT result:', select1Result)
+    // console.log('  - command:', select1Result.command)
+    // console.log('  - rowCount:', select1Result.rowCount)
+    // console.log('  - rows:', JSON.stringify(select1Result.rows, null, 2))
+    // console.log()
+
+    // Drop table
+    console.log('Dropping table db1.s1.t1')
+    const dropResult = await client.query('DROP TABLE db1.s1.t1')
+    console.log('DROP TABLE result:')
+    console.log('  - command:', dropResult.command)
+    console.log()
+
+    // Drop table
+    console.log('Dropping database db1')
+    const dropDatabaseResult = await client.query('DROP DATABASE db1')
+    console.log('DROP DATABASE result:')
+    console.log('  - command:', dropDatabaseResult.command)
+    console.log()
   } catch (error) {
     console.error('Error:', error.message)
-    console.error(error.stack)
   } finally {
     await client.end()
-    console.log('✓ Connection closed')
+    console.log('\n✓ Connection closed')
   }
 }
 
@@ -74,8 +149,6 @@ async function secureConnectionExample() {
 
     const result = await client.query('SELECT VERSION()')
     console.log('Netezza Version:', result.rows[0].version)
-    console.log()
-
   } catch (error) {
     console.error('Error:', error.message)
   } finally {
@@ -202,7 +275,6 @@ async function transactionExample() {
     
     await client.query('COMMIT')
     console.log('✓ Transaction committed successfully\n')
-    
   } catch (error) {
     await client.query('ROLLBACK')
     console.error('✗ Transaction rolled back:', error.message)
@@ -233,7 +305,6 @@ async function main() {
     // await poolExample()
     // await errorHandlingExample()
     // await transactionExample()
-    
   } catch (error) {
     console.error('Fatal error:', error)
     process.exit(1)
@@ -250,7 +321,5 @@ module.exports = {
   secureConnectionExample,
   poolExample,
   errorHandlingExample,
-  transactionExample
+  transactionExample,
 }
-
-// Made with Bob
