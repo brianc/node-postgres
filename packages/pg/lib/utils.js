@@ -173,36 +173,17 @@ const escapeIdentifier = function (str) {
 }
 
 const escapeLiteral = function (str) {
-  let hasBackslash = false
-  let escaped = "'"
-
-  if (str == null) {
-    return "''"
-  }
-
   if (typeof str !== 'string') {
     return "''"
   }
-
-  for (let i = 0; i < str.length; i++) {
-    const c = str[i]
-    if (c === "'") {
-      escaped += c + c
-    } else if (c === '\\') {
-      escaped += c + c
-      hasBackslash = true
-    } else {
-      escaped += c
-    }
-  }
-
-  escaped += "'"
-
-  if (hasBackslash === true) {
-    escaped = ' E' + escaped
-  }
-
-  return escaped
+  let hasBackslash = false
+  let escaped = str
+      .replace(/\\/g, () => {
+          hasBackslash = true
+          return '\\\\'
+      })
+      .replace(/'/g, "''")
+  return hasBackslash ? ` E'${escaped}'` : `'${escaped}'`
 }
 
 module.exports = {
