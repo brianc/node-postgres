@@ -223,6 +223,13 @@ class Cursor extends EventEmitter {
     }
 
     this._closePortal()
+
+    if (this.connection._ending) {
+      // No point returning an error, we're finishing up either way.
+      cb()
+      return promise
+    }
+
     this.connection.once('readyForQuery', function () {
       cb()
     })
