@@ -278,7 +278,19 @@ class Pool extends EventEmitter {
         this.log('new client connected')
 
         if (this.options.hooks && this.options.hooks.connect) {
-          const hookResult = this.options.hooks.connect(client)
+          let hookResult
+          try {
+            hookResult = this.options.hooks.connect(client)
+          } catch (hookErr) {
+            this._clients = this._clients.filter((c) => c !== client)
+            client.end(() => {
+              this._pulseQueue()
+              if (!pendingItem.timedOut) {
+                pendingItem.callback(hookErr, undefined, NOOP)
+              }
+            })
+            return
+          }
           if (hookResult && typeof hookResult.then === 'function') {
             hookResult.then(
               () => {

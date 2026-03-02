@@ -22,4 +22,59 @@ describe('lifecycle hooks', () => {
     client.release()
     await pool.end()
   })
+
+  it('are called on connect with an async hook', async () => {
+    const pool = new Pool({
+      hooks: {
+        connect: async (client) => {
+          const res = await client.query('SELECT 1 AS num')
+          client.HOOK_CONNECT_RESULT = res.rows[0].num
+        },
+      },
+    })
+    const client = await pool.connect()
+    expect(client.HOOK_CONNECT_RESULT).to.equal(1)
+    const res = await client.query('SELECT 1 AS num')
+    expect(res.rows[0].num).to.equal(1)
+    client.release()
+    const client2 = await pool.connect()
+    expect(client).to.equal(client2)
+    expect(client2.HOOK_CONNECT_RESULT).to.equal(1)
+    client.release()
+    await pool.end()
+  })
+
+  it('errors out the connect call if the async connect hook rejects', async () => {
+    const pool = new Pool({
+      hooks: {
+        connect: async (client) => {
+          await client.query('SELECT INVALID HERE')
+        },
+      },
+    })
+    try {
+      await pool.connect()
+      throw new Error('Expected connect to throw')
+    } catch (err) {
+      expect(err.message).to.contain('invalid')
+    }
+    await pool.end()
+  })
+
+  it('errors out the connect call if the connect hook throws', async () => {
+    const pool = new Pool({
+      hooks: {
+        connect: () => {
+          throw new Error('connect hook error')
+        },
+      },
+    })
+    try {
+      await pool.connect()
+      throw new Error('Expected connect to throw')
+    } catch (err) {
+      expect(err.message).to.equal('connect hook error')
+    }
+    await pool.end()
+  })
 })
