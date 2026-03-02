@@ -278,31 +278,52 @@ class Pool extends EventEmitter {
         this.log('new client connected')
 
         if (this.options.hooks && this.options.hooks.connect) {
-          this.options.hooks.connect(client)
+          const hookResult = this.options.hooks.connect(client)
+          if (hookResult && typeof hookResult.then === 'function') {
+            hookResult.then(
+              () => {
+                this._afterConnect(client, pendingItem, idleListener)
+              },
+              (hookErr) => {
+                this._clients = this._clients.filter((c) => c !== client)
+                client.end(() => {
+                  this._pulseQueue()
+                  if (!pendingItem.timedOut) {
+                    pendingItem.callback(hookErr, undefined, NOOP)
+                  }
+                })
+              }
+            )
+            return
+          }
         }
 
-        if (this.options.maxLifetimeSeconds !== 0) {
-          const maxLifetimeTimeout = setTimeout(() => {
-            this.log('ending client due to expired lifetime')
-            this._expired.add(client)
-            const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
-            if (idleIndex !== -1) {
-              this._acquireClient(
-                client,
-                new PendingItem((err, client, clientRelease) => clientRelease()),
-                idleListener,
-                false
-              )
-            }
-          }, this.options.maxLifetimeSeconds * 1000)
-
-          maxLifetimeTimeout.unref()
-          client.once('end', () => clearTimeout(maxLifetimeTimeout))
-        }
-
-        return this._acquireClient(client, pendingItem, idleListener, true)
+        return this._afterConnect(client, pendingItem, idleListener)
       }
     })
+  }
+
+  _afterConnect(client, pendingItem, idleListener) {
+    if (this.options.maxLifetimeSeconds !== 0) {
+      const maxLifetimeTimeout = setTimeout(() => {
+        this.log('ending client due to expired lifetime')
+        this._expired.add(client)
+        const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
+        if (idleIndex !== -1) {
+          this._acquireClient(
+            client,
+            new PendingItem((err, client, clientRelease) => clientRelease()),
+            idleListener,
+            false
+          )
+        }
+      }, this.options.maxLifetimeSeconds * 1000)
+
+      maxLifetimeTimeout.unref()
+      client.once('end', () => clearTimeout(maxLifetimeTimeout))
+    }
+
+    return this._acquireClient(client, pendingItem, idleListener, true)
   }
 
   // acquire a client for a pending work item

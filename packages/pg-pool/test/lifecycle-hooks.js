@@ -19,6 +19,7 @@ describe('lifecycle hooks', () => {
     const client2 = await pool.connect()
     expect(client).to.equal(client2)
     expect(client2.HOOK_CONNECT_COUNT).to.equal(1)
+    client.release()
     await pool.end()
   })
 })
