@@ -33,7 +33,7 @@ const byoPromiseDeprecationNotice = nodeUtils.deprecate(
 
 const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
   () => {},
-  'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use asycn/await or an external async flow control mechanism instead.'
+  'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.'
 )
 
 class Client extends EventEmitter {
