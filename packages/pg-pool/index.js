@@ -277,6 +277,10 @@ class Pool extends EventEmitter {
       } else {
         this.log('new client connected')
 
+        if (this.options.hooks && this.options.hooks.connect) {
+          this.options.hooks.connect(client)
+        }
+
         if (this.options.maxLifetimeSeconds !== 0) {
           const maxLifetimeTimeout = setTimeout(() => {
             this.log('ending client due to expired lifetime')
