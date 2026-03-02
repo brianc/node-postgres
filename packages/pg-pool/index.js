@@ -277,10 +277,10 @@ class Pool extends EventEmitter {
       } else {
         this.log('new client connected')
 
-        if (this.options.hooks && this.options.hooks.connect) {
+        if (this.options.onConnect) {
           let hookResult
           try {
-            hookResult = this.options.hooks.connect(client)
+            hookResult = this.options.onConnect(client)
           } catch (hookErr) {
             this._clients = this._clients.filter((c) => c !== client)
             client.end(() => {

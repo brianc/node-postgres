@@ -7,10 +7,8 @@ const Pool = require('..')
 describe('lifecycle hooks', () => {
   it('are called on connect', async () => {
     const pool = new Pool({
-      hooks: {
-        connect: (client) => {
-          client.HOOK_CONNECT_COUNT = (client.HOOK_CONNECT_COUNT || 0) + 1
-        },
+      onConnect: (client) => {
+        client.HOOK_CONNECT_COUNT = (client.HOOK_CONNECT_COUNT || 0) + 1
       },
     })
     const client = await pool.connect()
@@ -25,11 +23,9 @@ describe('lifecycle hooks', () => {
 
   it('are called on connect with an async hook', async () => {
     const pool = new Pool({
-      hooks: {
-        connect: async (client) => {
-          const res = await client.query('SELECT 1 AS num')
-          client.HOOK_CONNECT_RESULT = res.rows[0].num
-        },
+      onConnect: async (client) => {
+        const res = await client.query('SELECT 1 AS num')
+        client.HOOK_CONNECT_RESULT = res.rows[0].num
       },
     })
     const client = await pool.connect()
@@ -46,10 +42,8 @@ describe('lifecycle hooks', () => {
 
   it('errors out the connect call if the async connect hook rejects', async () => {
     const pool = new Pool({
-      hooks: {
-        connect: async (client) => {
-          await client.query('SELECT INVALID HERE')
-        },
+      onConnect: async (client) => {
+        await client.query('SELECT INVALID HERE')
       },
     })
     try {
@@ -63,10 +57,8 @@ describe('lifecycle hooks', () => {
 
   it('errors out the connect call if the connect hook throws', async () => {
     const pool = new Pool({
-      hooks: {
-        connect: () => {
-          throw new Error('connect hook error')
-        },
+      onConnect: () => {
+        throw new Error('connect hook error')
       },
     })
     try {
