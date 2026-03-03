@@ -408,7 +408,7 @@ class Pool extends EventEmitter {
       return response.result
     }
 
-    // allow plain text query without values
+    // allow plain text query without values, but callback
     if (typeof values === 'function') {
       cb = values
       values = undefined
