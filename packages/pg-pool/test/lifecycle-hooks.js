@@ -111,6 +111,42 @@ describe('lifecycle hooks', () => {
     await pool.end()
   })
 
+  it('cleans up clients after repeated hook failures', async () => {
+    let errorCount = 0
+    const pool = new Pool({
+      max: 2,
+      onConnect: () => {
+        if (errorCount < 10) {
+          errorCount++
+          throw new Error('connect hook error')
+        }
+      },
+    })
+    for (let i = 0; i < 10; i++) {
+      let threw = false
+      try {
+        await pool.connect()
+      } catch (err) {
+        threw = true
+        expect(err.message).to.equal('connect hook error')
+      }
+      expect(threw).to.equal(true)
+    }
+    expect(errorCount).to.equal(10)
+    expect(pool.totalCount).to.equal(0)
+    expect(pool.idleCount).to.equal(0)
+    const client1 = await pool.connect()
+    const res1 = await client1.query('SELECT 1 AS num')
+    expect(res1.rows[0].num).to.equal(1)
+    const client2 = await pool.connect()
+    const res2 = await client2.query('SELECT 2 AS num')
+    expect(res2.rows[0].num).to.equal(2)
+    expect(pool.totalCount).to.equal(2)
+    client1.release()
+    client2.release()
+    await pool.end()
+  })
+
   it('errors out the connect call if the connect hook throws', async () => {
     const pool = new Pool({
       onConnect: () => {
