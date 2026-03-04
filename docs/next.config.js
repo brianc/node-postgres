@@ -1,8 +1,11 @@
-// next.config.js
-const withNextra = require('nextra')({
+import nextra from 'nextra'
+
+const withNextra = nextra({
   theme: 'nextra-theme-docs',
   themeConfig: './theme.config.js',
-  // optional: add `unstable_staticImage: true` to enable Nextra's auto image import
 })
 
-module.exports = withNextra()
+export default withNextra({
+  output: 'export',
+  images: { unoptimized: true },
+})

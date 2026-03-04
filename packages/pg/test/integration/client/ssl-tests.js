@@ -3,7 +3,7 @@ const helper = require('./test-helper')
 const assert = require('assert')
 const suite = new helper.Suite()
 
-suite.test('can connect with ssl', function () {
+suite.test('can connect with ssl', function (done) {
   const config = {
     ...helper.config,
     ssl: {
@@ -16,7 +16,7 @@ suite.test('can connect with ssl', function () {
       client.query(
         'SELECT NOW()',
         assert.success(function () {
-          client.end()
+          client.end(done)
         })
       )
     })

@@ -14,7 +14,7 @@
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
     "docs:build": "cd docs && yarn build",
-    "docs:start": "cd docs && yarn start",
+    "docs:start": "cd docs && yarn dev",
     "pretest": "yarn build",
     "prepublish": "yarn build",
     "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}'"

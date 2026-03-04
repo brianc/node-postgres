@@ -1,7 +1,5 @@
-const emptyBuffer = Buffer.allocUnsafe(0)
-
 export class BufferReader {
-  private buffer: Buffer = emptyBuffer
+  private buffer: Buffer = Buffer.allocUnsafe(0)
 
   // TODO(bmc): support non-utf8 encoding?
   private encoding: string = 'utf-8'

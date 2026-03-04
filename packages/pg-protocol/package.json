@@ -1,6 +1,6 @@
 {
   "name": "pg-protocol",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "The postgres client/server binary protocol, implemented in TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,11 +16,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.2.7",
-    "@types/mocha": "^10.0.7",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^12.12.21",
     "chai": "^4.2.0",
     "chunky": "^0.0.0",
-    "mocha": "^10.5.2",
+    "mocha": "^11.7.5",
     "ts-node": "^8.5.4",
     "typescript": "^4.0.3"
   },

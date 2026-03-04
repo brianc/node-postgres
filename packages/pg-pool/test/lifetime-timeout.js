@@ -12,7 +12,6 @@ describe('lifetime timeout', () => {
     const pool = new Pool({ maxLifetimeSeconds: 1 })
     pool.query('SELECT NOW()')
     pool.on('remove', () => {
-      console.log('expired while idle - on-remove event')
       expect(pool.expiredCount).to.equal(0)
       expect(pool.totalCount).to.equal(0)
       done()
@@ -22,7 +21,6 @@ describe('lifetime timeout', () => {
     const pool = new Pool({ maxLifetimeSeconds: 1 })
     pool.query('SELECT pg_sleep(1.4)')
     pool.on('remove', () => {
-      console.log('expired while busy - on-remove event')
       expect(pool.expiredCount).to.equal(0)
       expect(pool.totalCount).to.equal(0)
       done()
