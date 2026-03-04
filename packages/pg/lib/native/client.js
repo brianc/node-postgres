@@ -315,6 +315,5 @@ Client.prototype.isConnected = function () {
 }
 
 Client.prototype.getTransactionStatus = function () {
-  // not supported in native client
-  return null
+  return this.native.getTransactionStatus()
 }
