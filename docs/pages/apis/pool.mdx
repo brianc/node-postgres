@@ -51,6 +51,12 @@ type Config = {
   // where you don't want to wait for your clients to go idle before your process exits.
   allowExitOnIdle?: boolean
 
+  // number of times a client can be checked out from the pool before it is
+  // disconnected and a new client is created in its place.
+  // the default is Infinity which means a client will never be automatically destroyed outside of other lifecycle things
+  // like manually removing it, it timing out due to idelness, etc...
+  maxUses?: number
+
   // Sets a max overall life for the connection.
   // A value of 60 would evict connections that have been around for over 60 seconds,
   // regardless of whether they are idle. It's useful to force rotation of connection pools through
@@ -77,7 +83,7 @@ const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
-  maxLifetimeSeconds: 60
+  maxLifetimeSeconds: 60,
 })
 ```
 
@@ -89,7 +95,7 @@ import { Pool } from 'pg'
 const pool = new Pool({
   onConnect: async (client) => {
     await client.query('SET search_path TO my_schema')
-  }
+  },
 })
 ```
 
