@@ -56,6 +56,13 @@ type Config = {
   // regardless of whether they are idle. It's useful to force rotation of connection pools through
   // middleware so that you can rotate the underlying servers. The default is disabled (value of zero)
   maxLifetimeSeconds?: number
+
+  // Called once when a new client is created, before it is made available to the pool.
+  // The client is fully connected and queryable at this point.
+  // Can be a regular function or an async function.
+  // If the function throws or returns a promise that rejects, the client is destroyed
+  // and the error is returned to the caller requesting the connection.
+  onConnect?: (client: Client) => void | Promise<void>
 }
 ```
 
@@ -71,6 +78,18 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
   maxLifetimeSeconds: 60
+})
+```
+
+example using `onConnect` to run setup commands on each new client:
+
+```js
+import { Pool } from 'pg'
+
+const pool = new Pool({
+  onConnect: async (client) => {
+    await client.query('SET search_path TO my_schema')
+  }
 })
 ```
 
