@@ -108,6 +108,14 @@ class Pool extends EventEmitter {
     this.ended = false
   }
 
+  _promiseTry(f) {
+    const Promise = this.Promise
+    if (typeof Promise.try === 'function') {
+      return Promise.try(f)
+    }
+    return new Promise((resolve) => resolve(f()))
+  }
+
   _isFull() {
     return this._clients.length >= this.options.max
   }
@@ -278,36 +286,21 @@ class Pool extends EventEmitter {
         this.log('new client connected')
 
         if (this.options.onConnect) {
-          let hookResult
-          try {
-            hookResult = this.options.onConnect(client)
-          } catch (hookErr) {
-            this._clients = this._clients.filter((c) => c !== client)
-            client.end(() => {
-              this._pulseQueue()
-              if (!pendingItem.timedOut) {
-                pendingItem.callback(hookErr, undefined, NOOP)
-              }
-            })
-            return
-          }
-          if (hookResult && typeof hookResult.then === 'function') {
-            hookResult.then(
-              () => {
-                this._afterConnect(client, pendingItem, idleListener)
-              },
-              (hookErr) => {
-                this._clients = this._clients.filter((c) => c !== client)
-                client.end(() => {
-                  this._pulseQueue()
-                  if (!pendingItem.timedOut) {
-                    pendingItem.callback(hookErr, undefined, NOOP)
-                  }
-                })
-              }
-            )
-            return
-          }
+          this._promiseTry(() => this.options.onConnect(client)).then(
+            () => {
+              this._afterConnect(client, pendingItem, idleListener)
+            },
+            (hookErr) => {
+              this._clients = this._clients.filter((c) => c !== client)
+              client.end(() => {
+                this._pulseQueue()
+                if (!pendingItem.timedOut) {
+                  pendingItem.callback(hookErr, undefined, NOOP)
+                }
+              })
+            }
+          )
+          return
         }
 
         return this._afterConnect(client, pendingItem, idleListener)
