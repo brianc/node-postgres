@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.20.0
+
+- Add [onConnect](https://github.com/brianc/node-postgres/pull/3620) callback to pg.Pool constructor options allowing for async initialization of newly created & connected pooled clients.
+
 ## pg@8.19.0
 
 - [Deprecate interal query queue](https://github.com/brianc/node-postgres/pull/3603).
