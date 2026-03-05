@@ -62,7 +62,6 @@ describe('diagnostics channels', function () {
         })
       })
     })
-
     ;(hasTracingChannel ? it : it.skip)('enriches context with client info on asyncEnd', function (done) {
       const pool = new Pool({
         Client: mockClient({
