@@ -20,12 +20,6 @@ const queryQueueDeprecationNotice = nodeUtils.deprecate(
   'Client.queryQueue is deprecated and will be removed in pg@9.0.'
 )
 
-const pgPassDeprecationNotice = nodeUtils.deprecate(
-  () => {},
-  'pgpass support is deprecated and will be removed in pg@9.0. ' +
-    'You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this function you can call the pgpass module in your own code.'
-)
-
 const byoPromiseDeprecationNotice = nodeUtils.deprecate(
   () => {},
   'Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in pg@9.0.'
@@ -248,42 +242,29 @@ class Client extends EventEmitter {
   }
 
   _getPassword(cb) {
-    const con = this.connection
-    if (typeof this.password === 'function') {
-      this._Promise
-        .resolve()
-        .then(() => this.password(this.connectionParameters))
-        .then((pass) => {
-          if (pass !== undefined) {
-            if (typeof pass !== 'string') {
-              con.emit('error', new TypeError('Password must be a string'))
-              return
-            }
-            this.connectionParameters.password = this.password = pass
-          } else {
-            this.connectionParameters.password = this.password = null
-          }
-          cb()
-        })
-        .catch((err) => {
-          con.emit('error', err)
-        })
-    } else if (this.password !== null) {
+    if (typeof this.password !== 'function') {
       cb()
-    } else {
-      try {
-        const pgPass = require('pgpass')
-        pgPass(this.connectionParameters, (pass) => {
-          if (undefined !== pass) {
-            pgPassDeprecationNotice()
-            this.connectionParameters.password = this.password = pass
-          }
-          cb()
-        })
-      } catch (e) {
-        this.emit('error', e)
-      }
+      return
     }
+    const con = this.connection
+    this._Promise
+      .resolve()
+      .then(() => this.password(this.connectionParameters))
+      .then((pass) => {
+        if (pass !== undefined) {
+          if (typeof pass !== 'string') {
+            con.emit('error', new TypeError('Password must be a string'))
+            return
+          }
+          this.connectionParameters.password = this.password = pass
+        } else {
+          this.connectionParameters.password = this.password = null
+        }
+        cb()
+      })
+      .catch((err) => {
+        con.emit('error', err)
+      })
   }
 
   _handleAuthCleartextPassword(msg) {
