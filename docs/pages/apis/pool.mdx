@@ -232,14 +232,11 @@ The number of queued requests waiting on a client when all clients are checked o
 
 `pool.on('connect', (client: Client) => void) => void`
 
-Whenever the pool establishes a new client connection to the PostgreSQL backend it will emit the `connect` event with the newly connected client. This presents an opportunity for you to run setup commands on a client.
+Whenever the pool establishes a new client connection to the PostgreSQL backend it will emit the `connect` event with the newly connected client.
 
-```js
-const pool = new Pool()
-pool.on('connect', (client) => {
-  client.query('SET DATESTYLE = iso, mdy')
-})
-```
+<Alert>
+  The event listener does not wait for promises or async functions. If you want to run setup commands on each new client, use the `onConnect` option. (See documentation above.)
+</Alert>
 
 ### acquire
 
