@@ -16,6 +16,14 @@ In this situation, I'd probably set the `max` to 20 or 25. This lets you have pl
 
 If the number of instances of your services which connect to your database is more dynamic and based on things like load, auto-scaling containers, or running in cloud-functions, you need to be a bit more thoughtful about what your max might be. Often in these environments, there will be another database pooling proxy in front of the database like pg-bouncer or the RDS-proxy, etc. I'm not sure how all these function exactly, and they all have some trade-offs, but let's assume you're not using a proxy. Then I'd be pretty cautious about how large you set any individual pool. If you're running an application under pretty serious load where you need dynamic scaling or lots of lambdas spinning up and sending queries, your queries are likely fast and you should be fine setting the `max` to a low value like 10 -- or just leave it alone, since `10` is the default.
 
+### Vercel
+
+If you're running on Vercel with [fluid compute](https://vercel.com/kb/guide/efficiently-manage-database-connection-pools-with-fluid-compute), your serverless functions can handle multiple requests concurrently and stick around between invocations. In this case, you can treat it similarly to a traditional long-lived process and use a default-ish pool size of `10`. The pool will stay warm across requests and you'll get the benefits of connection reuse. You'll probably need to put pgBouncer (or some kind of pooler like what is offered with Supabase, RDS, GCP, etc.) in front of your database, as Vercel worker count can grow quite a bit larger than the number of reasonable max connections Postgres can handle.
+
+### Cloudflare workers
+
+In a fully stateless serverless environment like Cloudflare Workers where your worker is killed, suspended, moved to a new compute node, or shut down at the end of every request, you'll still probably be okay with a pool size `max` of `10`, though you can lower it if you start hitting connection exhaustion limits on your pooler. In Cloudflare the pooler is Hyperdrive, and in my experience it works fantastically with their workers setup. Make sure at the end of your serverless handler, after everything is done, you close and dispose of the pool by calling `pool.end()`. Setting the pool to a size larger than 1 is still recommended, as things like tRPC and other server-side routing & request batching code could result in multiple independent queries executing at the same time. With a pool size of `1` you are turning what is "a few things at once" into all things waiting in line one after another on the one available client in the pool.
+
 ## pg-bouncer, RDS-proxy, etc.
 
 I'm not sure of all the pooling services for Postgres. I haven't used any myself. Throughout the years of working on `pg`, I've addressed issues caused by various proxies behaving differently than an actual Postgres backend. There are also gotchas with things like transactions. On the other hand, plenty of people run these with much success. In this situation, I would just recommend using some small but reasonable `max` value like the default value of `10` as it can still be helpful to keep a few TCP sockets from your services to the Postgres proxy open.
@@ -23,3 +31,7 @@ I'm not sure of all the pooling services for Postgres. I haven't used any myself
 ## Conclusion, tl;dr
 
 It's a bit of a complicated topic and doesn't have much impact on things until you need to start scaling. At that point, your number of connections _still_ probably won't be your scaling bottleneck. It's worth thinking about a bit, but mostly I'd just leave the pool size to the default of `10` until you run into troubles: hopefully you never do!
+
+## Need help?
+
+In my career, this has been the most error-prone thing related to running Postgres & Node, particularly with the differences in various serverless providers (Cloudflare, Vercel, Lambda, etc.) versus more traditional hosting. If you have any questions or need help, please don't hesitate to email me at [brian.m.carlson@gmail.com](mailto:brian.m.carlson@gmail.com) or reach out on GitHub.
