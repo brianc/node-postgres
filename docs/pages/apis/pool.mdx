@@ -16,28 +16,28 @@ The pool is initially created empty and will create new clients lazily as they a
 
 ```ts
 type Config = {
-  // all valid client config options are also valid here
-  // in addition here are the pool specific configuration parameters:
+  // All valid client config options are also valid here.
+  // In addition here are the pool specific configuration parameters:
 
-  // number of milliseconds to wait before timing out when connecting a new client
-  // by default this is 0 which means no timeout
+  // Number of milliseconds to wait before timing out when connecting a new client.
+  // By default this is 0 which means no timeout.
   connectionTimeoutMillis?: number
 
-  // number of milliseconds a client must sit idle in the pool and not be checked out
-  // before it is disconnected from the backend and discarded
-  // default is 10000 (10 seconds) - set to 0 to disable auto-disconnection of idle clients
+  // Number of milliseconds a client must sit idle in the pool and not be checked out
+  // before it is disconnected from the backend and discarded.
+  // Default is 10000 (10 seconds) - set to 0 to disable auto-disconnection of idle clients.
   idleTimeoutMillis?: number
 
-  // maximum number of clients the pool should contain
-  // by default this is set to 10.  There is some nuance to setting the maximum size of your pool.
-  // see https://node-postgres.com/guides/pool-sizing for more information
+  // Maximum number of clients the pool should contain.
+  // By default this is set to 10. There is some nuance to setting the maximum size of your pool.
+  // See https://node-postgres.com/guides/pool-sizing for more information.
   max?: number
 
-  // minimum number of clients the pool should hold on to and _not_ destroy with the idleTimeoutMillis
-  // this can be useful if you get very bursty traffic and want to keep a few clients around.
-  // note: current the pool will not automatically create and connect new clients up to the min, it will
+  // Minimum number of clients the pool should hold on to and _not_ destroy with the idleTimeoutMillis.
+  // This can be useful if you get very bursty traffic and want to keep a few clients around.
+  // Note: currently the pool will not automatically create and connect new clients up to the min, it will
   // only not evict and close clients except those which exceed the min count.
-  // the default is 0 which disables this behavior.
+  // The default is 0 which disables this behavior.
   min?: number
 
   // Default behavior is the pool will keep clients open & connected to the backend
@@ -47,20 +47,20 @@ type Config = {
   //
   // Setting `allowExitOnIdle: true` in the config will allow the node event loop to exit
   // as soon as all clients in the pool are idle, even if their socket is still open
-  // to the postgres server.  This can be handy in scripts & tests
+  // to the postgres server. This can be handy in scripts & tests
   // where you don't want to wait for your clients to go idle before your process exits.
   allowExitOnIdle?: boolean
 
-  // number of times a client can be checked out from the pool before it is
+  // Number of times a client can be checked out from the pool before it is
   // disconnected and a new client is created in its place.
-  // the default is Infinity which means a client will never be automatically destroyed outside of other lifecycle things
-  // like manually removing it, it timing out due to idelness, etc...
+  // The default is Infinity which means a client will never be automatically destroyed
+  // outside of other lifecycle events like manually removing it, it timing out due to idleness, etc.
   maxUses?: number
 
   // Sets a max overall life for the connection.
   // A value of 60 would evict connections that have been around for over 60 seconds,
   // regardless of whether they are idle. It's useful to force rotation of connection pools through
-  // middleware so that you can rotate the underlying servers. The default is disabled (value of zero)
+  // middleware so that you can rotate the underlying servers. The default is disabled (value of zero).
   maxLifetimeSeconds?: number
 
   // Called once when a new client is created, before it is made available to the pool.
