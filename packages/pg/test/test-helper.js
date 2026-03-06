@@ -205,39 +205,39 @@ if (Object.isExtensible(assert)) {
   }
 }
 
-const people = [
-  { name: 'Aaron' },
-  { name: 'Brian' },
-  { name: 'Chris' },
-  { name: 'David' },
-  { name: 'Elvis' },
-  { name: 'Frank' },
-  { name: 'Grace' },
-  { name: 'Haley' },
-  { name: 'Irma' },
-  { name: 'Jenny' },
-  { name: 'Kevin' },
-  { name: 'Larry' },
-  { name: 'Michelle' },
-  { name: 'Nancy' },
-  { name: 'Olivia' },
-  { name: 'Peter' },
-  { name: 'Quinn' },
-  { name: 'Ronda' },
-  { name: 'Shelley' },
-  { name: 'Tobias' },
-  { name: 'Uma' },
-  { name: 'Veena' },
-  { name: 'Wanda' },
-  { name: 'Xavier' },
-  { name: 'Yoyo' },
-  { name: 'Zanzabar' },
+const names = [
+  'Aaron',
+  'Brian',
+  'Chris',
+  'David',
+  'Elvis',
+  'Frank',
+  'Grace',
+  'Haley',
+  'Irma',
+  'Jenny',
+  'Kevin',
+  'Larry',
+  'Michelle',
+  'Nancy',
+  'Olivia',
+  'Peter',
+  'Quinn',
+  'Ronda',
+  'Shelley',
+  'Tobias',
+  'Uma',
+  'Veena',
+  'Wanda',
+  'Xavier',
+  'Yoyo',
+  'Zanzabar',
 ]
 
 const createPersonTable = async (client) => {
   await client.query('CREATE TEMP TABLE person (id serial, name varchar(10), age integer)')
   await client.query(
-    'INSERT INTO person (name, age) VALUES' + people.map((p, i) => ` ('${p.name}', ${(i + 1) * 10})`).join(',')
+    'INSERT INTO person (name, age) VALUES' + names.map((name, i) => ` ('${name}', ${(i + 1) * 10})`).join(',')
   )
 }
 
