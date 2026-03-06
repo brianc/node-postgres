@@ -3,9 +3,16 @@ const assert = require('assert')
 const sys = require('util')
 
 const Suite = require('./suite')
-const args = require('./cli')
-
 const Client = require('./../lib').Client
+
+let isNativeMode = false
+for (let i = 0; i < process.argv.length; i++) {
+  switch (process.argv[i].toLowerCase()) {
+    case 'native':
+      isNativeMode = true
+      break
+  }
+}
 
 process.on('uncaughtException', function (d) {
   if ('stack' in d && 'message' in d) {
@@ -53,8 +60,7 @@ const expect = function (callback, timeout) {
 }
 // print out the filename
 process.stdout.write(require('path').basename(process.argv[1]))
-if (args.binary) process.stdout.write(' (binary)')
-if (args.native) process.stdout.write(' (native)')
+if (isNativeMode) process.stdout.write(' (native)')
 
 process.on('exit', function () {
   console.log('')
@@ -199,14 +205,58 @@ if (Object.isExtensible(assert)) {
   }
 }
 
+const people = [
+  { name: 'Aaron', age: 10 },
+  { name: 'Brian', age: 20 },
+  { name: 'Chris', age: 30 },
+  { name: 'David', age: 40 },
+  { name: 'Elvis', age: 50 },
+  { name: 'Frank', age: 60 },
+  { name: 'Grace', age: 70 },
+  { name: 'Haley', age: 80 },
+  { name: 'Irma', age: 90 },
+  { name: 'Jenny', age: 100 },
+  { name: 'Kevin', age: 110 },
+  { name: 'Larry', age: 120 },
+  { name: 'Michelle', age: 130 },
+  { name: 'Nancy', age: 140 },
+  { name: 'Olivia', age: 150 },
+  { name: 'Peter', age: 160 },
+  { name: 'Quinn', age: 170 },
+  { name: 'Ronda', age: 180 },
+  { name: 'Shelley', age: 190 },
+  { name: 'Tobias', age: 200 },
+  { name: 'Uma', age: 210 },
+  { name: 'Veena', age: 220 },
+  { name: 'Wanda', age: 230 },
+  { name: 'Xavier', age: 240 },
+  { name: 'Yoyo', age: 250 },
+  { name: 'Zanzabar', age: 260 },
+]
+
+const createPersonTable = async (client) => {
+  await client.query('CREATE TEMP TABLE person (id serial, name varchar(10), age integer)')
+  await client.query(
+    'INSERT INTO person (name, age) VALUES' + people.map((p, i) => ` ('${p.name}', ${(i + 1) * 10})`).join(',')
+  )
+}
+
 module.exports = {
   Suite: Suite,
   pg: require('./../lib/'),
-  args: args,
-  config: args,
+  args: { native: isNativeMode },
+  config: {
+    native: isNativeMode,
+    host: process.env.PGHOST || 'localhost',
+    port: process.env.PGPORT || 5432,
+    user: process.env.PGUSER || 'postgres',
+    password: process.env.PGPASSWORD || '',
+    database: process.env.PGDATABASE || 'postgres',
+  },
   sys: sys,
   Client: Client,
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset,
   rejection: rejection,
+  createPersonTable: createPersonTable,
 }
