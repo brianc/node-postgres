@@ -312,6 +312,20 @@ PGSSLMODE=require
 
 Usually I will export these into my local environment via a `.env` file with environment settings or export them in `~/.bash_profile` or something similar. This way I get configurability which works with both the postgres suite of tools (`psql`, `pg_dump`, `pg_restore`) and node, I can vary the environment variables locally and in production, and it supports the concept of a [12-factor app](http://12factor.net/) out of the box.
 
+## error management
+
+Errors throwed by the pool are instances of `PoolError`. Each `PoolError` has a message (short description of the exception) and a structured code composed of 5 characters string starting with letter `Z`.
+The following table list the existing `PoolError`s and their code:
+
+| Code  | Message                                                                  |
+| ----- | ------------------------------------------------------------------------ |
+| Z0001 | Cannot use a pool after calling end on the pool                          |
+| Z0002 | Passing a function as the first parameter to pool.query is not supported |
+| Z0003 | Release called on client which has already been released to the pool     |
+| Z0004 | Called end on pool more than once                                        |
+| Z0005 | Timeout exceeded when trying to connect                                  |
+| Z0009 | Unexpected condition                                                     |
+
 ## maxUses and read-replica autoscaling (e.g. AWS Aurora)
 
 The maxUses config option can help an application instance rebalance load against a replica set that has been auto-scaled after the connection pool is already full of healthy connections.
