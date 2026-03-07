@@ -3,9 +3,16 @@ const assert = require('assert')
 const sys = require('util')
 
 const Suite = require('./suite')
-const args = require('./cli')
-
 const Client = require('./../lib').Client
+
+let isNativeMode = false
+for (let i = 0; i < process.argv.length; i++) {
+  switch (process.argv[i].toLowerCase()) {
+    case 'native':
+      isNativeMode = true
+      break
+  }
+}
 
 process.on('uncaughtException', function (d) {
   if ('stack' in d && 'message' in d) {
@@ -53,8 +60,7 @@ const expect = function (callback, timeout) {
 }
 // print out the filename
 process.stdout.write(require('path').basename(process.argv[1]))
-if (args.binary) process.stdout.write(' (binary)')
-if (args.native) process.stdout.write(' (native)')
+if (isNativeMode) process.stdout.write(' (native)')
 
 process.on('exit', function () {
   console.log('')
@@ -199,14 +205,58 @@ if (Object.isExtensible(assert)) {
   }
 }
 
+const names = [
+  'Aaron',
+  'Brian',
+  'Chris',
+  'David',
+  'Elvis',
+  'Frank',
+  'Grace',
+  'Haley',
+  'Irma',
+  'Jenny',
+  'Kevin',
+  'Larry',
+  'Michelle',
+  'Nancy',
+  'Olivia',
+  'Peter',
+  'Quinn',
+  'Ronda',
+  'Shelley',
+  'Tobias',
+  'Uma',
+  'Veena',
+  'Wanda',
+  'Xavier',
+  'Yoyo',
+  'Zanzabar',
+]
+
+const createPersonTable = async (client) => {
+  await client.query('CREATE TEMP TABLE person (id serial, name varchar(10), age integer)')
+  await client.query(
+    'INSERT INTO person (name, age) VALUES' + names.map((name, i) => ` ('${name}', ${(i + 1) * 10})`).join(',')
+  )
+}
+
 module.exports = {
   Suite: Suite,
   pg: require('./../lib/'),
-  args: args,
-  config: args,
+  args: { native: isNativeMode },
+  config: {
+    native: isNativeMode,
+    host: process.env.PGHOST || 'localhost',
+    port: process.env.PGPORT || 5432,
+    user: process.env.PGUSER || 'postgres',
+    password: process.env.PGPASSWORD || '',
+    database: process.env.PGDATABASE || 'postgres',
+  },
   sys: sys,
   Client: Client,
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset,
   rejection: rejection,
+  createPersonTable: createPersonTable,
 }
