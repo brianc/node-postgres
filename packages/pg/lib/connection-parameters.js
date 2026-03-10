@@ -67,8 +67,15 @@ class ConnectionParameters {
       this.database = this.user
     }
 
-    this.port = parseInt(val('port', config), 10)
+    const rawPort = val('port', config)
+    this.port = Array.isArray(rawPort) ? rawPort.map((p) => parseInt(p, 10)) : parseInt(rawPort, 10)
     this.host = val('host', config)
+
+    const hosts = Array.isArray(this.host) ? this.host : [this.host]
+    const ports = Array.isArray(this.port) ? this.port : [this.port]
+    if (ports.length !== 1 && ports.length !== hosts.length) {
+      throw new Error(`ports must have either 1 entry or the same number of entries as hosts (${hosts.length})`)
+    }
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
@@ -110,6 +117,17 @@ class ConnectionParameters {
     this.lock_timeout = val('lock_timeout', config, false)
     this.idle_in_transaction_session_timeout = val('idle_in_transaction_session_timeout', config, false)
     this.query_timeout = val('query_timeout', config, false)
+
+    this.targetSessionAttrs = val('targetSessionAttrs', config)
+
+    const validTargetSessionAttrs = ['any', 'read-write', 'read-only', 'primary', 'standby', 'prefer-standby']
+    if (this.targetSessionAttrs && !validTargetSessionAttrs.includes(this.targetSessionAttrs)) {
+      throw new Error(
+        `invalid targetSessionAttrs value: "${this.targetSessionAttrs}". Must be one of: ${validTargetSessionAttrs.join(
+          ', '
+        )}`
+      )
+    }
 
     if (config.connectionTimeoutMillis === undefined) {
       this.connect_timeout = process.env.PGCONNECT_TIMEOUT || 0

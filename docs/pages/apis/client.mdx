@@ -12,8 +12,8 @@ Every field of the `config` object is entirely optional. A `Client` instance wil
 type Config = {
   user?: string, // default process.env.PGUSER || process.env.USER
   password?: string or function, //default process.env.PGPASSWORD
-  host?: string, // default process.env.PGHOST
-  port?: number, // default process.env.PGPORT
+  host?: string | string[], // default process.env.PGHOST; array enables multi-host failover
+  port?: number | number[], // default process.env.PGPORT; one value or one per host
   database?: string, // default process.env.PGDATABASE || user
   connectionString?: string, // e.g. postgres://user:password@host:5432/database
   ssl?: any, // passed directly to node.TLSSocket, supports all tls.connect options
@@ -29,7 +29,8 @@ type Config = {
   idle_in_transaction_session_timeout?: number, // number of milliseconds before terminating any session with an open idle transaction, default is no timeout
   client_encoding?: string, // specifies the character set encoding that the database uses for sending data to the client
   fallback_application_name?: string, // provide an application name to use if application_name is not set
-  options?: string // command-line options to be sent to the server
+  options?: string, // command-line options to be sent to the server
+  targetSessionAttrs?: 'any' | 'read-write' | 'read-only' | 'primary' | 'standby' | 'prefer-standby', // default 'any'; requires host to be an array
 }
 ```
 
