@@ -81,6 +81,7 @@ class Client extends EventEmitter {
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
+        targetSessionAttrs: c.targetSessionAttrs || null,
       })
     this._queryQueue = []
     this.binary = c.binary || defaults.binary
@@ -155,7 +156,7 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this.host && this.host.indexOf('/') === 0) {
+    if (!Array.isArray(this.host) && this.host && this.host.indexOf('/') === 0) {
       con.connect(this.host + '/.s.PGSQL.' + this.port)
     } else {
       con.connect(this.port, this.host)
@@ -542,7 +543,7 @@ class Client extends EventEmitter {
     if (client.activeQuery === query) {
       const con = this.connection
 
-      if (this.host && this.host.indexOf('/') === 0) {
+      if (!Array.isArray(this.host) && this.host && this.host.indexOf('/') === 0) {
         con.connect(this.host + '/.s.PGSQL.' + this.port)
       } else {
         con.connect(this.port, this.host)
