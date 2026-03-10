@@ -67,7 +67,8 @@ class ConnectionParameters {
       this.database = this.user
     }
 
-    this.port = parseInt(val('port', config), 10)
+    const rawPort = val('port', config)
+    this.port = Array.isArray(rawPort) ? rawPort.map((p) => parseInt(p, 10)) : parseInt(rawPort, 10)
     this.host = val('host', config)
 
     // "hiding" the password so it doesn't show up in stack traces
