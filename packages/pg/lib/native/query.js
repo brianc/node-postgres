@@ -14,6 +14,7 @@ const NativeQuery = (module.exports = function (config, values, callback) {
   this.callback = config.callback
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
+  this.types = config.types
 
   // if the 'row' event is listened for
   // then emit them as they come in
@@ -87,9 +88,17 @@ NativeQuery.prototype.submit = function (client) {
   const self = this
   this.native = client.native
   client.native.arrayMode = this._arrayMode
+  var savedTypes
+  if (this.types) {
+    savedTypes = client.native._types
+    client.native._types = this.types
+  }
 
   let after = function (err, rows, results) {
     client.native.arrayMode = false
+    if (savedTypes) {
+      client.native._types = savedTypes
+    }
     setImmediate(function () {
       self.emit('_done')
     })
