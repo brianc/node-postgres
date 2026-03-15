@@ -219,22 +219,20 @@ class Client extends EventEmitter {
       return
     }
 
-    const connectPromise = () =>
-      new this._Promise((resolve, reject) => {
-        this._connect((error) => {
-          if (error) reject(error)
-          else resolve(this)
-        })
-      })
-
-    if (shouldTrace(connectionChannel)) {
-      const context = {
-        connection: { database: this.database, host: this.host, port: this.port, user: this.user, ssl: !!this.ssl },
+    return new this._Promise((resolve, reject) => {
+      const callback = (error) => {
+        if (error) reject(error)
+        else resolve(this)
       }
-      return connectionChannel.tracePromise(connectPromise, context)
-    }
-
-    return connectPromise()
+      if (shouldTrace(connectionChannel)) {
+        const context = {
+          connection: { database: this.database, host: this.host, port: this.port, user: this.user, ssl: !!this.ssl },
+        }
+        connectionChannel.traceCallback((tracedCb) => this._connect(tracedCb), 0, context, null, callback)
+      } else {
+        this._connect(callback)
+      }
+    })
   }
 
   _attachListeners(con) {
