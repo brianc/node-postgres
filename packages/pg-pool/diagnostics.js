@@ -24,4 +24,12 @@ try {
   // diagnostics_channel not available (non-Node environment)
 }
 
-module.exports = { poolConnectChannel, poolReleaseChannel, poolRemoveChannel }
+// Check explicitly for `false` rather than truthiness because the aggregated
+// `hasSubscribers` getter on TracingChannel is `undefined` on Node 18 (which
+// backported TracingChannel but not the getter). When `undefined`, we assume
+// there may be subscribers and trace unconditionally.
+function shouldTrace(channel) {
+  return channel.hasSubscribers !== false
+}
+
+module.exports = { poolConnectChannel, poolReleaseChannel, poolRemoveChannel, shouldTrace }
