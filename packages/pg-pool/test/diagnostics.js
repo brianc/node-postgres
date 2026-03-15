@@ -7,6 +7,12 @@ const it = require('mocha').it
 const dc = require('diagnostics_channel')
 const Pool = require('../')
 
+// TracingChannel exists on Node 18+ but the aggregated hasSubscribers getter
+// and stable unsubscribe behavior require Node 19.9+/20.5+. Skip tracing
+// tests on older versions where TracingChannel is missing or has internal bugs.
+const hasStableTracingChannel =
+  typeof dc.tracingChannel === 'function' && typeof dc.tracingChannel('pg:pool:test:probe').hasSubscribers === 'boolean'
+
 function mockClient(methods) {
   return function () {
     const client = new EventEmitter()
@@ -23,7 +29,7 @@ function mockClient(methods) {
 
 describe('diagnostics channels', function () {
   describe('pg:pool:connect', function () {
-    it('publishes start event when connect is called', function (done) {
+    ;(hasStableTracingChannel ? it : it.skip)('publishes start event when connect is called', function (done) {
       const pool = new Pool({
         Client: mockClient({
           connect: function (cb) {
@@ -60,7 +66,7 @@ describe('diagnostics channels', function () {
         })
       })
     })
-    it('enriches context with client info on asyncEnd', function (done) {
+    ;(hasStableTracingChannel ? it : it.skip)('enriches context with client info on asyncEnd', function (done) {
       const pool = new Pool({
         Client: mockClient({
           connect: function (cb) {
