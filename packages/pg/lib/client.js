@@ -9,7 +9,7 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
-const { queryChannel, connectionChannel } = require('./diagnostics')
+const { queryChannel, connectionChannel, shouldTrace } = require('./diagnostics')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
@@ -208,7 +208,7 @@ class Client extends EventEmitter {
 
   connect(callback) {
     if (callback) {
-      if (connectionChannel.hasSubscribers) {
+      if (shouldTrace(connectionChannel)) {
         const context = {
           connection: { database: this.database, host: this.host, port: this.port, user: this.user, ssl: !!this.ssl },
         }
@@ -227,7 +227,7 @@ class Client extends EventEmitter {
         })
       })
 
-    if (connectionChannel.hasSubscribers) {
+    if (shouldTrace(connectionChannel)) {
       const context = {
         connection: { database: this.database, host: this.host, port: this.port, user: this.user, ssl: !!this.ssl },
       }
@@ -708,7 +708,7 @@ class Client extends EventEmitter {
       this._pulseQueryQueue()
     }
 
-    if (queryChannel.hasSubscribers) {
+    if (shouldTrace(queryChannel)) {
       const context = {
         query: { text: query.text, name: query.name, rowMode: query._rowMode },
         client: {

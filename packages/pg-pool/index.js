@@ -1,6 +1,6 @@
 'use strict'
 const EventEmitter = require('events').EventEmitter
-const { poolConnectChannel, poolReleaseChannel, poolRemoveChannel } = require('./diagnostics')
+const { poolConnectChannel, poolReleaseChannel, poolRemoveChannel, shouldTrace } = require('./diagnostics')
 
 const NOOP = function () {}
 
@@ -179,7 +179,7 @@ class Pool extends EventEmitter {
 
     this._clients = this._clients.filter((c) => c !== client)
     const context = this
-    if (poolRemoveChannel.hasSubscribers) {
+    if (shouldTrace(poolRemoveChannel)) {
       poolRemoveChannel.publish({ client: { processID: client.processID } })
     }
 
@@ -201,7 +201,7 @@ class Pool extends EventEmitter {
     const response = promisify(this.Promise, cb)
     const result = response.result
 
-    if (poolConnectChannel.hasSubscribers) {
+    if (shouldTrace(poolConnectChannel)) {
       const context = {
         pool: {
           totalCount: this.totalCount,
@@ -418,7 +418,7 @@ class Pool extends EventEmitter {
 
     this.emit('release', err, client)
 
-    if (poolReleaseChannel.hasSubscribers) {
+    if (shouldTrace(poolReleaseChannel)) {
       poolReleaseChannel.publish({ client: { processID: client.processID }, error: err || undefined })
     }
 

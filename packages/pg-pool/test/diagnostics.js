@@ -7,8 +7,6 @@ const it = require('mocha').it
 const dc = require('diagnostics_channel')
 const Pool = require('../')
 
-const hasTracingChannel = typeof dc.tracingChannel === 'function'
-
 function mockClient(methods) {
   return function () {
     const client = new EventEmitter()
@@ -25,7 +23,7 @@ function mockClient(methods) {
 
 describe('diagnostics channels', function () {
   describe('pg:pool:connect', function () {
-    ;(hasTracingChannel ? it : it.skip)('publishes start event when connect is called', function (done) {
+    it('publishes start event when connect is called', function (done) {
       const pool = new Pool({
         Client: mockClient({
           connect: function (cb) {
@@ -62,7 +60,7 @@ describe('diagnostics channels', function () {
         })
       })
     })
-    ;(hasTracingChannel ? it : it.skip)('enriches context with client info on asyncEnd', function (done) {
+    it('enriches context with client info on asyncEnd', function (done) {
       const pool = new Pool({
         Client: mockClient({
           connect: function (cb) {
