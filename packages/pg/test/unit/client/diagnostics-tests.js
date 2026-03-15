@@ -3,11 +3,19 @@ const helper = require('./test-helper')
 const assert = require('assert')
 const dc = require('diagnostics_channel')
 
+// TracingChannel exists on Node 18+ but the aggregated hasSubscribers getter
+// and stable unsubscribe behavior require Node 19.9+/20.5+. Skip tests on
+// older versions where TracingChannel is missing or has internal bugs.
+const hasStableTracingChannel =
+  typeof dc.tracingChannel === 'function' && typeof dc.tracingChannel('pg:test:probe').hasSubscribers === 'boolean'
+
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
+// pass undefined as callback to skip when TracingChannel is unavailable/unstable
+const testTracing = (name, cb) => test(name, hasStableTracingChannel ? cb : undefined)
 
-test('query diagnostics channel', function () {
-  test('publishes start and asyncEnd on successful query', function (done) {
+testTracing('query diagnostics channel', function () {
+  testTracing('publishes start and asyncEnd on successful query', function (done) {
     const client = helper.client()
     client.connection.emit('readyForQuery')
 
@@ -50,7 +58,7 @@ test('query diagnostics channel', function () {
     client.connection.emit('readyForQuery')
   })
 
-  test('publishes error on failed query', function (done) {
+  testTracing('publishes error on failed query', function (done) {
     const client = helper.client()
     client.connection.emit('readyForQuery')
 
@@ -87,7 +95,7 @@ test('query diagnostics channel', function () {
     })
   })
 
-  test('query context includes client info', function (done) {
+  testTracing('query context includes client info', function (done) {
     const client = helper.client({ database: 'testdb', host: 'localhost', port: 5432, user: 'testuser' })
     client.connection.emit('readyForQuery')
 
@@ -120,7 +128,7 @@ test('query diagnostics channel', function () {
     client.connection.emit('readyForQuery')
   })
 
-  test('promise query publishes diagnostics', function (done) {
+  testTracing('promise query publishes diagnostics', function (done) {
     const client = helper.client()
     client.connection.emit('readyForQuery')
 
@@ -154,8 +162,8 @@ test('query diagnostics channel', function () {
   })
 })
 
-test('connection diagnostics channel', function () {
-  test('publishes start on connect with callback', function (done) {
+testTracing('connection diagnostics channel', function () {
+  testTracing('publishes start on connect with callback', function (done) {
     const Connection = require('../../../lib/connection')
     const { Client } = helper
 
