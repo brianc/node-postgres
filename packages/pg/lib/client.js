@@ -708,7 +708,7 @@ class Client extends EventEmitter {
       this._pulseQueryQueue()
     }
 
-    if (shouldTrace(queryChannel)) {
+    if (shouldTrace(queryChannel) && query.callback) {
       const context = {
         query: { text: query.text, name: query.name, rowMode: query._rowMode },
         client: {
