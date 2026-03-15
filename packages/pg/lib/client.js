@@ -9,6 +9,7 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
+const { queryChannel, connectionChannel, shouldTrace } = require('./diagnostics')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
@@ -207,18 +208,30 @@ class Client extends EventEmitter {
 
   connect(callback) {
     if (callback) {
-      this._connect(callback)
+      if (shouldTrace(connectionChannel)) {
+        const context = {
+          connection: { database: this.database, host: this.host, port: this.port, user: this.user, ssl: !!this.ssl },
+        }
+        connectionChannel.traceCallback((tracedCb) => this._connect(tracedCb), 0, context, null, callback)
+      } else {
+        this._connect(callback)
+      }
       return
     }
 
     return new this._Promise((resolve, reject) => {
-      this._connect((error) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(this)
+      const callback = (error) => {
+        if (error) reject(error)
+        else resolve(this)
+      }
+      if (shouldTrace(connectionChannel)) {
+        const context = {
+          connection: { database: this.database, host: this.host, port: this.port, user: this.user, ssl: !!this.ssl },
         }
-      })
+        connectionChannel.traceCallback((tracedCb) => this._connect(tracedCb), 0, context, null, callback)
+      } else {
+        this._connect(callback)
+      }
     })
   }
 
@@ -687,11 +700,42 @@ class Client extends EventEmitter {
       return result
     }
 
-    if (this._queryQueue.length > 0) {
-      queryQueueLengthDeprecationNotice()
+    const enqueue = () => {
+      if (this._queryQueue.length > 0) queryQueueLengthDeprecationNotice()
+      this._queryQueue.push(query)
+      this._pulseQueryQueue()
     }
-    this._queryQueue.push(query)
-    this._pulseQueryQueue()
+
+    if (shouldTrace(queryChannel) && query.callback) {
+      const context = {
+        query: { text: query.text, name: query.name, rowMode: query._rowMode },
+        client: {
+          database: this.database,
+          host: this.host,
+          port: this.port,
+          user: this.user,
+          processID: this.processID,
+          ssl: !!this.ssl,
+        },
+      }
+      const origCb = query.callback
+      const enrichedCb = (err, res) => {
+        if (res) context.result = { rowCount: res.rowCount, command: res.command }
+        return origCb(err, res)
+      }
+      queryChannel.traceCallback(
+        (tracedCb) => {
+          query.callback = tracedCb
+          enqueue()
+        },
+        0,
+        context,
+        null,
+        enrichedCb
+      )
+    } else {
+      enqueue()
+    }
     return result
   }
 
