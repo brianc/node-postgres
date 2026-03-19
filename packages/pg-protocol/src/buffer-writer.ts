@@ -82,4 +82,9 @@ export class Writer {
     this.buffer = Buffer.allocUnsafe(this.size)
     return result
   }
+
+  public clear(): void {
+    this.offset = 5
+    this.headerPosition = 0
+  }
 }
