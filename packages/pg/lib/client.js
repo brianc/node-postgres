@@ -83,6 +83,8 @@ class Client extends EventEmitter {
         encoding: this.connectionParameters.client_encoding || 'utf8',
       })
     this._queryQueue = []
+    this._sentQueryQueue = []
+    this.pipelining = false
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -125,6 +127,9 @@ class Client extends EventEmitter {
       enqueueError(activeQuery)
       this._activeQuery = null
     }
+
+    this._sentQueryQueue.forEach(enqueueError)
+    this._sentQueryQueue.length = 0
 
     this._queryQueue.forEach(enqueueError)
     this._queryQueue.length = 0
@@ -363,6 +368,10 @@ class Client extends EventEmitter {
     if (activeQuery) {
       activeQuery.handleReadyForQuery(this.connection)
     }
+    if (this.pipelining && this._sentQueryQueue.length > 0) {
+      this._activeQuery = this._sentQueryQueue.shift()
+      this.readyForQuery = false
+    }
     this._pulseQueryQueue()
   }
 
@@ -476,6 +485,7 @@ class Client extends EventEmitter {
     // it again on the same client
     if (activeQuery.name) {
       this.connection.parsedStatements[activeQuery.name] = activeQuery.text
+      delete this.connection.submittedNamedStatements[activeQuery.name]
     }
   }
 
@@ -554,6 +564,8 @@ class Client extends EventEmitter {
       })
     } else if (client._queryQueue.indexOf(query) !== -1) {
       client._queryQueue.splice(client._queryQueue.indexOf(query), 1)
+    } else if (client._sentQueryQueue.indexOf(query) !== -1) {
+      client._sentQueryQueue.splice(client._sentQueryQueue.indexOf(query), 1)
     }
   }
 
@@ -577,6 +589,10 @@ class Client extends EventEmitter {
   }
 
   _pulseQueryQueue() {
+    if (this.pipelining) {
+      this._pulsePipelinedQueryQueue()
+      return
+    }
     if (this.readyForQuery === true) {
       this._activeQuery = this._queryQueue.shift()
       const activeQuery = this._getActiveQuery()
@@ -596,6 +612,31 @@ class Client extends EventEmitter {
         this._activeQuery = null
         this.emit('drain')
       }
+    }
+  }
+
+  _pulsePipelinedQueryQueue() {
+    if (!this._connected) {
+      return
+    }
+    while (this._queryQueue.length > 0) {
+      const query = this._queryQueue.shift()
+      this.hasExecuted = true
+      const queryError = query.submit(this.connection)
+      if (queryError) {
+        process.nextTick(() => {
+          query.handleError(queryError, this.connection)
+        })
+        continue
+      }
+      this._sentQueryQueue.push(query)
+    }
+    if (!this._activeQuery && this._sentQueryQueue.length > 0) {
+      this._activeQuery = this._sentQueryQueue.shift()
+      this.readyForQuery = false
+    }
+    if (!this._activeQuery && this._sentQueryQueue.length === 0 && this._queryQueue.length === 0 && this.hasExecuted) {
+      this.emit('drain')
     }
   }
 
@@ -654,6 +695,11 @@ class Client extends EventEmitter {
         const index = this._queryQueue.indexOf(query)
         if (index > -1) {
           this._queryQueue.splice(index, 1)
+        } else if (this.pipelining) {
+          const sentIndex = this._sentQueryQueue.indexOf(query)
+          if (sentIndex > -1) {
+            this._sentQueryQueue.splice(sentIndex, 1)
+          }
         }
 
         this._pulseQueryQueue()
@@ -687,7 +733,7 @@ class Client extends EventEmitter {
       return result
     }
 
-    if (this._queryQueue.length > 0) {
+    if (this._queryQueue.length > 0 && !this.pipelining) {
       queryQueueLengthDeprecationNotice()
     }
     this._queryQueue.push(query)
@@ -715,7 +761,7 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this._getActiveQuery() || !this._queryable) {
+    if (this._getActiveQuery() || this._sentQueryQueue.length > 0 || !this._queryable) {
       // if we have an active query we need to force a disconnect
       // on the socket - otherwise a hung query could block end forever
       this.connection.stream.destroy()

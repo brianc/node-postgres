@@ -114,6 +114,66 @@ test('executing query', function () {
     })
   })
 
+  test('pipelining', function () {
+    test('sends all queries immediately after readyForQuery', function () {
+      const client = helper.client()
+      client.pipelining = true
+      client.connection.emit('readyForQuery')
+      client.query('one')
+      client.query('two')
+      client.query('three')
+      assert.lengthIs(client.connection.queries, 3)
+      assert.equal(client.connection.queries[0], 'one')
+      assert.equal(client.connection.queries[1], 'two')
+      assert.equal(client.connection.queries[2], 'three')
+    })
+
+    test('completes queries in order', function (done) {
+      const client = helper.client()
+      client.pipelining = true
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      const results = []
+      client.query('one', (err, res) => {
+        results.push('one')
+      })
+      client.query('two', (err, res) => {
+        results.push('two')
+      })
+      client.query('three', (err, res) => {
+        results.push('three')
+      })
+
+      // simulate server responding to each query in order
+      con.emit('readyForQuery')
+      con.emit('readyForQuery')
+      con.emit('readyForQuery')
+
+      process.nextTick(() => {
+        assert.deepStrictEqual(results, ['one', 'two', 'three'])
+        done()
+      })
+    })
+
+    test('emits drain after all queries complete', function (done) {
+      const client = helper.client()
+      client.pipelining = true
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query('one')
+      client.query('two')
+
+      client.on('drain', () => {
+        done()
+      })
+
+      con.emit('readyForQuery')
+      con.emit('readyForQuery')
+    })
+  })
+
   test('handles errors', function () {
     const client = helper.client()
 
