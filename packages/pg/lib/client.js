@@ -415,6 +415,9 @@ class Client extends EventEmitter {
     }
 
     this._activeQuery = null
+    if (activeQuery.name) {
+      delete this.connection.submittedNamedStatements[activeQuery.name]
+    }
     activeQuery.handleError(msg, this.connection)
   }
 
@@ -565,7 +568,9 @@ class Client extends EventEmitter {
     } else if (client._queryQueue.indexOf(query) !== -1) {
       client._queryQueue.splice(client._queryQueue.indexOf(query), 1)
     } else if (client._sentQueryQueue.indexOf(query) !== -1) {
-      client._sentQueryQueue.splice(client._sentQueryQueue.indexOf(query), 1)
+      // Query already sent on wire — can't remove it without corrupting the
+      // pipeline. No-op the callback so the result is silently discarded.
+      query.callback = () => {}
     }
   }
 
@@ -616,7 +621,7 @@ class Client extends EventEmitter {
   }
 
   _pulsePipelinedQueryQueue() {
-    if (!this._connected) {
+    if (!this._connected || !this._queryable) {
       return
     }
     while (this._queryQueue.length > 0) {
@@ -691,16 +696,13 @@ class Client extends EventEmitter {
         // just do nothing if query completes
         query.callback = () => {}
 
-        // Remove from queue
+        // Remove from queue (only safe if not yet sent)
         const index = this._queryQueue.indexOf(query)
         if (index > -1) {
           this._queryQueue.splice(index, 1)
-        } else if (this.pipelining) {
-          const sentIndex = this._sentQueryQueue.indexOf(query)
-          if (sentIndex > -1) {
-            this._sentQueryQueue.splice(sentIndex, 1)
-          }
         }
+        // If already sent on the wire in pipelining mode, we can't remove it
+        // without corrupting the pipeline — the callback was already no-op'd above
 
         this._pulseQueryQueue()
       }, readTimeout)
