@@ -368,10 +368,6 @@ class Client extends EventEmitter {
     if (activeQuery) {
       activeQuery.handleReadyForQuery(this.connection)
     }
-    if (this.pipelining && this._sentQueryQueue.length > 0) {
-      this._activeQuery = this._sentQueryQueue.shift()
-      this.readyForQuery = false
-    }
     this._pulseQueryQueue()
   }
 
@@ -636,7 +632,7 @@ class Client extends EventEmitter {
       }
       this._sentQueryQueue.push(query)
     }
-    if (!this._activeQuery && this._sentQueryQueue.length > 0) {
+    if (this.readyForQuery && !this._activeQuery && this._sentQueryQueue.length > 0) {
       this._activeQuery = this._sentQueryQueue.shift()
       this.readyForQuery = false
     }
@@ -700,9 +696,12 @@ class Client extends EventEmitter {
         const index = this._queryQueue.indexOf(query)
         if (index > -1) {
           this._queryQueue.splice(index, 1)
+        } else if (this.pipelining) {
+          // Query already sent — the pipeline is blocked until it completes.
+          // Destroy the connection to unblock all remaining pipelined queries.
+          this.connection.stream.destroy()
+          return
         }
-        // If already sent on the wire in pipelining mode, we can't remove it
-        // without corrupting the pipeline — the callback was already no-op'd above
 
         this._pulseQueryQueue()
       }, readTimeout)
@@ -763,9 +762,15 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this._getActiveQuery() || this._sentQueryQueue.length > 0 || !this._queryable) {
-      // if we have an active query we need to force a disconnect
-      // on the socket - otherwise a hung query could block end forever
+    if (!this._queryable) {
+      // socket is dead — force close
+      this.connection.stream.destroy()
+    } else if (this.pipelining && (this._getActiveQuery() || this._sentQueryQueue.length > 0 || this._queryQueue.length > 0)) {
+      // pipelined queries are already on the wire (or queued to send) and will
+      // complete normally; wait for drain then do a graceful goodbye
+      this.once('drain', () => this.connection.end())
+    } else if (this._getActiveQuery()) {
+      // non-pipelining: a hung query could block end forever — force disconnect
       this.connection.stream.destroy()
     } else {
       this.connection.end()

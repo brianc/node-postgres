@@ -172,6 +172,60 @@ test('executing query', function () {
       con.emit('readyForQuery')
       con.emit('readyForQuery')
     })
+
+    test('extended protocol: sends parse/bind/sync for each pipelined parameterized query', function () {
+      const client = helper.client()
+      client.pipelining = true
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query({ text: 'SELECT $1::int', values: [1] })
+      client.query({ text: 'SELECT $1::int', values: [2] })
+
+      // both parse messages should have been sent immediately
+      assert.lengthIs(con.parseMessages, 2)
+      assert.equal(con.parseMessages[0].text, 'SELECT $1::int')
+      assert.equal(con.parseMessages[1].text, 'SELECT $1::int')
+      // both bind messages too
+      assert.lengthIs(con.bindMessages, 2)
+      // each query sends its own sync
+      assert.equal(con.syncCount, 2)
+    })
+
+    test('named statement: parse sent only once when pipelining the same name', function () {
+      const client = helper.client()
+      client.pipelining = true
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query({ name: 'my-stmt', text: 'SELECT $1::int', values: [1] })
+      client.query({ name: 'my-stmt', text: 'SELECT $1::int', values: [2] })
+
+      // parse sent only once — second query reuses the submitted statement
+      assert.lengthIs(con.parseMessages, 1)
+      // both bind messages sent
+      assert.lengthIs(con.bindMessages, 2)
+    })
+
+    test('enabling pipelining while no queries are in flight', function () {
+      const client = helper.client()
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      // start non-pipelining
+      assert.equal(client.pipelining, false)
+      client.query('before')
+      assert.lengthIs(con.queries, 1)
+
+      // simulate server responds
+      con.emit('readyForQuery')
+
+      // now enable pipelining — should work for subsequent queries
+      client.pipelining = true
+      client.query('after-one')
+      client.query('after-two')
+      assert.lengthIs(con.queries, 3)
+    })
   })
 
   test('handles errors', function () {

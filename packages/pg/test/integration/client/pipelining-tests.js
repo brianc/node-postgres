@@ -86,3 +86,67 @@ suite.test('pipelining drain event', async function () {
   await drainPromise
   await client.end()
 })
+
+// #12: end() during active pipelining — should drain gracefully, not destroy
+suite.test('end() waits for in-flight pipelined queries to complete', async function () {
+  const client = helper.client()
+  client.pipelining = true
+
+  // Fire queries then call end() immediately without awaiting them
+  const p1 = client.query('SELECT 1 AS num')
+  const p2 = client.query('SELECT 2 AS num')
+  const endPromise = client.end()
+
+  // All queries should resolve (not error) because end() drains gracefully
+  const [r1, r2] = await Promise.all([p1, p2])
+  assert.equal(r1.rows[0].num, 1)
+  assert.equal(r2.rows[0].num, 2)
+  await endPromise
+})
+
+// #13: named statement error cleanup — submittedNamedStatements not left stale
+suite.test('named statement parse error cleans up and allows re-preparation', async function () {
+  const client = helper.client()
+  client.pipelining = true
+
+  // Use an invalid type to force a server-side parse error
+  const err = await client
+    .query({ name: 'bad-stmt', text: 'SELECT $1::nonexistent_type_xyz', values: [1] })
+    .then(() => null)
+    .catch((e) => e)
+
+  assert.ok(err, 'expected parse to fail')
+
+  // The stale submittedNamedStatements entry should be gone.
+  // Re-using the same name with valid SQL should work.
+  const result = await client.query({ name: 'bad-stmt', text: 'SELECT $1::int AS n', values: [42] })
+  assert.equal(result.rows[0].n, 42)
+
+  await client.end()
+})
+
+// #14: query_timeout with pipelining
+// When an already-sent pipelined query times out, the connection is destroyed
+// to unblock the pipeline — subsequent queries error rather than hanging.
+suite.test('query_timeout on sent pipelined query destroys connection to unblock', async function () {
+  const client = helper.client()
+  client.pipelining = true
+  client.on('error', () => {}) // absorb the 'error' event emitted when stream is destroyed
+
+  const results = await Promise.allSettled([
+    client.query('SELECT 1 AS num'),
+    client.query({ text: 'SELECT pg_sleep(30)', query_timeout: 100 }),
+    client.query('SELECT 3 AS num'),
+  ])
+
+  // Query 1 completes before the slow query enters the pipeline
+  assert.equal(results[0].status, 'fulfilled')
+  assert.equal(results[0].value.rows[0].num, 1)
+
+  // Query 2 times out
+  assert.equal(results[1].status, 'rejected')
+  assert.ok(results[1].reason.message.includes('timeout'), `unexpected error: ${results[1].reason.message}`)
+
+  // Query 3 errors because the connection was destroyed to unblock the pipeline
+  assert.equal(results[2].status, 'rejected')
+})
