@@ -6,6 +6,10 @@ const types = require('pg-types')
 const buildResult = require('./lib/build-result')
 const CopyStream = require('./lib/copy-stream')
 
+// https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQTRANSACTIONSTATUS
+// 0=IDLE, 1=ACTIVE, 2=INTRANS, 3=INERROR
+const statusMap = { 0: 'I', 2: 'T', 3: 'E' }
+
 const Client = (module.exports = function (config) {
   if (!(this instanceof Client)) {
     return new Client(config)
@@ -143,6 +147,10 @@ Client.prototype.escapeLiteral = function (value) {
 
 Client.prototype.escapeIdentifier = function (value) {
   return this.pq.escapeIdentifier(value)
+}
+
+Client.prototype.getTransactionStatus = function () {
+  return statusMap[this.pq.transactionStatus()] ?? null
 }
 
 // export the version number so we can check it in node-postgres
