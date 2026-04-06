@@ -186,7 +186,7 @@ Returns the current transaction status of the client connection. This can be use
 - `'I'` - Idle (not in a transaction)
 - `'T'` - Transaction active (BEGIN has been issued)
 - `'E'` - Error (transaction aborted, requires ROLLBACK)
-- `null` - Initial state or not supported (native client)
+- `null` - Initial state
 
 The transaction status is updated after each query completes based on the PostgreSQL backend's `ReadyForQuery` message.
 
@@ -229,8 +229,6 @@ try {
 
 await client.end()
 ```
-
-**Note:** This method is not supported in the native client and will always return `null`.
 
 ## events
 
