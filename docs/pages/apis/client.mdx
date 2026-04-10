@@ -56,6 +56,18 @@ const client = new Client()
 await client.connect()
 ```
 
+## client.pipelining
+
+`client.pipelining: boolean`
+
+When set to `true`, queries are sent to the server immediately without waiting for previous queries to complete. Defaults to `false`. See [Pipelining](/features/pipelining) for details and examples.
+
+```js
+const client = new Client()
+await client.connect()
+client.pipelining = true
+```
+
 ## client.query
 
 ### QueryConfig
