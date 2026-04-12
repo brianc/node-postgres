@@ -40,6 +40,9 @@ function parse(str, options = {}) {
   for (const entry of result.searchParams.entries()) {
     config[entry[0]] = entry[1]
   }
+  if (result.search) {
+    config.options = result.search.slice(1)  // slice off the leading '?'
+  }
 
   config.user = config.user || decodeURIComponent(result.username)
   config.password = config.password || decodeURIComponent(result.password)
