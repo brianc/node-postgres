@@ -41,7 +41,7 @@ function parse(str, options = {}) {
     config[entry[0]] = entry[1]
   }
   if (result.search) {
-    config.options = result.search.slice(1)  // slice off the leading '?'
+    config.options = result.search.slice(1) 
   }
 
   config.user = config.user || decodeURIComponent(result.username)
