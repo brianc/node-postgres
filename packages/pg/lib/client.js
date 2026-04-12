@@ -765,7 +765,10 @@ class Client extends EventEmitter {
     if (!this._queryable) {
       // socket is dead — force close
       this.connection.stream.destroy()
-    } else if (this.pipelining && (this._getActiveQuery() || this._sentQueryQueue.length > 0 || this._queryQueue.length > 0)) {
+    } else if (
+      this.pipelining &&
+      (this._getActiveQuery() || this._sentQueryQueue.length > 0 || this._queryQueue.length > 0)
+    ) {
       // pipelined queries are already on the wire (or queued to send) and will
       // complete normally; wait for drain then do a graceful goodbye
       this.once('drain', () => this.connection.end())

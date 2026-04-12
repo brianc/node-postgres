@@ -85,7 +85,8 @@ async function run() {
   )
   const pipedNamed = await benchPipelined(
     'named prepared',
-    (n) => Array.from({ length: n }, (_, i) => ({ name: `bench-named-${i}`, text: 'SELECT $1::int AS n', values: [42] })),
+    (n) =>
+      Array.from({ length: n }, (_, i) => ({ name: `bench-named-${i}`, text: 'SELECT $1::int AS n', values: [42] })),
     BATCH,
     SECONDS
   )
