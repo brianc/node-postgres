@@ -467,4 +467,38 @@ describe('parse', function () {
     const subject = parse(connectionString)
     subject.port?.should.equal('1234')
   })
+
+  describe('prototype pollution protection', function () {
+    it('returns object with null prototype', function () {
+      const subject = parse('postgres://localhost/db')
+      expect(Object.getPrototypeOf(subject)).to.equal(null)
+    })
+
+    it('__proto__ query parameter is stored as regular property', function () {
+      const subject = parse('postgres://localhost/db?__proto__=malicious')
+      expect(Object.getPrototypeOf(subject)).to.equal(null)
+      expect(subject['__proto__']).to.equal('malicious')
+      // global Object.prototype should not be affected
+      expect(({} as any).malicious).to.equal(undefined)
+    })
+
+    it('constructor query parameter is stored as regular property', function () {
+      const subject = parse('postgres://localhost/db?constructor=evil')
+      expect(subject.constructor).to.equal('evil')
+    })
+
+    it('prototype query parameter is stored as regular property', function () {
+      const subject = parse('postgres://localhost/db?prototype=evil')
+      expect(subject['prototype']).to.equal('evil')
+    })
+
+    it('multiple dangerous query parameters are handled safely', function () {
+      const subject = parse('postgres://localhost/db?__proto__=a&constructor=b&prototype=c&toString=d')
+      expect(Object.getPrototypeOf(subject)).to.equal(null)
+      expect(subject['__proto__']).to.equal('a')
+      expect(subject.constructor).to.equal('b')
+      expect(subject['prototype']).to.equal('c')
+      expect(subject['toString']).to.equal('d')
+    })
+  })
 })

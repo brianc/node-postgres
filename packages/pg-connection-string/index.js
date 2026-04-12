@@ -14,7 +14,7 @@ function parse(str, options = {}) {
 
   // Check for empty host in URL
 
-  const config = {}
+  const config = Object.create(null)
   let result
   let dummyHost = false
   if (/ |%[^a-f0-9]|%[a-f0-9][^a-f0-9]/i.test(str)) {
@@ -164,7 +164,7 @@ function toConnectionOptions(sslConfig) {
     }
 
     return c
-  }, {})
+  }, Object.create(null))
 
   return connectionOptions
 }
@@ -200,7 +200,7 @@ function toClientConfig(config) {
     }
 
     return c
-  }, {})
+  }, Object.create(null))
 
   return poolConfig
 }
