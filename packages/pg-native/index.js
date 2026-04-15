@@ -341,10 +341,10 @@ Client.prototype.pipeline = function (queries, cb) {
           sent = pq.sendQueryPrepared(q.name, q.values || [])
         }
       }
-    } else if (q.values) {
-      sent = pq.sendQueryParams(q.text, q.values)
     } else {
-      sent = pq.sendQuery(q.text)
+      // In pipeline mode, simple query protocol (sendQuery) is not allowed.
+      // Always use extended query protocol (sendQueryParams).
+      sent = pq.sendQueryParams(q.text, q.values || [])
     }
 
     if (!sent) {
