@@ -261,16 +261,25 @@ Client.prototype.end = function (cb) {
     })
   }
 
-  this.native.end(function () {
-    self._connected = false
+  const doEnd = function () {
+    self.native.end(function () {
+      self._connected = false
 
-    self._errorAllQueries(new Error('Connection terminated'))
+      self._errorAllQueries(new Error('Connection terminated'))
 
-    process.nextTick(() => {
-      self.emit('end')
-      if (cb) cb()
+      process.nextTick(() => {
+        self.emit('end')
+        if (cb) cb()
+      })
     })
-  })
+  }
+
+  // If pipelining has in-flight or queued queries, wait for them to drain before closing
+  if (this.pipelining && (this._pipeliningInFlight || this._queryQueue.length > 0)) {
+    this.once('drain', doEnd)
+  } else {
+    doEnd()
+  }
   return result
 }
 
