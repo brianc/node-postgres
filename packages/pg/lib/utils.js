@@ -64,6 +64,9 @@ const prepareValue = function (val, seen) {
       return buf.slice(val.byteOffset, val.byteOffset + val.byteLength) // Node.js v4 does not support those Buffer.from params
     }
     if (isDate(val)) {
+      if (isNaN(val.getTime())) {
+        throw new Error('date is invalid')
+      }
       if (defaults.parseInputDatesAsUTC) {
         return dateToStringUTC(val)
       } else {

@@ -94,6 +94,22 @@ test('prepareValues: undefined prepared properly', function () {
   assert.strictEqual(out, null)
 })
 
+test('prepareValues: invalid date throws an error', function () {
+  const invalidDate = new Date(undefined)
+  assert.throws(
+    () => utils.prepareValue(invalidDate),
+    /date is invalid/
+  )
+})
+
+test('prepareValues: invalid date (NaN) does not produce NaN string', function () {
+  const invalidDate = new Date('not a date')
+  assert.throws(
+    () => utils.prepareValue(invalidDate),
+    /date is invalid/
+  )
+})
+
 test('prepareValue: null prepared properly', function () {
   const out = utils.prepareValue(null)
   assert.strictEqual(out, null)
