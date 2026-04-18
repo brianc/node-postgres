@@ -48,7 +48,7 @@ const errorFieldMap = {
 
 NativeQuery.prototype.handleError = function (err) {
   // copy pq error fields into the error object
-  const fields = this.native.pq.resultErrorFields()
+  const fields = this.native && this.native.pq.resultErrorFields()
   if (fields) {
     for (const key in fields) {
       const normalizedFieldName = errorFieldMap[key] || key
