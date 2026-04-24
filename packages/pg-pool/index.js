@@ -341,6 +341,12 @@ class Pool extends EventEmitter {
 
     client.release = this._releaseOnce(client, idleListener)
 
+    if (Symbol.dispose) {
+      client[Symbol.dispose] = function () {
+        this.release()
+      }
+    }
+
     client.removeListener('error', idleListener)
 
     if (!pendingItem.timedOut) {
