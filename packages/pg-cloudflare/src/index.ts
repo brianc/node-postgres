@@ -1,4 +1,4 @@
-import { SocketOptions, Socket, TlsOptions } from 'cloudflare:sockets' // eslint-disable-line
+import { SocketOptions, Socket, TlsOptions } from 'cloudflare:sockets'
 import { EventEmitter } from 'events'
 
 /**
