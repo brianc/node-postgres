@@ -23,7 +23,7 @@ if (NODE_MAJOR_VERSION >= 16) {
     } catch (e) {
       const stack = e.stack
       if (!e.stack.includes('innerFunction') || !e.stack.includes('outerFunction')) {
-        throw Error('async stack trace does not contain wanted values: ' + stack)
+        throw Error('async stack trace does not contain wanted values: ' + stack, { cause: e })
       }
     }
   })
@@ -44,7 +44,7 @@ if (NODE_MAJOR_VERSION >= 16) {
     } catch (e) {
       const stack = e.stack
       if (!e.stack.includes('innerFunction') || !e.stack.includes('outerFunction')) {
-        throw Error('async stack trace does not contain wanted values: ' + stack)
+        throw Error('async stack trace does not contain wanted values: ' + stack, { cause: e })
       }
     }
   })
