@@ -1,0 +1,34 @@
+# Postgres service for running the integration test suite locally.
+#
+# Usage:
+#   docker compose up -d           # start postgres in background
+#   pnpm test                      # run tests (uses env vars below)
+#   docker compose down            # stop postgres
+#   docker compose down -v         # stop + remove volumes (fresh DB)
+#
+# Tests connect via the PG* env vars exported in `.env.test` (or via
+# `pnpm exec dotenv-cli -e .env.test -- pnpm test`).
+
+services:
+  postgres:
+    image: ghcr.io/railwayapp-templates/postgres-ssl:latest
+    container_name: pg-test
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ci_db_test
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./scripts/init-scram.sql:/docker-entrypoint-initdb.d/00-scram.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ci_db_test']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pg-data:

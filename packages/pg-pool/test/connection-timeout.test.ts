@@ -236,7 +236,7 @@ describe('connection timeout', () => {
       })
     }))
 
-  it('should connect if timeout is passed, but native client in connected state', () =>
+  it.skipIf(!require('pg').native)('should connect if timeout is passed, but native client in connected state', () =>
     new Promise<void>((resolve) => {
       const Client = require('pg').native.Client
 
