@@ -20,8 +20,8 @@ describe('query-error-handling-prepared-statement', () => {
 
           const queryInstance = new Query(
             queryConfig,
-            assert.calls(function (err, result) {
-              assert.equal(err.message, 'Connection terminated')
+            assert.calls(function (err?: Error) {
+              assert.equal(err!.message, 'Connection terminated')
               done()
             })
           )
@@ -45,7 +45,7 @@ describe('query-error-handling-prepared-statement', () => {
       )
     }))
 
-  function killIdleQuery(targetQuery, cb) {
+  function killIdleQuery(targetQuery: string, cb: () => void): void {
     const client2 = new Client(helper.args)
     let pidColName = 'procpid'
     let queryColName = 'current_query'
@@ -104,8 +104,8 @@ describe('query-error-handling-prepared-statement', () => {
 
           const query1 = client.query(
             new Query(queryConfig),
-            assert.calls(function (err, result) {
-              assert.equal(err.message, 'terminating connection due to administrator command')
+            assert.calls(function (err?: Error) {
+              assert.equal(err!.message, 'terminating connection due to administrator command')
             })
           )
 

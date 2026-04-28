@@ -10,9 +10,9 @@ describe('2556', () => {
       // with a custom one that ignores the callbackError
       const original_handlers = process.listeners('uncaughtException')
       process.removeAllListeners('uncaughtException')
-      process.on('uncaughtException', (err) => {
+      process.on('uncaughtException', (err, origin) => {
         if (err != callbackError) {
-          original_handlers[0](err)
+          original_handlers[0](err, origin)
         }
       })
 

@@ -1,5 +1,9 @@
 // Ambient types for upstream packages without first-class TypeScript declarations.
 
+declare module '@cloudflare/vitest-pool-workers/config' {
+  export function defineWorkersConfig(config: unknown): unknown
+}
+
 declare module 'pg-types' {
   export type TypeFormat = 'text' | 'binary'
   export type TypeParser<T = unknown> = (value: string | Buffer) => T

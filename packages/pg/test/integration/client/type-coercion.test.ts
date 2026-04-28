@@ -5,7 +5,7 @@ import assert from 'node:assert'
 describe('type-coercion', () => {
   const pg = helper.pg
 
-  const testForTypeCoercion = function (type) {
+  const testForTypeCoercion = function (type: { name: string; values: unknown[] }): void {
     const pool = new pg.Pool()
     it(`test type coercion ${type.name}`, () =>
       new Promise<void>((cb) => {
@@ -16,7 +16,7 @@ describe('type-coercion', () => {
             assert.calls(function (err, result) {
               assert(!err)
 
-              type.values.forEach(function (val) {
+              type.values.forEach(function (val: unknown) {
                 client.query(
                   'insert into test_type(col) VALUES($1)',
                   [val],
@@ -136,7 +136,7 @@ describe('type-coercion', () => {
   ]
 
   // ignore some tests in binary mode
-  if (helper.config.binary) {
+  if ((helper.config as { binary?: boolean }).binary) {
     types = types.filter(function (type) {
       return !(type.name in { real: 1, timetz: 1, time: 1, numeric: 1, bigint: 1 })
     })
@@ -166,7 +166,7 @@ describe('type-coercion', () => {
 
       assert.emits(result, 'row', function (row) {
         const date = row.tstz
-        assert.equal(date.getYear(), now.getYear())
+        assert.equal((date as any).getYear(), (now as any).getYear())
         assert.equal(date.getMonth(), now.getMonth())
         assert.equal(date.getDate(), now.getDate())
         assert.equal(date.getHours(), now.getHours())

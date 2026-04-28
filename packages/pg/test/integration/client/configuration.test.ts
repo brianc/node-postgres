@@ -6,14 +6,14 @@ describe('configuration', () => {
   const pg = helper.pg
   const { Client } = helper
   // clear process.env
-  const realEnv = {}
+  const realEnv: Record<string, string | undefined> = {}
   for (const key in process.env) {
     realEnv[key] = process.env[key]
     if (!key.indexOf('PG')) delete process.env[key]
   }
 
   it('default values are used in new clients', function () {
-    assert.same(pg.defaults, {
+    assert.same(pg.defaults as unknown as Record<string, unknown>, {
       user: process.env.USER,
       database: undefined,
       password: null,
@@ -30,7 +30,7 @@ describe('configuration', () => {
     })
 
     const client = new pg.Client()
-    assert.same(client, {
+    assert.same(client as unknown as Record<string, unknown>, {
       user: process.env.USER,
       password: null,
       port: 5432,
@@ -46,7 +46,7 @@ describe('configuration', () => {
     pg.defaults.database = 'pow'
 
     const client = new Client()
-    assert.same(client, {
+    assert.same(client as unknown as Record<string, unknown>, {
       user: 'boom',
       password: 'zap',
       host: 'blam',

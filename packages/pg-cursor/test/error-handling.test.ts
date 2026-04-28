@@ -11,9 +11,9 @@ describe('error handling', () => {
       const client = new Client()
       client.connect()
       const cursor = client.query(new Cursor('asdfdffsdf'))
-      cursor.read(1, (err: Error | null) => {
+      cursor.read(1, (err?: Error | null) => {
         assert(err)
-        client.query('SELECT NOW()', (err2: Error | null) => {
+        client.query('SELECT NOW()', (err2?: Error | null) => {
           if (err2) return reject(err2)
           assert.ifError(err2)
           client.end()
@@ -62,11 +62,11 @@ describe('read callback does not fire sync', () => {
       client.connect()
       const cursor = client.query(new Cursor('asdfdffsdf'))
       let after = false
-      cursor.read(1, (err: Error | null) => {
+      cursor.read(1, (err?: Error | null) => {
         assert(err, 'error should be returned')
         assert.strictEqual(after, true, 'should not call read sync')
         after = false
-        cursor.read(1, (err2: Error | null) => {
+        cursor.read(1, (err2?: Error | null) => {
           assert(err2, 'error should be returned')
           assert.strictEqual(after, true, 'should not call read sync')
           client.end()
@@ -83,13 +83,13 @@ describe('read callback does not fire sync', () => {
       client.connect()
       const cursor = client.query(new Cursor('SELECT NOW()'))
       let after = false
-      cursor.read(1, (err: Error | null) => {
+      cursor.read(1, (err?: Error | null) => {
         assert(!err)
         assert.strictEqual(after, true, 'should not call read sync')
-        cursor.read(1, (err2: Error | null) => {
+        cursor.read(1, (err2?: Error | null) => {
           assert(!err2)
           after = false
-          cursor.read(1, (err3: Error | null) => {
+          cursor.read(1, (err3?: Error | null) => {
             assert(!err3)
             assert.strictEqual(after, true, 'should not call read sync')
             client.end()
@@ -108,13 +108,13 @@ describe('proper cleanup', () => {
       const client = new Client()
       client.connect()
       const cursor1 = client.query(new Cursor(text))
-      cursor1.read(8, (err: Error | null, rows: unknown[]) => {
+      cursor1.read(8, (err: Error | null | undefined, rows?: unknown[]) => {
         assert.ifError(err)
-        assert.strictEqual(rows.length, 5)
+        assert.strictEqual(rows!.length, 5)
         const cursor2 = client.query(new Cursor(text))
-        cursor2.read(8, (err2: Error | null, rows2: unknown[]) => {
+        cursor2.read(8, (err2?: Error | null, rows2?: unknown[]) => {
           assert.ifError(err2)
-          assert.strictEqual(rows2.length, 5)
+          assert.strictEqual(rows2!.length, 5)
           client.end()
           resolve()
         })

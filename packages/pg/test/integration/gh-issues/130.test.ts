@@ -3,7 +3,7 @@ import helper from '../_test-helper.ts'
 import assert from 'node:assert'
 import { exec } from 'node:child_process'
 
-helper.pg.defaults.poolIdleTimeout = 1000
+;(helper.pg.defaults as { poolIdleTimeout?: number }).poolIdleTimeout = 1000
 
 describe('130', () => {
   it('130', async () => {
@@ -12,7 +12,7 @@ describe('130', () => {
       assert.ifError(err)
       client.once('error', function (err) {
         client.on('error', (err) => {})
-        done(err)
+        done(err as never)
       })
       client.query('SELECT pg_backend_pid()', function (err, result) {
         assert.ifError(err)

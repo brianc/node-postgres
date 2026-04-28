@@ -23,9 +23,9 @@ describe('error-handling', () => {
       const client = new Client()
       client.connect((err) => {
         if (err) {
-          return done(err)
+          return done(err as never)
         }
-        client.query('select $1::text as name', 'foo', (err) => {
+        client.query('select $1::text as name', 'foo' as never, (err) => {
           assert(err instanceof Error)
           client.query('SELECT $1::text as name', ['foo'], (err, res) => {
             assert.equal(res.rows[0].name, 'foo')
@@ -40,7 +40,7 @@ describe('error-handling', () => {
       const client = new Client()
       client.connect((err) => {
         if (err) {
-          return done(err)
+          return done(err as never)
         }
         client.connect((err) => {
           assert(err instanceof Error)
@@ -64,7 +64,7 @@ describe('error-handling', () => {
       const client = new Client()
       client.connect((err) => {
         if (err) {
-          return done(err)
+          return done(err as never)
         }
         client.end(
           assert.calls(() => {
@@ -89,7 +89,7 @@ describe('error-handling', () => {
             text: 'select pg_sleep(5)',
             name: 'foobar',
           }
-          let queryError
+          let queryError: Error | undefined
           client.query(
             new pg.Query(config),
             assert.calls(function (err, res) {
@@ -106,7 +106,7 @@ describe('error-handling', () => {
       )
     }))
 
-  const ensureFuture = function (testClient, done) {
+  const ensureFuture = function (testClient: InstanceType<typeof Client>, done: () => void): void {
     const goodQuery = testClient.query(new pg.Query('select age from boom'))
     assert.emits(goodQuery, 'row', function (row) {
       assert.equal(row.age, 28)
@@ -245,7 +245,11 @@ describe('error-handling', () => {
           throw new Error('Should not receive error callback after connection')
         }
         setImmediate(() => {
-          ;(client.connection || client.native).emit('error', new Error('expected'))
+          ;((client as { connection?: { emit: (e: string, err: Error) => void } }).connection ||
+            (client as { native?: { emit: (e: string, err: Error) => void } }).native)!.emit(
+            'error',
+            new Error('expected')
+          )
         })
       })
       client.on('error', (err) => {
@@ -259,11 +263,11 @@ describe('error-handling', () => {
       const client = new Client()
       client.connect((err) => {
         if (err) {
-          return done(err)
+          return done(err as never)
         }
-        client.query({ text: {} }, (err) => {
+        client.query({ text: {} as never }, (err) => {
           assert(err)
-          client.query({}, (err) => {
+          client.query({}, (err: unknown) => {
             client.on('drain', () => {
               client.end(done)
             })

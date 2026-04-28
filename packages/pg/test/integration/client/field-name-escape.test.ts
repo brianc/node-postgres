@@ -10,7 +10,7 @@ describe('field-name-escape', () => {
       const pg = helper.pg
       const client = new pg.Client()
       client.connect()
-      client.query(sql, (err: Error | null) => {
+      client.query(sql, (err?: Error) => {
         if (err) {
           client.end()
           reject(err)

@@ -7,7 +7,7 @@ describe('row-description-on-results', () => {
 
   const conInfo = helper.config
 
-  const checkResult = function (result) {
+  const checkResult = function (result: { fields: Array<{ name: string; dataTypeID: number }> }): void {
     assert(result.fields)
     assert.equal(result.fields.length, 3)
     const fields = result.fields

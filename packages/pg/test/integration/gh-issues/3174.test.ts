@@ -15,10 +15,14 @@ describe('3174', () => {
     database: 'existing',
   }
 
-  const startMockServer = (port, badBuffer, callback) => {
-    const sockets = new Set()
+  const startMockServer = (
+    port: number,
+    badBuffer: Buffer,
+    callback: (closeServer: () => Promise<unknown>) => void
+  ): void => {
+    const sockets = new Set<net.Socket>()
 
-    const server = net.createServer((socket) => {
+    const server = net.createServer((socket: net.Socket) => {
       sockets.add(socket)
       socket.once('end', () => sockets.delete(socket))
 
@@ -80,14 +84,14 @@ describe('3174', () => {
     server.listen(port, options.host, () => callback(closeServer))
   }
 
-  const delay = (ms) =>
+  const delay = (ms: number): Promise<void> =>
     new Promise((resolve) => {
       setTimeout(resolve, ms)
     })
 
-  const testErrorBuffer = (bufferName, errorBuffer) => {
+  const testErrorBuffer = (bufferName: string, errorBuffer: Buffer): void => {
     it(`Out of order ${bufferName} on simple query is catchable`, async () => {
-      const closeServer = await new Promise((resolve, reject) => {
+      const closeServer = await new Promise<() => Promise<unknown>>((resolve) => {
         return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
       })
       const client = new helper.Client(options)
@@ -112,7 +116,7 @@ describe('3174', () => {
     })
 
     it(`Out of order ${bufferName} on extended query is catchable`, async () => {
-      const closeServer = await new Promise((resolve, reject) => {
+      const closeServer = await new Promise<() => Promise<unknown>>((resolve) => {
         return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
       })
       const client = new helper.Client(options)
@@ -139,7 +143,7 @@ describe('3174', () => {
     })
 
     it(`Out of order ${bufferName} on pool is catchable`, async () => {
-      const closeServer = await new Promise((resolve, reject) => {
+      const closeServer = await new Promise<() => Promise<unknown>>((resolve) => {
         return startMockServer(options.port, errorBuffer, (closeServer) => resolve(closeServer))
       })
       const pool = new helper.pg.Pool(options)

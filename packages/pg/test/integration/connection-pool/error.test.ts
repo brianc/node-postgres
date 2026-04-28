@@ -34,9 +34,9 @@ describe('error', () => {
                       params = ['%IDLE%']
                     }
 
-                    client.once('error', (err) => {
-                      client.on('error', (err) => {})
-                      done(err)
+                    client.once('error', (err: Error) => {
+                      client.on('error', (err: Error) => {})
+                      done(err as never)
                       cb()
                     })
 
@@ -67,32 +67,32 @@ describe('error', () => {
         assert.success((client, done) => {
           client.query(
             'SELECT pg_terminate_backend(pg_backend_pid())',
-            assert.calls((err) => {
+            assert.calls((err: Error) => {
               if (false) {
                 assert.ok(err)
               } else {
-                assert.equal(err.code, '57P01')
+                assert.equal((err as Error & { code?: string }).code, '57P01')
               }
             })
           )
 
           client.once(
             'error',
-            assert.calls((err) => {
-              client.on('error', (err) => {})
+            assert.calls((err: Error) => {
+              client.on('error', (err: Error) => {})
             })
           )
 
           client.query(
             'SELECT 1',
-            assert.calls((err) => {
+            assert.calls((err: Error) => {
               if (false) {
                 assert.equal(err.message, 'terminating connection due to administrator command')
               } else {
                 assert.equal(err.message, 'Connection terminated unexpectedly')
               }
 
-              done(err)
+              done(err as never)
               pool.end()
               cb()
             })
@@ -108,29 +108,29 @@ describe('error', () => {
         assert.success((client, done) => {
           client.query(
             'SELECT pg_terminate_backend(pg_backend_pid())',
-            assert.calls((err) => {
+            assert.calls((err: Error) => {
               if (false) {
                 assert.ok(err)
               } else {
-                assert.equal(err.code, '57P01')
+                assert.equal((err as Error & { code?: string }).code, '57P01')
               }
             })
           )
 
           client.once(
             'error',
-            assert.calls((err) => {
-              client.on('error', (err) => {})
+            assert.calls((err: Error) => {
+              client.on('error', (err: Error) => {})
               client.query(
                 'SELECT 1',
-                assert.calls((err) => {
+                assert.calls((err: Error) => {
                   if (false) {
                     assert.equal(err.message, 'terminating connection due to administrator command')
                   } else {
                     assert.equal(err.message, 'Client has encountered a connection error and is not queryable')
                   }
 
-                  done(err)
+                  done(err as never)
                   pool.end()
                   cb()
                 })
@@ -146,24 +146,29 @@ describe('error', () => {
       const pool = new pg.Pool({ max: 1 })
 
       if (native) {
-        pool.query('SELECT pg_sleep(10)', [], (err) => {
-          assert.equal(err.message, 'canceling statement due to user request')
+        pool.query('SELECT pg_sleep(10)', [], (err: Error | undefined) => {
+          assert.equal(err!.message, 'canceling statement due to user request')
           cb()
         })
 
         setTimeout(() => {
-          pool._clients[0].native.cancel((err) => {
-            assert.ifError(err)
-          })
+          ;(pool._clients[0] as unknown as { native: { cancel: (cb: (err?: Error) => void) => void } }).native.cancel(
+            (err) => {
+              assert.ifError(err)
+            }
+          )
         }, 100)
       } else {
-        pool.query('SELECT pg_sleep(10)', [], (err) => {
-          assert.equal(err.message, 'network issue')
-          assert.equal(stream.destroyed, true)
+        pool.query('SELECT pg_sleep(10)', [], (err: Error | undefined) => {
+          assert.equal(err!.message, 'network issue')
+          assert.equal((stream as unknown as { destroyed: boolean }).destroyed, true)
           cb()
         })
 
-        const stream = pool._clients[0].connection.stream
+        const stream = pool._clients[0].connection!.stream as unknown as {
+          destroy: () => void
+          emit: (event: string, ...args: unknown[]) => void
+        }
         setTimeout(() => {
           stream.emit('error', new Error('network issue'))
         }, 100)

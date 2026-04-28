@@ -65,6 +65,6 @@ export async function deriveKey(password: string, salt: Uint8Array, iterations: 
     false,
     ['deriveBits']
   )
-  const params: Pbkdf2Params = { name: 'PBKDF2', hash: 'SHA-256', salt, iterations }
+  const params: Pbkdf2Params = { name: 'PBKDF2', hash: 'SHA-256', salt: salt as unknown as BufferSource, iterations }
   return subtleCrypto.deriveBits(params, key, 32 * 8)
 }

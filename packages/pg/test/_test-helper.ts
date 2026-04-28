@@ -237,7 +237,9 @@ const helper = {
   assert,
   Suite,
   // Used by the legacy connection-string tests when checking `helper.args.native`.
-  args: { native: false } as { native: boolean },
+  // Tests in this codebase also occasionally read user/password/host/etc., so
+  // mirror the standard pg config bag here for ergonomics.
+  args: { ...config, native: false } as { native: boolean } & typeof config,
 }
 
 export { Suite }

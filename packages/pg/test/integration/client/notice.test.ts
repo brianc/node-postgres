@@ -14,7 +14,8 @@ describe('notice', () => {
           otherClient.query(
             'LISTEN boom',
             assert.calls(function () {
-              assert.emits(client, 'notification', function (msg) {
+              assert.emits(client, 'notification', function (...args) {
+                const msg = args[0] as { channel: string; payload: string; message?: string }
                 // make sure PQfreemem doesn't invalidate string pointers
                 setTimeout(function () {
                   assert.equal(msg.channel, 'boom')
@@ -22,12 +23,13 @@ describe('notice', () => {
                     msg.payload == 'omg!' /* 9.x */ || msg.payload == '' /* 8.x */,
                     'expected blank payload or correct payload but got ' + msg.message
                   )
-                  client.end(++bothEmitted ? done : undefined)
+                  client.end((++bothEmitted ? done : (): void => {}) as () => void)
                 }, 100)
               })
-              assert.emits(otherClient, 'notification', function (msg) {
+              assert.emits(otherClient, 'notification', function (...args) {
+                const msg = args[0] as { channel: string }
                 assert.equal(msg.channel, 'boom')
-                otherClient.end(++bothEmitted ? done : undefined)
+                otherClient.end((++bothEmitted ? done : (): void => {}) as () => void)
               })
 
               client.query("NOTIFY boom, 'omg!'", function (err, q) {
@@ -64,7 +66,8 @@ $$;
           client.end()
         })
       })
-      assert.emits(client, 'notice', function (notice) {
+      assert.emits(client, 'notice', function (...args) {
+        const notice = args[0] as { name: string; message: string; detail: string; code: string }
         assert.ok(notice != null)
         // notice messages should not be error instances
         assert(notice instanceof Error === false)

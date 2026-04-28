@@ -25,9 +25,13 @@ export type ClientConstructor = new (options?: PoolOptions) => Client
 
 export type LogFn = (...messages: unknown[]) => void
 
+// Signature note: when `err` is set, `client`/`release` are still always supplied
+// at runtime (release is a no-op on error). We type them as required for caller
+// ergonomics so that `client.query(...)` after the `if (err) return` guard
+// does not require a non-null assertion.
 export type ConnectCallback<C extends PoolClient = PoolClient> = (
   err: Error | undefined,
-  client: C | undefined,
+  client: C,
   release: ReleaseCallback
 ) => void
 
@@ -66,7 +70,7 @@ export interface PoolOptions extends ClientConfig {
   verify?: VerifyCallback
 }
 
-export interface PoolClient extends Client {
+export interface PoolClient extends Omit<Client, '_ending' | '_queryable' | 'connect' | 'connection' | 'end'> {
   release: ReleaseCallback
   _poolUseCount?: number
   // Internal pg client fields the pool reaches into.
@@ -97,8 +101,8 @@ class IdleItem {
 
 type PendingItemCallback<C extends PoolClient = PoolClient> = (
   err: Error | undefined,
-  client?: C,
-  release?: ReleaseCallback
+  client: C,
+  release: ReleaseCallback
 ) => void
 
 class PendingItem<C extends PoolClient = PoolClient> {
@@ -299,10 +303,13 @@ class Pool extends EventEmitter {
   connect(cb?: ConnectCallback): Promise<PoolClient> | void {
     if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
-      return cb ? cb(err, undefined, NOOP) : (this.Promise as PromiseConstructor).reject(err)
+      return cb ? cb(err, undefined as unknown as PoolClient, NOOP) : (this.Promise as PromiseConstructor).reject(err)
     }
 
-    const response = promisify<PoolClient>(this.Promise, cb as PendingItemCallback<PoolClient> | undefined)
+    const response = promisify<PoolClient>(
+      this.Promise,
+      cb as unknown as (err: Error | undefined, value?: PoolClient, release?: ReleaseCallback) => void
+    )
     const result = response.result
 
     // if we don't have to connect a new client, don't do so
@@ -347,7 +354,7 @@ class Pool extends EventEmitter {
   }
 
   newClient(pendingItem: PendingItem): void {
-    const client = new this.Client(this.options) as PoolClient
+    const client = new this.Client(this.options) as unknown as PoolClient
     this._clients.push(client)
     const idleListener = makeIdleListener(this, client)
 
@@ -389,7 +396,7 @@ class Pool extends EventEmitter {
         this._pulseQueue()
 
         if (!pendingItem.timedOut) {
-          pendingItem.callback(err, undefined, NOOP)
+          pendingItem.callback(err, undefined as unknown as PoolClient, NOOP)
         }
       } else {
         this.log('new client connected')
@@ -404,7 +411,7 @@ class Pool extends EventEmitter {
               client.end(() => {
                 this._pulseQueue()
                 if (!pendingItem.timedOut) {
-                  pendingItem.callback(hookErr, undefined, NOOP)
+                  pendingItem.callback(hookErr, undefined as unknown as PoolClient, NOOP)
                 }
               })
             }
@@ -465,7 +472,7 @@ class Pool extends EventEmitter {
         this.options.verify(client, (err) => {
           if (err) {
             client.release(err)
-            return pendingItem.callback(err, undefined, NOOP)
+            return pendingItem.callback(err, undefined as unknown as PoolClient, NOOP)
           }
 
           pendingItem.callback(undefined, client, client.release)
@@ -563,22 +570,22 @@ class Pool extends EventEmitter {
   ): Promise<QueryResult<R>>
   query<R extends any[] = any[], I extends any[] = any[]>(
     queryConfig: QueryArrayConfig<I>,
-    callback: (err: Error, result: QueryArrayResult<R>) => void
+    callback: (err: Error | undefined, result: QueryArrayResult<R>) => void
   ): void
   query<R extends QueryResultRow = any, I extends any[] = any[]>(
     queryTextOrConfig: string | QueryConfig<I>,
-    callback: (err: Error, result: QueryResult<R>) => void
+    callback: (err: Error | undefined, result: QueryResult<R>) => void
   ): void
   query<R extends QueryResultRow = any, I extends any[] = any[]>(
     queryText: string,
     values: I,
-    callback: (err: Error, result: QueryResult<R>) => void
+    callback: (err: Error | undefined, result: QueryResult<R>) => void
   ): void
   query(
     text: unknown,
     values?: unknown,
-    cb?: (err: Error | undefined, result?: unknown) => void
-  ): Promise<unknown> | undefined {
+    cb?: (err: Error | undefined, result?: any) => void
+  ): Promise<unknown> | Submittable | undefined {
     // guard clause against passing a function as the first parameter
     if (typeof text === 'function') {
       const response = promisify<unknown>(this.Promise, text as (err: Error | undefined) => void)
@@ -640,6 +647,10 @@ class Pool extends EventEmitter {
   }
 
   end(): Promise<void>
+  // Bivariant first so a callback like `(err) => ...` gets `err: any` and a
+  // Promise-resolver-shaped value (`(value?: void | PromiseLike<void>) => void`)
+  // is also accepted directly.
+  end(cb: (...args: any[]) => any): void
   end(cb: (err?: Error) => void): void
   end(cb?: (err?: Error) => void): Promise<void> | void {
     this.log('ending')

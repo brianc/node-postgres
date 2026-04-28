@@ -18,7 +18,7 @@ describe.skip('981', () => {
 
   it('native pool returns native client', async () => {
     const pg = (await import('../../../src/index.ts')).default
-    const native = pg.native
+    const native = pg.native!
     const NativeClient = (await import('../../../src/native/client.ts')).default
     const nativePool = new native.Pool()
     await new Promise<void>((cb) => {

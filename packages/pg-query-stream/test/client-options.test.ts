@@ -9,7 +9,6 @@ describe('client options', () => {
       const types = {
         getTypeParser: () => (string: string) => string,
       }
-      // @ts-expect-error -- types is not part of public ClientConfig
       const client = new Client({ types })
       client.connect()
       const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num')

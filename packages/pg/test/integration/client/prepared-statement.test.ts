@@ -110,9 +110,9 @@ describe('prepared-statement', () => {
             name: queryName,
             values: [30, '%n%'],
           }),
-          assert.calls((err) => {
+          assert.calls((err?: Error) => {
             assert.equal(
-              err.message,
+              err!.message,
               `Prepared statements must be unique - '${queryName}' was used for a different statement`
             )
             client.end(resolve)
@@ -173,7 +173,7 @@ describe('prepared-statement', () => {
     client.query("INSERT INTO zoom (name) VALUES ('postgres')")
     client.query("INSERT INTO zoom (name) VALUES ('node postgres')")
 
-    const checkForResults = function (q) {
+    const checkForResults = function (q: { once(event: string, cb: (...args: unknown[]) => void): void }): void {
       assert.emits(q, 'row', function (row) {
         assert.equal(row.name, 'node postgres')
 
@@ -196,7 +196,7 @@ describe('prepared-statement', () => {
               text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
               rows: 1,
             },
-            done
+            done as never
           )
         )
 
@@ -212,7 +212,7 @@ describe('prepared-statement', () => {
               text: 'SELECT name FROM zoom ORDER BY name COLLATE "C"',
               rows: 1000,
             },
-            done
+            done as never
           )
         )
         checkForResults(query)

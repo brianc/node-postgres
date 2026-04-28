@@ -7,17 +7,17 @@ describe('statement_timeout', () => {
 
   const conInfo = helper.config
 
-  function getConInfo(override) {
+  function getConInfo(override?: Record<string, unknown>): Record<string, unknown> {
     return Object.assign({}, conInfo, override)
   }
 
-  function getStatementTimeout(conf, cb) {
-    const client = new Client(conf)
+  function getStatementTimeout(conf: Record<string, unknown>, cb: (timeout: string) => void): void {
+    const client = new Client(conf as never)
     client.connect(
       assert.success(function () {
         client.query(
           'SHOW statement_timeout',
-          assert.success(function (res) {
+          assert.success(function (res: { rows: Array<{ statement_timeout: string }> }) {
             const statementTimeout = res.rows[0].statement_timeout
             cb(statementTimeout)
             client.end()
@@ -43,7 +43,7 @@ describe('statement_timeout', () => {
         const conf = getConInfo({
           statement_timeout: 3000,
         })
-        getStatementTimeout(conf, function (res) {
+        getStatementTimeout(conf, function (res: string) {
           assert.strictEqual(res, '3s')
           done()
         })
@@ -54,7 +54,7 @@ describe('statement_timeout', () => {
         const conf = getConInfo({
           statement_timeout: 3000.7,
         })
-        getStatementTimeout(conf, function (res) {
+        getStatementTimeout(conf, function (res: string) {
           assert.strictEqual(res, '3s')
           done()
         })
@@ -65,7 +65,7 @@ describe('statement_timeout', () => {
         const conf = getConInfo({
           statement_timeout: '3000',
         })
-        getStatementTimeout(conf, function (res) {
+        getStatementTimeout(conf, function (res: string) {
           assert.strictEqual(res, '3s')
           done()
         })
@@ -79,9 +79,9 @@ describe('statement_timeout', () => {
         const client = new Client(conf)
         client.connect(
           assert.success(function () {
-            client.query('SELECT pg_sleep( 1 )', function (error) {
+            client.query('SELECT pg_sleep( 1 )', function (error?: Error) {
               client.end()
-              assert.strictEqual(error.code, '57014') // query_cancelled
+              assert.strictEqual((error as Error & { code?: string })?.code, '57014') // query_cancelled
               done()
             })
           })

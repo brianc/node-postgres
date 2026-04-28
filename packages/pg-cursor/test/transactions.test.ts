@@ -11,7 +11,7 @@ describe('transactions', () => {
     await client.query('CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)')
     const cursor = client.query(new Cursor('SELECT * FROM foobar'))
     const rows = await new Promise<unknown[]>((resolve, reject) => {
-      cursor.read(10, (err: Error | null, rows: unknown[]) => (err ? reject(err) : resolve(rows)))
+      cursor.read(10, (err: Error | null | undefined, rows?: unknown[]) => (err ? reject(err) : resolve(rows ?? [])))
     })
     assert.strictEqual(rows.length, 0)
     await client.query('ALTER TABLE foobar ADD COLUMN name TEXT')
@@ -36,7 +36,9 @@ describe('transactions', () => {
     // create a cursor that has no data response
     const createText = 'CREATE TEMP TABLE foobar(id SERIAL PRIMARY KEY)'
     const cursor = client.query(new Cursor(createText))
-    const err = await new Promise<Error | null>((resolve) => cursor.read(100, (err: Error | null) => resolve(err)))
+    const err = await new Promise<Error | null>((resolve) =>
+      cursor.read(100, (err?: Error | null) => resolve(err ?? null))
+    )
     assert.ifError(err)
     await client.query('ALTER TABLE foobar ADD COLUMN name TEXT')
     await client.end()

@@ -8,15 +8,15 @@ describe('simple-query', () => {
     const client = helper.client()
     await helper.createPersonTable(client)
 
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const query = client.query(new Query('select name from person order by name collate "C"'))
 
-      const rows = []
-      query.on('row', function (row, result) {
+      const rows: string[] = []
+      query.on('row', function (row: Record<string, string>, result: unknown) {
         assert.ok(result)
         rows.push(row['name'])
       })
-      query.once('row', function (row) {
+      query.once('row', function (row: Record<string, string>) {
         it('returned right columns', function () {
           assert.deepStrictEqual(row, { name: row.name })
         })
@@ -39,20 +39,20 @@ describe('simple-query', () => {
     const client = helper.client()
     await helper.createPersonTable(client)
 
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const params = [1]
 
       const query = client.query(new Query('select name from person where $1 = 1 order by name collate "C"', params))
 
       assert.deepEqual(params, [1])
 
-      const rows = []
-      query.on('row', function (row, result) {
+      const rows: Array<{ name: string }> = []
+      query.on('row', function (row: { name: string }, result: unknown) {
         assert.ok(result)
         rows.push(row)
       })
 
-      query.on('end', function (result) {
+      query.on('end', function (result: { rowCount: number }) {
         assert.lengthIs(rows, 26, 'result returned wrong number of rows')
         assert.lengthIs(rows, result.rowCount)
         assert.equal(rows[0].name, 'Aaron')
@@ -67,9 +67,11 @@ describe('simple-query', () => {
     client.query({ text: "create temp table bang(id serial, name varchar(5));insert into bang(name) VALUES('boom');" })
     client.query("insert into bang(name) VALUES ('yes');")
     const query = client.query(new Query('select name from bang'))
-    assert.emits(query, 'row', function (row) {
+    assert.emits(query, 'row', function (...args) {
+      const row = args[0] as Record<string, string>
       assert.equal(row['name'], 'boom')
-      assert.emits(query, 'row', function (row) {
+      assert.emits(query, 'row', function (...args) {
+        const row = args[0] as Record<string, string>
         assert.equal(row['name'], 'yes')
       })
     })
@@ -83,9 +85,11 @@ describe('simple-query', () => {
     )
     client.query({ text: "create temp table bang(name varchar(5)); insert into bang(name) values('zoom');" })
     const result = client.query(new Query({ text: 'select age from boom where age < 2; select name from bang' }))
-    assert.emits(result, 'row', function (row) {
+    assert.emits(result, 'row', function (...args) {
+      const row = args[0] as Record<string, unknown>
       assert.strictEqual(row['age'], 1)
-      assert.emits(result, 'row', function (row) {
+      assert.emits(result, 'row', function (...args) {
+        const row = args[0] as Record<string, unknown>
         assert.strictEqual(row['name'], 'zoom')
       })
     })

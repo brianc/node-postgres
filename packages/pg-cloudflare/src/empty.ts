@@ -44,7 +44,11 @@ export class CloudflareSocket extends EventEmitter {
     return false
   }
 
-  end(_data?: Uint8Array | string, _encoding?: BufferEncoding, callback: (...args: unknown[]) => void = () => {}): this {
+  end(
+    _data?: Uint8Array | string,
+    _encoding?: BufferEncoding,
+    callback: (...args: unknown[]) => void = () => {}
+  ): this {
     callback(new Error(ERROR_MESSAGE))
     return this
   }

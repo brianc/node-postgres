@@ -3,6 +3,6 @@ import { CloudflareSocket } from 'pg-cloudflare'
 
 describe('pg-cloudflare', () => {
   it('exports CloudflareSocket constructor', () => {
-    expect(new CloudflareSocket()).toBeTruthy()
+    expect(new CloudflareSocket(false)).toBeTruthy()
   })
 })

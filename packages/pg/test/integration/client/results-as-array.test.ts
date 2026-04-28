@@ -9,10 +9,10 @@ describe('results-as-array', () => {
 
   it('returns results as array', function () {
     const client = new Client(conInfo)
-    const checkRow = function (row) {
+    const checkRow = function (row: unknown[]): void {
       assert(Array.isArray(row), 'row should be an array')
       assert.equal(row.length, 4)
-      assert.equal(row[0].getFullYear(), new Date().getFullYear())
+      assert.equal((row[0] as Date).getFullYear(), new Date().getFullYear())
       assert.strictEqual(row[1], 1)
       assert.strictEqual(row[2], 'hai')
       assert.strictEqual(row[3], null)
@@ -22,7 +22,7 @@ describe('results-as-array', () => {
         const config = {
           text: 'SELECT NOW(), 1::int, $1::text, null',
           values: ['hai'],
-          rowMode: 'array',
+          rowMode: 'array' as const,
         }
         client.query(
           config,

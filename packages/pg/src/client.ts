@@ -51,8 +51,8 @@ export interface ClientConfig extends ConnectionParametersConfig {
   password?: string | null | ((connectionParameters: ConnectionParameters) => string | Promise<string>)
 }
 
-type ConnectCallback = (err: Error | null, client?: Client) => void
-type QueryCallback = (err: Error | null, result?: unknown) => void
+type ConnectCallback = (err?: Error, client?: Client) => void
+type QueryCallback = (err?: Error, result?: any) => void
 
 class Client extends EventEmitter {
   static Query: typeof Query = Query
@@ -363,7 +363,8 @@ class Client extends EventEmitter {
       try {
         this.saslSession = sasl.startSession(
           msg.mechanisms,
-          this.enableChannelBinding && (this.connection.stream as unknown as { getPeerCertificate?: () => unknown })
+          this.enableChannelBinding &&
+            (this.connection.stream as unknown as { getPeerCertificate?: () => { raw: Buffer } })
         )
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
       } catch (err) {
@@ -378,7 +379,8 @@ class Client extends EventEmitter {
         this.saslSession!,
         this.password as string,
         msg.data,
-        this.enableChannelBinding && (this.connection.stream as unknown as { getPeerCertificate?: () => unknown })
+        this.enableChannelBinding &&
+          (this.connection.stream as unknown as { getPeerCertificate?: () => { raw: Buffer } })
       )
       this.connection.sendSCRAMClientFinalMessage(this.saslSession!.response)
     } catch (err) {
@@ -408,7 +410,7 @@ class Client extends EventEmitter {
 
       // process possible callback argument to Client#connect
       if (this._connectionCallback) {
-        this._connectionCallback(null, this)
+        this._connectionCallback(null as never, this)
         // remove callback for proper error handling after the connect event
         this._connectionCallback = null
       }
@@ -652,8 +654,25 @@ class Client extends EventEmitter {
     }
   }
 
+  // Submittable overloads come first so a `Query`/`Cursor` instance is matched
+  // and the return type carries through (instead of being eaten by a wider
+  // `QueryConfigInput` overload).
+  query<S extends { submit(connection: unknown): void }>(query: S): S
+  query<S extends { submit(connection: unknown): void }>(query: S, callback: QueryCallback): S
+  query<R = any>(
+    text: string,
+    values?: unknown[]
+  ): Promise<{ rows: R[]; rowCount: number | null; command: string | null; oid: number | null; fields: unknown[] }>
+  query<R = any>(text: string, callback: QueryCallback): void
+  query<R = any>(text: string, values: unknown[], callback: QueryCallback): void
+  query<R = any>(
+    config: QueryConfigInput,
+    values?: unknown[]
+  ): Promise<{ rows: R[]; rowCount: number | null; command: string | null; oid: number | null; fields: unknown[] }>
+  query<R = any>(config: QueryConfigInput, callback: QueryCallback): void
+  query<R = any>(config: QueryConfigInput, values: unknown[], callback: QueryCallback): void
   query(
-    config: string | QueryConfigInput | Query,
+    config: string | QueryConfigInput | Query | { submit(connection: unknown): void },
     values?: unknown[] | QueryCallback,
     callback?: QueryCallback
   ): unknown {
@@ -680,7 +699,7 @@ class Client extends EventEmitter {
       query = new Query(config as string | QueryConfigInput, values as never, callback)
       if (!query.callback) {
         result = new (this._Promise as PromiseConstructor)((resolve, reject) => {
-          query.callback = (err: Error | null, res?: unknown) => (err ? reject(err) : resolve(res))
+          query.callback = (err, res) => (err ? reject(err) : resolve(res))
         }).catch((err: Error) => {
           // replace the stack trace that leads to `TCP.onStreamRead` with one that leads
           // back to the application that created the query
@@ -714,7 +733,7 @@ class Client extends EventEmitter {
         this._pulseQueryQueue()
       }, readTimeout)
 
-      query.callback = (err: Error | null, res?: unknown) => {
+      query.callback = (err, res) => {
         clearTimeout(readTimeoutTimer)
         queryCallback!(err, res)
       }
@@ -761,8 +780,12 @@ class Client extends EventEmitter {
     this.connection.unref()
   }
 
-  end(cb: () => void): void
   end(): Promise<void>
+  // Bivariant first so a callback like `(err) => ...` gets `err: any` and a
+  // Promise-resolver-shaped value (`(value?: void | PromiseLike<void>) => void`)
+  // is also accepted directly.
+  end(cb: (...args: any[]) => any): void
+  end(cb: () => void): void
   end(cb?: () => void): void | Promise<void> {
     this._ending = true
 

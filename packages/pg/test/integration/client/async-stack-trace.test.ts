@@ -5,8 +5,8 @@ import helper from '../_test-helper.ts'
 describe('async-stack-trace', () => {
   const pg = helper.pg
 
-  process.on('unhandledRejection', function (e) {
-    console.error(e, e.stack)
+  process.on('unhandledRejection', function (e: unknown) {
+    console.error(e, (e as Error).stack)
     process.exit(1)
   })
   // these tests will only work for if --async-stack-traces is on, which is the default starting in node 16.
@@ -21,8 +21,9 @@ describe('async-stack-trace', () => {
         await innerFunction()
         throw Error('should have errored')
       } catch (e) {
-        const stack = e.stack
-        if (!e.stack.includes('innerFunction') || !e.stack.includes('outerFunction')) {
+        const err = e as Error
+        const stack = err.stack ?? ''
+        if (!stack.includes('innerFunction') || !stack.includes('outerFunction')) {
           throw Error('async stack trace does not contain wanted values: ' + stack)
         }
       }
@@ -42,8 +43,9 @@ describe('async-stack-trace', () => {
         await innerFunction()
         throw Error('should have errored')
       } catch (e) {
-        const stack = e.stack
-        if (!e.stack.includes('innerFunction') || !e.stack.includes('outerFunction')) {
+        const err = e as Error
+        const stack = err.stack ?? ''
+        if (!stack.includes('innerFunction') || !stack.includes('outerFunction')) {
           throw Error('async stack trace does not contain wanted values: ' + stack)
         }
       }

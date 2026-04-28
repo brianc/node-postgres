@@ -6,17 +6,17 @@ describe('appname', () => {
   const Client = helper.Client
   const conInfo = helper.config
 
-  function getConInfo(override) {
+  function getConInfo(override: Record<string, unknown>): Record<string, unknown> {
     return Object.assign({}, conInfo, override)
   }
 
-  function getAppName(conf, cb) {
-    const client = new Client(conf)
+  function getAppName(conf: string | Record<string, unknown>, cb: (appName: string) => void): void {
+    const client = new Client(conf as never)
     client.connect(
       assert.success(function () {
         client.query(
           'SHOW application_name',
-          assert.success(function (res) {
+          assert.success(function (res: { rows: Array<{ application_name: string }> }) {
             const appName = res.rows[0].application_name
             cb(appName)
             client.end()
@@ -28,7 +28,7 @@ describe('appname', () => {
 
   it('No default appliation_name ', () =>
     new Promise<void>((done) => {
-      getAppName({}, function (res) {
+      getAppName({}, function (res: string) {
         assert.strictEqual(res, '')
         done()
       })
@@ -40,7 +40,7 @@ describe('appname', () => {
       const conf = getConInfo({
         fallback_application_name: fbAppName,
       })
-      getAppName(conf, function (res) {
+      getAppName(conf, function (res: string) {
         assert.strictEqual(res, fbAppName)
         done()
       })
@@ -52,7 +52,7 @@ describe('appname', () => {
       const conf = getConInfo({
         application_name: appName,
       })
-      getAppName(conf, function (res) {
+      getAppName(conf, function (res: string) {
         assert.strictEqual(res, appName)
         done()
       })
@@ -66,7 +66,7 @@ describe('appname', () => {
         application_name: appName,
         fallback_application_name: fbAppName,
       })
-      getAppName(conf, function (res) {
+      getAppName(conf, function (res: string) {
         assert.strictEqual(res, appName)
         done()
       })
@@ -76,7 +76,7 @@ describe('appname', () => {
     new Promise<void>((done) => {
       const appName = 'my app'
       const conf = 'postgres://?application_name=' + appName
-      getAppName(conf, function (res) {
+      getAppName(conf, function (res: string) {
         assert.strictEqual(res, appName)
         done()
       })
@@ -87,7 +87,7 @@ describe('appname', () => {
     it('application_name is read from the env', () =>
       new Promise<void>((done) => {
         const appName = (process.env.PGAPPNAME = 'testest')
-        getAppName({}, function (res) {
+        getAppName({}, function (res: string) {
           delete process.env.PGAPPNAME
           assert.strictEqual(res, appName)
           done()

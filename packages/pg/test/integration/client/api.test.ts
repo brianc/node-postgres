@@ -166,7 +166,7 @@ describe('api', () => {
           client.query(
             'select now as now from NOW()',
             assert.calls(function (err, result) {
-              assert.equal(new Date().getYear(), result.rows[0].now.getYear())
+              assert.equal((new Date() as any).getYear(), (result.rows[0].now as any).getYear())
               client.query(
                 'select now as now_again FROM NOW()',
                 assert.calls(function () {
@@ -252,7 +252,7 @@ describe('api', () => {
             },
             assert.calls(function (err, result) {
               assert(!err)
-              assert.equal(result.rows[0].now.getYear(), new Date().getYear())
+              assert.equal((result.rows[0].now as any).getYear(), (new Date() as any).getYear())
               release()
               pool.end(done)
             })

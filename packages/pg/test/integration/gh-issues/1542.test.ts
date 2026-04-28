@@ -16,7 +16,7 @@ describe('1542', () => {
   it('calling pg.Pool without new throws', () => {
     const Pool = helper.pg.Pool
     assert.throws(() => {
-      Pool()
+      ;(Pool as unknown as () => unknown)()
     })
   })
 })

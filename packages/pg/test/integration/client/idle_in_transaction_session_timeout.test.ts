@@ -6,11 +6,11 @@ describe('idle_in_transaction_session_timeout', () => {
   const Client = helper.Client
   const conInfo = helper.config
 
-  function getConInfo(override) {
+  function getConInfo(override?: Record<string, unknown>): Record<string, unknown> {
     return Object.assign({}, conInfo, override)
   }
 
-  function testClientVersion(cb) {
+  function testClientVersion(cb: () => void): void {
     const client = new Client({})
     client.connect(
       assert.success(function () {
@@ -35,13 +35,13 @@ describe('idle_in_transaction_session_timeout', () => {
     )
   }
 
-  function getIdleTransactionSessionTimeout(conf, cb) {
-    const client = new Client(conf)
+  function getIdleTransactionSessionTimeout(conf: Record<string, unknown>, cb: (timeout: string) => void): void {
+    const client = new Client(conf as never)
     client.connect(
       assert.success(function () {
         client.query(
           'SHOW idle_in_transaction_session_timeout',
-          assert.success(function (res) {
+          assert.success(function (res: { rows: Array<{ idle_in_transaction_session_timeout: string }> }) {
             const timeout = res.rows[0].idle_in_transaction_session_timeout
             cb(timeout)
             client.end()
@@ -68,7 +68,7 @@ describe('idle_in_transaction_session_timeout', () => {
           const conf = getConInfo({
             idle_in_transaction_session_timeout: 3000,
           })
-          getIdleTransactionSessionTimeout(conf, function (res) {
+          getIdleTransactionSessionTimeout(conf, function (res: string) {
             assert.strictEqual(res, '3s')
             done()
           })
@@ -79,7 +79,7 @@ describe('idle_in_transaction_session_timeout', () => {
           const conf = getConInfo({
             idle_in_transaction_session_timeout: 3000.7,
           })
-          getIdleTransactionSessionTimeout(conf, function (res) {
+          getIdleTransactionSessionTimeout(conf, function (res: string) {
             assert.strictEqual(res, '3s')
             done()
           })
@@ -90,7 +90,7 @@ describe('idle_in_transaction_session_timeout', () => {
           const conf = getConInfo({
             idle_in_transaction_session_timeout: '3000',
           })
-          getIdleTransactionSessionTimeout(conf, function (res) {
+          getIdleTransactionSessionTimeout(conf, function (res: string) {
             assert.strictEqual(res, '3s')
             done()
           })

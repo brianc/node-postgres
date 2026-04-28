@@ -8,10 +8,10 @@ describe('pool', () => {
         const pool = new Pool()
         pool.connect((err, client, release) => {
           if (err) return reject(err)
-          client!.query('SELECT NOW()', (err: Error | undefined, res: any) => {
+          client!.query('SELECT NOW()', (err, res) => {
             release()
             if (err) return reject(err)
-            expect(res.rows).toHaveLength(1)
+            expect((res as { rows: unknown[] }).rows).toHaveLength(1)
             pool.end((endErr) => (endErr ? reject(endErr) : resolve()))
           })
         })
@@ -31,7 +31,7 @@ describe('pool', () => {
     it('can run a query with a callback without parameters', () =>
       new Promise<void>((resolve, reject) => {
         const pool = new Pool()
-        pool.query('SELECT 1 as num', (err: Error | undefined, res: any) => {
+        pool.query('SELECT 1 as num', (err, res) => {
           expect(res.rows[0]).toEqual({ num: 1 })
           pool.end(() => {
             err ? reject(err) : resolve()
@@ -42,7 +42,7 @@ describe('pool', () => {
     it('can run a query with a callback', () =>
       new Promise<void>((resolve, reject) => {
         const pool = new Pool()
-        pool.query('SELECT $1::text as name', ['brianc'], (err: Error | undefined, res: any) => {
+        pool.query('SELECT $1::text as name', ['brianc'], (err, res) => {
           expect(res.rows[0]).toEqual({ name: 'brianc' })
           pool.end(() => {
             err ? reject(err) : resolve()
@@ -53,7 +53,7 @@ describe('pool', () => {
     it('passes connection errors to callback', () =>
       new Promise<void>((resolve, reject) => {
         const pool = new Pool({ port: 53922 })
-        pool.query('SELECT $1::text as name', ['brianc'], (err: Error | undefined, res: any) => {
+        pool.query('SELECT $1::text as name', ['brianc'], (err, res) => {
           expect(res).toBe(undefined)
           expect(err).toBeInstanceOf(Error)
           // a connection error should not pollute the pool with a dead client

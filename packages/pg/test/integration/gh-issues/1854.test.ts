@@ -26,7 +26,7 @@ describe('1854', () => {
         .catch((err) => {
           client.end(() => {})
           if (err !== expectedErr) {
-            done(new Error('Expected a serialization error to be thrown but instead caught: ' + err))
+            done(new Error('Expected a serialization error to be thrown but instead caught: ' + err) as never)
             return
           }
           done()

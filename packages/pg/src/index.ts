@@ -15,6 +15,45 @@ import TypeOverrides from './type-overrides.ts'
 import * as utils from './utils.ts'
 import { escapeIdentifier, escapeLiteral } from './utils.ts'
 
+import type { ClientConfig } from './client.ts'
+import type { QueryConfigInput } from './utils.ts'
+import type { FieldDef } from './result.ts'
+
+// Public structural type aliases re-exported from `pg`. These mirror the shapes of
+// the long-standing `@types/pg` definitions used by downstream consumers and by
+// `pg-pool` for its own typings.
+export type QueryResultRow = Record<string, unknown>
+
+export interface QueryResult<R extends QueryResultRow = QueryResultRow> {
+  command: string | null
+  rowCount: number | null
+  oid: number | null
+  rows: R[]
+  fields: FieldDef[]
+}
+
+export interface QueryConfig<I extends unknown[] = unknown[]> extends Omit<QueryConfigInput, 'values' | 'rowMode'> {
+  text?: string
+  name?: string
+  values?: I
+  rowMode?: 'array' | undefined
+}
+
+export interface QueryArrayConfig<I extends unknown[] = unknown[]> extends QueryConfig<I> {
+  rowMode: 'array'
+}
+
+export interface QueryArrayResult<R extends unknown[] = unknown[]> extends Omit<QueryResult<QueryResultRow>, 'rows'> {
+  rows: R[]
+}
+
+export interface Submittable {
+  submit(connection: unknown): void
+}
+
+export type { ClientConfig }
+export type { FieldDef } from './result.ts'
+
 export {
   Client,
   Connection,
@@ -54,7 +93,7 @@ function buildPg(ClientCtor: typeof Client): PG {
   // or the native client when accessed via `pg.native`).
   const BasePool = RawPool as unknown as new (
     options: ConstructorParameters<typeof RawPool>[0],
-    Client?: typeof Client
+    ClientArg?: typeof Client
   ) => RawPool
   class BoundPool extends BasePool {
     constructor(options?: ConstructorParameters<typeof RawPool>[0]) {

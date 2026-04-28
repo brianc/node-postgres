@@ -1,8 +1,8 @@
 import { EventEmitter } from 'node:events'
 import { deprecate } from 'node:util'
-// note: can remove these deep imports when we bump min version of pg to 9.x
-import Result from 'pg/lib/result.js'
-import { prepareValue } from 'pg/lib/utils.js'
+import { Result, utils as pgUtils } from 'pg'
+
+const { prepareValue } = pgUtils
 
 let nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
 
@@ -23,7 +23,7 @@ export interface CursorQueryConfig {
   types?: CursorTypes
 }
 
-export type CursorReadCallback<R = unknown> = (err: Error | undefined | null, rows?: R[], result?: Result) => void
+export type CursorReadCallback<R = unknown> = (err?: Error | null, rows?: R[], result?: Result) => void
 
 export type CursorCloseCallback = (err?: Error | null) => void
 
@@ -64,7 +64,7 @@ class Cursor<R = unknown> extends EventEmitter {
     this.connection = null
     this._queue = []
     this.state = 'initialized'
-    this._result = new Result(this._conf.rowMode, this._conf.types)
+    this._result = new Result(this._conf.rowMode, this._conf.types as never)
     this._Promise = this._conf.Promise || globalThis.Promise
     this._cb = null
     this._rows = null
@@ -153,13 +153,13 @@ class Cursor<R = unknown> extends EventEmitter {
   }
 
   handleRowDescription(msg: { fields: unknown[] }): void {
-    this._result.addFields(msg.fields)
+    this._result.addFields(msg.fields as never)
     this.state = 'idle'
     this._shiftQueue()
   }
 
   handleDataRow(msg: { fields: unknown[] }): void {
-    const row = this._result.parseRow(msg.fields) as R
+    const row = this._result.parseRow(msg.fields as Array<string | Buffer | null>) as R
     this.emit('row', row, this._result)
     this._rows!.push(row)
   }
@@ -173,14 +173,14 @@ class Cursor<R = unknown> extends EventEmitter {
       // within the call to this callback
       this._cb = null
       if (cb) {
-        this._result.rows = this._rows
+        this._result.rows = this._rows as never
         cb(null, this._rows!, this._result)
       }
       this._rows = []
     })
   }
 
-  handleCommandComplete(msg: unknown): void {
+  handleCommandComplete(msg: { text?: string; command?: string }): void {
     this._result.addCommandComplete(msg)
     this._closePortal()
   }

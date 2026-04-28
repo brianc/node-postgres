@@ -21,10 +21,13 @@ describe('2627', () => {
     'base64'
   )
 
-  const serverWithInvalidResponse = (port, callback) => {
-    const sockets = new Set()
+  const serverWithInvalidResponse = (
+    port: number,
+    callback: (closeServer: (done: () => void) => void) => void
+  ): void => {
+    const sockets = new Set<net.Socket>()
 
-    const server = net.createServer((socket) => {
+    const server = net.createServer((socket: net.Socket) => {
       socket.write(MySqlHandshake)
 
       // This server sends an invalid response which should throw in pg-protocol
@@ -32,7 +35,7 @@ describe('2627', () => {
     })
 
     let closing = false
-    const closeServer = (done) => {
+    const closeServer = (done: () => void): void => {
       if (closing) return
       closing = true
 
@@ -53,7 +56,7 @@ describe('2627', () => {
         client
           .connect()
           .then(() => {
-            done(new Error('Expected client.connect() to fail'))
+            done(new Error('Expected client.connect() to fail') as never)
           })
           .catch((err) => {
             assert(err)

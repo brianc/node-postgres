@@ -13,8 +13,12 @@ describe('connection-timeout', () => {
     database: 'existing',
   }
 
-  const serverWithConnectionTimeout = (port, timeout, callback) => {
-    const sockets = new Set()
+  const serverWithConnectionTimeout = (
+    port: number,
+    timeout: number,
+    callback: (closeServer: (done: () => void) => void) => void
+  ): void => {
+    const sockets = new Set<net.Socket>()
 
     const server = net.createServer((socket) => {
       sockets.add(socket)
@@ -37,7 +41,7 @@ describe('connection-timeout', () => {
     })
 
     let closing = false
-    const closeServer = (done) => {
+    const closeServer = (done: () => void): void => {
       if (closing) return
       closing = true
 
@@ -62,7 +66,7 @@ describe('connection-timeout', () => {
           .connect()
           .then(() => client.end())
           .then(() => closeServer(done))
-          .catch((err) => closeServer(() => done(err)))
+          .catch((err) => closeServer(() => done(err as never)))
           .then(() => clearTimeout(timeoutId))
       })
     }))
@@ -79,7 +83,9 @@ describe('connection-timeout', () => {
         client
           .connect()
           .then(() => client.end())
-          .then(() => closeServer(() => done(new Error('Connection timeout should have expired but it did not.'))))
+          .then(() =>
+            closeServer(() => done(new Error('Connection timeout should have expired but it did not.') as never))
+          )
           .catch((err) => {
             assert(err instanceof Error)
             assert(/timeout expired\s*/.test(err.message))

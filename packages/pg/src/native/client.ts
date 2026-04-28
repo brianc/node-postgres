@@ -42,8 +42,8 @@ const queryQueueLengthDeprecationNotice = deprecate(
   'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.'
 )
 
-type ConnectCallback = (err: Error | null, client?: Client) => void
-type QueryCallback = (err: Error | null, result?: unknown) => void
+type ConnectCallback = (err?: Error, client?: Client) => void
+type QueryCallback = (err?: Error, result?: any) => void
 
 export interface NativeClientConfig extends ClientConfig {
   nativeConnectionString?: string
@@ -164,7 +164,7 @@ class Client extends EventEmitter {
         this.emit('connect')
         this._pulseQueryQueue(true)
 
-        cb(null, this)
+        cb(null as never, this)
       })
     })
   }
@@ -221,7 +221,7 @@ class Client extends EventEmitter {
           Error.captureStackTrace(err)
           throw err
         })
-        query.callback = (err: Error | null, res?: unknown) => (err ? rejectOut(err) : resolveOut(res))
+        query.callback = (err, res) => (err ? rejectOut(err) : resolveOut(res))
       }
     }
 
@@ -248,7 +248,7 @@ class Client extends EventEmitter {
         this._pulseQueryQueue()
       }, readTimeout)
 
-      query.callback = (err: Error | null, res?: unknown) => {
+      query.callback = (err, res) => {
         clearTimeout(readTimeoutTimer)
         queryCallback!(err, res)
       }
@@ -287,7 +287,9 @@ class Client extends EventEmitter {
     this._ending = true
 
     if (!this._connected) {
-      this.once('connect', this.end.bind(this, cb))
+      this.once('connect', () => {
+        ;(this as { end: (cb?: () => void) => void | Promise<void> }).end(cb)
+      })
     }
     let result: Promise<void> | undefined
     let finalCb: (() => void) | undefined = cb

@@ -14,7 +14,7 @@ interface RowDescriptionMessage {
   fields: FieldDef[]
 }
 
-type QueryCallback = (err: Error | null, result?: unknown) => void
+type QueryCallback = (err?: Error, result?: any) => void
 
 interface ConnectionLike {
   parsedStatements: Record<string, string | undefined>
@@ -178,7 +178,7 @@ class Query extends EventEmitter {
     }
     if (this.callback) {
       try {
-        this.callback(null, this._results)
+        this.callback(null as never, this._results)
       } catch (err) {
         process.nextTick(() => {
           throw err

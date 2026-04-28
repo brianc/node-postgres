@@ -13,9 +13,9 @@ describe('native-instance', () => {
       assert.calls(function (err, client, done) {
         console.log('native?', native)
         if (native) {
-          assert(client.native)
+          assert((client as { native?: unknown }).native)
         } else {
-          assert(!client.native)
+          assert(!(client as { native?: unknown }).native)
         }
         done()
         pool.end()

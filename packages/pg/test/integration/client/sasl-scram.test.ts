@@ -51,8 +51,9 @@ describe('sasl-scram', () => {
     let usingChannelBinding = false
     let hasPeerCert = false
     client.connection.once('authenticationSASLContinue', () => {
-      hasPeerCert = client.connection.stream.getPeerCertificate === 'function'
-      usingChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256-PLUS'
+      hasPeerCert =
+        typeof (client.connection.stream as { getPeerCertificate?: unknown }).getPeerCertificate === 'function'
+      usingChannelBinding = client.saslSession!.mechanism === 'SCRAM-SHA-256-PLUS'
     })
     await client.connect()
     assert.ok(usingChannelBinding || !hasPeerCert, 'Should be using SCRAM-SHA-256-PLUS for authentication if using SSL')
@@ -63,7 +64,7 @@ describe('sasl-scram', () => {
     const client = new pg.Client({ ...config, enableChannelBinding: false })
     let usingSASLWithoutChannelBinding = false
     client.connection.once('authenticationSASLContinue', () => {
-      usingSASLWithoutChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256'
+      usingSASLWithoutChannelBinding = client.saslSession!.mechanism === 'SCRAM-SHA-256'
     })
     await client.connect()
     assert.ok(usingSASLWithoutChannelBinding, 'Should be using SCRAM-SHA-256 (no channel binding) for authentication')

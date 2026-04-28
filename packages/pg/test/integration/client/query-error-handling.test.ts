@@ -76,14 +76,15 @@ describe('query-error-handling', () => {
             }
 
             client.query('CREATE TEMP TABLE column_err_test(a int NOT NULL)')
-            client.query('INSERT INTO column_err_test(a) VALUES (NULL)', function (err) {
+            client.query('INSERT INTO column_err_test(a) VALUES (NULL)', function (err?: Error) {
               if (!helper.config.native) {
                 assert(err instanceof DatabaseError)
               }
-              assert.equal(err.severity, 'ERROR')
-              assert.equal(err.code, '23502')
-              assert.equal(err.table, 'column_err_test')
-              assert.equal(err.column, 'a')
+              const dbErr = err as InstanceType<typeof DatabaseError>
+              assert.equal(dbErr.severity, 'ERROR')
+              assert.equal(dbErr.code, '23502')
+              assert.equal(dbErr.table, 'column_err_test')
+              assert.equal(dbErr.column, 'a')
               return client.end()
             })
           })
@@ -107,14 +108,15 @@ describe('query-error-handling', () => {
 
             client.query('CREATE TEMP TABLE constraint_err_test(a int PRIMARY KEY)')
             client.query('INSERT INTO constraint_err_test(a) VALUES (1)')
-            client.query('INSERT INTO constraint_err_test(a) VALUES (1)', function (err) {
+            client.query('INSERT INTO constraint_err_test(a) VALUES (1)', function (err?: Error) {
               if (!helper.config.native) {
                 assert(err instanceof DatabaseError)
               }
-              assert.equal(err.severity, 'ERROR')
-              assert.equal(err.code, '23505')
-              assert.equal(err.table, 'constraint_err_test')
-              assert.equal(err.constraint, 'constraint_err_test_pkey')
+              const dbErr = err as InstanceType<typeof DatabaseError>
+              assert.equal(dbErr.severity, 'ERROR')
+              assert.equal(dbErr.code, '23505')
+              assert.equal(dbErr.table, 'constraint_err_test')
+              assert.equal(dbErr.constraint, 'constraint_err_test_pkey')
               return client.end()
             })
           })

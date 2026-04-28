@@ -4,7 +4,11 @@ import assert from 'node:assert'
 
 describe('type-parser-override', () => {
   it('type-parser-override', async () => {
-    function testTypeParser(client, expectedResult, done) {
+    function testTypeParser(
+      client: { query: (sql: string, ...args: any[]) => any },
+      expectedResult: string,
+      done: () => void
+    ): void {
       const boolValue = true
       client.query('CREATE TEMP TABLE parserOverrideTest(id bool)')
       client.query('INSERT INTO parserOverrideTest(id) VALUES ($1)', [boolValue])
@@ -39,7 +43,10 @@ describe('type-parser-override', () => {
 
             testTypeParser(client1, 'first client', () => {
               done1()
-              testTypeParser(client2, 'second client', () => done2(), pool.end())
+              testTypeParser(client2, 'second client', () => {
+                done2()
+                pool.end()
+              })
             })
           })
         )

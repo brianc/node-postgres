@@ -35,6 +35,9 @@
     "typecheck": "tsgo --noEmit",
     "prepack": "pnpm build"
   },
+  "devDependencies": {
+    "pg-cursor": "workspace:^"
+  },
   "peerDependencies": {
     "pg": "workspace:^"
   },

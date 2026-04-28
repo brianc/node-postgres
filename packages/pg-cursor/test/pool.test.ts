@@ -13,12 +13,12 @@ function poolQueryPromise(pool: Pool, readRowCount: number): Promise<void> {
         return reject(err)
       }
       const cursor = client!.query(new Cursor(text))
-      cursor.read(readRowCount, (err2: Error | null) => {
+      cursor.read(readRowCount, (err2?: Error | null) => {
         if (err2) {
           done!(err2)
           return reject(err2)
         }
-        cursor.close((err3: Error | null) => {
+        cursor.close((err3?: Error | null) => {
           if (err3) {
             done!(err3)
             return reject(err3)
@@ -97,9 +97,9 @@ describe('pool', () => {
       const client = await localPool.connect()
       client.query(cursor)
       await new Promise<void>((resolve) => {
-        cursor.read(25, (err: Error | null) => {
+        cursor.read(25, (err?: Error | null) => {
           assert.ifError(err)
-          cursor.close((err2: Error | null) => {
+          cursor.close((err2?: Error | null) => {
             assert.ifError(err2)
             client.release()
             resolve()

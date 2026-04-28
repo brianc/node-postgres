@@ -8,8 +8,8 @@ describe('query-as-promise', () => {
   const bluebird = Promise
   const pg = helper.pg
 
-  process.on('unhandledRejection', function (e) {
-    console.error(e, e.stack)
+  process.on('unhandledRejection', function (e: unknown) {
+    console.error(e, (e as Error).stack)
     process.exit(1)
   })
   it('promise API', () =>

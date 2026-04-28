@@ -3,13 +3,13 @@ import helper from '../_test-helper.ts'
 import assert from 'node:assert'
 
 describe('connection-pool-size', () => {
-  const testPoolSize = function (max) {
+  const testPoolSize = function (max: number): void {
     it(`test ${max} queries executed on a pool rapidly`, async () => {
       const pool = new helper.pg.Pool({ max: 10 })
 
       let count = 0
 
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
         for (let i = 0; i < max; i++) {
           pool.connect(function (err, client, release) {
             assert(!err)

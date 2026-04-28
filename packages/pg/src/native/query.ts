@@ -4,7 +4,7 @@ import { normalizeQueryConfig, prepareValue } from '../utils.ts'
 
 import type { QueryConfigInput } from '../utils.ts'
 
-type QueryCallback = (err: Error | null, result?: unknown) => void
+type QueryCallback = (err?: Error, result?: any) => void
 
 interface NativeClientLike {
   native: {
@@ -137,7 +137,7 @@ class NativeQuery extends EventEmitter {
       this.state = 'end'
       this.emit('end', results)
       if (this.callback) {
-        this.callback(null, results)
+        this.callback(null as never, results)
       }
     }
 

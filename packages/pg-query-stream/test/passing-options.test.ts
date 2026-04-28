@@ -22,7 +22,7 @@ helper('passing options', (client) => {
   it('passes custom types', () =>
     new Promise<void>((resolve) => {
       const types = {
-        getTypeParser: () => (string: string) => string,
+        getTypeParser: (): ((value: unknown) => unknown) => (s) => s,
       }
       const stream = new QueryStream('SELECT * FROM generate_series(0, 10) num', [], { types })
       const query = client.query(stream)

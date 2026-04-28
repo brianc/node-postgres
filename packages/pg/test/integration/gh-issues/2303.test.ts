@@ -31,8 +31,8 @@ describe('2303', () => {
   it('SSL Key should exist for direct access', () => {
     const pool = new helper.pg.Pool({ ssl: { key: secret_value } })
     const client = new helper.pg.Client({ ssl: { key: secret_value } })
-    assert(pool.options.ssl.key === secret_value)
-    assert(client.connectionParameters.ssl.key === secret_value)
+    assert((pool.options.ssl as { key: string }).key === secret_value)
+    assert((client.connectionParameters.ssl as { key: string }).key === secret_value)
   })
 
   it('SSL Key should exist for direct access even when non-enumerable custom config', () => {
@@ -40,7 +40,7 @@ describe('2303', () => {
     Object.defineProperty(config.ssl, 'key', { enumerable: false })
     const pool = new helper.pg.Pool(config)
     const client = new helper.pg.Client(config)
-    assert(pool.options.ssl.key === secret_value)
-    assert(client.connectionParameters.ssl.key === secret_value)
+    assert((pool.options.ssl as { key: string }).key === secret_value)
+    assert((client.connectionParameters.ssl as { key: string }).key === secret_value)
   })
 })

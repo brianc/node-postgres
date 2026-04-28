@@ -11,7 +11,7 @@ export interface QueryConfigInput {
   values?: unknown[]
   rows?: number
   types?: unknown
-  callback?: (err: Error | null, result?: unknown) => void
+  callback?: (err?: Error, result?: any) => void
   rowMode?: 'array' | undefined
   binary?: boolean
   portal?: string
@@ -54,7 +54,7 @@ function arrayString(val: unknown[]): string {
       }
       result += '\\\\x' + buf.toString('hex')
     } else {
-      result += escapeElement(prepareValueInternal(item))
+      result += escapeElement(prepareValueInternal(item) as string)
     }
   }
   result = result + '}'
@@ -170,8 +170,8 @@ function dateToStringUTC(date: Date): string {
 
 export function normalizeQueryConfig(
   config: string | QueryConfigInput,
-  values?: unknown[] | ((err: Error | null, result?: unknown) => void),
-  callback?: (err: Error | null, result?: unknown) => void
+  values?: unknown[] | ((err?: Error, result?: any) => void),
+  callback?: (err?: Error, result?: any) => void
 ): QueryConfigInput {
   const cfg: QueryConfigInput = typeof config === 'string' ? { text: config } : config
   if (values) {

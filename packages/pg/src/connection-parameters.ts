@@ -9,7 +9,7 @@ export interface ConnectionParametersConfig {
   database?: string
   port?: number | string
   host?: string
-  password?: string | null | (() => string | Promise<string>)
+  password?: string | null | ((connectionParameters: ConnectionParameters) => string | Promise<string>)
   binary?: boolean
   options?: string
   ssl?: boolean | string | Record<string, unknown>
@@ -135,7 +135,7 @@ class ConnectionParameters {
 
     this.ssl =
       typeof config.ssl === 'undefined'
-        ? (readSSLConfigFromEnvironment() as boolean | object)
+        ? (readSSLConfigFromEnvironment() as boolean | Record<string, unknown>)
         : (config.ssl as boolean | string | Record<string, unknown>)
 
     if (typeof this.ssl === 'string') {

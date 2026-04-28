@@ -8,7 +8,7 @@ describe('600', () => {
     const run = (i: number): void => {
       if (i >= steps.length) return done()
       steps[i]((err) => {
-        if (err) return done(err)
+        if (err) return done(err as never)
         run(i + 1)
       })
     }
@@ -17,15 +17,17 @@ describe('600', () => {
 
   const db = helper.client()
 
-  function createTableFoo(callback) {
+  type StepCallback = (err?: Error) => void
+
+  function createTableFoo(callback: StepCallback): void {
     db.query('create temp table foo(column1 int, column2 int)', callback)
   }
 
-  function createTableBar(callback) {
+  function createTableBar(callback: StepCallback): void {
     db.query('create temp table bar(column1 text, column2 text)', callback)
   }
 
-  function insertDataFoo(callback) {
+  function insertDataFoo(callback: StepCallback): void {
     db.query(
       {
         name: 'insertFoo',
@@ -36,7 +38,7 @@ describe('600', () => {
     )
   }
 
-  function insertDataBar(callback) {
+  function insertDataBar(callback: StepCallback): void {
     db.query(
       {
         name: 'insertBar',
@@ -47,14 +49,14 @@ describe('600', () => {
     )
   }
 
-  function startTransaction(callback) {
+  function startTransaction(callback: StepCallback): void {
     db.query('BEGIN', callback)
   }
-  function endTransaction(callback) {
+  function endTransaction(callback: StepCallback): void {
     db.query('COMMIT', callback)
   }
 
-  function doTransaction(callback) {
+  function doTransaction(callback: StepCallback): void {
     // The transaction runs startTransaction, then all queries, then endTransaction,
     // no matter if there has been an error in a query in the middle.
     startTransaction(function () {
@@ -79,7 +81,7 @@ describe('600', () => {
   it('test if prepare works but bind fails', () =>
     new Promise<void>((done) => {
       const client = helper.client()
-      const q = {
+      const q: { text: string; values: unknown[]; name: string } = {
         text: 'SELECT $1::int as name',
         values: ['brian'],
         name: 'test',
