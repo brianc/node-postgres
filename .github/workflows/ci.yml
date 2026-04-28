@@ -76,8 +76,12 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
+      - name: 📦 Install libpq headers (for pg-native)
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev
       - run: pnpm install --frozen-lockfile
+      - name: 🔨 Rebuild native modules (pg-native via libpq)
+        run: pnpm rebuild libpq
       - name: 🚀 Build
         run: pnpm build
       - name: 🧪 Test
-        run: pnpm -r --filter "./packages/**" run test
+        run: pnpm -r --workspace-concurrency=1 --filter "./packages/**" run test
