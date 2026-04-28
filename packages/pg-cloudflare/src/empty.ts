@@ -1,18 +1,54 @@
-// This is an empty module that is served up when outside of a workerd environment.
-// See the `exports` field in package.json. It mirrors the public shape of `./index.ts`
-// so that consumers can import `CloudflareSocket` regardless of the runtime, but any
-// attempt to actually connect outside of Cloudflare Workers throws a clear error.
+// Stub module returned outside Cloudflare Workers (workerd).
+// See `exports` in package.json — bundlers and Node both land here when
+// the workerd condition isn't active. Mirrors the public shape of
+// `./index.ts` so consumers can import the same named export from any
+// runtime, but actually attempting to use it outside workerd throws.
+//
+// Kept dependency-free (no `node:events`) so bundlers like webpack/vite
+// can include this file without polyfills or `node_compat` flags.
 
-import { EventEmitter } from 'node:events'
+const ERROR = 'pg-cloudflare: CloudflareSocket is only available in a Cloudflare Workers (workerd) runtime.'
 
-const ERROR_MESSAGE = 'pg-cloudflare: CloudflareSocket is only available in a Cloudflare Workers (workerd) runtime.'
+type Listener = (...args: unknown[]) => void
 
-export class CloudflareSocket extends EventEmitter {
+export class CloudflareSocket {
+  ssl: boolean
   writable = false
   destroyed = false
 
-  constructor(readonly ssl: boolean) {
-    super()
+  private _listeners = new Map<string, Listener[]>()
+
+  constructor(ssl: boolean) {
+    this.ssl = ssl
+  }
+
+  on(event: string, listener: Listener): this {
+    const list = this._listeners.get(event) ?? []
+    list.push(listener)
+    this._listeners.set(event, list)
+    return this
+  }
+
+  once(event: string, listener: Listener): this {
+    return this.on(event, listener)
+  }
+
+  off(event: string, listener: Listener): this {
+    const list = this._listeners.get(event)
+    if (list)
+      this._listeners.set(
+        event,
+        list.filter((l) => l !== listener)
+      )
+    return this
+  }
+
+  removeListener(event: string, listener: Listener): this {
+    return this.off(event, listener)
+  }
+
+  emit(_event: string, ..._args: unknown[]): boolean {
+    return false
   }
 
   setNoDelay(): this {
@@ -31,25 +67,17 @@ export class CloudflareSocket extends EventEmitter {
     return this
   }
 
-  async connect(_port: number, _host: string, _connectListener?: (...args: unknown[]) => void): Promise<this> {
-    throw new Error(ERROR_MESSAGE)
+  async connect(_port: number, _host: string, _connectListener?: Listener): Promise<this> {
+    throw new Error(ERROR)
   }
 
-  write(
-    _data: Uint8Array | string,
-    _encoding: BufferEncoding = 'utf8',
-    callback: (...args: unknown[]) => void = () => {}
-  ): boolean {
-    callback(new Error(ERROR_MESSAGE))
+  write(_data: Uint8Array | string, _encoding?: string, callback: Listener = () => {}): boolean {
+    callback(new Error(ERROR))
     return false
   }
 
-  end(
-    _data?: Uint8Array | string,
-    _encoding?: BufferEncoding,
-    callback: (...args: unknown[]) => void = () => {}
-  ): this {
-    callback(new Error(ERROR_MESSAGE))
+  end(_data?: Uint8Array | string, _encoding?: string, callback: Listener = () => {}): this {
+    callback(new Error(ERROR))
     return this
   }
 
@@ -59,7 +87,7 @@ export class CloudflareSocket extends EventEmitter {
   }
 
   startTls(_options: unknown): void {
-    throw new Error(ERROR_MESSAGE)
+    throw new Error(ERROR)
   }
 }
 

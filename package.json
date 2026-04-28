@@ -17,7 +17,7 @@
     "lint": "oxlint . && oxfmt --check .",
     "lint:fix": "oxlint . --fix && oxfmt .",
     "fmt": "oxfmt .",
-    "test": "pnpm lint && pnpm typecheck && pnpm -r --filter \"./packages/**\" run test",
+    "test": "pnpm lint && pnpm typecheck && pnpm -r --workspace-concurrency=1 --filter \"./packages/**\" run test",
     "test:unit": "vitest run",
     "typecheck": "pnpm -r --filter \"./packages/**\" run typecheck",
     "docs:build": "pnpm --filter ./docs build",

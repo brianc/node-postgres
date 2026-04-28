@@ -1,8 +1,6 @@
 import * as net from 'node:net'
 import * as tls from 'node:tls'
 
-import { CloudflareSocket } from 'pg-cloudflare'
-
 type Duplex = NodeJS.ReadWriteStream & {
   setNoDelay?: (enable?: boolean) => void
   setKeepAlive?: (enable?: boolean, initialDelay?: number) => void
@@ -37,9 +35,21 @@ function getNodejsStreamFuncs(): StreamFuncs {
 }
 
 function getCloudflareStreamFuncs(): StreamFuncs {
+  // Resolved synchronously by workerd — the `pg-cloudflare` package's exports
+  // map only ships the real `CloudflareSocket` under the `workerd` condition,
+  // so we deliberately avoid touching it from Node. Pull the binding via a
+  // string-tagged dynamic require so node bundlers don't try to load it.
+  const pkg = 'pg-cloudflare'
+  const mod = (
+    globalThis as unknown as { require?: (s: string) => { CloudflareSocket: new (ssl: boolean) => Duplex } }
+  ).require?.(pkg)
+  const CloudflareSocket = mod?.CloudflareSocket
   return {
     getStream(ssl?: unknown): Duplex {
-      return new CloudflareSocket(Boolean(ssl)) as unknown as Duplex
+      if (!CloudflareSocket) {
+        throw new Error('pg-cloudflare: CloudflareSocket not available outside Cloudflare Workers')
+      }
+      return new CloudflareSocket(Boolean(ssl))
     },
     getSecureStream(options: SecureStreamOptions): Duplex {
       const sock = options.socket as Duplex & { startTls(opts: SecureStreamOptions): void }
@@ -53,8 +63,8 @@ function getCloudflareStreamFuncs(): StreamFuncs {
  * Are we running in a Cloudflare Worker?
  */
 function isCloudflareRuntime(): boolean {
-  // Since 2022-03-21 the `global_navigator` compatibility flag is on for Cloudflare Workers
-  // which means that `navigator.userAgent` will be defined.
+  // Since 2022-03-21 the `global_navigator` compatibility flag is on for
+  // Cloudflare Workers which means that `navigator.userAgent` will be defined.
   const nav = (globalThis as unknown as { navigator?: { userAgent?: string } }).navigator
   if (typeof nav === 'object' && nav !== null && typeof nav.userAgent === 'string') {
     return nav.userAgent === 'Cloudflare-Workers'

@@ -236,25 +236,28 @@ describe('connection timeout', () => {
       })
     }))
 
-  it.skipIf(!require('pg').native)('should connect if timeout is passed, but native client in connected state', () =>
-    new Promise<void>((resolve) => {
-      const Client = require('pg').native.Client
+  it.skipIf(!require('pg').native)(
+    'should connect if timeout is passed, but native client in connected state',
+    () =>
+      new Promise<void>((resolve) => {
+        const Client = require('pg').native.Client
 
-      Client.prototype.connect = function (cb: () => void) {
-        this._connected = true
+        Client.prototype.connect = function (cb: () => void) {
+          this._connected = true
 
-        return setTimeout(() => {
-          cb()
-        }, 200)
-      }
+          return setTimeout(() => {
+            cb()
+          }, 200)
+        }
 
-      const pool = new Pool({ connectionTimeoutMillis: 100, port: port, host: 'localhost' }, Client)
+        const pool = new Pool({ connectionTimeoutMillis: 100, port: port, host: 'localhost' }, Client)
 
-      pool.connect((err, client) => {
-        expect(err).toBe(undefined)
-        expect(client).not.toBe(undefined)
-        expect((client as any).isConnected()).toBe(true)
-        resolve()
+        pool.connect((err, client) => {
+          expect(err).toBe(undefined)
+          expect(client).not.toBe(undefined)
+          expect((client as any).isConnected()).toBe(true)
+          resolve()
+        })
       })
-    }))
+  )
 })

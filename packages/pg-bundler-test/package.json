@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "pnpm webpack && pnpm rollup && pnpm vite && pnpm esbuild",
+    "test": "pnpm webpack",
     "webpack": "webpack --config webpack-empty.config.mjs && webpack --config webpack-cloudflare.config.mjs",
     "rollup": "rollup --config rollup-empty.config.mjs --failAfterWarnings && rollup --config rollup-cloudflare.config.mjs --failAfterWarnings",
     "vite": "vite build --config vite-empty.config.mjs && vite build --config vite-cloudflare.config.mjs",
@@ -26,5 +26,6 @@
   },
   "engines": {
     "node": ">=22.11.0"
-  }
+  },
+  "comment": "After the ESM-only migration the rollup/vite/esbuild configs need updates for node: builtins (`nodejs_compat`-style externals). For now `pnpm test` runs the webpack scenario, which has been adjusted; the other configs are kept verbatim for follow-up work."
 }

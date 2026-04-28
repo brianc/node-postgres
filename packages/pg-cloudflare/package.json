@@ -23,7 +23,7 @@
         "default": "./dist/index.mjs"
       },
       "default": {
-        "types": "./dist/empty.d.mts",
+        "types": "./dist/index.d.mts",
         "default": "./dist/empty.mjs"
       }
     }
