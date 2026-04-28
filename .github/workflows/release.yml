@@ -29,14 +29,14 @@ jobs:
       - name: 📦 Install
         run: pnpm install --frozen-lockfile
 
+      - name: 🚀 Build
+        run: pnpm build
+
       - name: 👀 Lint
         run: pnpm lint
 
       - name: 🔍 Typecheck
         run: pnpm typecheck
-
-      - name: 🚀 Build
-        run: pnpm build
 
       - name: 📦 Publish to npm
         run: pnpm -r --filter "./packages/**" publish --provenance --access public --no-git-checks
