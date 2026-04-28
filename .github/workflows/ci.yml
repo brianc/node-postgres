@@ -1,27 +1,44 @@
 name: CI
 
-on: [push, pull_request]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
+  pull-requests: write
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   lint:
-    timeout-minutes: 5
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - run: corepack enable
+      - uses: actions/setup-node@v6
         with:
-          persist-credentials: false
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: yarn
-      - run: yarn install --frozen-lockfile
-      - run: yarn lint
+          node-version: '22'
+          cache: pnpm
+      - name: 📦 Install
+        run: pnpm install --frozen-lockfile
+      - name: 👀 Lint
+        run: pnpm lint
+      - name: 🔍 Typecheck
+        run: pnpm typecheck
+
   build:
-    timeout-minutes: 15
+    name: Test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: lint
     services:
       postgres:
@@ -37,17 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node:
-          - '16'
-          - '18'
-          - '20'
-          - '22'
-          - '24'
-          - '25'
-        os:
-          - ubuntu-latest
-    name: Node.js ${{ matrix.node }}
-    runs-on: ubuntu-latest
+        node: ['22', '24']
     env:
       PGUSER: postgres
       PGPASSWORD: postgres
@@ -57,20 +64,18 @@ jobs:
       SCRAM_TEST_PGUSER: scram_test
       SCRAM_TEST_PGPASSWORD: test4scram
     steps:
-      - name: Show OS
-        run: |
-          uname -a
       - run: |
           psql \
             -c "SET password_encryption = 'scram-sha-256'" \
             -c "CREATE ROLE scram_test LOGIN PASSWORD 'test4scram'"
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Setup node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - run: corepack enable
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
-      - run: yarn install --frozen-lockfile
-      - run: yarn test
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 🚀 Build
+        run: pnpm build
+      - name: 🧪 Test
+        run: pnpm -r --filter "./packages/**" run test

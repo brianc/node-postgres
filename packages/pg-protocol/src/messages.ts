@@ -114,7 +114,7 @@ export class DatabaseError extends Error implements NoticeOrError {
   constructor(
     message: string,
     public readonly length: number,
-    public readonly name: MessageName
+    public override readonly name: MessageName
   ) {
     super(message)
   }

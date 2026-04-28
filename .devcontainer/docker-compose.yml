@@ -12,10 +12,10 @@ services:
     # user if not 1000. See https://aka.ms/vscode-remote/containers/non-root for details.
     # user: node
 
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
-    
+
     volumes:
       - ..:/workspace:cached
 
@@ -24,10 +24,10 @@ services:
       PGUSER: user
       PGDATABASE: data
       PGHOST: db
-      # set this to true in the development environment until I can get SSL setup on the 
+      # set this to true in the development environment until I can get SSL setup on the
       # docker postgres instance
       PGTESTNOSSL: 'true'
-      
+
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
 
@@ -40,12 +40,12 @@ services:
   db:
     image: postgres:14
     restart: unless-stopped
-    ports: 
+    ports:
       - 5432:5432
     command: postgres -c password_encryption=md5
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_INITDB_ARGS: "--auth-local=md5"
+      POSTGRES_INITDB_ARGS: '--auth-local=md5'
       POSTGRES_PASSWORD: pass
       POSTGRES_USER: user
       POSTGRES_DB: data

@@ -1,0 +1,18 @@
+// This script is meant to be spawned from idle-timeout.test.ts via child_process.fork().
+import Pool from '../src/index.ts'
+
+const allowExitOnIdle = process.env.ALLOW_EXIT_ON_IDLE === '1'
+
+const pool = new Pool({
+  maxLifetimeSeconds: 2,
+  idleTimeoutMillis: 200,
+  ...(allowExitOnIdle ? { allowExitOnIdle: true } : {}),
+})
+pool.query('SELECT NOW()', () => console.log('completed first'))
+pool.on('remove', () => {
+  console.log('removed')
+})
+
+setTimeout(() => {
+  pool.query('SELECT * from generate_series(0, 1000)', () => console.log('completed second'))
+}, 50)

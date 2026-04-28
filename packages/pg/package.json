@@ -1,7 +1,7 @@
 {
   "name": "pg",
-  "version": "8.20.0",
-  "description": "PostgreSQL client - pure javascript & libpq with the same API",
+  "version": "9.0.0",
+  "description": "PostgreSQL client — pure JavaScript & libpq with same API",
   "keywords": [
     "database",
     "libpq",
@@ -11,46 +11,66 @@
     "postgresql",
     "rdbms"
   ],
-  "homepage": "https://github.com/brianc/node-postgres",
+  "homepage": "https://node-postgres.com",
+  "license": "MIT",
+  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
+    "url": "git+https://github.com/brianc/node-postgres.git",
     "directory": "packages/pg"
   },
-  "author": "Brian Carlson <brian.m.carlson@gmail.com>",
-  "main": "./lib",
+  "files": [
+    "dist",
+    "SPONSORS.md"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "import": "./esm/index.mjs",
-      "require": "./lib/index.js",
-      "default": "./lib/index.js"
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
     },
-    "./package.json": {
-      "default": "./package.json"
+    "./client": {
+      "types": "./dist/client.d.mts",
+      "default": "./dist/client.mjs"
     },
-    "./lib/*": "./lib/*.js",
-    "./lib/*.js": "./lib/*.js"
+    "./pool": {
+      "types": "./dist/pool.d.mts",
+      "default": "./dist/pool.mjs"
+    },
+    "./native": {
+      "types": "./dist/native/index.d.mts",
+      "default": "./dist/native/index.mjs"
+    },
+    "./defaults": {
+      "types": "./dist/defaults.d.mts",
+      "default": "./dist/defaults.mjs"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.mts",
+      "default": "./dist/utils.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "obuild",
+    "dev": "vitest",
+    "lint": "oxlint . && oxfmt --check .",
+    "lint:fix": "oxlint . --fix && oxfmt .",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit",
+    "prepack": "pnpm build"
   },
   "dependencies": {
-    "pg-connection-string": "^2.12.0",
-    "pg-pool": "^3.13.0",
-    "pg-protocol": "^1.13.0",
-    "pg-types": "2.2.0",
-    "pgpass": "1.0.5"
-  },
-  "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "0.8.23",
-    "@cloudflare/workers-types": "^4.20230404.0",
-    "async": "2.6.4",
-    "bluebird": "3.7.2",
-    "co": "4.6.0",
-    "pg-copy-streams": "0.3.0",
-    "typescript": "^4.0.3",
-    "vitest": "~3.0.9",
-    "wrangler": "^3.x"
-  },
-  "optionalDependencies": {
-    "pg-cloudflare": "^1.3.0"
+    "pg-cloudflare": "workspace:^",
+    "pg-connection-string": "workspace:^",
+    "pg-pool": "workspace:^",
+    "pg-protocol": "workspace:^",
+    "pg-types": "^2.1.0"
   },
   "peerDependencies": {
     "pg-native": ">=3.0.1"
@@ -60,16 +80,7 @@
       "optional": true
     }
   },
-  "scripts": {
-    "test": "make test-all"
-  },
-  "files": [
-    "lib",
-    "esm",
-    "SPONSORS.md"
-  ],
-  "license": "MIT",
   "engines": {
-    "node": ">= 16.0.0"
+    "node": ">=22.11.0"
   }
 }

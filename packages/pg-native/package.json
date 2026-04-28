@@ -1,55 +1,45 @@
 {
   "name": "pg-native",
-  "version": "3.7.0",
-  "description": "A slightly nicer interface to Postgres over node-libpq",
-  "main": "index.js",
-  "exports": {
-    ".": {
-      "import": "./esm/index.mjs",
-      "require": "./index.js",
-      "default": "./index.js"
-    },
-    "./lib/*": {
-      "import": "./lib/*",
-      "require": "./lib/*",
-      "default": "./lib/*"
-    }
-  },
-  "scripts": {
-    "test": "mocha"
-  },
+  "version": "4.0.0",
+  "description": "Native binding interface for PostgreSQL via libpq",
+  "homepage": "https://node-postgres.com",
+  "license": "MIT",
+  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/brianc/node-postgres.git"
-  },
-  "keywords": [
-    "postgres",
-    "pg",
-    "libpq"
-  ],
-  "author": "Brian M. Carlson",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/brianc/node-postgres/issues"
-  },
-  "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-native",
-  "dependencies": {
-    "libpq": "^1.8.15",
-    "pg-types": "2.2.0"
-  },
-  "devDependencies": {
-    "async": "^0.9.0",
-    "concat-stream": "^1.4.6",
-    "generic-pool": "^2.1.1",
-    "lodash": "^4.17.21",
-    "mocha": "11.7.5",
-    "node-gyp": ">=10.x",
-    "okay": "^0.3.0",
-    "semver": "^7.7.2"
+    "url": "git+https://github.com/brianc/node-postgres.git",
+    "directory": "packages/pg-native"
   },
   "files": [
-    "index.js",
-    "lib",
-    "esm"
-  ]
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "obuild",
+    "dev": "vitest",
+    "lint": "oxlint . && oxfmt --check .",
+    "lint:fix": "oxlint . --fix && oxfmt .",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "libpq": "^1.8.15",
+    "pg-types": "^2.2.0"
+  },
+  "engines": {
+    "node": ">=22.11.0"
+  }
 }

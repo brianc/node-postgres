@@ -1,6 +1,6 @@
-import { TransformOptions } from 'stream'
+import type { TransformOptions } from 'node:stream'
 import {
-  Mode,
+  type Mode,
   bindComplete,
   parseComplete,
   closeComplete,
@@ -21,12 +21,12 @@ import {
   ParameterStatusMessage,
   BackendKeyDataMessage,
   DatabaseError,
-  BackendMessage,
-  MessageName,
+  type BackendMessage,
+  type MessageName,
   AuthenticationMD5Password,
   NoticeMessage,
-} from './messages'
-import { BufferReader } from './buffer-reader'
+} from './messages.ts'
+import { BufferReader } from './buffer-reader.ts'
 
 // every message is prefixed with a single bye
 const CODE_LENGTH = 1
@@ -91,7 +91,7 @@ export class Parser {
     this.mode = opts?.mode || 'text'
   }
 
-  public parse(buffer: Buffer, callback: MessageCallback) {
+  public parse(buffer: Buffer, callback: MessageCallback): void {
     this.mergeBuffer(buffer)
     const bufferFullLength = this.bufferOffset + this.bufferLength
     let offset = this.bufferOffset

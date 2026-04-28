@@ -1,0 +1,7 @@
+packages:
+  - 'packages/*'
+  - 'docs'
+
+allowBuilds:
+  '0': libpq
+  '1': better-sqlite3
