@@ -163,10 +163,6 @@ importers:
       pg:
         specifier: workspace:^
         version: link:../pg
-    devDependencies:
-      pg-cursor:
-        specifier: workspace:^
-        version: link:../pg-cursor
 
   packages/pg-protocol: {}
 
