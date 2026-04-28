@@ -9,5 +9,7 @@ export default defineConfig({
     format: 'es',
   },
   plugins: [nodeResolve({ exportConditions: ['import', 'workerd'], preferBuiltins: true }), commonjs()],
-  external: ['cloudflare:sockets'],
+  // Workers' nodejs_compat exposes node: builtins at runtime; leave them
+  // as bare imports in the bundle.
+  external: ['cloudflare:sockets', /^node:/],
 })

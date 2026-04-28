@@ -10,7 +10,9 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['cloudflare:sockets'],
+      // Workers' nodejs_compat exposes node: builtins at runtime; leave
+      // them external in the bundle alongside cloudflare:sockets.
+      external: ['cloudflare:sockets', /^node:/],
     },
   },
   resolve: {

@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "pnpm webpack",
+    "test": "pnpm webpack && pnpm rollup && pnpm vite && pnpm esbuild",
     "webpack": "webpack --config webpack-empty.config.mjs && webpack --config webpack-cloudflare.config.mjs",
     "rollup": "rollup --config rollup-empty.config.mjs --failAfterWarnings && rollup --config rollup-cloudflare.config.mjs --failAfterWarnings",
     "vite": "vite build --config vite-empty.config.mjs && vite build --config vite-cloudflare.config.mjs",
@@ -16,16 +16,15 @@
     "pg-cloudflare": "workspace:^"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.3",
-    "@rollup/plugin-node-resolve": "^16.0.1",
-    "esbuild": "^0.25.5",
-    "rollup": "^4.41.1",
-    "vite": "^7.1.7",
-    "webpack": "^5.99.9",
-    "webpack-cli": "^6.0.1"
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "esbuild": "^0.28.0",
+    "rollup": "^4.60.2",
+    "vite": "^8.0.10",
+    "webpack": "^5.106.2",
+    "webpack-cli": "^7.0.2"
   },
   "engines": {
     "node": ">=22.11.0"
-  },
-  "comment": "After the ESM-only migration the rollup/vite/esbuild configs need updates for node: builtins (`nodejs_compat`-style externals). For now `pnpm test` runs the webpack scenario, which has been adjusted; the other configs are kept verbatim for follow-up work."
+  }
 }

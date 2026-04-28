@@ -9,7 +9,7 @@ import { client } from './_test-helper.ts'
 
 const typeParserError = new Error('TEST: Throw in type parsers')
 
-types.setTypeParser('special oid that will throw' as unknown as number, () => {
+types.setTypeParser(99999999, () => {
   throw typeParserError
 })
 
@@ -20,7 +20,7 @@ const emitFakeEvents = (con: { emit: (event: string, ...args: unknown[]) => bool
       fields: [
         {
           name: 'boom',
-          dataTypeID: 'special oid that will throw',
+          dataTypeID: 99999999,
         },
       ],
     })
