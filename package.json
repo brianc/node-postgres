@@ -30,7 +30,8 @@
     "eslint-plugin-prettier": "^5.1.2",
     "lerna": "^3.19.0",
     "prettier": "3.0.3",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "@types/node": "^16"
   },
   "prettier": {
     "semi": false,
