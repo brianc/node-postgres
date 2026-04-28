@@ -69,7 +69,7 @@ class Result<R = Record<string, unknown>> {
   }
 
   _parseRowAsArray(rowData: Array<string | Buffer | null>): unknown[] {
-    const row = new Array(rowData.length)
+    const row = Array.from({ length: rowData.length })
     for (let i = 0, len = rowData.length; i < len; i++) {
       const rawValue = rowData[i]
       if (rawValue !== null) {
@@ -105,7 +105,7 @@ class Result<R = Record<string, unknown>> {
     // multiple sets of rowDescriptions, so we reset.
     this.fields = fieldDescriptions
     if (this.fields.length) {
-      this._parsers = new Array<TypeParser>(fieldDescriptions.length)
+      this._parsers = Array.from<TypeParser>({ length: fieldDescriptions.length })
     }
 
     const row: Record<string, null> = {}

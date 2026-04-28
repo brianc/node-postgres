@@ -1,5 +1,4 @@
 import { describe, it } from 'vitest'
-import assert from 'node:assert'
 import helper from '../_test-helper.ts'
 
 describe('882', () => {
@@ -8,7 +7,7 @@ describe('882', () => {
     const client = helper.client()
     client.query({ name: 'foo1', text: null as never })
     client.query({ name: 'foo2', text: '   ' })
-    client.query({ name: 'foo3', text: '' }, function (err, res) {
+    client.query({ name: 'foo3', text: '' }, function () {
       client.end()
     })
   })

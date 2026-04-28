@@ -34,7 +34,8 @@ describe('pool', () => {
         pool.query('SELECT 1 as num', (err, res) => {
           expect(res.rows[0]).toEqual({ num: 1 })
           pool.end(() => {
-            err ? reject(err) : resolve()
+            if (err) reject(err)
+            else resolve()
           })
         })
       }))
@@ -45,7 +46,8 @@ describe('pool', () => {
         pool.query('SELECT $1::text as name', ['brianc'], (err, res) => {
           expect(res.rows[0]).toEqual({ name: 'brianc' })
           pool.end(() => {
-            err ? reject(err) : resolve()
+            if (err) reject(err)
+            else resolve()
           })
         })
       }))
@@ -122,7 +124,8 @@ describe('pool', () => {
         const pool = new Pool()
         const returnValue = pool.query('SELECT 1 as num', (err: Error | undefined) => {
           pool.end(() => {
-            err ? reject(err) : resolve()
+            if (err) reject(err)
+            else resolve()
           })
         })
         expect(returnValue).toBe(undefined)

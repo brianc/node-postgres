@@ -32,7 +32,8 @@ describe('end semantics race condition', () => {
         client2.query('INSERT INTO c(id) VALUES ($1)', [id], (err) => {
           client1.end()
           client2.end()
-          err ? reject(err) : resolve()
+          if (err) reject(err)
+          else resolve()
         })
       })
     }))

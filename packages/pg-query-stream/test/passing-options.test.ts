@@ -13,7 +13,7 @@ helper('passing options', (client) => {
         result.push(datum)
       })
       query.on('end', () => {
-        const expected = new Array(11).fill(0).map((_, i) => [i])
+        const expected = Array.from({ length: 11 }, (_, i) => [i])
         assert.deepEqual(result, expected)
         resolve()
       })
@@ -31,7 +31,7 @@ helper('passing options', (client) => {
         result.push(datum)
       })
       query.on('end', () => {
-        const expected = new Array(11).fill(0).map((_, i) => ({
+        const expected = Array.from({ length: 11 }, (_, i) => ({
           num: i.toString(),
         }))
         assert.deepEqual(result, expected)

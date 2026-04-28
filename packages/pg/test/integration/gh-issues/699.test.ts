@@ -1,5 +1,4 @@
 import { describe, it } from 'vitest'
-import assert from 'node:assert'
 
 describe('699', () => {
   // pg-copy-streams was removed from the dependency tree in pg@9. The original

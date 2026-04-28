@@ -1,5 +1,4 @@
 import { describe, it } from 'vitest'
-import assert from 'node:assert'
 import helper from './../_test-helper.ts'
 
 describe('1854', () => {

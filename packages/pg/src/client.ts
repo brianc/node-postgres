@@ -663,14 +663,14 @@ class Client extends EventEmitter {
     text: string,
     values?: unknown[]
   ): Promise<{ rows: R[]; rowCount: number | null; command: string | null; oid: number | null; fields: unknown[] }>
-  query<R = any>(text: string, callback: QueryCallback): void
-  query<R = any>(text: string, values: unknown[], callback: QueryCallback): void
+  query<_R = any>(text: string, callback: QueryCallback): void
+  query<_R = any>(text: string, values: unknown[], callback: QueryCallback): void
   query<R = any>(
     config: QueryConfigInput,
     values?: unknown[]
   ): Promise<{ rows: R[]; rowCount: number | null; command: string | null; oid: number | null; fields: unknown[] }>
-  query<R = any>(config: QueryConfigInput, callback: QueryCallback): void
-  query<R = any>(config: QueryConfigInput, values: unknown[], callback: QueryCallback): void
+  query<_R = any>(config: QueryConfigInput, callback: QueryCallback): void
+  query<_R = any>(config: QueryConfigInput, values: unknown[], callback: QueryCallback): void
   query(
     config: string | QueryConfigInput | Query | { submit(connection: unknown): void },
     values?: unknown[] | QueryCallback,

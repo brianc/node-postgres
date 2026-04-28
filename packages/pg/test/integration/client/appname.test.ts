@@ -83,15 +83,13 @@ describe('appname', () => {
     }))
 
   // TODO: make the test work for native client too
-  if (!false) {
-    it('application_name is read from the env', () =>
-      new Promise<void>((done) => {
-        const appName = (process.env.PGAPPNAME = 'testest')
-        getAppName({}, function (res: string) {
-          delete process.env.PGAPPNAME
-          assert.strictEqual(res, appName)
-          done()
-        })
-      }))
-  }
+  it('application_name is read from the env', () =>
+    new Promise<void>((done) => {
+      const appName = (process.env.PGAPPNAME = 'testest')
+      getAppName({}, function (res: string) {
+        delete process.env.PGAPPNAME
+        assert.strictEqual(res, appName)
+        done()
+      })
+    }))
 })

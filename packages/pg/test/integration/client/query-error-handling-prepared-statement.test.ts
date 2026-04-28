@@ -28,15 +28,15 @@ describe('query-error-handling-prepared-statement', () => {
 
           const query1 = client.query(queryInstance)
 
-          query1.on('error', function (err) {
+          query1.on('error', function () {
             assert.fail('Prepared statement should not emit error')
           })
 
-          query1.on('row', function (row) {
+          query1.on('row', function () {
             assert.fail('Prepared statement should not emit row')
           })
 
-          query1.on('end', function (err) {
+          query1.on('end', function () {
             assert.fail('Prepared statement when executed should not return before being killed')
           })
 
@@ -85,9 +85,6 @@ describe('query-error-handling-prepared-statement', () => {
 
   it('query killed during query execution of prepared statement', () =>
     new Promise<void>((done) => {
-      if (false) {
-        return done()
-      }
       const client = new Client(helper.args)
       client.connect(
         assert.success(function () {
@@ -109,15 +106,15 @@ describe('query-error-handling-prepared-statement', () => {
             })
           )
 
-          query1.on('error', function (err) {
+          query1.on('error', function () {
             assert.fail('Prepared statement should not emit error')
           })
 
-          query1.on('row', function (row) {
+          query1.on('row', function () {
             assert.fail('Prepared statement should not emit row')
           })
 
-          query1.on('end', function (err) {
+          query1.on('end', function () {
             assert.fail('Prepared statement when executed should not return before being killed')
           })
 

@@ -88,11 +88,11 @@ describe('600', () => {
       }
       client.query(
         q,
-        assert.calls(function (err, res) {
+        assert.calls(function (_err, _res) {
           q.values = [1]
           client.query(
             q,
-            assert.calls(function (err, res) {
+            assert.calls(function (err, _res) {
               assert.ifError(err)
               client.end()
               done()

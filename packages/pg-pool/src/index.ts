@@ -133,7 +133,8 @@ function promisify<T>(
   let rej: (reason?: unknown) => void
   let res: (value: T) => void
   const cb = function (err: Error | undefined, client?: T): void {
-    err ? rej(err) : res(client as T)
+    if (err) rej(err)
+    else res(client as T)
   }
   const result = new (Promise as PromiseConstructor)<T>(function (resolve, reject) {
     res = resolve
@@ -558,7 +559,9 @@ class Pool extends EventEmitter {
     this._pulseQueue()
   }
 
-  query<R extends QueryResultRow = any, I extends any[] = any[]>(queryStream: Submittable): Submittable
+  // R / I are unused here but kept so callers can pass them positionally and
+  // keep the same generic shape across all `query` overloads.
+  query<_R extends QueryResultRow = any, _I extends any[] = any[]>(queryStream: Submittable): Submittable
   query<R extends any[] = any[], I extends any[] = any[]>(
     queryConfig: QueryArrayConfig<I>,
     values?: I

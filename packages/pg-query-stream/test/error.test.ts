@@ -71,7 +71,8 @@ describe('error recovery', () => {
         stream.on('data', () => {})
         stream.on('error', () => {
           client.end((err) => {
-            err ? reject(err) : resolve()
+            if (err) reject(err)
+            else resolve()
           })
         })
       })

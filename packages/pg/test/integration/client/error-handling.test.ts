@@ -9,7 +9,7 @@ describe('error-handling', () => {
 
   const createErorrClient = function () {
     const client = helper.client()
-    client.once('error', function (err) {
+    client.once('error', function () {
       assert.fail('Client shoud not throw error during query execution')
     })
     client.on('drain', client.end.bind(client))
@@ -92,7 +92,7 @@ describe('error-handling', () => {
           let queryError: Error | undefined
           client.query(
             new pg.Query(config),
-            assert.calls(function (err, res) {
+            assert.calls(function (err, _res) {
               assert(err instanceof Error)
               queryError = err
             })
@@ -128,7 +128,7 @@ describe('error-handling', () => {
         })
       )
 
-      assert.emits(query, 'error', function (err) {
+      assert.emits(query, 'error', function () {
         ensureFuture(client, done)
       })
     }))
@@ -161,7 +161,7 @@ describe('error-handling', () => {
         user: 'asldkfjsadlfkj',
       })
       client.connect(
-        assert.calls(function (error, client) {
+        assert.calls(function (error) {
           assert(error instanceof Error)
           done()
         })
@@ -194,7 +194,7 @@ describe('error-handling', () => {
       client.on('error', () => {
         assert.fail('unexpected error event when connecting')
       })
-      client.connect(function (error, client) {
+      client.connect(function (error) {
         assert(error instanceof Error)
         done()
       })
@@ -208,7 +208,7 @@ describe('error-handling', () => {
       client.on('error', () => {
         assert.fail('unexpected error event when connecting')
       })
-      client.connect().catch((e) => done())
+      client.connect().catch(() => done())
     }))
 
   it('non-query error', () =>
@@ -267,7 +267,7 @@ describe('error-handling', () => {
         }
         client.query({ text: {} as never }, (err) => {
           assert(err)
-          client.query({}, (err: unknown) => {
+          client.query({}, (_err: unknown) => {
             client.on('drain', () => {
               client.end(done)
             })

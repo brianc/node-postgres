@@ -13,14 +13,14 @@ describe('type-coercion', () => {
           assert(!err)
           client.query(
             'create temp table test_type(col ' + type.name + ')',
-            assert.calls(function (err, result) {
+            assert.calls(function (err, _result) {
               assert(!err)
 
               type.values.forEach(function (val: unknown) {
                 client.query(
                   'insert into test_type(col) VALUES($1)',
                   [val],
-                  assert.calls(function (err, result) {
+                  assert.calls(function (err, _result) {
                     assert(!err)
                   })
                 )
@@ -213,7 +213,7 @@ describe('type-coercion', () => {
       // in the case of "275760-09-13 00:00:00 GMT" the timevalue overflows.
       client.query(
         'SET TIMEZONE TO GMT',
-        assert.success(function (res) {
+        assert.success(function (_res) {
           // PostgreSQL supports date range of 4713 BCE to 294276 CE
           //   http://www.postgresql.org/docs/9.2/static/datatype-datetime.html
           // ECMAScript supports date range of Apr 20 271821 BCE to Sep 13 275760 CE

@@ -17,7 +17,7 @@ describe('no-data', () => {
         text: 'insert into boom(size) values($1)',
         values: [100],
       },
-      function (err, result) {
+      function (err) {
         if (err) {
           console.log(err)
           throw err

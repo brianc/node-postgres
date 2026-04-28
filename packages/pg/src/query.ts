@@ -207,13 +207,13 @@ class Query extends EventEmitter {
       // the stream allows node to buffer up the messages internally before sending
       // them all off at once. Note: we're checking for existence of cork/uncork because
       // some versions of streams might not have this (cloudflare?).
-      connection.stream.cork && connection.stream.cork()
+      if (connection.stream.cork) connection.stream.cork()
       try {
         this.prepare(connection)
       } finally {
         // while unlikely for this.prepare to throw, if it does & we don't uncork this
         // stream this client becomes unresponsive, so put in finally block "just in case"
-        connection.stream.uncork && connection.stream.uncork()
+        if (connection.stream.uncork) connection.stream.uncork()
       }
     } else {
       connection.query(this.text!)

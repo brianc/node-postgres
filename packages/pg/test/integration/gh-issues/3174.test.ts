@@ -167,14 +167,12 @@ describe('3174', () => {
     })
   }
 
-  if (!false) {
-    testErrorBuffer('parseComplete', buffers.parseComplete())
-    testErrorBuffer('commandComplete', buffers.commandComplete('f'))
-    testErrorBuffer('rowDescription', buffers.rowDescription())
-    testErrorBuffer('dataRow', buffers.dataRow())
-    testErrorBuffer('portalSuspended', buffers.portalSuspended())
-    testErrorBuffer('emptyQuery', buffers.emptyQuery())
-    testErrorBuffer('copyIn', buffers.copyIn(0))
-    testErrorBuffer('copyData', buffers.copyData(Buffer.from([1, 2, 3])))
-  }
+  testErrorBuffer('parseComplete', buffers.parseComplete())
+  testErrorBuffer('commandComplete', buffers.commandComplete('f'))
+  testErrorBuffer('rowDescription', buffers.rowDescription())
+  testErrorBuffer('dataRow', buffers.dataRow())
+  testErrorBuffer('portalSuspended', buffers.portalSuspended())
+  testErrorBuffer('emptyQuery', buffers.emptyQuery())
+  testErrorBuffer('copyIn', buffers.copyIn(0))
+  testErrorBuffer('copyData', buffers.copyData(Buffer.from([1, 2, 3])))
 })

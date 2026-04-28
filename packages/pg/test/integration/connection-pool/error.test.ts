@@ -8,7 +8,7 @@ describe('error', () => {
   it('connecting to invalid port', () =>
     new Promise<void>((cb) => {
       const pool = new pg.Pool({ port: 13801 })
-      pool.connect().catch((e) => cb())
+      pool.connect().catch(() => cb())
     }))
 
   it('errors emitted on checked-out clients', () =>
@@ -35,7 +35,7 @@ describe('error', () => {
                     }
 
                     client.once('error', (err: Error) => {
-                      client.on('error', (err: Error) => {})
+                      client.on('error', (_err: Error) => {})
                       done(err as never)
                       cb()
                     })
@@ -44,7 +44,7 @@ describe('error', () => {
                     client2.query(
                       killIdleQuery,
                       params,
-                      assert.success(function (res) {
+                      assert.success(function (_res) {
                         // check to make sure client connection actually was killed
                         // return client2 to the pool
                         done2()
@@ -68,29 +68,21 @@ describe('error', () => {
           client.query(
             'SELECT pg_terminate_backend(pg_backend_pid())',
             assert.calls((err: Error) => {
-              if (false) {
-                assert.ok(err)
-              } else {
-                assert.equal((err as Error & { code?: string }).code, '57P01')
-              }
+              assert.equal((err as Error & { code?: string }).code, '57P01')
             })
           )
 
           client.once(
             'error',
-            assert.calls((err: Error) => {
-              client.on('error', (err: Error) => {})
+            assert.calls((_err: Error) => {
+              client.on('error', (_err: Error) => {})
             })
           )
 
           client.query(
             'SELECT 1',
             assert.calls((err: Error) => {
-              if (false) {
-                assert.equal(err.message, 'terminating connection due to administrator command')
-              } else {
-                assert.equal(err.message, 'Connection terminated unexpectedly')
-              }
+              assert.equal(err.message, 'Connection terminated unexpectedly')
 
               done(err as never)
               pool.end()
@@ -109,26 +101,18 @@ describe('error', () => {
           client.query(
             'SELECT pg_terminate_backend(pg_backend_pid())',
             assert.calls((err: Error) => {
-              if (false) {
-                assert.ok(err)
-              } else {
-                assert.equal((err as Error & { code?: string }).code, '57P01')
-              }
+              assert.equal((err as Error & { code?: string }).code, '57P01')
             })
           )
 
           client.once(
             'error',
-            assert.calls((err: Error) => {
-              client.on('error', (err: Error) => {})
+            assert.calls((_err: Error) => {
+              client.on('error', (_err: Error) => {})
               client.query(
                 'SELECT 1',
                 assert.calls((err: Error) => {
-                  if (false) {
-                    assert.equal(err.message, 'terminating connection due to administrator command')
-                  } else {
-                    assert.equal(err.message, 'Client has encountered a connection error and is not queryable')
-                  }
+                  assert.equal(err.message, 'Client has encountered a connection error and is not queryable')
 
                   done(err as never)
                   pool.end()

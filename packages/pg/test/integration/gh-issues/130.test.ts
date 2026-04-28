@@ -11,7 +11,7 @@ describe('130', () => {
     pool.connect(function (err, client, done) {
       assert.ifError(err)
       client.once('error', function (err) {
-        client.on('error', (err) => {})
+        client.on('error', (_err) => {})
         done(err as never)
       })
       client.query('SELECT pg_backend_pid()', function (err, result) {
@@ -23,7 +23,7 @@ describe('130', () => {
         if (helper.args.user) psql = psql + ' -U ' + helper.args.user
         exec(
           psql + ' -c "select pg_terminate_backend(' + pid + ')" template1',
-          assert.calls(function (error, stdout, stderr) {
+          assert.calls(function (error, _stdout, _stderr) {
             assert.ifError(error)
           })
         )

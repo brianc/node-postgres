@@ -24,7 +24,7 @@ describe('query-error-handling', () => {
             }
             const query1 = client.query(
               sleepQuery,
-              assert.calls(function (err, result) {
+              assert.calls(function (err, _result) {
                 assert(err)
                 client.end()
               })

@@ -9,15 +9,11 @@ import NativeQuery from './query.ts'
 import type { ClientConfig } from '../client.ts'
 import type { QueryConfigInput } from '../utils.ts'
 
-// `pg-native` is an optional peer; we resolve it eagerly via createRequire so that
-// any failure here surfaces with a clear error rather than at obscure call sites.
+// `pg-native` is an optional peer; we resolve it eagerly via createRequire so any
+// failure here surfaces with a clear error at module-load time rather than at
+// obscure call sites later.
 const requireFn = createRequire(import.meta.url)
-let Native: new (opts: { types: TypeOverrides }) => NativeBinding
-try {
-  Native = requireFn('pg-native') as typeof Native
-} catch (err) {
-  throw err
-}
+const Native = requireFn('pg-native') as new (opts: { types: TypeOverrides }) => NativeBinding
 
 interface NativeBinding {
   arrayMode: boolean

@@ -57,7 +57,7 @@ describe('api', () => {
       pool.connect().then((client) => {
         client.query(
           'SELECT pg_sleep(2)',
-          assert.calls(function (err, result) {
+          assert.calls(function (err, _result) {
             assert(err)
             assert(err.message === 'Query read timeout')
             client.release()
@@ -73,14 +73,14 @@ describe('api', () => {
       pool.connect().then((client) => {
         client.query(
           'SELECT pg_sleep(20)',
-          assert.calls(function (err, result) {
+          assert.calls(function (err, _result) {
             assert(err)
             assert(err.message === 'Query read timeout')
             client.release(err)
             pool.connect().then((client) => {
               client.query(
                 'SELECT 1',
-                assert.calls(function (err, result) {
+                assert.calls(function (err, _result) {
                   assert(!err)
                   client.release(err)
                   pool.end(cb)
@@ -98,7 +98,7 @@ describe('api', () => {
       pool.connect().then((client) => {
         client.query(
           'SELECT pg_sleep(1)',
-          assert.calls(function (err, result) {
+          assert.calls(function (err, _result) {
             assert(!err)
             client.release()
             pool.end(cb)
@@ -113,7 +113,7 @@ describe('api', () => {
       pool.connect().then((client) => {
         client.query(
           { text: 'SELECT pg_sleep(20)', query_timeout: 1000 },
-          assert.calls(function (err, result) {
+          assert.calls(function (err, _result) {
             assert(err)
             assert(err.message === 'Query read timeout')
             client.release()
@@ -205,7 +205,7 @@ describe('api', () => {
           assert(!err)
           client.query(
             'SELECT OISDJF FROM LEIWLISEJLSE',
-            assert.calls(function (err, result) {
+            assert.calls(function (err, _result) {
               assert.ok(err)
               release()
               pool.end(done)
@@ -229,7 +229,7 @@ describe('api', () => {
               "INSERT INTO boom(name) VALUES('boom')",
               "INSERT INTO boom(name) VALUES('zoom')",
             ].join(';'),
-            function (err, callback) {
+            function (_err, _callback) {
               assert.equal(callCount++, 0, 'Call count should be 0.  More means this callback fired more than once.')
               release()
               pool.end(done)

@@ -82,6 +82,9 @@ class NativeQuery extends EventEmitter {
     this.state = 'error'
   }
 
+  // Mirrors the upstream Query shape: a query is intentionally thenable so
+  // `await client.query(...)` resolves with the result.
+  // oxlint-disable-next-line unicorn/no-thenable
   then<T1 = unknown, T2 = never>(
     onSuccess?: ((value: unknown) => T1 | PromiseLike<T1>) | undefined | null,
     onFailure?: ((reason: unknown) => T2 | PromiseLike<T2>) | undefined | null

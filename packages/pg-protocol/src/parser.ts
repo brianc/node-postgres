@@ -307,7 +307,7 @@ const parseParameterDescriptionMessage = (reader: BufferReader) => {
 
 const parseDataRowMessage = (reader: BufferReader) => {
   const fieldCount = reader.int16()
-  const fields: any[] = new Array(fieldCount)
+  const fields: any[] = Array.from({ length: fieldCount })
   for (let i = 0; i < fieldCount; i++) {
     const len = reader.int32()
     // a -1 for length means the value of the field is null

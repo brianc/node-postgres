@@ -32,7 +32,7 @@ describe('notice', () => {
                 otherClient.end((++bothEmitted ? done : (): void => {}) as () => void)
               })
 
-              client.query("NOTIFY boom, 'omg!'", function (err, q) {
+              client.query("NOTIFY boom, 'omg!'", function (err) {
                 if (err) {
                   // notify not supported with payload on 8.x
                   client.query('NOTIFY boom')
@@ -47,11 +47,6 @@ describe('notice', () => {
   // this test fails on travis due to their config
   it('emits notice message', () =>
     new Promise<void>((done) => {
-      if (false) {
-        console.error('notice messages do not work curreintly with node-libpq')
-        return done()
-      }
-
       const client = helper.client()
       const text = `
 DO language plpgsql $$

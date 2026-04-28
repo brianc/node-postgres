@@ -8,11 +8,9 @@ import assert from 'node:assert'
 // short-circuit registration the way it did under mocha.
 describe.skipIf(process.env.PGTESTNOSSL)('2085', () => {
   it('it should connect over ssl', async () => {
-    const ssl = false
-      ? 'require'
-      : {
-          rejectUnauthorized: false,
-        }
+    const ssl = {
+      rejectUnauthorized: false,
+    }
     const client = new helper.pg.Client({ ssl })
     await client.connect()
     const { rows } = await client.query('SELECT NOW()')
@@ -21,11 +19,11 @@ describe.skipIf(process.env.PGTESTNOSSL)('2085', () => {
   })
 
   it('it should fail with self-signed cert error w/o rejectUnauthorized being passed', async () => {
-    const ssl = false ? 'verify-ca' : {}
+    const ssl = {}
     const client = new helper.pg.Client({ ssl })
     try {
       await client.connect()
-    } catch (e) {
+    } catch {
       return
     }
     throw new Error('this test should have thrown an error due to self-signed cert')

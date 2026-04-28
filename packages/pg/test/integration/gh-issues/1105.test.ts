@@ -1,5 +1,4 @@
 import { describe, it } from 'vitest'
-import assert from 'node:assert'
 import helper from '../_test-helper.ts'
 
 describe('1105', () => {
@@ -13,7 +12,7 @@ describe('1105', () => {
     while (count++ < 5000) {
       try {
         await client.query('INSERT INTO foobar(name) VALUES ($1)', [Math.random() * 1000 + ''])
-      } catch (e) {
+      } catch {
         await client.query('ROLLBACK')
       }
     }

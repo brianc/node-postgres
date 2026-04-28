@@ -41,23 +41,21 @@ describe('custom-types', () => {
     }))
 
   // Custom type-parsers per query are not supported in native
-  if (!false) {
-    it('custom type parser in query', () =>
-      new Promise<void>((done) => {
-        const client = new Client()
+  it('custom type parser in query', () =>
+    new Promise<void>((done) => {
+      const client = new Client()
 
-        client.connect().then(() => {
-          client.query(
-            {
-              text: 'SELECT NOW() as val',
-              types: customTypes,
-            },
-            assert.success(function (res) {
-              assert.equal(res.rows[0].val, 'okay!')
-              client.end().then(done)
-            })
-          )
-        })
-      }))
-  }
+      client.connect().then(() => {
+        client.query(
+          {
+            text: 'SELECT NOW() as val',
+            types: customTypes,
+          },
+          assert.success(function (res) {
+            assert.equal(res.rows[0].val, 'okay!')
+            client.end().then(done)
+          })
+        )
+      })
+    }))
 })

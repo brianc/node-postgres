@@ -41,9 +41,9 @@ export class Result {
 
   consumeFields(pq: Libpq): void {
     const nfields = pq.nfields()
-    this.fields = new Array(nfields)
+    this.fields = Array.from({ length: nfields })
     const row: Record<string, unknown> = {}
-    this._parsers = new Array(nfields)
+    this._parsers = Array.from({ length: nfields })
     for (let x = 0; x < nfields; x++) {
       const name = pq.fname(x)
       row[name] = null
@@ -59,7 +59,7 @@ export class Result {
 
   consumeRows(pq: Libpq): void {
     const tupleCount = pq.ntuples()
-    this.rows = new Array(tupleCount)
+    this.rows = Array.from({ length: tupleCount })
     for (let i = 0; i < tupleCount; i++) {
       this.rows[i] = this._arrayMode ? this.consumeRowAsArray(pq, i) : this.consumeRowAsObject(pq, i)
     }
@@ -74,7 +74,7 @@ export class Result {
   }
 
   consumeRowAsArray(pq: Libpq, rowIndex: number): unknown[] {
-    const row = new Array(this.fields.length)
+    const row = Array.from({ length: this.fields.length })
     for (let j = 0; j < this.fields.length; j++) {
       row[j] = this.readValue(pq, rowIndex, j)
     }

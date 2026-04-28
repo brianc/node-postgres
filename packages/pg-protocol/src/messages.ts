@@ -136,7 +136,7 @@ export class CopyResponse {
     public readonly binary: boolean,
     columnCount: number
   ) {
-    this.columnTypes = new Array(columnCount)
+    this.columnTypes = Array.from({ length: columnCount })
   }
 }
 
@@ -159,7 +159,7 @@ export class RowDescriptionMessage {
     public readonly length: number,
     public readonly fieldCount: number
   ) {
-    this.fields = new Array(this.fieldCount)
+    this.fields = Array.from({ length: this.fieldCount })
   }
 }
 
@@ -170,7 +170,7 @@ export class ParameterDescriptionMessage {
     public readonly length: number,
     public readonly parameterCount: number
   ) {
-    this.dataTypeIDs = new Array(this.parameterCount)
+    this.dataTypeIDs = Array.from({ length: this.parameterCount })
   }
 }
 

@@ -1,7 +1,6 @@
 import * as fs from 'node:fs'
 import { describe, it } from 'vitest'
 import helper from './_test-helper.ts'
-import assert from 'node:assert'
 
 describe('tls', () => {
   const pg = helper.pg
