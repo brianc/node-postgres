@@ -3,11 +3,7 @@ import helper from '../_test-helper.ts'
 import assert from 'node:assert'
 
 describe('3487', () => {
-  // Likely overlaps with #3495 (binary mode produces incorrect row values).
-  // The non-binary path returns [1, 2, 8] correctly; the binary path returns
-  // []. Need to bisect against master to confirm whether this is a migration
-  // regression or a pre-existing bug. Skipping until then.
-  it.skip('allows you to switch between format modes for arrays', async () => {
+  it('allows you to switch between format modes for arrays', async () => {
     const client = new helper.pg.Client()
     await client.connect()
 

@@ -87,10 +87,7 @@ class Result<R = Record<string, unknown>> {
       const rawValue = rowData[i]
       const field = this.fields[i].name
       if (rawValue !== null) {
-        const v =
-          this.fields[i].format === 'binary' && typeof rawValue !== 'string'
-            ? Buffer.from(rawValue as Buffer)
-            : (rawValue as string | Buffer)
+        const v = this.fields[i].format === 'binary' ? Buffer.from(rawValue as Buffer) : (rawValue as string | Buffer)
         row[field] = this._parsers![i](v)
       } else {
         row[field] = null
