@@ -1,0 +1,40 @@
+import { describe, it } from 'vitest'
+import helper from './../_test-helper.ts'
+import assert from 'node:assert'
+
+describe('2556', () => {
+  const callbackError = new Error('TEST: Throw in callback')
+  it('it should cleanup client even if an error is thrown in a callback', () =>
+    new Promise<void>((done) => {
+      // temporarily replace the test framework's uncaughtException handlers
+      // with a custom one that ignores the callbackError
+      const original_handlers = process.listeners('uncaughtException')
+      process.removeAllListeners('uncaughtException')
+      process.on('uncaughtException', (err, origin) => {
+        if (err != callbackError) {
+          original_handlers[0](err, origin)
+        }
+      })
+
+      // throw an error in a callback and verify that a subsequent query works without error
+      const client = helper.client()
+      client.query('SELECT NOW()', (err) => {
+        assert(!err)
+        setTimeout(reuseClient, 50)
+        throw callbackError
+      })
+
+      function reuseClient() {
+        client.query('SELECT NOW()', (err) => {
+          assert(!err)
+
+          // restore the test framework's uncaughtException handlers
+          for (const handler of original_handlers) {
+            process.on('uncaughtException', handler)
+          }
+
+          client.end(done)
+        })
+      }
+    }))
+})

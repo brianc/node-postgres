@@ -1,0 +1,86 @@
+import { describe, it } from 'vitest'
+import helper from './_test-helper.ts'
+import assert from 'node:assert'
+
+describe('configuration', () => {
+  const pg = helper.pg
+  const { Client } = helper
+  // clear process.env
+  const realEnv: Record<string, string | undefined> = {}
+  for (const key in process.env) {
+    realEnv[key] = process.env[key]
+    if (!key.indexOf('PG')) delete process.env[key]
+  }
+
+  it('default values are used in new clients', function () {
+    assert.same(pg.defaults as unknown as Record<string, unknown>, {
+      user: process.env.USER,
+      database: undefined,
+      password: null,
+      port: 5432,
+      rows: 0,
+      max: 10,
+      binary: false,
+      idleTimeoutMillis: 30000,
+      client_encoding: '',
+      ssl: false,
+      application_name: undefined,
+      fallback_application_name: undefined,
+      parseInputDatesAsUTC: false,
+    })
+
+    const client = new pg.Client()
+    assert.same(client as unknown as Record<string, unknown>, {
+      user: process.env.USER,
+      password: null,
+      port: 5432,
+      database: process.env.USER,
+    })
+  })
+
+  it('modified values are passed to created clients', function () {
+    pg.defaults.user = 'boom'
+    pg.defaults.password = 'zap'
+    pg.defaults.host = 'blam'
+    pg.defaults.port = 1234
+    pg.defaults.database = 'pow'
+
+    const client = new Client()
+    assert.same(client as unknown as Record<string, unknown>, {
+      user: 'boom',
+      password: 'zap',
+      host: 'blam',
+      port: 1234,
+      database: 'pow',
+    })
+  })
+
+  it('database defaults to user when user is non-default', () => {
+    {
+      pg.defaults.database = undefined
+
+      const client = new Client({
+        user: 'foo',
+      })
+
+      assert.strictEqual(client.database, 'foo')
+    }
+
+    {
+      pg.defaults.database = 'bar'
+
+      const client = new Client({
+        user: 'foo',
+      })
+
+      assert.strictEqual(client.database, 'bar')
+    }
+  })
+
+  it('cleanup', () => {
+    // restore process.env
+    for (const key in realEnv) {
+      process.env[key] = realEnv[key]
+    }
+  })
+})

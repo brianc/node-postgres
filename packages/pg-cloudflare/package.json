@@ -1,38 +1,47 @@
 {
   "name": "pg-cloudflare",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "A socket implementation that can run on Cloudflare Workers using native TCP connections.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "homepage": "https://node-postgres.com",
   "license": "MIT",
-  "devDependencies": {
-    "ts-node": "^8.5.4",
-    "typescript": "^4.0.3"
-  },
-  "exports": {
-    ".": {
-      "workerd": {
-        "import": "./esm/index.mjs",
-        "require": "./dist/index.js"
-      },
-      "default": "./dist/empty.js"
-    },
-    "./package.json": "./package.json"
-  },
-  "scripts": {
-    "build": "tsc",
-    "build:watch": "tsc --watch",
-    "prepublish": "yarn build",
-    "test": "echo e2e test in pg package"
-  },
+  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
+    "url": "git+https://github.com/brianc/node-postgres.git",
     "directory": "packages/pg-cloudflare"
   },
   "files": [
-    "/dist/*{js,ts,map}",
-    "/src",
-    "/esm"
-  ]
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "workerd": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "default": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/empty.mjs"
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "obuild",
+    "dev": "vitest",
+    "lint": "oxlint . && oxfmt --check .",
+    "lint:fix": "oxlint . --fix && oxfmt .",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit",
+    "prepack": "pnpm build"
+  },
+  "engines": {
+    "node": ">=22.11.0"
+  }
 }

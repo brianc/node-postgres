@@ -1,37 +1,44 @@
 {
   "name": "pg-cursor",
-  "version": "2.19.0",
-  "description": "Query cursor extension for node-postgres",
-  "main": "index.js",
-  "exports": {
-    ".": {
-      "import": "./esm/index.mjs",
-      "require": "./index.js",
-      "default": "./index.js"
-    }
-  },
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
+  "version": "3.0.0",
+  "description": "Query cursor for node-postgres",
+  "homepage": "https://node-postgres.com",
+  "license": "MIT",
+  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
+    "url": "git+https://github.com/brianc/node-postgres.git",
     "directory": "packages/pg-cursor"
   },
-  "author": "Brian M. Carlson",
-  "license": "MIT",
-  "devDependencies": {
-    "mocha": "^11.7.5",
-    "pg": "^8.20.0"
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "obuild",
+    "dev": "vitest",
+    "lint": "oxlint . && oxfmt --check .",
+    "lint:fix": "oxlint . --fix && oxfmt .",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit",
+    "prepack": "pnpm build"
   },
   "peerDependencies": {
-    "pg": "^8"
+    "pg": "workspace:^"
   },
-  "files": [
-    "index.js",
-    "esm"
-  ]
+  "engines": {
+    "node": ">=22.11.0"
+  }
 }

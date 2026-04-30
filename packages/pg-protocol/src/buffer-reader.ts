@@ -2,7 +2,7 @@ export class BufferReader {
   private buffer: Buffer = Buffer.allocUnsafe(0)
 
   // TODO(bmc): support non-utf8 encoding?
-  private encoding: string = 'utf-8'
+  private encoding: BufferEncoding = 'utf-8'
 
   constructor(private offset: number = 0) {}
 
@@ -44,8 +44,9 @@ export class BufferReader {
   public cstring(): string {
     const start = this.offset
     let end = start
-    // eslint-disable-next-line no-empty
-    while (this.buffer[end++] !== 0) {}
+    while (this.buffer[end++] !== 0) {
+      // advance until null terminator
+    }
     this.offset = end
     return this.buffer.toString(this.encoding, start, end - 1)
   }

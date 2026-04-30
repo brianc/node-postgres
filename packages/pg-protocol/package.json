@@ -1,44 +1,61 @@
 {
   "name": "pg-protocol",
-  "version": "1.13.0",
-  "description": "The postgres client/server binary protocol, implemented in TypeScript",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./esm/index.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
-    },
-    "./dist/*": "./dist/*.js",
-    "./dist/*.js": "./dist/*.js"
-  },
+  "version": "2.0.0",
+  "description": "PostgreSQL client/server binary protocol — pure TypeScript, ESM-only",
+  "homepage": "https://node-postgres.com",
   "license": "MIT",
-  "devDependencies": {
-    "@types/chai": "^4.2.7",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^12.12.21",
-    "chai": "^4.2.0",
-    "chunky": "^0.0.0",
-    "mocha": "^11.7.5",
-    "ts-node": "^8.5.4",
-    "typescript": "^4.0.3"
-  },
-  "scripts": {
-    "test": "mocha dist/**/*.test.js",
-    "build": "tsc",
-    "build:watch": "tsc --watch",
-    "prepublish": "yarn build",
-    "pretest": "yarn build"
-  },
+  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
+    "url": "git+https://github.com/brianc/node-postgres.git",
     "directory": "packages/pg-protocol"
   },
   "files": [
-    "/dist/*{js,ts,map}",
-    "/src",
-    "/esm"
-  ]
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./messages": {
+      "types": "./dist/messages.d.mts",
+      "default": "./dist/messages.mjs"
+    },
+    "./parser": {
+      "types": "./dist/parser.d.mts",
+      "default": "./dist/parser.mjs"
+    },
+    "./serializer": {
+      "types": "./dist/serializer.d.mts",
+      "default": "./dist/serializer.mjs"
+    },
+    "./buffer-reader": {
+      "types": "./dist/buffer-reader.d.mts",
+      "default": "./dist/buffer-reader.mjs"
+    },
+    "./buffer-writer": {
+      "types": "./dist/buffer-writer.d.mts",
+      "default": "./dist/buffer-writer.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "obuild",
+    "dev": "vitest",
+    "lint": "oxlint . && oxfmt --check .",
+    "lint:fix": "oxlint . --fix && oxfmt .",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit",
+    "prepack": "pnpm build"
+  },
+  "engines": {
+    "node": ">=22.11.0"
+  }
 }

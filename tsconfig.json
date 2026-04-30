@@ -1,13 +1,18 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
-    "incremental": true,
-    "composite": true
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitOverride": true,
+    "noEmit": true,
+    "types": ["node"]
   },
-  "include": [],
-  "references": [
-    {"path": "./packages/pg-cloudflare"},
-    {"path": "./packages/pg-query-stream"},
-    {"path": "./packages/pg-protocol"}
-  ]
+  "include": ["packages/*/src", "packages/*/test"],
+  "exclude": ["**/node_modules", "**/dist"]
 }

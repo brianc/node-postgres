@@ -1,0 +1,7 @@
+packages:
+  - 'packages/*'
+  - 'docs'
+
+onlyBuiltDependencies:
+  - libpq
+  - better-sqlite3

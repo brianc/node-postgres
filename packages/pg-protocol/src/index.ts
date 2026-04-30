@@ -1,6 +1,6 @@
-import { DatabaseError } from './messages'
-import { serialize } from './serializer'
-import { Parser, MessageCallback } from './parser'
+import { DatabaseError } from './messages.ts'
+import { serialize } from './serializer.ts'
+import { Parser, type MessageCallback } from './parser.ts'
 
 export function parse(stream: NodeJS.ReadableStream, callback: MessageCallback): Promise<void> {
   const parser = new Parser()

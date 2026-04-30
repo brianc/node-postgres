@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/oxlint/configuration_schema.json",
+  "plugins": ["unicorn", "typescript", "oxc"],
+  "rules": {},
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**", "docs/**", "**/*.d.ts"]
+}

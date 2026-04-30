@@ -14,10 +14,11 @@ Some ways I've done it in the past:
 - On Ubuntu/Debian and Debian-based Node images: `apt-get install libpq-dev python3 g++ make`
 - On RHEL/CentOS: `yum install postgresql-devel`
 - On Windows:
- 1. Install Visual Studio C++ (successfully built with Express 2010). Express is free.
- 2. Install PostgreSQL (`http://www.postgresql.org/download/windows/`)
- 3. Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
- 4. Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
+
+1.  Install Visual Studio C++ (successfully built with Express 2010). Express is free.
+2.  Install PostgreSQL (`http://www.postgresql.org/download/windows/`)
+3.  Add your Postgre Installation's `bin` folder to the system path (i.e. `C:\Program Files\PostgreSQL\9.3\bin`).
+4.  Make sure that both `libpq.dll` and `pg_config.exe` are in that folder.
 
 Afterwards `pg_config` should be in your path. Then...
 
@@ -32,40 +33,40 @@ $ npm i pg-native
 ```js
 const Client = require('pg-native')
 
-const client = new Client();
-client.connect(function(err) {
-  if(err) throw err
+const client = new Client()
+client.connect(function (err) {
+  if (err) throw err
 
   // text queries
-  client.query('SELECT NOW() AS the_date', function(err, rows) {
-    if(err) throw err
+  client.query('SELECT NOW() AS the_date', function (err, rows) {
+    if (err) throw err
 
     console.log(rows[0].the_date) // Tue Sep 16 2014 23:42:39 GMT-0400 (EDT)
 
     // parameterized statements
-    client.query('SELECT $1::text as twitter_handle', ['@briancarlson'], function(err, rows) {
-      if(err) throw err
+    client.query('SELECT $1::text as twitter_handle', ['@briancarlson'], function (err, rows) {
+      if (err) throw err
 
       console.log(rows[0].twitter_handle) //@briancarlson
     })
 
     // prepared statements
-    client.prepare('get_twitter', 'SELECT $1::text as twitter_handle', 1, function(err) {
-      if(err) throw err
+    client.prepare('get_twitter', 'SELECT $1::text as twitter_handle', 1, function (err) {
+      if (err) throw err
 
       // execute the prepared, named statement
-      client.execute('get_twitter', ['@briancarlson'], function(err, rows) {
-        if(err) throw err
+      client.execute('get_twitter', ['@briancarlson'], function (err, rows) {
+        if (err) throw err
 
         console.log(rows[0].twitter_handle) //@briancarlson
 
         // execute the prepared, named statement again
-        client.execute('get_twitter', ['@realcarrotfacts'], function(err, rows) {
-          if(err) throw err
+        client.execute('get_twitter', ['@realcarrotfacts'], function (err, rows) {
+          if (err) throw err
 
           console.log(rows[0].twitter_handle) // @realcarrotfacts
-          
-          client.end(function() {
+
+          client.end(function () {
             console.log('ended')
           })
         })
@@ -73,7 +74,6 @@ client.connect(function(err) {
     })
   })
 })
-
 ```
 
 ### sync
@@ -108,105 +108,102 @@ console.log(rows[0].twitter_handle) // @realcarrotfacts
 
 ### constructor
 
-- __`constructor Client()`__
+- **`constructor Client()`**
 
 Constructs and returns a new `Client` instance
 
 ### async functions
 
-- __`client.connect(<params:string>, callback:function(err:Error))`__
+- **`client.connect(<params:string>, callback:function(err:Error))`**
 
-Connect to a PostgreSQL backend server. 
+Connect to a PostgreSQL backend server.
 
-__params__ is _optional_ and is in any format accepted by [libpq](http://www.postgresql.org/docs/9.3/static/libpq-connect.html#LIBPQ-CONNSTRING).  The connection string is passed _as is_ to libpq, so any format supported by libpq will be supported here.  Likewise, any format _unsupported_ by libpq will not work.  If no parameters are supplied libpq will use [environment variables](http://www.postgresql.org/docs/9.3/static/libpq-envars.html) to connect.
+**params** is _optional_ and is in any format accepted by [libpq](http://www.postgresql.org/docs/9.3/static/libpq-connect.html#LIBPQ-CONNSTRING). The connection string is passed _as is_ to libpq, so any format supported by libpq will be supported here. Likewise, any format _unsupported_ by libpq will not work. If no parameters are supplied libpq will use [environment variables](http://www.postgresql.org/docs/9.3/static/libpq-envars.html) to connect.
 
-Returns an `Error` to the `callback` if the connection was unsuccessful.  `callback` is _required_.
+Returns an `Error` to the `callback` if the connection was unsuccessful. `callback` is _required_.
 
 ##### example
 
 ```js
 const client = new Client()
-client.connect(function(err) {
-  if(err) throw err
-  
+client.connect(function (err) {
+  if (err) throw err
+
   console.log('connected!')
 })
 
 const client2 = new Client()
-client2.connect('postgresql://user:password@host:5432/database?param=value', function(err) {
-  if(err) throw err
-  
+client2.connect('postgresql://user:password@host:5432/database?param=value', function (err) {
+  if (err) throw err
+
   console.log('connected with connection string!')
 })
 ```
 
-- __`client.query(queryText:string, <values:string[]>, callback:Function(err:Error, rows:Object[]))`__
+- **`client.query(queryText:string, <values:string[]>, callback:Function(err:Error, rows:Object[]))`**
 
-Execute a query with the text of `queryText` and _optional_ parameters specified in the `values` array. All values are passed to the PostgreSQL backend server and executed as a parameterized statement.  The callback is _required_ and is called with an `Error` object in the event of a query error, otherwise it is passed an array of result objects.  Each element in this array is a dictionary of results with keys for column names and their values as the values for those columns.
+Execute a query with the text of `queryText` and _optional_ parameters specified in the `values` array. All values are passed to the PostgreSQL backend server and executed as a parameterized statement. The callback is _required_ and is called with an `Error` object in the event of a query error, otherwise it is passed an array of result objects. Each element in this array is a dictionary of results with keys for column names and their values as the values for those columns.
 
 ##### example
 
 ```js
 const client = new Client()
-client.connect(function(err) {
+client.connect(function (err) {
   if (err) throw err
-  
-  client.query('SELECT NOW()', function(err, rows) {
+
+  client.query('SELECT NOW()', function (err, rows) {
     if (err) throw err
-    
+
     console.log(rows) // [{ "now": "Tue Sep 16 2014 23:42:39 GMT-0400 (EDT)" }]
-    
-    client.query('SELECT $1::text as name', ['Brian'], function(err, rows) {
+
+    client.query('SELECT $1::text as name', ['Brian'], function (err, rows) {
       if (err) throw err
-      
+
       console.log(rows) // [{ "name": "Brian" }]
-      
+
       client.end()
     })
   })
 })
 ```
 
+- **`client.prepare(statementName:string, queryText:string, nParams:int, callback:Function(err:Error))`**
 
-- __`client.prepare(statementName:string, queryText:string, nParams:int, callback:Function(err:Error))`__
-
-Prepares a _named statement_ for later execution.  You _must_ supply the name of the statement via `statementName`, the command to prepare via `queryText` and the number of parameters in `queryText` via `nParams`. Calls the callback with an `Error` if there was an error.
+Prepares a _named statement_ for later execution. You _must_ supply the name of the statement via `statementName`, the command to prepare via `queryText` and the number of parameters in `queryText` via `nParams`. Calls the callback with an `Error` if there was an error.
 
 ##### example
 
 ```js
 const client = new Client()
-client.connect(function(err) {
-  if(err) throw err
-  
-  client.prepare('prepared_statement', 'SELECT $1::text as name', 1, function(err) {
-    if(err) throw err
-    
+client.connect(function (err) {
+  if (err) throw err
+
+  client.prepare('prepared_statement', 'SELECT $1::text as name', 1, function (err) {
+    if (err) throw err
+
     console.log('statement prepared')
     client.end()
   })
-  
 })
 ```
 
-- __`client.execute(statementName:string, <values:string[]>, callback:Function(err:err, rows:Object[]))`__
+- **`client.execute(statementName:string, <values:string[]>, callback:Function(err:err, rows:Object[]))`**
 
-Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query parameters as a `values` array.  The `callback` is mandatory and is called with and `Error` if the execution failed, or with the same array of results as would be passed to the callback of a `client.query` result.
+Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query parameters as a `values` array. The `callback` is mandatory and is called with and `Error` if the execution failed, or with the same array of results as would be passed to the callback of a `client.query` result.
 
 ##### example
 
-
 ```js
 const client = new Client()
-client.connect(function(err) {
-  if(err) throw err
-  
-  client.prepare('i_like_beans', 'SELECT $1::text as beans', 1, function(err) {
-    if(err) throw err
-    
-    client.execute('i_like_beans', ['Brak'], function(err, rows) {
-      if(err) throw err
-      
+client.connect(function (err) {
+  if (err) throw err
+
+  client.prepare('i_like_beans', 'SELECT $1::text as beans', 1, function (err) {
+    if (err) throw err
+
+    client.execute('i_like_beans', ['Brak'], function (err, rows) {
+      if (err) throw err
+
       console.log(rows) // [{ "i_like_beans": "Brak" }]
       client.end()
     })
@@ -214,7 +211,7 @@ client.connect(function(err) {
 })
 ```
 
-- __`client.end(<callback:Function()>`__
+- **`client.end(<callback:Function()>`**
 
 Ends the connection. Calls the _optional_ callback when the connection is terminated.
 
@@ -222,49 +219,49 @@ Ends the connection. Calls the _optional_ callback when the connection is termin
 
 ```js
 const client = new Client()
-client.connect(function(err) {
-  if(err) throw err
-  client.end(function() {
+client.connect(function (err) {
+  if (err) throw err
+  client.end(function () {
     console.log('client ended') // client ended
   })
 })
 ```
 
-- __`client.cancel(callback:function(err))`__
+- **`client.cancel(callback:function(err))`**
 
 Cancels the active query on the client. Callback receives an error if there was an error _sending_ the cancel request.
 
 ##### example
+
 ```js
 const client = new Client()
 client.connectSync()
 // sleep for 100 seconds
-client.query('select pg_sleep(100)', function(err) {
+client.query('select pg_sleep(100)', function (err) {
   console.log(err) // [Error: ERROR: canceling statement due to user request]
 })
-client.cancel(function(err) {
+client.cancel(function (err) {
   console.log('cancel dispatched')
 })
-
 ```
 
 ### sync functions
 
-- __`client.connectSync(params:string)`__
+- **`client.connectSync(params:string)`**
 
-Connect to a PostgreSQL backend server. Params is in any format accepted by [libpq](http://www.postgresql.org/docs/9.3/static/libpq-connect.html#LIBPQ-CONNSTRING).  Throws an `Error` if the connection was unsuccessful.
+Connect to a PostgreSQL backend server. Params is in any format accepted by [libpq](http://www.postgresql.org/docs/9.3/static/libpq-connect.html#LIBPQ-CONNSTRING). Throws an `Error` if the connection was unsuccessful.
 
-- __`client.querySync(queryText:string, <values:string[]>) -> results:Object[]`__
+- **`client.querySync(queryText:string, <values:string[]>) -> results:Object[]`**
 
-Executes a query with a text of `queryText` and optional parameters as `values`. Uses a parameterized query if `values` are supplied.  Throws an `Error` if the query fails, otherwise returns an array of results.
+Executes a query with a text of `queryText` and optional parameters as `values`. Uses a parameterized query if `values` are supplied. Throws an `Error` if the query fails, otherwise returns an array of results.
 
-- __`client.prepareSync(statementName:string, queryText:string, nParams:int)`__
+- **`client.prepareSync(statementName:string, queryText:string, nParams:int)`**
 
-Prepares a name statement with name of `statementName` and a query text of `queryText`. You must specify the number of params in the query with the `nParams` argument.  Throws an `Error` if the statement is un-preparable, otherwise returns an array of results.
+Prepares a name statement with name of `statementName` and a query text of `queryText`. You must specify the number of params in the query with the `nParams` argument. Throws an `Error` if the statement is un-preparable, otherwise returns an array of results.
 
-- __`client.executeSync(statementName:string, <values:string[]>) -> results:Object[]`__
+- **`client.executeSync(statementName:string, <values:string[]>) -> results:Object[]`**
 
-Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query parameters as a `values` array.  Throws an `Error` if the execution fails, otherwise returns an array of results.
+Executes a previously prepared statement on this client with the name of `statementName`, passing it the optional array of query parameters as a `values` array. Throws an `Error` if the execution fails, otherwise returns an array of results.
 
 ## testing
 
@@ -272,14 +269,13 @@ Executes a previously prepared statement on this client with the name of `statem
 $ npm test
 ```
 
-To run the tests you need a PostgreSQL backend reachable by typing `psql` with no connection parameters in your terminal. The tests use [environment variables](http://www.postgresql.org/docs/9.3/static/libpq-envars.html) to connect to the backend. 
+To run the tests you need a PostgreSQL backend reachable by typing `psql` with no connection parameters in your terminal. The tests use [environment variables](http://www.postgresql.org/docs/9.3/static/libpq-envars.html) to connect to the backend.
 
 An example of supplying a specific host the tests:
 
 ```sh
 $ PGHOST=blabla.mydatabasehost.com npm test
 ```
-
 
 ## license
 

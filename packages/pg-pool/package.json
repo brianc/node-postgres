@@ -1,50 +1,44 @@
 {
   "name": "pg-pool",
-  "version": "3.13.0",
+  "version": "4.0.0",
   "description": "Connection pool for node-postgres",
-  "main": "index.js",
-  "exports": {
-    ".": {
-      "import": "./esm/index.mjs",
-      "require": "./index.js",
-      "default": "./index.js"
-    }
-  },
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": " node_modules/.bin/mocha"
-  },
+  "homepage": "https://node-postgres.com",
+  "license": "MIT",
+  "author": "Brian M. Carlson <brian.m.carlson@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-postgres.git",
+    "url": "git+https://github.com/brianc/node-postgres.git",
     "directory": "packages/pg-pool"
   },
-  "keywords": [
-    "pg",
-    "postgres",
-    "pool",
-    "database"
+  "files": [
+    "dist"
   ],
-  "author": "Brian M. Carlson",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/brianc/node-postgres/issues"
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
   },
-  "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-pool#readme",
-  "devDependencies": {
-    "bluebird": "3.7.2",
-    "co": "4.6.0",
-    "expect.js": "0.3.1",
-    "lodash": "^4.17.11",
-    "mocha": "^11.7.5"
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "obuild",
+    "dev": "vitest",
+    "lint": "oxlint . && oxfmt --check .",
+    "lint:fix": "oxlint . --fix && oxfmt .",
+    "test": "vitest run",
+    "typecheck": "tsgo --noEmit",
+    "prepack": "pnpm build"
   },
   "peerDependencies": {
-    "pg": ">=8.0"
+    "pg": "workspace:^"
   },
-  "files": [
-    "index.js",
-    "esm"
-  ]
+  "engines": {
+    "node": ">=22.11.0"
+  }
 }

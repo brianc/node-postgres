@@ -1,4 +1,4 @@
-import { Writer } from './buffer-writer'
+import { Writer } from './buffer-writer.ts'
 
 const enum code {
   startup = 0x70,
@@ -226,8 +226,8 @@ const describe = (msg: PortalOpts): Buffer => {
   return msg.name
     ? cstringMessage(code.describe, `${msg.type}${msg.name || ''}`)
     : msg.type === 'P'
-    ? emptyDescribePortal
-    : emptyDescribeStatement
+      ? emptyDescribePortal
+      : emptyDescribeStatement
 }
 
 const close = (msg: PortalOpts): Buffer => {
@@ -250,7 +250,28 @@ const syncBuffer = codeOnlyBuffer(code.sync)
 const endBuffer = codeOnlyBuffer(code.end)
 const copyDoneBuffer = codeOnlyBuffer(code.copyDone)
 
-const serialize = {
+export interface Serializer {
+  startup: (opts: Record<string, string>) => Buffer
+  password: (password: string) => Buffer
+  requestSsl: () => Buffer
+  sendSASLInitialResponseMessage: (mechanism: string, initialResponse: string) => Buffer
+  sendSCRAMClientFinalMessage: (additionalData: string) => Buffer
+  query: (text: string) => Buffer
+  parse: (query: ParseOpts) => Buffer
+  bind: (config?: BindOpts) => Buffer
+  execute: (config?: ExecOpts) => Buffer
+  describe: (msg: PortalOpts) => Buffer
+  close: (msg: PortalOpts) => Buffer
+  flush: () => Buffer
+  sync: () => Buffer
+  end: () => Buffer
+  copyData: (chunk: Buffer) => Buffer
+  copyDone: () => Buffer
+  copyFail: (message: string) => Buffer
+  cancel: (processID: number, secretKey: number) => Buffer
+}
+
+export const serialize: Serializer = {
   startup,
   password,
   requestSsl,
@@ -270,5 +291,3 @@ const serialize = {
   copyFail,
   cancel,
 }
-
-export { serialize }

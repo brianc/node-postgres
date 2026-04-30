@@ -1,26 +1,4 @@
 {
-  "compilerOptions": {
-    "module": "node16",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": false,
-    "target": "es6",
-    "noImplicitAny": false,
-    "moduleResolution": "node16",
-    "sourceMap": true,
-    "pretty": true,
-    "outDir": "dist",
-    "incremental": true,
-    "baseUrl": ".",
-    "declaration": true,
-    "types": [
-      "node",
-      "pg",
-      "mocha",
-      "chai"
-    ]
-  },
-  "include": [
-    "src/**/*"
-  ]
+  "extends": "../../tsconfig.json",
+  "include": ["src", "test"]
 }

@@ -1,5 +1,34 @@
-import { SocketOptions, Socket, TlsOptions } from 'cloudflare:sockets' // eslint-disable-line
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
+import { Buffer } from 'node:buffer'
+
+// Local shape of the workerd `cloudflare:sockets` module. The real module is only
+// resolvable inside Cloudflare Workers; outside workerd this just keeps types
+// consistent without requiring the @cloudflare/workers-types declarations.
+interface Socket {
+  readonly readable: ReadableStream<Uint8Array>
+  readonly writable: WritableStream<Uint8Array>
+  readonly closed: Promise<void>
+  close(): Promise<void>
+  startTls(options: TlsOptions): Socket
+}
+
+type TlsOptions = {
+  expectedServerHostname?: string
+}
+
+type SocketAddress = {
+  hostname: string
+  port: number
+}
+
+type SocketOptions = {
+  secureTransport?: 'off' | 'on' | 'starttls'
+  allowHalfOpen?: boolean
+}
+
+interface CfSocketsModule {
+  connect: (address: string | SocketAddress, options?: SocketOptions) => Socket
+}
 
 /**
  * Wrapper around the Cloudflare built-in socket that can be used by the `Connection`.
@@ -18,26 +47,29 @@ export class CloudflareSocket extends EventEmitter {
     super()
   }
 
-  setNoDelay() {
-    return this
-  }
-  setKeepAlive() {
-    return this
-  }
-  ref() {
-    return this
-  }
-  unref() {
+  setNoDelay(): this {
     return this
   }
 
-  async connect(port: number, host: string, connectListener?: (...args: unknown[]) => void) {
+  setKeepAlive(): this {
+    return this
+  }
+
+  ref(): this {
+    return this
+  }
+
+  unref(): this {
+    return this
+  }
+
+  async connect(port: number, host: string, connectListener?: (...args: unknown[]) => void): Promise<this | undefined> {
     try {
       log('connecting')
       if (connectListener) this.once('connect', connectListener)
 
       const options: SocketOptions = this.ssl ? { secureTransport: 'starttls' } : {}
-      const mod = await import('cloudflare:sockets')
+      const mod = (await import(/* @vite-ignore */ 'cloudflare:sockets' as string)) as CfSocketsModule
       const connect = mod.connect
       this._cfSocket = connect(`${host}:${port}`, options)
       this._cfWriter = this._cfSocket.writable.getWriter()
@@ -50,7 +82,7 @@ export class CloudflareSocket extends EventEmitter {
         this._listen().catch((e) => this.emit('error', e))
       }
 
-      await this._cfWriter!.ready
+      await this._cfWriter.ready
       log('socket ready')
       this.writable = true
       this.emit('connect')
@@ -58,14 +90,14 @@ export class CloudflareSocket extends EventEmitter {
       return this
     } catch (e) {
       this.emit('error', e)
+      return undefined
     }
   }
 
-  async _listen() {
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+  async _listen(): Promise<void> {
+    while (this._cfReader) {
       log('awaiting receive from CF socket')
-      const { done, value } = await this._cfReader!.read()
+      const { done, value } = await this._cfReader.read()
       log('CF socket received:', done, value)
       if (done) {
         log('done')
@@ -75,7 +107,7 @@ export class CloudflareSocket extends EventEmitter {
     }
   }
 
-  async _listenOnce() {
+  async _listenOnce(): Promise<void> {
     log('awaiting first receive from CF socket')
     const { done, value } = await this._cfReader!.read()
     log('First CF socket received:', done, value)
@@ -86,8 +118,11 @@ export class CloudflareSocket extends EventEmitter {
     data: Uint8Array | string,
     encoding: BufferEncoding = 'utf8',
     callback: (...args: unknown[]) => void = () => {}
-  ) {
-    if (data.length === 0) return callback()
+  ): boolean {
+    if (data.length === 0) {
+      callback()
+      return true
+    }
     if (typeof data === 'string') data = Buffer.from(data, encoding)
 
     log('sending data direct:', data)
@@ -104,7 +139,11 @@ export class CloudflareSocket extends EventEmitter {
     return true
   }
 
-  end(data = Buffer.alloc(0), encoding: BufferEncoding = 'utf8', callback: (...args: unknown[]) => void = () => {}) {
+  end(
+    data: Uint8Array | string = Buffer.alloc(0),
+    encoding: BufferEncoding = 'utf8',
+    callback: (...args: unknown[]) => void = () => {}
+  ): this {
     log('ending CF socket')
     this.write(data, encoding, (err) => {
       this._cfSocket!.close()
@@ -113,15 +152,14 @@ export class CloudflareSocket extends EventEmitter {
     return this
   }
 
-  destroy(reason: string) {
+  destroy(reason?: string): this {
     log('destroying CF socket', reason)
     this.destroyed = true
     return this.end()
   }
 
-  startTls(options: TlsOptions) {
+  startTls(options: TlsOptions): void {
     if (this._upgraded) {
-      // Don't try to upgrade again.
       this.emit('error', 'Cannot call `startTls()` more than once on a socket')
       return
     }
@@ -135,7 +173,7 @@ export class CloudflareSocket extends EventEmitter {
     this._listen().catch((e) => this.emit('error', e))
   }
 
-  _addClosedHandler() {
+  _addClosedHandler(): void {
     this._cfSocket!.closed.then(() => {
       if (!this._upgrading) {
         log('CF socket closed')
@@ -145,22 +183,22 @@ export class CloudflareSocket extends EventEmitter {
         this._upgrading = false
         this._upgraded = true
       }
-    }).catch((e) => this.emit('error', e))
+    }).catch((e: unknown) => this.emit('error', e))
   }
 }
 
 const debug = false
 
-function dump(data: unknown) {
+function dump(data: unknown): unknown {
   if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
-    const hex = Buffer.from(data).toString('hex')
-    const str = new TextDecoder().decode(data)
+    const hex = Buffer.from(data as Uint8Array).toString('hex')
+    const str = new TextDecoder().decode(data as ArrayBuffer | Uint8Array)
     return `\n>>> STR: "${str.replace(/\n/g, '\\n')}"\n>>> HEX: ${hex}\n`
   } else {
     return data
   }
 }
 
-function log(...args: unknown[]) {
-  debug && console.log(...args.map(dump))
+function log(...args: unknown[]): void {
+  if (debug) console.log(...args.map(dump))
 }

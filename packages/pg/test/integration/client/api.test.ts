@@ -1,0 +1,287 @@
+import { describe, it } from 'vitest'
+import helper from '../_test-helper.ts'
+import assert from 'node:assert'
+
+describe('api', () => {
+  const pg = helper.pg
+  it('null and undefined are both inserted as NULL', () =>
+    new Promise<void>((done) => {
+      const pool = new pg.Pool()
+      pool.connect(
+        assert.calls(function (err, client, release) {
+          assert(!err)
+          client.query('CREATE TEMP TABLE my_nulls(a varchar(1), b varchar(1), c integer, d integer, e date, f date)')
+          client.query('INSERT INTO my_nulls(a,b,c,d,e,f) VALUES ($1,$2,$3,$4,$5,$6)', [
+            null,
+            undefined,
+            null,
+            undefined,
+            null,
+            undefined,
+          ])
+          client.query(
+            'SELECT * FROM my_nulls',
+            assert.calls(function (err, result) {
+              console.log(err)
+              assert.ifError(err)
+              assert.equal(result.rows.length, 1)
+              assert.isNull(result.rows[0].a)
+              assert.isNull(result.rows[0].b)
+              assert.isNull(result.rows[0].c)
+              assert.isNull(result.rows[0].d)
+              assert.isNull(result.rows[0].e)
+              assert.isNull(result.rows[0].f)
+              pool.end(done)
+              release()
+            })
+          )
+        })
+      )
+    }))
+
+  it('pool callback behavior', () =>
+    new Promise<void>((done) => {
+      // test weird callback behavior with node-pool
+      const pool = new pg.Pool()
+      pool.connect(function (err) {
+        assert(!err)
+        arguments[1].emit('drain')
+        arguments[2]()
+        pool.end(done)
+      })
+    }))
+
+  it('query timeout', () =>
+    new Promise<void>((cb) => {
+      const pool = new pg.Pool({ query_timeout: 1000 })
+      pool.connect().then((client) => {
+        client.query(
+          'SELECT pg_sleep(2)',
+          assert.calls(function (err, _result) {
+            assert(err)
+            assert(err.message === 'Query read timeout')
+            client.release()
+            pool.end(cb)
+          })
+        )
+      })
+    }))
+
+  it('query recover from timeout', () =>
+    new Promise<void>((cb) => {
+      const pool = new pg.Pool({ query_timeout: 1000 })
+      pool.connect().then((client) => {
+        client.query(
+          'SELECT pg_sleep(20)',
+          assert.calls(function (err, _result) {
+            assert(err)
+            assert(err.message === 'Query read timeout')
+            client.release(err)
+            pool.connect().then((client) => {
+              client.query(
+                'SELECT 1',
+                assert.calls(function (err, _result) {
+                  assert(!err)
+                  client.release(err)
+                  pool.end(cb)
+                })
+              )
+            })
+          })
+        )
+      })
+    }))
+
+  it('query no timeout', () =>
+    new Promise<void>((cb) => {
+      const pool = new pg.Pool({ query_timeout: 10000 })
+      pool.connect().then((client) => {
+        client.query(
+          'SELECT pg_sleep(1)',
+          assert.calls(function (err, _result) {
+            assert(!err)
+            client.release()
+            pool.end(cb)
+          })
+        )
+      })
+    }))
+
+  it('query with timeout on query basis', () =>
+    new Promise<void>((cb) => {
+      const pool = new pg.Pool()
+      pool.connect().then((client) => {
+        client.query(
+          { text: 'SELECT pg_sleep(20)', query_timeout: 1000 },
+          assert.calls(function (err, _result) {
+            assert(err)
+            assert(err.message === 'Query read timeout')
+            client.release()
+            pool.end(cb)
+          })
+        )
+      })
+    }))
+
+  it('callback API', () =>
+    new Promise<void>((done) => {
+      const client = new helper.Client()
+      client.query('CREATE TEMP TABLE peep(name text)')
+      client.query('INSERT INTO peep(name) VALUES ($1)', ['brianc'])
+      const config = {
+        text: 'INSERT INTO peep(name) VALUES ($1)',
+        values: ['brian'],
+      }
+      client.query(config)
+      client.query('INSERT INTO peep(name) VALUES ($1)', ['aaron'])
+
+      client.query('SELECT * FROM peep ORDER BY name COLLATE "C"', (err, res) => {
+        assert(!err)
+        assert.equal(res.rowCount, 3)
+        assert.deepEqual(res.rows, [
+          {
+            name: 'aaron',
+          },
+          {
+            name: 'brian',
+          },
+          {
+            name: 'brianc',
+          },
+        ])
+        done()
+      })
+      client.connect((err) => {
+        assert(!err)
+        client.once('drain', () => client.end())
+      })
+    }))
+
+  it('executing nested queries', () =>
+    new Promise<void>((done) => {
+      const pool = new pg.Pool()
+      pool.connect(
+        assert.calls(function (err, client, release) {
+          assert(!err)
+          client.query(
+            'select now as now from NOW()',
+            assert.calls(function (err, result) {
+              assert.equal((new Date() as any).getYear(), (result.rows[0].now as any).getYear())
+              client.query(
+                'select now as now_again FROM NOW()',
+                assert.calls(function () {
+                  client.query(
+                    'select * FROM NOW()',
+                    assert.calls(function () {
+                      assert.ok('all queries hit')
+                      release()
+                      pool.end(done)
+                    })
+                  )
+                })
+              )
+            })
+          )
+        })
+      )
+    }))
+
+  it('raises error if cannot connect', function () {
+    const connectionString = 'pg://sfalsdkf:asdf@localhost/ieieie'
+    const pool = new pg.Pool({ connectionString: connectionString })
+    pool.connect(
+      assert.calls(function (err, client, done) {
+        assert.ok(err, 'should have raised an error')
+        done()
+      })
+    )
+  })
+
+  it('query errors are handled and do not bubble if callback is provided', () =>
+    new Promise<void>((done) => {
+      const pool = new pg.Pool()
+      pool.connect(
+        assert.calls(function (err, client, release) {
+          assert(!err)
+          client.query(
+            'SELECT OISDJF FROM LEIWLISEJLSE',
+            assert.calls(function (err, _result) {
+              assert.ok(err)
+              release()
+              pool.end(done)
+            })
+          )
+        })
+      )
+    }))
+
+  it('callback is fired once and only once', () =>
+    new Promise<void>((done) => {
+      const pool = new pg.Pool()
+      pool.connect(
+        assert.calls(function (err, client, release) {
+          assert(!err)
+          client.query('CREATE TEMP TABLE boom(name varchar(10))')
+          let callCount = 0
+          client.query(
+            [
+              "INSERT INTO boom(name) VALUES('hai')",
+              "INSERT INTO boom(name) VALUES('boom')",
+              "INSERT INTO boom(name) VALUES('zoom')",
+            ].join(';'),
+            function (_err, _callback) {
+              assert.equal(callCount++, 0, 'Call count should be 0.  More means this callback fired more than once.')
+              release()
+              pool.end(done)
+            }
+          )
+        })
+      )
+    }))
+
+  it('can provide callback and config object', () =>
+    new Promise<void>((done) => {
+      const pool = new pg.Pool()
+      pool.connect(
+        assert.calls(function (err, client, release) {
+          assert(!err)
+          client.query(
+            {
+              name: 'boom',
+              text: 'select NOW()',
+            },
+            assert.calls(function (err, result) {
+              assert(!err)
+              assert.equal((result.rows[0].now as any).getYear(), (new Date() as any).getYear())
+              release()
+              pool.end(done)
+            })
+          )
+        })
+      )
+    }))
+
+  it('can provide callback and config and parameters', () =>
+    new Promise<void>((done) => {
+      const pool = new pg.Pool()
+      pool.connect(
+        assert.calls(function (err, client, release) {
+          assert(!err)
+          const config = {
+            text: 'select $1::text as val',
+          }
+          client.query(
+            config,
+            ['hi'],
+            assert.calls(function (err, result) {
+              assert(!err)
+              assert.equal(result.rows.length, 1)
+              assert.equal(result.rows[0].val, 'hi')
+              release()
+              pool.end(done)
+            })
+          )
+        })
+      )
+    }))
+})

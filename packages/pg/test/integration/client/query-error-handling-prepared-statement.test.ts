@@ -1,0 +1,125 @@
+import { describe, it } from 'vitest'
+import helper from './_test-helper.ts'
+import assert from 'node:assert'
+
+describe('query-error-handling-prepared-statement', () => {
+  const Query = helper.pg.Query
+  const { Client } = helper
+  it('client end during query execution of prepared statement', () =>
+    new Promise<void>((done) => {
+      const client = new Client()
+      client.connect(
+        assert.success(function () {
+          const sleepQuery = 'select pg_sleep($1)'
+
+          const queryConfig = {
+            name: 'sleep query',
+            text: sleepQuery,
+            values: [5],
+          }
+
+          const queryInstance = new Query(
+            queryConfig,
+            assert.calls(function (err?: Error) {
+              assert.equal(err!.message, 'Connection terminated')
+              done()
+            })
+          )
+
+          const query1 = client.query(queryInstance)
+
+          query1.on('error', function () {
+            assert.fail('Prepared statement should not emit error')
+          })
+
+          query1.on('row', function () {
+            assert.fail('Prepared statement should not emit row')
+          })
+
+          query1.on('end', function () {
+            assert.fail('Prepared statement when executed should not return before being killed')
+          })
+
+          client.end()
+        })
+      )
+    }))
+
+  function killIdleQuery(targetQuery: string, cb: () => void): void {
+    const client2 = new Client(helper.args)
+    let pidColName = 'procpid'
+    let queryColName = 'current_query'
+    client2.connect(
+      assert.success(function () {
+        helper.versionGTE(
+          client2,
+          90200,
+          assert.success(function (isGreater) {
+            if (isGreater) {
+              pidColName = 'pid'
+              queryColName = 'query'
+            }
+            const killIdleQuery =
+              'SELECT ' +
+              pidColName +
+              ', (SELECT pg_terminate_backend(' +
+              pidColName +
+              ')) AS killed FROM pg_stat_activity WHERE ' +
+              queryColName +
+              ' = $1'
+            client2.query(
+              killIdleQuery,
+              [targetQuery],
+              assert.calls(function (err, res) {
+                assert.ifError(err)
+                assert.equal(res.rows.length, 1)
+                client2.end(cb)
+                assert.emits(client2, 'end')
+              })
+            )
+          })
+        )
+      })
+    )
+  }
+
+  it('query killed during query execution of prepared statement', () =>
+    new Promise<void>((done) => {
+      const client = new Client(helper.args)
+      client.connect(
+        assert.success(function () {
+          const sleepQuery = 'select pg_sleep($1)'
+
+          const queryConfig = {
+            name: 'sleep query',
+            text: sleepQuery,
+            values: [5],
+          }
+
+          // client should emit an error because it is unexpectedly disconnected
+          assert.emits(client, 'error')
+
+          const query1 = client.query(
+            new Query(queryConfig),
+            assert.calls(function (err?: Error) {
+              assert.equal(err!.message, 'terminating connection due to administrator command')
+            })
+          )
+
+          query1.on('error', function () {
+            assert.fail('Prepared statement should not emit error')
+          })
+
+          query1.on('row', function () {
+            assert.fail('Prepared statement should not emit row')
+          })
+
+          query1.on('end', function () {
+            assert.fail('Prepared statement when executed should not return before being killed')
+          })
+
+          killIdleQuery(sleepQuery, done)
+        })
+      )
+    }))
+})
