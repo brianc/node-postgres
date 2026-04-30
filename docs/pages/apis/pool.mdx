@@ -207,8 +207,8 @@ const pool = new Pool()
 
 {
   // check out a single client
-  using client = await pool.connnect()
-  client.destroyOnDispose = true;
+  using client = await pool.connect()
+  client.destroyOnDispose = true
 
   // client.release(true) implicitly called at the end of scope
 }
