@@ -7,7 +7,7 @@ describe('disposable clients', () => {
     const pool = new Pool({ max: 1 })
     const client = await pool.connect()
 
-    if (Symbol?.dispose) {
+    if (Symbol.dispose) {
       expect(client[Symbol.dispose]).to.be.a('function')
     }
 
