@@ -89,7 +89,7 @@ class Result {
       this._parsers = new Array(fieldDescriptions.length)
     }
 
-    const row = {}
+    const row = Object.create(null)
 
     for (let i = 0; i < fieldDescriptions.length; i++) {
       const desc = fieldDescriptions[i]

@@ -46,7 +46,7 @@ describe('toClientConfig', function () {
     const config = parse('pg:///?sslmode=no-verify')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl?.should.deep.equal({
+    expect(clientConfig.ssl).to.deep.equal({
       rejectUnauthorized: false,
     })
   })
@@ -55,14 +55,14 @@ describe('toClientConfig', function () {
     const config = parse('pg:///?sslmode=verify-ca')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl?.should.deep.equal({})
+    expect(clientConfig.ssl).to.deep.equal({})
   })
 
   it('converts other sslmode options', function () {
     const config = parse('pg:///?sslmode=verify-ca')
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl?.should.deep.equal({})
+    expect(clientConfig.ssl).to.deep.equal({})
   })
 
   it('converts ssl cert options', function () {
@@ -77,7 +77,7 @@ describe('toClientConfig', function () {
     const config = parse(connectionString)
     const clientConfig = toClientConfig(config)
 
-    clientConfig.ssl?.should.deep.equal({
+    expect(clientConfig.ssl).to.deep.equal({
       ca: 'example ca\n',
       cert: 'example cert\n',
       key: 'example key\n',
@@ -106,9 +106,9 @@ describe('toClientConfig', function () {
 
     const clientConfig = toClientConfig(config)
 
-    clientConfig.host?.should.equal('boom')
-    clientConfig.database?.should.equal('lala')
-    clientConfig.ssl?.should.deep.equal({})
+    expect(clientConfig.host).to.equal('boom')
+    expect(clientConfig.database).to.equal('lala')
+    expect(clientConfig.ssl).to.deep.equal({})
   })
 })
 

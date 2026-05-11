@@ -31,7 +31,7 @@ We do not include break-fix version release in this file.
 
 ## pg@8.14.0
 
-- Add support from SCRAM-SAH-256-PLUS i.e. [channel binding](https://github.com/brianc/node-postgres/pull/3356).
+- Add support for SCRAM-SHA-256-PLUS, i.e. [channel binding](https://github.com/brianc/node-postgres/pull/3356).
 
 ## pg@8.13.0
 

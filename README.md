@@ -70,7 +70,7 @@ If you or your company are benefiting from node-postgres and would like to help 
 
 Special thanks to [medplum](https://medplum.com) for their generous and thoughtful support of node-postgres!
 
-![medplum](https://raw.githubusercontent.com/medplum/medplum-logo/refs/heads/main/medplum-logo.png)
+<img src="https://github.com/medplum/medplum-logo/blob/main/v3/medplum-logo-grape8.svg" alt="Medplum logo" width="20%" />
 
 ## Contributing
 
