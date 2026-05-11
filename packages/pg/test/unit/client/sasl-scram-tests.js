@@ -284,6 +284,23 @@ suite.test('sasl/scram', function () {
       )
     })
 
+    suite.test('fails when server returns an error', function () {
+      assert.throws(
+        function () {
+          sasl.finalizeSession(
+            {
+              message: 'SASLResponse',
+              serverSignature: 'abcd',
+            },
+            'e=no-resources'
+          )
+        },
+        {
+          message: 'SASL: SCRAM-SERVER-FINAL-MESSAGE: server returned error: "no-resources"',
+        }
+      )
+    })
+
     suite.test('fails when server signature does not match', function () {
       assert.throws(
         function () {
