@@ -6,7 +6,7 @@ params := $(connectionString)
 
 node-command := xargs -n 1 -I file node file $(params)
 
-.PHONY : test test-connection test-integration bench test-native \
+.PHONY : test test-integration bench test-native \
 	 publish update-npm
 
 all:
@@ -30,11 +30,7 @@ test-unit:
 	@chmod 600 test/unit/client/pgpass.file
 	@find test/unit -name "*-tests.js" | $(node-command)
 
-test-connection:
-	@echo "***Testing connection***"
-	@node script/create-test-tables.js $(params)
-
-test-native: test-connection
+test-native:
 	@echo "***Testing native bindings***"
 ifeq ($(TEST_SKIP_NATIVE), true)
 	@echo "***Skipping tests***"
@@ -43,11 +39,11 @@ else
 	@find test/integration -name "*-tests.js" | $(node-command) native
 endif
 
-test-integration: test-connection
+test-integration:
 	@echo "***Testing Pure Javascript***"
 	@find test/integration -name "*-tests.js" | $(node-command)
 
-test-binary: test-connection
+test-binary:
 	@echo "***Testing Pure Javascript (binary)***"
 	@find test/integration -name "*-tests.js" | $(node-command) binary
 

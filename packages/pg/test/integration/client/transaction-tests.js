@@ -4,65 +4,38 @@ const suite = new helper.Suite()
 const pg = helper.pg
 const assert = require('assert')
 
-const client = new pg.Client()
-client.connect(
-  assert.success(function () {
-    client.query('begin')
+suite.test('transactions', async function () {
+  const client = new pg.Client()
+  await client.connect()
+  await helper.createPersonTable(client)
 
-    const getZed = {
-      text: 'SELECT * FROM person WHERE name = $1',
-      values: ['Zed'],
-    }
+  await client.query('begin')
 
-    suite.test('name should not exist in the database', function (done) {
-      client.query(
-        getZed,
-        assert.calls(function (err, result) {
-          assert(!err)
-          assert.empty(result.rows)
-          done()
-        })
-      )
-    })
+  const getZed = {
+    text: 'SELECT * FROM person WHERE name = $1',
+    values: ['Zed'],
+  }
 
-    suite.test('can insert name', (done) => {
-      client.query(
-        'INSERT INTO person(name, age) VALUES($1, $2)',
-        ['Zed', 270],
-        assert.calls(function (err, result) {
-          assert(!err)
-          done()
-        })
-      )
-    })
+  // name should not exist
+  const r1 = await client.query(getZed)
+  assert.empty(r1.rows)
 
-    suite.test('name should exist in the database', function (done) {
-      client.query(
-        getZed,
-        assert.calls(function (err, result) {
-          assert(!err)
-          assert.equal(result.rows[0].name, 'Zed')
-          done()
-        })
-      )
-    })
+  // insert name
+  await client.query('INSERT INTO person(name, age) VALUES($1, $2)', ['Zed', 270])
 
-    suite.test('rollback', (done) => {
-      client.query('rollback', done)
-    })
+  // name should exist
+  const r2 = await client.query(getZed)
+  assert.equal(r2.rows[0].name, 'Zed')
 
-    suite.test('name should not exist in the database', function (done) {
-      client.query(
-        getZed,
-        assert.calls(function (err, result) {
-          assert(!err)
-          assert.empty(result.rows)
-          client.end(done)
-        })
-      )
-    })
-  })
-)
+  // rollback
+  await client.query('rollback')
+
+  // name should not exist after rollback
+  const r3 = await client.query(getZed)
+  assert.empty(r3.rows)
+
+  await client.end()
+})
 
 suite.test('gh#36', function (cb) {
   const pool = new pg.Pool()

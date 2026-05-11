@@ -42,7 +42,7 @@ When you open an issue please provide:
 - version of Postgres
 - smallest possible snippet of code to reproduce the problem
 
-You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that's your thing. I try to always announce noteworthy changes & developments with node-postgres on Twitter.
+You can also follow me [@brianc](https://bsky.app/profile/brianc.bsky.social) on bluesky if that's your thing for updates on node-postgres with nearly zero non node-postgres content. My old twitter/x account is no longer used.
 
 ## Sponsorship :two_hearts:
 

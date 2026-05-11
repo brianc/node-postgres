@@ -153,7 +153,10 @@ const debug = false
 
 function dump(data: unknown) {
   if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
-    const hex = Buffer.from(data).toString('hex')
+    // workaround https://github.com/microsoft/TypeScript/issues/63447
+    const buf = data instanceof Uint8Array ? Buffer.from(data) : Buffer.from(data)
+
+    const hex = buf.toString('hex')
     const str = new TextDecoder().decode(data)
     return `\n>>> STR: "${str.replace(/\n/g, '\\n')}"\n>>> HEX: ${hex}\n`
   } else {

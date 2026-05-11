@@ -1,6 +1,6 @@
 {
   "name": "pg-native",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "A slightly nicer interface to Postgres over node-libpq",
   "main": "index.js",
   "exports": {
@@ -34,7 +34,7 @@
   },
   "homepage": "https://github.com/brianc/node-postgres/tree/master/packages/pg-native",
   "dependencies": {
-    "libpq": "^1.10.0",
+    "libpq": "^1.11.0",
     "pg-types": "2.2.0"
   },
   "devDependencies": {

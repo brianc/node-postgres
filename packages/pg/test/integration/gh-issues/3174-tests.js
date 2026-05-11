@@ -2,7 +2,7 @@ const net = require('net')
 const buffers = require('../../test-buffers')
 const helper = require('../test-helper')
 const assert = require('assert')
-const cli = require('../../cli')
+const cli = helper.args
 
 const suite = new helper.Suite()
 

@@ -108,6 +108,14 @@ class Pool extends EventEmitter {
     this.ended = false
   }
 
+  _promiseTry(f) {
+    const Promise = this.Promise
+    if (typeof Promise.try === 'function') {
+      return Promise.try(f)
+    }
+    return new Promise((resolve) => resolve(f()))
+  }
+
   _isFull() {
     return this._clients.length >= this.options.max
   }
@@ -277,28 +285,50 @@ class Pool extends EventEmitter {
       } else {
         this.log('new client connected')
 
-        if (this.options.maxLifetimeSeconds !== 0) {
-          const maxLifetimeTimeout = setTimeout(() => {
-            this.log('ending client due to expired lifetime')
-            this._expired.add(client)
-            const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
-            if (idleIndex !== -1) {
-              this._acquireClient(
-                client,
-                new PendingItem((err, client, clientRelease) => clientRelease()),
-                idleListener,
-                false
-              )
+        if (this.options.onConnect) {
+          this._promiseTry(() => this.options.onConnect(client)).then(
+            () => {
+              this._afterConnect(client, pendingItem, idleListener)
+            },
+            (hookErr) => {
+              this._clients = this._clients.filter((c) => c !== client)
+              client.end(() => {
+                this._pulseQueue()
+                if (!pendingItem.timedOut) {
+                  pendingItem.callback(hookErr, undefined, NOOP)
+                }
+              })
             }
-          }, this.options.maxLifetimeSeconds * 1000)
-
-          maxLifetimeTimeout.unref()
-          client.once('end', () => clearTimeout(maxLifetimeTimeout))
+          )
+          return
         }
 
-        return this._acquireClient(client, pendingItem, idleListener, true)
+        return this._afterConnect(client, pendingItem, idleListener)
       }
     })
+  }
+
+  _afterConnect(client, pendingItem, idleListener) {
+    if (this.options.maxLifetimeSeconds !== 0) {
+      const maxLifetimeTimeout = setTimeout(() => {
+        this.log('ending client due to expired lifetime')
+        this._expired.add(client)
+        const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
+        if (idleIndex !== -1) {
+          this._acquireClient(
+            client,
+            new PendingItem((err, client, clientRelease) => clientRelease()),
+            idleListener,
+            false
+          )
+        }
+      }, this.options.maxLifetimeSeconds * 1000)
+
+      maxLifetimeTimeout.unref()
+      client.once('end', () => clearTimeout(maxLifetimeTimeout))
+    }
+
+    return this._acquireClient(client, pendingItem, idleListener, true)
   }
 
   // acquire a client for a pending work item

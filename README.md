@@ -58,7 +58,7 @@ When you open an issue please provide:
 - version of Postgres
 - smallest possible snippet of code to reproduce the problem
 
-You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that's your thing. I try to always announce noteworthy changes & developments with node-postgres on Twitter.
+You can also follow me [@brianc](https://bsky.app/profile/brianc.bsky.social) on bluesky if that's your thing for updates on node-postgres with nearly zero non node-postgres content. My old twitter/x account is no longer used.
 
 ## Sponsorship :two_hearts:
 
@@ -70,7 +70,7 @@ If you or your company are benefiting from node-postgres and would like to help 
 
 Special thanks to [medplum](https://medplum.com) for their generous and thoughtful support of node-postgres!
 
-![medplum](https://raw.githubusercontent.com/medplum/medplum-logo/refs/heads/main/medplum-logo.png)
+<img src="https://github.com/medplum/medplum-logo/blob/main/v3/medplum-logo-grape8.svg" alt="Medplum logo" width="20%" />
 
 ## Contributing
 
@@ -87,11 +87,11 @@ If your change involves breaking backwards compatibility please please point tha
 ### Setting up for local development
 
 1. Clone the repo
-2. Ensure you have installed libpq-dev in your system.
+2. Ensure you have installed libpq-dev in your system (the native bindings are built in the test process)
 3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
-4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
-5. Ensure you have the proper environment variables configured for connecting to the instance
-6. Run `yarn test` to run all the tests
+4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests. _note: you can skip the tests requring SSL by setting the environment variable `PGTESTNOSSL=1` if you're not changing any SSL related code_.
+5. Ensure you have the proper environment variables configured for connecting to your postgres instance. Using the standard `PG*` environment variables like `PGUSER` and `PGPASSWORD` etc...
+6. Run `yarn test` to run all the tests.
 
 ## Troubleshooting and FAQ
 

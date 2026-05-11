@@ -5,26 +5,29 @@ const Client = require('./../../lib/native')
 const suite = new helper.Suite()
 const assert = require('assert')
 
-suite.test('fires callback with results', function (done) {
+suite.test('fires callback with results', async function () {
   const client = new Client(helper.config)
   client.connect()
-  client.query(
-    'SELECT 1 as num',
-    assert.calls(function (err, result) {
-      assert(!err)
-      assert.equal(result.rows[0].num, 1)
-      assert.strictEqual(result.rowCount, 1)
-      client.query(
-        'SELECT * FROM person WHERE name = $1',
-        ['Brian'],
-        assert.calls(function (err, result) {
-          assert(!err)
-          assert.equal(result.rows[0].name, 'Brian')
-          client.end(done)
-        })
-      )
-    })
-  )
+  await helper.createPersonTable(client)
+  return new Promise((resolve) => {
+    client.query(
+      'SELECT 1 as num',
+      assert.calls(function (err, result) {
+        assert(!err)
+        assert.equal(result.rows[0].num, 1)
+        assert.strictEqual(result.rowCount, 1)
+        client.query(
+          'SELECT * FROM person WHERE name = $1',
+          ['Brian'],
+          assert.calls(function (err, result) {
+            assert(!err)
+            assert.equal(result.rows[0].name, 'Brian')
+            client.end(resolve)
+          })
+        )
+      })
+    )
+  })
 })
 
 suite.test('preserves domain', function (done) {

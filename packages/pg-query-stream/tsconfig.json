@@ -10,8 +10,8 @@
     "sourceMap": true,
     "pretty": true,
     "outDir": "dist",
+    "rootDir": "./src",
     "incremental": true,
-    "baseUrl": ".",
     "declaration": true,
     "types": [
       "node",

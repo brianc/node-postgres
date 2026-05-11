@@ -8,6 +8,7 @@ const pool = new pg.Pool()
 
 pool.connect(
   assert.calls(function (err, client, done) {
+    console.log('native?', native)
     if (native) {
       assert(client.native)
     } else {

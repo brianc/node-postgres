@@ -2,7 +2,7 @@ export class BufferReader {
   private buffer: Buffer = Buffer.allocUnsafe(0)
 
   // TODO(bmc): support non-utf8 encoding?
-  private encoding: string = 'utf-8'
+  private encoding: BufferEncoding = 'utf-8'
 
   constructor(private offset: number = 0) {}
 

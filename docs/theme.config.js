@@ -15,7 +15,20 @@ export default {
     next: true,
   },
   footer: {
-    text: `MIT ${new Date().getFullYear()} © Brian Carlson.`,
+    content: (
+      <span>
+        As of 2026-03-01 I am taking a break from the workforce to focus entirely on this project! Please consider{' '}
+        <a
+          href="https://github.com/sponsors/brianc"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: 'underline' }}
+        >
+          sponsoring this work on GitHub
+        </a>
+        !
+      </span>
+    ),
   },
   editLink: {
     text: 'Edit this page on GitHub',
@@ -54,6 +67,21 @@ l-161 -22 -94 41 c-201 87 -327 113 -533 112 -77 -1 -166 -7 -196 -13z m-89
   ),
   chat: {
     link: 'https://discord.gg/2afXp5vUWm',
+  },
+  navbar: {
+    extraContent: (
+      <a
+        href="https://github.com/sponsors/brianc"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Sponsor this project"
+        className="_p-2 _text-current"
+      >
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="#db61a2">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        </svg>
+      </a>
+    ),
   },
   head: (
     <>

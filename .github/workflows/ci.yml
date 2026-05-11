@@ -43,7 +43,7 @@ jobs:
           - '20'
           - '22'
           - '24'
-          - '25'
+          - '26'
         os:
           - ubuntu-latest
     name: Node.js ${{ matrix.node }}

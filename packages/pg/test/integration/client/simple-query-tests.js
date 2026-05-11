@@ -5,58 +5,61 @@ const assert = require('assert')
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
 
-// before running this test make sure you run the script create-test-tables
-test('simple query interface', function () {
+test('simple query interface', async function () {
   const client = helper.client()
+  await helper.createPersonTable(client)
 
-  const query = client.query(new Query('select name from person order by name collate "C"'))
+  return new Promise((resolve) => {
+    const query = client.query(new Query('select name from person order by name collate "C"'))
 
-  client.on('drain', client.end.bind(client))
-
-  const rows = []
-  query.on('row', function (row, result) {
-    assert.ok(result)
-    rows.push(row['name'])
-  })
-  query.once('row', function (row) {
-    test('returned right columns', function () {
-      assert.deepStrictEqual(row, { name: row.name })
+    const rows = []
+    query.on('row', function (row, result) {
+      assert.ok(result)
+      rows.push(row['name'])
     })
-  })
-
-  assert.emits(query, 'end', function () {
-    test('returned right number of rows', function () {
-      assert.lengthIs(rows, 26)
+    query.once('row', function (row) {
+      test('returned right columns', function () {
+        assert.deepStrictEqual(row, { name: row.name })
+      })
     })
-    test('row ordering', function () {
-      assert.equal(rows[0], 'Aaron')
-      assert.equal(rows[25], 'Zanzabar')
+
+    assert.emits(query, 'end', function () {
+      test('returned right number of rows', function () {
+        assert.lengthIs(rows, 26)
+      })
+      test('row ordering', function () {
+        assert.equal(rows[0], 'Aaron')
+        assert.equal(rows[25], 'Zanzabar')
+      })
+      client.end(resolve)
     })
   })
 })
 
-test('prepared statements do not mutate params', function () {
+test('prepared statements do not mutate params', async function () {
   const client = helper.client()
+  await helper.createPersonTable(client)
 
-  const params = [1]
+  return new Promise((resolve) => {
+    const params = [1]
 
-  const query = client.query(new Query('select name from person where $1 = 1 order by name collate "C"', params))
+    const query = client.query(new Query('select name from person where $1 = 1 order by name collate "C"', params))
 
-  assert.deepEqual(params, [1])
+    assert.deepEqual(params, [1])
 
-  client.on('drain', client.end.bind(client))
+    const rows = []
+    query.on('row', function (row, result) {
+      assert.ok(result)
+      rows.push(row)
+    })
 
-  const rows = []
-  query.on('row', function (row, result) {
-    assert.ok(result)
-    rows.push(row)
-  })
-
-  query.on('end', function (result) {
-    assert.lengthIs(rows, 26, 'result returned wrong number of rows')
-    assert.lengthIs(rows, result.rowCount)
-    assert.equal(rows[0].name, 'Aaron')
-    assert.equal(rows[25].name, 'Zanzabar')
+    query.on('end', function (result) {
+      assert.lengthIs(rows, 26, 'result returned wrong number of rows')
+      assert.lengthIs(rows, result.rowCount)
+      assert.equal(rows[0].name, 'Aaron')
+      assert.equal(rows[25].name, 'Zanzabar')
+      client.end(resolve)
+    })
   })
 })
 

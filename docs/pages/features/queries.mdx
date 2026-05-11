@@ -26,7 +26,7 @@ console.log(res.rows[0])
 // { name: 'brianc', email: 'brian.m.carlson@gmail.com' }
 ```
 
-<div class="alert alert-warning">
+<div className="alert alert-warning">
   PostgreSQL does not support parameters for identifiers. If you need to have dynamic database, schema, table, or column names (e.g. in DDL statements) use [pg-format](https://www.npmjs.com/package/pg-format) package for handling escaping these values to ensure you do not have SQL injection!
 </div>
 
@@ -99,8 +99,8 @@ console.log(res.rows[0])
 
 In the above example the first time the client sees a query with the name `'fetch-user'` it will send a 'parse' request to the PostgreSQL server & execute the query as normal. The second time, it will skip the 'parse' request and send the _name_ of the query to the PostgreSQL server.
 
-<div class='message is-warning'>
-  <div class='message-body'>
+<div className='message is-warning'>
+  <div className='message-body'>
 Be careful not to fall into the trap of premature optimization.  Most of your queries will likely not benefit much, if at all, from using prepared statements.  This is a somewhat "power user" feature of PostgreSQL that is best used when you know how to use it - namely with very complex queries with lots of joins and advanced operations like union and switch statements.  I rarely use this feature in my own apps unless writing complex aggregate queries for reports and I know the reports are going to be executed very frequently.
   </div>
 </div>
