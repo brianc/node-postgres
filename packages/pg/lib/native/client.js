@@ -321,3 +321,7 @@ Client.prototype.getTypeParser = function (oid, format) {
 Client.prototype.isConnected = function () {
   return this._connected
 }
+
+Client.prototype.getTransactionStatus = function () {
+  return this.native.getTransactionStatus()
+}
