@@ -30,7 +30,9 @@ function saslprep(password) {
   return password.replace(nonAsciiSpace, ' ').replace(mappedToNothing, '').normalize('NFKC')
 }
 
-function startSession(mechanisms, stream) {
+const DEFAULT_MAX_SCRAM_ITERATIONS = 100000
+
+function startSession(mechanisms, stream, scramMaxIterations = DEFAULT_MAX_SCRAM_ITERATIONS) {
   const candidates = ['SCRAM-SHA-256']
   if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
 
@@ -53,6 +55,7 @@ function startSession(mechanisms, stream) {
     clientNonce,
     response: gs2Header + ',,n=*,r=' + clientNonce,
     message: 'SASLInitialResponse',
+    scramMaxIterations,
   }
 }
 
@@ -76,6 +79,18 @@ async function continueSession(session, password, serverData, stream) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce does not start with client nonce')
   } else if (sv.nonce.length === session.clientNonce.length) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce is too short')
+  }
+
+  const scramMaxIterations =
+    typeof session.scramMaxIterations === 'number' ? session.scramMaxIterations : DEFAULT_MAX_SCRAM_ITERATIONS
+  // a value of 0 disables the iteration count check
+  if (scramMaxIterations !== 0 && sv.iteration > scramMaxIterations) {
+    throw new Error(
+      'SASL: SCRAM-SERVER-FIRST-MESSAGE: iteration count ' +
+        sv.iteration +
+        ' exceeds scramMaxIterations of ' +
+        scramMaxIterations
+    )
   }
 
   const clientFirstMessageBare = 'n=*,r=' + session.clientNonce
@@ -243,4 +258,5 @@ module.exports = {
   startSession,
   continueSession,
   finalizeSession,
+  DEFAULT_MAX_SCRAM_ITERATIONS,
 }

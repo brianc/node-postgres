@@ -55,6 +55,18 @@ suite.test('sasl/scram', function () {
 
       assert(session1.clientNonce != session2.clientNonce)
     })
+
+    suite.test('defaults scramMaxIterations to 100000', function () {
+      const session = sasl.startSession(['SCRAM-SHA-256'])
+
+      assert.equal(session.scramMaxIterations, 100000)
+    })
+
+    suite.test('honors a custom scramMaxIterations', function () {
+      const session = sasl.startSession(['SCRAM-SHA-256'], null, 50)
+
+      assert.equal(session.scramMaxIterations, 50)
+    })
   })
 
   suite.test('continueSession', function () {
@@ -157,6 +169,68 @@ suite.test('sasl/scram', function () {
           message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce does not start with client nonce',
         }
       )
+    })
+
+    suite.test('fails when iteration count exceeds default scramMaxIterations', async function () {
+      await assert.rejects(
+        function () {
+          return sasl.continueSession(
+            {
+              message: 'SASLInitialResponse',
+              clientNonce: 'a',
+              scramMaxIterations: 100000,
+            },
+            'password',
+            'r=ab,s=abcd,i=100001'
+          )
+        },
+        {
+          message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: iteration count 100001 exceeds scramMaxIterations of 100000',
+        }
+      )
+    })
+
+    suite.test('fails when iteration count exceeds a custom scramMaxIterations', async function () {
+      await assert.rejects(
+        function () {
+          return sasl.continueSession(
+            {
+              message: 'SASLInitialResponse',
+              clientNonce: 'a',
+              scramMaxIterations: 10,
+            },
+            'password',
+            'r=ab,s=abcd,i=11'
+          )
+        },
+        {
+          message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: iteration count 11 exceeds scramMaxIterations of 10',
+        }
+      )
+    })
+
+    suite.test('allows iteration count at the scramMaxIterations limit', async function () {
+      const session = {
+        message: 'SASLInitialResponse',
+        clientNonce: 'a',
+        scramMaxIterations: 5,
+      }
+
+      await sasl.continueSession(session, 'password', 'r=ab,s=abcd,i=5')
+
+      assert.equal(session.message, 'SASLResponse')
+    })
+
+    suite.test('disables the iteration count check when scramMaxIterations is 0', async function () {
+      const session = {
+        message: 'SASLInitialResponse',
+        clientNonce: 'a',
+        scramMaxIterations: 0,
+      }
+
+      await sasl.continueSession(session, 'password', 'r=ab,s=abcd,i=999999')
+
+      assert.equal(session.message, 'SASLResponse')
     })
 
     suite.test('sets expected session data (SCRAM-SHA-256)', async function () {
