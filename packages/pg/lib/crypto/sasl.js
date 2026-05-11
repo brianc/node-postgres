@@ -1,5 +1,6 @@
 'use strict'
 const crypto = require('./utils')
+const saslprep = require('@mongodb-js/saslprep')
 const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
 
 function startSession(mechanisms, stream) {
@@ -69,8 +70,24 @@ async function continueSession(session, password, serverData, stream) {
   const clientFinalMessageWithoutProof = 'c=' + channelBinding + ',r=' + sv.nonce
   const authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
+  // Per RFC 5802 §2.2 and RFC 4013, the password must be processed through
+  // SASLprep (mapping + NFKC + prohibition + bidi) before being fed into
+  // PBKDF2. PostgreSQL's server applies SASLprep when computing the stored
+  // verifier (and libpq applies it client-side), so passwords whose NFKC form
+  // differs from the raw form (e.g. containing `¨`, `‑`, `¼`, NBSP, soft
+  // hyphen) would otherwise authenticate against psql/libpq but not against us.
+  // If SASLprep rejects the password (prohibited code points, bidi violation),
+  // fall back to the raw password — this matches libpq's `pg_saslprep`
+  // behavior so legacy roles created with lenient encoders keep working.
+  let preparedPassword
+  try {
+    preparedPassword = saslprep(password)
+  } catch {
+    preparedPassword = password
+  }
+
   const saltBytes = Buffer.from(sv.salt, 'base64')
-  const saltedPassword = await crypto.deriveKey(password, saltBytes, sv.iteration)
+  const saltedPassword = await crypto.deriveKey(preparedPassword, saltBytes, sv.iteration)
   const clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
   const storedKey = await crypto.sha256(clientKey)
   const clientSignature = await crypto.hmacSha256(storedKey, authMessage)

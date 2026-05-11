@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.21.0
+
+- SCRAM-SHA-256 now applies [SASLprep (RFC 4013)](https://datatracker.ietf.org/doc/html/rfc4013) to passwords before PBKDF2, matching `libpq` and the PostgreSQL server. Non-ASCII passwords whose NFKC form differs from the raw form (e.g. containing `¨`, `‑`, `¼`, NBSP, or soft hyphen) now authenticate successfully instead of failing with `28P01`. Powered by [`@mongodb-js/saslprep`](https://www.npmjs.com/package/@mongodb-js/saslprep). When SASLprep rejects a password (prohibited code points, bidi violation), the raw bytes are used as a fallback, matching `libpq`'s `pg_saslprep`.
+
 ## pg@8.20.0
 
 - Add [onConnect](https://github.com/brianc/node-postgres/pull/3620) callback to pg.Pool constructor options allowing for async initialization of newly created & connected pooled clients.
