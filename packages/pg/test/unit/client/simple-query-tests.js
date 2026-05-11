@@ -140,5 +140,17 @@ test('executing query', function () {
         )
       }
     })
+
+    test('throws an error when callback is not a function', function () {
+      try {
+        client.query('SELECT $1', [1], 'notafunction')
+      } catch (error) {
+        assert.equal(
+          error.message,
+          'callback is not a function',
+          'Should have thrown an Error for non function callback'
+        )
+      }
+    })
   })
 })
