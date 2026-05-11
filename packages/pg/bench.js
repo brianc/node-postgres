@@ -35,59 +35,128 @@ const bench = async (client, q, time) => {
   }
 }
 
+// Pipeline mode benchmark - sends N queries concurrently
+const benchPipeline = async (client, q, time, batchSize = 100) => {
+  const start = performance.now()
+  let count = 0
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const promises = []
+    for (let i = 0; i < batchSize; i++) {
+      promises.push(
+        client.query({
+          text: q.text,
+          values: q.values,
+          rowMode: 'array',
+        })
+      )
+    }
+    await Promise.all(promises)
+    count += batchSize
+    if (performance.now() - start > time) {
+      return count
+    }
+  }
+}
+
 const run = async () => {
+  const seconds = 5
+
+  console.log('='.repeat(60))
+  console.log('STANDARD MODE BENCHMARK')
+  console.log('='.repeat(60))
+
   const client = new pg.Client()
   await client.connect()
-  console.log('start')
   await client.query('CREATE TEMP TABLE foobar(name TEXT, age NUMERIC)')
   await client.query('CREATE TEMP TABLE buf(name TEXT, data BYTEA)')
   await bench(client, params, 1000)
-  console.log('warmup done')
-  const seconds = 5
+  console.log('warmup done\n')
 
-  for (let i = 0; i < 4; i++) {
-    let queries = await bench(client, params, seconds * 1000)
-    console.log('')
-    console.log('param queries:', queries)
-    console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 987 qps')
+  let queries = await bench(client, params, seconds * 1000)
+  console.log('param queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
 
-    queries = await bench(client, { ...params, name: 'params' }, seconds * 1000)
-    console.log('')
-    console.log('named queries:', queries)
-    console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 937 qps')
+  queries = await bench(client, { ...params, name: 'params' }, seconds * 1000)
+  console.log('\nnamed queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
 
-    console.log('')
-    queries = await bench(client, seq, seconds * 1000)
-    console.log('sequence queries:', queries)
-    console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 2725 qps')
+  queries = await bench(client, seq, seconds * 1000)
+  console.log('\nsequence queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
 
-    console.log('')
-    queries = await bench(client, insert, seconds * 1000)
-    console.log('insert queries:', queries)
-    console.log('qps', queries / seconds)
-    console.log('on my laptop best so far seen 27383 qps')
+  queries = await bench(client, insert, seconds * 1000)
+  console.log('\ninsert queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
 
-    console.log('')
-    console.log('Warming up bytea test')
-    await client.query({
-      text: 'INSERT INTO buf(name, data) VALUES ($1, $2)',
-      values: ['test', Buffer.allocUnsafe(104857600)],
-    })
-    console.log('bytea warmup done')
-    const start = performance.now()
-    const results = await client.query('SELECT * FROM buf')
-    const time = performance.now() - start
-    console.log('bytea time:', time, 'ms')
-    console.log('bytea length:', results.rows[0].data.byteLength, 'bytes')
-    console.log('on my laptop best so far seen 1407ms and 104857600 bytes')
-    await new Promise((resolve) => setTimeout(resolve, 250))
+  await client.end()
+
+  console.log('\n')
+  console.log('='.repeat(60))
+  console.log('PIPELINE MODE BENCHMARK')
+  console.log('='.repeat(60))
+
+  const pipelineClient = new pg.Client({ pipelineMode: true })
+  await pipelineClient.connect()
+  await pipelineClient.query('CREATE TEMP TABLE foobar(name TEXT, age NUMERIC)')
+  await benchPipeline(pipelineClient, params, 1000)
+  console.log('warmup done\n')
+
+  queries = await benchPipeline(pipelineClient, params, seconds * 1000)
+  console.log('param queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
+
+  queries = await benchPipeline(pipelineClient, { ...params, name: 'params' }, seconds * 1000)
+  console.log('\nnamed queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
+
+  queries = await benchPipeline(pipelineClient, seq, seconds * 1000)
+  console.log('\nsequence queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
+
+  queries = await benchPipeline(pipelineClient, insert, seconds * 1000)
+  console.log('\ninsert queries:', queries)
+  console.log('qps:', (queries / seconds).toFixed(0))
+
+  await pipelineClient.end()
+
+  console.log('\n')
+  console.log('='.repeat(60))
+  console.log('COMPARISON: Sequential vs Pipeline (same workload)')
+  console.log('='.repeat(60))
+
+  // Direct comparison: 1000 queries
+  const numQueries = 1000
+
+  const seqClient = new pg.Client()
+  await seqClient.connect()
+
+  console.log(`\nRunning ${numQueries} sequential queries...`)
+  let start = performance.now()
+  for (let i = 0; i < numQueries; i++) {
+    await seqClient.query('SELECT $1::int as i', [i])
   }
+  const seqTime = performance.now() - start
+  console.log(`Sequential: ${seqTime.toFixed(0)}ms (${((numQueries / seqTime) * 1000).toFixed(0)} qps)`)
 
-  await client.end()
-  await client.end()
+  await seqClient.end()
+
+  const pipClient = new pg.Client({ pipelineMode: true })
+  await pipClient.connect()
+
+  console.log(`Running ${numQueries} pipeline queries...`)
+  start = performance.now()
+  const promises = []
+  for (let i = 0; i < numQueries; i++) {
+    promises.push(pipClient.query('SELECT $1::int as i', [i]))
+  }
+  await Promise.all(promises)
+  const pipTime = performance.now() - start
+  console.log(`Pipeline:   ${pipTime.toFixed(0)}ms (${((numQueries / pipTime) * 1000).toFixed(0)} qps)`)
+
+  console.log(`\nSpeedup: ${(seqTime / pipTime).toFixed(2)}x faster`)
+
+  await pipClient.end()
 }
 
 run().catch((e) => console.error(e) || process.exit(-1))

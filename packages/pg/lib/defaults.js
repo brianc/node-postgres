@@ -77,6 +77,10 @@ module.exports = {
   keepalives: 1,
 
   keepalives_idle: 0,
+
+  // Enable pipeline mode for sending multiple queries without waiting for responses
+  // false=disabled (default), true=enabled
+  pipelineMode: false,
 }
 
 const pgTypes = require('pg-types')
