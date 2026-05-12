@@ -118,39 +118,36 @@ test('executing query', function () {
     const client = helper.client()
 
     test('throws an error when config is null', function () {
-      try {
-        client.query(null, undefined)
-      } catch (error) {
-        assert.equal(
-          error.message,
-          'Client was passed a null or undefined query',
-          'Should have thrown an Error for null queries'
-        )
-      }
+      assert.throws(
+        () => {
+          client.query(null, undefined)
+        },
+        {
+          message: 'Client was passed a null or undefined query',
+        }
+      )
     })
 
     test('throws an error when config is undefined', function () {
-      try {
-        client.query()
-      } catch (error) {
-        assert.equal(
-          error.message,
-          'Client was passed a null or undefined query',
-          'Should have thrown an Error for null queries'
-        )
-      }
+      assert.throws(
+        () => {
+          client.query()
+        },
+        {
+          message: 'Client was passed a null or undefined query',
+        }
+      )
     })
 
     test('throws an error when callback is not a function', function () {
-      try {
-        client.query('SELECT $1', [1], 'notafunction')
-      } catch (error) {
-        assert.equal(
-          error.message,
-          'callback is not a function',
-          'Should have thrown an Error for non function callback'
-        )
-      }
+      assert.throws(
+        () => {
+          client.query('SELECT $1', [1], 'notafunction')
+        },
+        {
+          message: 'callback is not a function',
+        }
+      )
     })
   })
 })
