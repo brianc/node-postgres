@@ -7,10 +7,8 @@ const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
 // Per RFC 5802 §2.2, the SCRAM-SHA-256 client must normalize the password via
 // SASLprep before feeding it into PBKDF2. PostgreSQL's server applies the same
 // SASLprep when computing the stored verifier, and libpq does the same client
-// side, so passwords whose NFKC form differs from the raw form (e.g.
-// containing `¨`, `‑`, `¼`, NBSP, or soft hyphen — typical macOS / iOS
-// smart-text autocorrect output) would otherwise authenticate against
-// psql/libpq but fail against pg with `28P01`.
+// side, so passwords whose NFKC form differs from the raw form
+// would otherwise authenticate against psql/libpq but fail against pg with `28P01`.
 //
 // We deliberately implement only the three steps that change the byte content:
 //   1. RFC 3454 Table C.1.2 (non-ASCII space) → U+0020 SPACE.
