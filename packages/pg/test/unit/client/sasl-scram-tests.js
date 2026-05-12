@@ -234,13 +234,13 @@ suite.test('sasl/scram', function () {
       assert.equal(sessionPrepped.response, sessionRef.response)
     })
 
-    suite.test('falls back to raw password when SASLprep rejects prohibited code points', async function () {
-      // BEL (U+0007) is in C.2.1 (ASCII control), so SASLprep throws. libpq's
-      // pg_saslprep falls back to the raw password in this case to keep
-      // legacy roles working; we mirror that behavior. The deterministic
-      // snapshot ensures any future regression (e.g. removing the try/catch
-      // and letting the throw propagate, or substituting a different
-      // fallback value) is caught immediately.
+    suite.test('passes ASCII control characters through normalization unchanged', async function () {
+      // BEL (U+0007) is an ASCII control character. The minimal SASLprep
+      // implementation (B.1 mapping → C.1.2 mapping → NFKC) is the identity
+      // on ASCII control codes, so the bytes fed to PBKDF2 are exactly the
+      // raw password. We snapshot the resulting SCRAM output as a regression
+      // guard: if anyone ever swaps the order of operations, removes the
+      // NFKC step, or accidentally strips ASCII bytes, this assertion trips.
       const session = { message: 'SASLInitialResponse', clientNonce: 'a' }
 
       await sasl.continueSession(session, '\u0007abc', 'r=ab,s=abcd,i=1')

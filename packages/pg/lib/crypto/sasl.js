@@ -1,7 +1,38 @@
 'use strict'
 const crypto = require('./utils')
-const saslprep = require('@mongodb-js/saslprep')
 const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
+
+// SASLprep (RFC 4013) — minimal in-tree implementation.
+//
+// Per RFC 5802 §2.2, the SCRAM-SHA-256 client must normalize the password via
+// SASLprep before feeding it into PBKDF2. PostgreSQL's server applies the same
+// SASLprep when computing the stored verifier, and libpq does the same client
+// side, so passwords whose NFKC form differs from the raw form (e.g.
+// containing `¨`, `‑`, `¼`, NBSP, or soft hyphen — typical macOS / iOS
+// smart-text autocorrect output) would otherwise authenticate against
+// psql/libpq but fail against pg with `28P01`.
+//
+// We deliberately implement only the three steps that change the byte content:
+//   1. RFC 3454 Table C.1.2 (non-ASCII space) → U+0020 SPACE.
+//   2. RFC 3454 Table B.1 (commonly mapped to nothing) → empty.
+//   3. NFKC normalization.
+// We skip the prohibition (RFC 4013 §2.3) and bidi (RFC 3454 §6) checks.
+// libpq is forgiving on those paths and Postgres's own SASLprep matches that
+// leniency for legacy roles, so omitting the rejection logic keeps existing
+// roles working without adding complexity.
+function saslprep(password) {
+  // RFC 3454 Table C.1.2 — non-ASCII space characters, mapped to U+0020.
+  // prettier-ignore
+  const nonAsciiSpace = /[\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]/g
+  // RFC 3454 Table B.1 — "commonly mapped to nothing". The set intentionally
+  // contains zero-width joiners and variation selectors — the very characters
+  // ESLint's no-misleading-character-class warns about — because they combine
+  // with their neighbors and the RFC strips them for that reason.
+  // prettier-ignore
+  // eslint-disable-next-line no-misleading-character-class
+  const mappedToNothing = /[\u00AD\u034F\u1806\u180B\u180C\u180D\u200B\u200C\u200D\u2060\uFE00\uFE01\uFE02\uFE03\uFE04\uFE05\uFE06\uFE07\uFE08\uFE09\uFE0A\uFE0B\uFE0C\uFE0D\uFE0E\uFE0F\uFEFF]/g
+  return password.replace(nonAsciiSpace, ' ').replace(mappedToNothing, '').normalize('NFKC')
+}
 
 function startSession(mechanisms, stream) {
   const candidates = ['SCRAM-SHA-256']
@@ -70,24 +101,8 @@ async function continueSession(session, password, serverData, stream) {
   const clientFinalMessageWithoutProof = 'c=' + channelBinding + ',r=' + sv.nonce
   const authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
-  // Per RFC 5802 §2.2 and RFC 4013, the password must be processed through
-  // SASLprep (mapping + NFKC + prohibition + bidi) before being fed into
-  // PBKDF2. PostgreSQL's server applies SASLprep when computing the stored
-  // verifier (and libpq applies it client-side), so passwords whose NFKC form
-  // differs from the raw form (e.g. containing `¨`, `‑`, `¼`, NBSP, soft
-  // hyphen) would otherwise authenticate against psql/libpq but not against us.
-  // If SASLprep rejects the password (prohibited code points, bidi violation),
-  // fall back to the raw password — this matches libpq's `pg_saslprep`
-  // behavior so legacy roles created with lenient encoders keep working.
-  let preparedPassword
-  try {
-    preparedPassword = saslprep(password)
-  } catch {
-    preparedPassword = password
-  }
-
   const saltBytes = Buffer.from(sv.salt, 'base64')
-  const saltedPassword = await crypto.deriveKey(preparedPassword, saltBytes, sv.iteration)
+  const saltedPassword = await crypto.deriveKey(saslprep(password), saltBytes, sv.iteration)
   const clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
   const storedKey = await crypto.sha256(clientKey)
   const clientSignature = await crypto.hmacSha256(storedKey, authMessage)
