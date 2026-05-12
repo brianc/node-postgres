@@ -204,7 +204,19 @@ suite.test('sasl/scram', function () {
       assert.equal(session.response, 'c=eSws,r=ab,p=YVTEOwOD7khu/NulscjFegHrZoTXJBFI/7L61AN9khc=')
     })
 
-    suite.test('SASLprep maps mapped-to-nothing characters before PBKDF2 (RFC 4013 B.1)', async function () {
+    suite.test('SASLprep maps non-ASCII space characters (RFC 3454 C.1.2) to U+0020 SPACE', async function () {
+      // SASLprep probably misuses the C.1.2 table; U+200B, in particular, is listed in both the C.1.2 and B.1 tables. We treat it as a space for compatibility with PostgreSQL.
+      const sessionPrepped = { message: 'SASLInitialResponse', clientNonce: 'a' }
+      const sessionRef = { message: 'SASLInitialResponse', clientNonce: 'a' }
+
+      await sasl.continueSession(sessionPrepped, '\u200bfoo\xa0bar', 'r=ab,s=abcd,i=1')
+      await sasl.continueSession(sessionRef, ' foo bar', 'r=ab,s=abcd,i=1')
+
+      assert.equal(sessionPrepped.serverSignature, sessionRef.serverSignature)
+      assert.equal(sessionPrepped.response, sessionRef.response)
+    })
+
+    suite.test('SASLprep maps mapped-to-nothing characters before PBKDF2 (RFC 3454 B.1)', async function () {
       // Soft hyphen U+00AD is mapped to nothing by SASLprep, so 'I\u00ADX'
       // must produce identical SCRAM output to 'IX'. This proves the prep
       // step is engaged on the SCRAM derivation path. Without the fix the
