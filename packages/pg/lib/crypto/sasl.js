@@ -22,15 +22,15 @@ const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
 // roles working without adding complexity.
 function saslprep(password) {
   // RFC 3454 Table C.1.2 — non-ASCII space characters, mapped to U+0020.
-  // prettier-ignore
-  const nonAsciiSpace = /[\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]/g
+  const nonAsciiSpace =
+    /[\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]/g
   // RFC 3454 Table B.1 — "commonly mapped to nothing". The set intentionally
   // contains zero-width joiners and variation selectors — the very characters
   // ESLint's no-misleading-character-class warns about — because they combine
   // with their neighbors and the RFC strips them for that reason.
-  // prettier-ignore
-  // eslint-disable-next-line no-misleading-character-class
-  const mappedToNothing = /[\u00AD\u034F\u1806\u180B\u180C\u180D\u200B\u200C\u200D\u2060\uFE00\uFE01\uFE02\uFE03\uFE04\uFE05\uFE06\uFE07\uFE08\uFE09\uFE0A\uFE0B\uFE0C\uFE0D\uFE0E\uFE0F\uFEFF]/g
+  const mappedToNothing =
+    // eslint-disable-next-line no-misleading-character-class
+    /[\u00AD\u034F\u1806\u180B\u180C\u180D\u200B\u200C\u200D\u2060\uFE00\uFE01\uFE02\uFE03\uFE04\uFE05\uFE06\uFE07\uFE08\uFE09\uFE0A\uFE0B\uFE0C\uFE0D\uFE0E\uFE0F\uFEFF]/g
   return password.replace(nonAsciiSpace, ' ').replace(mappedToNothing, '').normalize('NFKC')
 }
 
