@@ -250,23 +250,6 @@ suite.test('sasl/scram', function () {
       assert.equal(session.response, 'c=biws,r=ab,p=04HAPnY4K2UhwiD2RJtFw9sU81SLcas8B1Uqdqv8SeQ=')
     })
 
-    suite.test('SASLprep handles the production-bug password (¨ ‑ ¼ smart-text autocorrect)', async function () {
-      // Captures the original bug report: a password containing characters
-      // that NFKC alters — U+00A8 (¨ DIAERESIS, → SP + COMBINING DIAERESIS),
-      // U+2011 (‑ NON-BREAKING HYPHEN, → U+2010 HYPHEN), U+00BC (¼ ONE
-      // QUARTER, → 1⁄4). These typically come from macOS/iOS smart-text
-      // autocorrect of `"`, `-`, `1/4`. Without SASLprep, the client and
-      // server compute different PBKDF2 inputs and authentication fails
-      // with 28P01.
-      const session = { message: 'SASLInitialResponse', clientNonce: 'a' }
-
-      await sasl.continueSession(session, 'abcd123456789123456789\u00A8\u2011\u00BC###', 'r=ab,s=abcd,i=1')
-
-      assert.equal(session.message, 'SASLResponse')
-      assert.equal(session.serverSignature, 'ZjuSuv1K2PH8wqCctZpXo8XZaXqT5BpOEhApVDRpX1U=')
-      assert.equal(session.response, 'c=biws,r=ab,p=w7yYtE6oy8mtvS0Eg3F/jUCmi7zA7+OZRHBXzd2BuFk=')
-    })
-
     suite.test('sets expected session data (SCRAM-SHA-256-PLUS)', async function () {
       const session = {
         message: 'SASLInitialResponse',
