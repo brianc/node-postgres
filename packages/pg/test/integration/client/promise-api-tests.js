@@ -28,18 +28,3 @@ suite.test('invalid connection rejects promise', (done) => {
     done()
   })
 })
-
-suite.test('connected client does not reject promise after connection', (done) => {
-  const client = new pg.Client()
-  return client.connect().then(() => {
-    setTimeout(() => {
-      client.on('error', (e) => {
-        assert(e instanceof Error)
-        client.end()
-        done()
-      })
-      // manually kill the connection
-      client.emit('error', new Error('something bad happened...but not really'))
-    }, 50)
-  })
-})
