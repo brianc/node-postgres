@@ -21,10 +21,7 @@ suite.test('valid connection returns the client in a promise', () => {
   })
 })
 
-suite.test('invalid connection rejects promise', (done) => {
+suite.test('invalid connection rejects promise', async () => {
   const client = new pg.Client({ host: 'alksdjflaskdfj', port: 1234 })
-  return client.connect().catch((e) => {
-    assert(e instanceof Error)
-    done()
-  })
+  await assert.rejects(client.connect(), Error)
 })
