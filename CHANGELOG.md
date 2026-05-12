@@ -4,10 +4,6 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
-## pg@8.21.0
-
-- SCRAM-SHA-256 now applies [SASLprep (RFC 4013)](https://datatracker.ietf.org/doc/html/rfc4013) to passwords before PBKDF2, matching `libpq` and the PostgreSQL server. Non-ASCII passwords whose NFKC form differs from the raw form (e.g. containing `¨`, `‑`, `¼`, NBSP, or soft hyphen — typical macOS / iOS smart-text autocorrect output) now authenticate successfully instead of failing with `28P01`. The implementation is a small in-tree function performing the three byte-changing steps (RFC 3454 Table C.1.2 → SPACE, Table B.1 → empty, NFKC); prohibition (RFC 4013 §2.3) and bidi (RFC 3454 §6) checks are intentionally omitted to match `libpq`'s lenient behavior on the byte-content path real users hit.
-
 ## pg@8.20.0
 
 - Add [onConnect](https://github.com/brianc/node-postgres/pull/3620) callback to pg.Pool constructor options allowing for async initialization of newly created & connected pooled clients.
