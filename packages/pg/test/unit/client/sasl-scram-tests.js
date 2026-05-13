@@ -58,64 +58,53 @@ suite.test('sasl/scram', function () {
   })
 
   suite.test('continueSession', function () {
-    suite.test('fails when last session message was not SASLInitialResponse', async function () {
-      assert.rejects(
-        function () {
-          return sasl.continueSession({}, '', '')
-        },
-        {
-          message: 'SASL: Last message was not SASLInitialResponse',
-        }
-      )
+    suite.test('fails when last session message was not SASLInitialResponse', async () => {
+      await assert.rejects(sasl.continueSession({}, '', ''), {
+        message: 'SASL: Last message was not SASLInitialResponse',
+      })
     })
 
-    suite.test('fails when nonce is missing in server message', function () {
-      assert.rejects(
-        function () {
-          return sasl.continueSession(
-            {
-              message: 'SASLInitialResponse',
-            },
-            'bad-password',
-            's=1,i=1'
-          )
-        },
+    suite.test('fails when nonce is missing in server message', async () => {
+      await assert.rejects(
+        sasl.continueSession(
+          {
+            message: 'SASLInitialResponse',
+          },
+          'bad-password',
+          's=1,i=1'
+        ),
         {
           message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: nonce missing',
         }
       )
     })
 
-    suite.test('fails when salt is missing in server message', function () {
-      assert.rejects(
-        function () {
-          return sasl.continueSession(
-            {
-              message: 'SASLInitialResponse',
-            },
-            'bad-password',
-            'r=1,i=1'
-          )
-        },
+    suite.test('fails when salt is missing in server message', async () => {
+      await assert.rejects(
+        sasl.continueSession(
+          {
+            message: 'SASLInitialResponse',
+          },
+          'bad-password',
+          'r=1,i=1'
+        ),
         {
           message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: salt missing',
         }
       )
     })
 
-    suite.test('fails when client password is not a string', function () {
+    suite.test('fails when client password is not a string', async () => {
       for (const badPasswordValue of [null, undefined, 123, new Date(), {}]) {
-        assert.rejects(
-          function () {
-            return sasl.continueSession(
-              {
-                message: 'SASLInitialResponse',
-                clientNonce: 'a',
-              },
-              badPasswordValue,
-              'r=1,i=1'
-            )
-          },
+        await assert.rejects(
+          sasl.continueSession(
+            {
+              message: 'SASLInitialResponse',
+              clientNonce: 'a',
+            },
+            badPasswordValue,
+            'r=1,i=1'
+          ),
           {
             message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string',
           }
@@ -123,53 +112,47 @@ suite.test('sasl/scram', function () {
       }
     })
 
-    suite.test('fails when client password is an empty string', function () {
-      assert.rejects(
-        function () {
-          return sasl.continueSession(
-            {
-              message: 'SASLInitialResponse',
-              clientNonce: 'a',
-            },
-            '',
-            'r=1,i=1'
-          )
-        },
+    suite.test('fails when client password is an empty string', async () => {
+      await assert.rejects(
+        sasl.continueSession(
+          {
+            message: 'SASLInitialResponse',
+            clientNonce: 'a',
+          },
+          '',
+          'r=1,i=1'
+        ),
         {
           message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a non-empty string',
         }
       )
     })
 
-    suite.test('fails when iteration is missing in server message', function () {
-      assert.rejects(
-        function () {
-          return sasl.continueSession(
-            {
-              message: 'SASLInitialResponse',
-            },
-            'bad-password',
-            'r=1,s=abcd'
-          )
-        },
+    suite.test('fails when iteration is missing in server message', async () => {
+      await assert.rejects(
+        sasl.continueSession(
+          {
+            message: 'SASLInitialResponse',
+          },
+          'bad-password',
+          'r=1,s=abcd'
+        ),
         {
           message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: iteration missing',
         }
       )
     })
 
-    suite.test('fails when server nonce does not start with client nonce', function () {
-      assert.rejects(
-        function () {
-          return sasl.continueSession(
-            {
-              message: 'SASLInitialResponse',
-              clientNonce: '2',
-            },
-            'bad-password',
-            'r=1,s=abcd,i=1'
-          )
-        },
+    suite.test('fails when server nonce does not start with client nonce', async () => {
+      await assert.rejects(
+        sasl.continueSession(
+          {
+            message: 'SASLInitialResponse',
+            clientNonce: '2',
+          },
+          'bad-password',
+          'r=1,s=abcd,i=1'
+        ),
         {
           message: 'SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce does not start with client nonce',
         }

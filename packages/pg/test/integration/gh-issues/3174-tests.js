@@ -104,7 +104,9 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
     if (!cli.native) {
       assert(errorHit)
       // further queries on the client should fail since its in an invalid state
-      await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+      await assert.rejects(client.query('SELECT NOW()'), {
+        message: 'Client has encountered a connection error and is not queryable',
+      })
     }
 
     await closeServer()
@@ -129,7 +131,9 @@ const testErrorBuffer = (bufferName, errorBuffer) => {
     if (!cli.native) {
       assert(errorHit)
       // further queries on the client should fail since its in an invalid state
-      await assert.rejects(() => client.query('SELECTR NOW()'), 'Further queries on the client should reject')
+      await assert.rejects(client.query('SELECT NOW()'), {
+        message: 'Client has encountered a connection error and is not queryable',
+      })
     }
 
     await client.end()
