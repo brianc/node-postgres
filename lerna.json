@@ -1,12 +1,12 @@
 {
-  "packages": [
-    "packages/*"
-  ],
+  "packages": ["packages/*"],
   "npmClient": "yarn",
   "useWorkspaces": true,
   "version": "independent",
-  "ignoreChanges": [
-    "**/*.md",
-    "**/test/**"
-  ]
+  "command": {
+    "version": {
+      "allowBranch": "master"
+    }
+  },
+  "ignoreChanges": ["**/*.md", "**/test/**"]
 }

@@ -1,6 +1,6 @@
 'use strict'
-var helper = require('./test-helper')
-var assert = require('assert')
+const helper = require('./test-helper')
+const assert = require('assert')
 
 const pool = new helper.pg.Pool()
 pool.connect(
@@ -15,14 +15,14 @@ pool.connect(
           return pool.end()
         }
         client.query('CREATE TEMP TABLE stuff(id SERIAL PRIMARY KEY, data JSON)')
-        var value = { name: 'Brian', age: 250, alive: true, now: new Date() }
+        const value = { name: 'Brian', age: 250, alive: true, now: new Date() }
         client.query('INSERT INTO stuff (data) VALUES ($1)', [value])
         client.query(
           'SELECT * FROM stuff',
           assert.success(function (result) {
             assert.equal(result.rows.length, 1)
             assert.equal(typeof result.rows[0].data, 'object')
-            var row = result.rows[0].data
+            const row = result.rows[0].data
             assert.strictEqual(row.name, value.name)
             assert.strictEqual(row.age, value.age)
             assert.strictEqual(row.alive, value.alive)

@@ -1,21 +1,26 @@
-'use strict'
-
+const nodeUtils = require('util')
 // eslint-disable-next-line
 var Native
+// eslint-disable-next-line no-useless-catch
 try {
   // Wrap this `require()` in a try-catch to avoid upstream bundlers from complaining that this might not be available since it is an optional import
   Native = require('pg-native')
 } catch (e) {
   throw e
 }
-var TypeOverrides = require('../type-overrides')
-var EventEmitter = require('events').EventEmitter
-var util = require('util')
-var ConnectionParameters = require('../connection-parameters')
+const TypeOverrides = require('../type-overrides')
+const EventEmitter = require('events').EventEmitter
+const util = require('util')
+const ConnectionParameters = require('../connection-parameters')
 
-var NativeQuery = require('./query')
+const NativeQuery = require('./query')
 
-var Client = (module.exports = function (config) {
+const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.'
+)
+
+const Client = (module.exports = function (config) {
   EventEmitter.call(this)
   config = config || {}
 
@@ -34,7 +39,8 @@ var Client = (module.exports = function (config) {
 
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
-  var cp = (this.connectionParameters = new ConnectionParameters(config))
+  const cp = (this.connectionParameters = new ConnectionParameters(config))
+  if (config.nativeConnectionString) cp.nativeConnectionString = config.nativeConnectionString
   this.user = cp.user
 
   // "hiding" the password so it doesn't show up in stack traces
@@ -78,7 +84,7 @@ Client.prototype._errorAllQueries = function (err) {
 // pass an optional callback to be called once connected
 // or with an error if there was a connection error
 Client.prototype._connect = function (cb) {
-  var self = this
+  const self = this
 
   if (this._connecting) {
     process.nextTick(() => cb(new Error('Client has already been connected. You cannot reuse a client.')))
@@ -88,6 +94,7 @@ Client.prototype._connect = function (cb) {
   this._connecting = true
 
   this.connectionParameters.getLibpqConnectionString(function (err, conString) {
+    if (self.connectionParameters.nativeConnectionString) conString = self.connectionParameters.nativeConnectionString
     if (err) return cb(err)
     self.native.connect(conString, function (err) {
       if (err) {
@@ -116,7 +123,7 @@ Client.prototype._connect = function (cb) {
       self.emit('connect')
       self._pulseQueryQueue(true)
 
-      cb()
+      cb(null, this)
     })
   })
 }
@@ -132,7 +139,7 @@ Client.prototype.connect = function (callback) {
       if (error) {
         reject(error)
       } else {
-        resolve()
+        resolve(this)
       }
     })
   })
@@ -149,11 +156,11 @@ Client.prototype.connect = function (callback) {
 //    optional string rowMode = 'array' for an array of results
 //  }
 Client.prototype.query = function (config, values, callback) {
-  var query
-  var result
-  var readTimeout
-  var readTimeoutTimer
-  var queryCallback
+  let query
+  let result
+  let readTimeout
+  let readTimeoutTimer
+  let queryCallback
 
   if (config === null || config === undefined) {
     throw new TypeError('Client was passed a null or undefined query')
@@ -165,23 +172,26 @@ Client.prototype.query = function (config, values, callback) {
       config.callback = values
     }
   } else {
-    readTimeout = this.connectionParameters.query_timeout
+    readTimeout = config.query_timeout || this.connectionParameters.query_timeout
     query = new NativeQuery(config, values, callback)
     if (!query.callback) {
       let resolveOut, rejectOut
       result = new this._Promise((resolve, reject) => {
         resolveOut = resolve
         rejectOut = reject
+      }).catch((err) => {
+        Error.captureStackTrace(err)
+        throw err
       })
       query.callback = (err, res) => (err ? rejectOut(err) : resolveOut(res))
     }
   }
 
   if (readTimeout) {
-    queryCallback = query.callback
+    queryCallback = query.callback || (() => {})
 
     readTimeoutTimer = setTimeout(() => {
-      var error = new Error('Query read timeout')
+      const error = new Error('Query read timeout')
 
       process.nextTick(() => {
         query.handleError(error, this.connection)
@@ -194,7 +204,7 @@ Client.prototype.query = function (config, values, callback) {
       query.callback = () => {}
 
       // Remove from queue
-      var index = this._queryQueue.indexOf(query)
+      const index = this._queryQueue.indexOf(query)
       if (index > -1) {
         this._queryQueue.splice(index, 1)
       }
@@ -224,6 +234,10 @@ Client.prototype.query = function (config, values, callback) {
     return result
   }
 
+  if (this._queryQueue.length > 0) {
+    queryQueueLengthDeprecationNotice()
+  }
+
   this._queryQueue.push(query)
   this._pulseQueryQueue()
   return result
@@ -231,20 +245,23 @@ Client.prototype.query = function (config, values, callback) {
 
 // disconnect from the backend server
 Client.prototype.end = function (cb) {
-  var self = this
+  const self = this
 
   this._ending = true
 
   if (!this._connected) {
     this.once('connect', this.end.bind(this, cb))
   }
-  var result
+  let result
   if (!cb) {
     result = new this._Promise(function (resolve, reject) {
       cb = (err) => (err ? reject(err) : resolve())
     })
   }
+
   this.native.end(function () {
+    self._connected = false
+
     self._errorAllQueries(new Error('Connection terminated'))
 
     process.nextTick(() => {
@@ -266,7 +283,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
   if (this._hasActiveQuery()) {
     return
   }
-  var query = this._queryQueue.shift()
+  const query = this._queryQueue.shift()
   if (!query) {
     if (!initialConnection) {
       this.emit('drain')
@@ -275,7 +292,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
   }
   this._activeQuery = query
   query.submit(this)
-  var self = this
+  const self = this
   query.once('_done', function () {
     self._pulseQueryQueue()
   })
@@ -299,4 +316,12 @@ Client.prototype.setTypeParser = function (oid, format, parseFn) {
 
 Client.prototype.getTypeParser = function (oid, format) {
   return this._types.getTypeParser(oid, format)
+}
+
+Client.prototype.isConnected = function () {
+  return this._connected
+}
+
+Client.prototype.getTransactionStatus = function () {
+  return this.native.getTransactionStatus()
 }

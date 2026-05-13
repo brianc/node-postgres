@@ -1,17 +1,19 @@
 'use strict'
-var helper = require('./test-helper')
-var util = require('util')
-var Query = helper.pg.Query
-var DatabaseError = helper.pg.DatabaseError
+const helper = require('./test-helper')
+const Query = helper.pg.Query
+const DatabaseError = helper.pg.DatabaseError
+const assert = require('assert')
+const { Client } = helper
+const suite = new helper.Suite()
 
-test('error during query execution', function () {
-  var client = new Client(helper.args)
+suite.test('error during query execution', function () {
+  const client = new Client(helper.args)
   client.connect(
     assert.success(function () {
-      var queryText = 'select pg_sleep(10)'
-      var sleepQuery = new Query(queryText)
-      var pidColName = 'procpid'
-      var queryColName = 'current_query'
+      const queryText = 'select pg_sleep(10)'
+      const sleepQuery = new Query(queryText)
+      let pidColName = 'procpid'
+      let queryColName = 'current_query'
       helper.versionGTE(
         client,
         90200,
@@ -20,7 +22,7 @@ test('error during query execution', function () {
             pidColName = 'pid'
             queryColName = 'query'
           }
-          var query1 = client.query(
+          const query1 = client.query(
             sleepQuery,
             assert.calls(function (err, result) {
               assert(err)
@@ -34,10 +36,10 @@ test('error during query execution', function () {
             assert.fail('Query with an error should not emit "end" event')
           })
           setTimeout(function () {
-            var client2 = new Client(helper.args)
+            const client2 = new Client(helper.args)
             client2.connect(
               assert.success(function () {
-                var killIdleQuery = `SELECT ${pidColName}, (SELECT pg_cancel_backend(${pidColName})) AS killed FROM pg_stat_activity WHERE ${queryColName} LIKE $1`
+                const killIdleQuery = `SELECT ${pidColName}, (SELECT pg_cancel_backend(${pidColName})) AS killed FROM pg_stat_activity WHERE ${queryColName} LIKE $1`
                 client2.query(
                   killIdleQuery,
                   [queryText],
@@ -61,8 +63,8 @@ if (helper.config.native) {
   return
 }
 
-test('9.3 column error fields', function () {
-  var client = new Client(helper.args)
+suite.test('9.3 column error fields', function () {
+  const client = new Client(helper.args)
   client.connect(
     assert.success(function () {
       helper.versionGTE(
@@ -90,8 +92,8 @@ test('9.3 column error fields', function () {
   )
 })
 
-test('9.3 constraint error fields', function () {
-  var client = new Client(helper.args)
+suite.test('9.3 constraint error fields', function () {
+  const client = new Client(helper.args)
   client.connect(
     assert.success(function () {
       helper.versionGTE(

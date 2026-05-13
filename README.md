@@ -12,10 +12,17 @@ This repo is a monorepo which contains the core [pg](https://github.com/brianc/n
 
 - [pg](https://github.com/brianc/node-postgres/tree/master/packages/pg)
 - [pg-pool](https://github.com/brianc/node-postgres/tree/master/packages/pg-pool)
+- [pg-native](https://github.com/brianc/node-postgres/tree/master/packages/pg-native)
 - [pg-cursor](https://github.com/brianc/node-postgres/tree/master/packages/pg-cursor)
 - [pg-query-stream](https://github.com/brianc/node-postgres/tree/master/packages/pg-query-stream)
 - [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string)
 - [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol)
+
+## Install
+
+```
+npm install pg
+```
 
 ## Documentation
 
@@ -51,13 +58,19 @@ When you open an issue please provide:
 - version of Postgres
 - smallest possible snippet of code to reproduce the problem
 
-You can also follow me [@briancarlson](https://twitter.com/briancarlson) if that's your thing. I try to always announce noteworthy changes & developments with node-postgres on Twitter.
+You can also follow me [@brianc](https://bsky.app/profile/brianc.bsky.social) on bluesky if that's your thing for updates on node-postgres with nearly zero non node-postgres content. My old twitter/x account is no longer used.
 
 ## Sponsorship :two_hearts:
 
-node-postgres's continued development has been made possible in part by generous finanical support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
+node-postgres's continued development has been made possible in part by generous financial support from [the community](https://github.com/brianc/node-postgres/blob/master/SPONSORS.md).
 
 If you or your company are benefiting from node-postgres and would like to help keep the project financially sustainable [please consider supporting](https://github.com/sponsors/brianc) its development.
+
+### Featured sponsor
+
+Special thanks to [medplum](https://medplum.com) for their generous and thoughtful support of node-postgres!
+
+<img src="https://github.com/medplum/medplum-logo/blob/main/v3/medplum-logo-grape8.svg" alt="Medplum logo" width="20%" />
 
 ## Contributing
 
@@ -74,10 +87,11 @@ If your change involves breaking backwards compatibility please please point tha
 ### Setting up for local development
 
 1. Clone the repo
-2. From your workspace root run `yarn` and then `yarn lerna bootstrap`
-3. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests
-4. Ensure you have the proper environment variables configured for connecting to the instance
-5. Run `yarn test` to run all the tests
+2. Ensure you have installed libpq-dev in your system (the native bindings are built in the test process)
+3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
+4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests. _note: you can skip the tests requring SSL by setting the environment variable `PGTESTNOSSL=1` if you're not changing any SSL related code_.
+5. Ensure you have the proper environment variables configured for connecting to your postgres instance. Using the standard `PG*` environment variables like `PGUSER` and `PGPASSWORD` etc...
+6. Run `yarn test` to run all the tests.
 
 ## Troubleshooting and FAQ
 

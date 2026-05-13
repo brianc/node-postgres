@@ -1,8 +1,7 @@
-const pg = require('../../../lib')
 const helper = require('../test-helper')
 const suite = new helper.Suite()
 
-suite.testAsync('timeout causing query crashes', async () => {
+suite.test('timeout causing query crashes', async () => {
   const client = new helper.Client()
   await client.connect()
   await client.query('CREATE TEMP TABLE foobar( name TEXT NOT NULL, id SERIAL)')

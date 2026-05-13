@@ -1,23 +1,24 @@
 {
   "compilerOptions": {
-    "module": "ES2020",
+    "module": "node16",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "target": "ES2020",
+    "target": "es2020",
     "noImplicitAny": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "sourceMap": true,
     "outDir": "dist",
+    "rootDir": "./src",
     "incremental": true,
-    "baseUrl": ".",
     "declaration": true,
     "paths": {
       "*": [
-        "node_modules/*",
-        "src/types/*"
+        "./node_modules/*",
+        "./src/types/*"
       ]
-    }
+    },
+    "types": ["node"]
   },
   "include": [
     "src/**/*"

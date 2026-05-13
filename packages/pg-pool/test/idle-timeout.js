@@ -28,11 +28,19 @@ describe('idle timeout', () => {
       const pool = new Pool({ idleTimeoutMillis: 10 })
       const clientA = yield pool.connect()
       const clientB = yield pool.connect()
-      clientA.release()
-      clientB.release(new Error())
+      clientA.release() // this will put clientA in the idle pool
+      clientB.release(new Error()) // an error will cause clientB to be removed immediately
 
       const removal = new Promise((resolve) => {
-        pool.on('remove', () => {
+        pool.on('remove', (client) => {
+          // clientB's stream may take a while to close, so we may get a remove
+          // event for it
+          // we only want to handle the remove event for clientA when it times out
+          // due to being idle
+          if (client !== clientA) {
+            return
+          }
+
           expect(pool.idleCount).to.equal(0)
           expect(pool.totalCount).to.equal(0)
           resolve()
@@ -54,8 +62,8 @@ describe('idle timeout', () => {
     co.wrap(function* () {
       const pool = new Pool({ idleTimeoutMillis: 1 })
       const results = []
-      for (var i = 0; i < 20; i++) {
-        let query = pool.query('SELECT NOW()')
+      for (let i = 0; i < 20; i++) {
+        const query = pool.query('SELECT NOW()')
         expect(pool.idleCount).to.equal(0)
         expect(pool.totalCount).to.equal(1)
         results.push(yield query)
@@ -72,8 +80,8 @@ describe('idle timeout', () => {
     co.wrap(function* () {
       const pool = new Pool({ idleTimeoutMillis: 1 })
       const results = []
-      for (var i = 0; i < 20; i++) {
-        let client = yield pool.connect()
+      for (let i = 0; i < 20; i++) {
+        const client = yield pool.connect()
         expect(pool.totalCount).to.equal(1)
         expect(pool.idleCount).to.equal(0)
         yield wait(10)
@@ -89,14 +97,15 @@ describe('idle timeout', () => {
 
   it('unrefs the connections and timeouts so the program can exit when idle when the allowExitOnIdle option is set', function (done) {
     const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
-      silent: true,
+      stdio: ['ignore', 'pipe', 'inherit', 'ipc'],
       env: { ...process.env, ALLOW_EXIT_ON_IDLE: '1' },
     })
     let result = ''
     child.stdout.setEncoding('utf8')
     child.stdout.on('data', (chunk) => (result += chunk))
     child.on('error', (err) => done(err))
-    child.on('close', () => {
+    child.on('exit', (exitCode) => {
+      expect(exitCode).to.equal(0)
       expect(result).to.equal('completed first\ncompleted second\n')
       done()
     })
@@ -104,13 +113,14 @@ describe('idle timeout', () => {
 
   it('keeps old behavior when allowExitOnIdle option is not set', function (done) {
     const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
-      silent: true,
+      stdio: ['ignore', 'pipe', 'inherit', 'ipc'],
     })
     let result = ''
     child.stdout.setEncoding('utf8')
     child.stdout.on('data', (chunk) => (result += chunk))
     child.on('error', (err) => done(err))
-    child.on('close', () => {
+    child.on('exit', (exitCode) => {
+      expect(exitCode).to.equal(0)
       expect(result).to.equal('completed first\ncompleted second\nremoved\n')
       done()
     })

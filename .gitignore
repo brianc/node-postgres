@@ -7,5 +7,6 @@ package-lock.json
 *.swp
 dist
 .DS_Store
+/.eslintcache
 .vscode/
 manually-test-on-heroku.js

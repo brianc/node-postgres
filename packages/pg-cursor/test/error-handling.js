@@ -30,9 +30,24 @@ describe('error handling', function () {
     const queuedRead1 = cursor.read(1)
     const queuedRead2 = cursor.read(1)
 
-    assert(await immediateRead.then(() => null, (err) => err))
-    assert(await queuedRead1.then(() => null, (err) => err))
-    assert(await queuedRead2.then(() => null, (err) => err))
+    assert(
+      await immediateRead.then(
+        () => null,
+        (err) => err
+      )
+    )
+    assert(
+      await queuedRead1.then(
+        () => null,
+        (err) => err
+      )
+    )
+    assert(
+      await queuedRead2.then(
+        () => null,
+        (err) => err
+      )
+    )
 
     client.end()
   })

@@ -1,5 +1,5 @@
 'use strict'
-var helper = require('./../test-helper')
+const helper = require('./../test-helper')
 
 const suite = new helper.Suite()
 

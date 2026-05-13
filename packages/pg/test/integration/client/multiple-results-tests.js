@@ -26,6 +26,31 @@ suite.test(
 )
 
 suite.test(
+  'throws if queryMode set to "extended"',
+  co.wrap(function* () {
+    const client = new helper.Client()
+    yield client.connect()
+
+    // TODO should be text or sql?
+    try {
+      yield client.query({
+        text: `SELECT 'foo'::text as name; SELECT 'bar'::text as baz`,
+        queryMode: 'extended',
+      })
+      assert.fail('Should have thrown')
+    } catch (err) {
+      if (err instanceof assert.AssertionError) throw err
+
+      assert.equal(err.severity, 'ERROR')
+      assert.equal(err.code, '42601')
+      assert.equal(err.message, 'cannot insert multiple commands into a prepared statement')
+    }
+
+    return client.end()
+  })
+)
+
+suite.test(
   'multiple selects work',
   co.wrap(function* () {
     const client = new helper.Client()

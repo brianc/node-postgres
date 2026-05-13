@@ -39,6 +39,11 @@ function promisify(Promise, callback) {
   const result = new Promise(function (resolve, reject) {
     res = resolve
     rej = reject
+  }).catch((err) => {
+    // replace the stack trace that leads to `TCP.onStreamRead` with one that leads back to the
+    // application that created the query
+    Error.captureStackTrace(err)
+    throw err
   })
   return { callback: cb, result: result }
 }
@@ -82,6 +87,7 @@ class Pool extends EventEmitter {
     }
 
     this.options.max = this.options.max || this.options.poolSize || 10
+    this.options.min = this.options.min || 0
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
@@ -102,8 +108,20 @@ class Pool extends EventEmitter {
     this.ended = false
   }
 
+  _promiseTry(f) {
+    const Promise = this.Promise
+    if (typeof Promise.try === 'function') {
+      return Promise.try(f)
+    }
+    return new Promise((resolve) => resolve(f()))
+  }
+
   _isFull() {
     return this._clients.length >= this.options.max
+  }
+
+  _isAboveMin() {
+    return this._clients.length > this.options.min
   }
 
   _pulseQueue() {
@@ -151,7 +169,7 @@ class Pool extends EventEmitter {
     throw new Error('unexpected condition')
   }
 
-  _remove(client) {
+  _remove(client, callback) {
     const removed = removeWhere(this._idle, (item) => item.client === client)
 
     if (removed !== undefined) {
@@ -159,8 +177,14 @@ class Pool extends EventEmitter {
     }
 
     this._clients = this._clients.filter((c) => c !== client)
-    client.end()
-    this.emit('remove', client)
+    const context = this
+    client.end(() => {
+      context.emit('remove', client)
+
+      if (typeof callback === 'function') {
+        callback()
+      }
+    })
   }
 
   connect(cb) {
@@ -200,6 +224,10 @@ class Pool extends EventEmitter {
         response.callback(new Error('timeout exceeded when trying to connect'))
       }, this.options.connectionTimeoutMillis)
 
+      if (tid.unref) {
+        tid.unref()
+      }
+
       this._pendingQueue.push(pendingItem)
       return result
     }
@@ -221,10 +249,16 @@ class Pool extends EventEmitter {
     let timeoutHit = false
     if (this.options.connectionTimeoutMillis) {
       tid = setTimeout(() => {
-        this.log('ending client due to timeout')
-        timeoutHit = true
-        // force kill the node driver, and let libpq do its teardown
-        client.connection ? client.connection.stream.destroy() : client.end()
+        if (client.connection) {
+          this.log('ending client due to timeout')
+          timeoutHit = true
+          client.connection.stream.destroy()
+        } else if (!client.isConnected()) {
+          this.log('ending client due to timeout')
+          timeoutHit = true
+          // force kill the node driver, and let libpq do its teardown
+          client.end()
+        }
       }, this.options.connectionTimeoutMillis)
     }
 
@@ -239,7 +273,7 @@ class Pool extends EventEmitter {
         // remove the dead client from our list of clients
         this._clients = this._clients.filter((c) => c !== client)
         if (timeoutHit) {
-          err.message = 'Connection terminated due to connection timeout'
+          err = new Error('Connection terminated due to connection timeout', { cause: err })
         }
 
         // this client won’t be released, so move on immediately
@@ -251,28 +285,50 @@ class Pool extends EventEmitter {
       } else {
         this.log('new client connected')
 
-        if (this.options.maxLifetimeSeconds !== 0) {
-          const maxLifetimeTimeout = setTimeout(() => {
-            this.log('ending client due to expired lifetime')
-            this._expired.add(client)
-            const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
-            if (idleIndex !== -1) {
-              this._acquireClient(
-                client,
-                new PendingItem((err, client, clientRelease) => clientRelease()),
-                idleListener,
-                false
-              )
+        if (this.options.onConnect) {
+          this._promiseTry(() => this.options.onConnect(client)).then(
+            () => {
+              this._afterConnect(client, pendingItem, idleListener)
+            },
+            (hookErr) => {
+              this._clients = this._clients.filter((c) => c !== client)
+              client.end(() => {
+                this._pulseQueue()
+                if (!pendingItem.timedOut) {
+                  pendingItem.callback(hookErr, undefined, NOOP)
+                }
+              })
             }
-          }, this.options.maxLifetimeSeconds * 1000)
-
-          maxLifetimeTimeout.unref()
-          client.once('end', () => clearTimeout(maxLifetimeTimeout))
+          )
+          return
         }
 
-        return this._acquireClient(client, pendingItem, idleListener, true)
+        return this._afterConnect(client, pendingItem, idleListener)
       }
     })
+  }
+
+  _afterConnect(client, pendingItem, idleListener) {
+    if (this.options.maxLifetimeSeconds !== 0) {
+      const maxLifetimeTimeout = setTimeout(() => {
+        this.log('ending client due to expired lifetime')
+        this._expired.add(client)
+        const idleIndex = this._idle.findIndex((idleItem) => idleItem.client === client)
+        if (idleIndex !== -1) {
+          this._acquireClient(
+            client,
+            new PendingItem((err, client, clientRelease) => clientRelease()),
+            idleListener,
+            false
+          )
+        }
+      }, this.options.maxLifetimeSeconds * 1000)
+
+      maxLifetimeTimeout.unref()
+      client.once('end', () => clearTimeout(maxLifetimeTimeout))
+    }
+
+    return this._acquireClient(client, pendingItem, idleListener, true)
   }
 
   // acquire a client for a pending work item
@@ -337,26 +393,25 @@ class Pool extends EventEmitter {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
-      this._remove(client)
-      this._pulseQueue()
-      return
+
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     const isExpired = this._expired.has(client)
     if (isExpired) {
       this.log('remove expired client')
       this._expired.delete(client)
-      this._remove(client)
-      this._pulseQueue()
-      return
+      return this._remove(client, this._pulseQueue.bind(this))
     }
 
     // idle timeout
     let tid
-    if (this.options.idleTimeoutMillis) {
+    if (this.options.idleTimeoutMillis && this._isAboveMin()) {
       tid = setTimeout(() => {
-        this.log('remove idle client')
-        this._remove(client)
+        if (this._isAboveMin()) {
+          this.log('remove idle client')
+          this._remove(client, this._pulseQueue.bind(this))
+        }
       }, this.options.idleTimeoutMillis)
 
       if (this.options.allowExitOnIdle) {
@@ -383,7 +438,7 @@ class Pool extends EventEmitter {
       return response.result
     }
 
-    // allow plain text query without values
+    // allow plain text query without values, but callback
     if (typeof values === 'function') {
       cb = values
       values = undefined

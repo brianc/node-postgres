@@ -8,7 +8,7 @@ const pg = helper.pg
 const suite = new helper.Suite()
 
 if (process.env.PG_CLIENT_CERT_TEST) {
-  suite.testAsync('client certificate', async () => {
+  suite.test('client certificate', async () => {
     const pool = new pg.Pool({
       ssl: {
         ca: fs.readFileSync(process.env.PGSSLROOTCERT),

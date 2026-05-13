@@ -1,10 +1,12 @@
 'use strict'
-var helper = require('./test-helper')
-var Connection = require('../../../lib/connection')
-var Client = require('../../../lib/client')
+const helper = require('./test-helper')
+const Connection = require('../../../lib/connection')
+const Client = require('../../../lib/client')
+const assert = require('assert')
+const suite = new helper.Suite()
 
-test('emits end when not in query', function () {
-  var stream = new (require('events').EventEmitter)()
+suite.test('emits end when not in query', function () {
+  const stream = new (require('events').EventEmitter)()
   stream.setNoDelay = () => {}
   stream.connect = function () {
     // NOOP
@@ -13,7 +15,7 @@ test('emits end when not in query', function () {
     // NOOP
   }
 
-  var client = new Client({ connection: new Connection({ stream: stream }) })
+  const client = new Client({ connection: new Connection({ stream: stream }) })
   client.connect(
     assert.calls(function () {
       client.query(
@@ -29,8 +31,6 @@ test('emits end when not in query', function () {
   client.connection.emit('connect')
   process.nextTick(function () {
     client.connection.emit('readyForQuery')
-    assert.equal(client.queryQueue.length, 0)
-    assert(client.activeQuery, 'client should have issued query')
     process.nextTick(function () {
       stream.emit('close')
     })

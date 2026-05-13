@@ -1,4 +1,5 @@
 'use strict'
+// note: can remove these deep requires when we bump min version of pg to 9.x
 const Result = require('pg/lib/result.js')
 const prepare = require('pg/lib/utils.js').prepareValue
 const EventEmitter = require('events').EventEmitter
@@ -151,6 +152,9 @@ class Cursor extends EventEmitter {
   }
 
   handleError(msg) {
+    // If this cursor has already closed, don't try to handle the error.
+    if (this.state === 'done') return
+
     // If we're in an initialized state we've never been submitted
     // and don't have a connection instance reference yet.
     // This can happen if you queue a stream and close the client before

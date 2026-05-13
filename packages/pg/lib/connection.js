@@ -1,7 +1,6 @@
 'use strict'
 
-var net = require('net')
-var EventEmitter = require('events').EventEmitter
+const EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('pg-protocol')
 const { getStream, getSecureStream } = require('./stream')
@@ -23,12 +22,11 @@ class Connection extends EventEmitter {
 
     this._keepAlive = config.keepAlive
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
-    this.lastBuffer = false
     this.parsedStatements = {}
     this.ssl = config.ssl || false
     this._ending = false
     this._emitMessage = false
-    var self = this
+    const self = this
     this.on('newListener', function (eventName) {
       if (eventName === 'message') {
         self._emitMessage = true
@@ -37,7 +35,7 @@ class Connection extends EventEmitter {
   }
 
   connect(port, host) {
-    var self = this
+    const self = this
 
     this._connecting = true
     this.stream.setNoDelay(true)
@@ -68,7 +66,7 @@ class Connection extends EventEmitter {
     }
 
     this.stream.once('data', function (buffer) {
-      var responseCode = buffer.toString('utf8')
+      const responseCode = buffer.toString('utf8')
       switch (responseCode) {
         case 'S': // Server supports SSL connections, continue with a secure connection
           break
@@ -92,7 +90,7 @@ class Connection extends EventEmitter {
         }
       }
 
-      var net = require('net')
+      const net = require('net')
       if (net.isIP && net.isIP(host) === 0) {
         options.servername = host
       }
@@ -110,7 +108,7 @@ class Connection extends EventEmitter {
 
   attachListeners(stream) {
     parse(stream, (msg) => {
-      var eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+      const eventName = msg.name === 'error' ? 'errorMessage' : msg.name
       if (this._emitMessage) {
         this.emit('message', msg)
       }

@@ -1,0 +1,4 @@
+{
+  "extension": ["js", "ts"],
+  "require": "tsx"
+}

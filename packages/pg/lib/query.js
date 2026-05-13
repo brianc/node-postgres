@@ -16,6 +16,7 @@ class Query extends EventEmitter {
     this.rows = config.rows
     this.types = config.types
     this.name = config.name
+    this.queryMode = config.queryMode
     this.binary = config.binary
     // use unique portal name each time
     this.portal = config.portal || ''
@@ -28,12 +29,14 @@ class Query extends EventEmitter {
 
     // potential for multiple results
     this._results = this._result
-    this.isPreparedStatement = false
     this._canceledDueToError = false
-    this._promise = null
   }
 
   requiresPreparation() {
+    if (this.queryMode === 'extended') {
+      return true
+    }
+
     // named queries must always be prepared
     if (this.name) {
       return true
@@ -62,7 +65,7 @@ class Query extends EventEmitter {
       if (!Array.isArray(this._results)) {
         this._results = [this._result]
       }
-      this._result = new Result(this._rowMode, this.types)
+      this._result = new Result(this._rowMode, this._result._types)
       this._results.push(this._result)
     }
   }
@@ -109,7 +112,7 @@ class Query extends EventEmitter {
   // if a named prepared statement is created with empty query text
   // the backend will send an emptyQuery message but *not* a command complete message
   // since we pipeline sync immediately after execute we don't need to do anything here
-  // unless we have rows specified, in which case we did not pipeline the intial sync call
+  // unless we have rows specified, in which case we did not pipeline the initial sync call
   handleEmptyQuery(connection) {
     if (this.rows) {
       connection.sync()
@@ -137,8 +140,7 @@ class Query extends EventEmitter {
     if (this.callback) {
       try {
         this.callback(null, this._results)
-      }
-      catch(err) {
+      } catch (err) {
         process.nextTick(() => {
           throw err
         })
@@ -159,7 +161,21 @@ class Query extends EventEmitter {
       return new Error('Query values must be an array')
     }
     if (this.requiresPreparation()) {
-      this.prepare(connection)
+      // If we're using the extended query protocol we fire off several separate commands
+      // to the backend. On some versions of node & some operating system versions
+      // the network stack writes each message separately instead of buffering them together
+      // causing the client & network to send more slowly. Corking & uncorking the stream
+      // allows node to buffer up the messages internally before sending them all off at once.
+      // note: we're checking for existence of cork/uncork because some versions of streams
+      // might not have this (cloudflare?)
+      connection.stream.cork && connection.stream.cork()
+      try {
+        this.prepare(connection)
+      } finally {
+        // while unlikely for this.prepare to throw, if it does & we don't uncork this stream
+        // this client becomes unresponsive, so put in finally block "just in case"
+        connection.stream.uncork && connection.stream.uncork()
+      }
     } else {
       connection.query(this.text)
     }
@@ -191,10 +207,6 @@ class Query extends EventEmitter {
 
   // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
   prepare(connection) {
-    // prepared statements need sync to be called after each command
-    // complete or when an error is encountered
-    this.isPreparedStatement = true
-
     // TODO refactor this poor encapsulation
     if (!this.hasBeenParsed(connection)) {
       connection.parse({
@@ -232,7 +244,6 @@ class Query extends EventEmitter {
     connection.sendCopyFail('No source stream defined')
   }
 
-  // eslint-disable-next-line no-unused-vars
   handleCopyData(msg, connection) {
     // noop
   }

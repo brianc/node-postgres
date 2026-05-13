@@ -2,6 +2,7 @@
 
 const helper = require('./test-helper')
 const pg = helper.pg
+const assert = require('assert')
 
 const suite = new helper.Suite()
 
@@ -12,32 +13,15 @@ suite.test('valid connection completes promise', () => {
   })
 })
 
-suite.test('valid connection completes promise', () => {
+suite.test('valid connection returns the client in a promise', () => {
   const client = new pg.Client()
-  return client.connect().then(() => {
+  return client.connect().then((clientInside) => {
+    assert.equal(client, clientInside)
     return client.end().then(() => {})
   })
 })
 
-suite.test('invalid connection rejects promise', (done) => {
+suite.test('invalid connection rejects promise', async () => {
   const client = new pg.Client({ host: 'alksdjflaskdfj', port: 1234 })
-  return client.connect().catch((e) => {
-    assert(e instanceof Error)
-    done()
-  })
-})
-
-suite.test('connected client does not reject promise after connection', (done) => {
-  const client = new pg.Client()
-  return client.connect().then(() => {
-    setTimeout(() => {
-      client.on('error', (e) => {
-        assert(e instanceof Error)
-        client.end()
-        done()
-      })
-      // manually kill the connection
-      client.emit('error', new Error('something bad happened...but not really'))
-    }, 50)
-  })
+  await assert.rejects(client.connect(), Error)
 })

@@ -37,7 +37,8 @@ export class CloudflareSocket extends EventEmitter {
       if (connectListener) this.once('connect', connectListener)
 
       const options: SocketOptions = this.ssl ? { secureTransport: 'starttls' } : {}
-      const { connect } = await import('cloudflare:sockets')
+      const mod = await import('cloudflare:sockets')
+      const connect = mod.connect
       this._cfSocket = connect(`${host}:${port}`, options)
       this._cfWriter = this._cfSocket.writable.getWriter()
       this._addClosedHandler()
@@ -61,6 +62,7 @@ export class CloudflareSocket extends EventEmitter {
   }
 
   async _listen() {
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       log('awaiting receive from CF socket')
       const { done, value } = await this._cfReader!.read()
@@ -151,7 +153,10 @@ const debug = false
 
 function dump(data: unknown) {
   if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
-    const hex = Buffer.from(data).toString('hex')
+    // workaround https://github.com/microsoft/TypeScript/issues/63447
+    const buf = data instanceof Uint8Array ? Buffer.from(data) : Buffer.from(data)
+
+    const hex = buf.toString('hex')
     const str = new TextDecoder().decode(data)
     return `\n>>> STR: "${str.replace(/\n/g, '\\n')}"\n>>> HEX: ${hex}\n`
   } else {

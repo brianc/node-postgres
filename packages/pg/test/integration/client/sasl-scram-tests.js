@@ -3,6 +3,7 @@ const helper = require('./../test-helper')
 const pg = helper.pg
 const suite = new helper.Suite()
 const { native } = helper.args
+const assert = require('assert')
 
 /**
  * This test only executes if the env variables SCRAM_TEST_PGUSER and
@@ -36,26 +37,39 @@ const config = {
 }
 
 if (native) {
-  suite.testAsync('skipping SCRAM tests (on native)', () => {})
+  suite.test('skipping SCRAM tests (on native)', () => {})
   return
 }
 if (!config.user || !config.password) {
-  suite.testAsync('skipping SCRAM tests (missing env)', () => {})
+  suite.test('skipping SCRAM tests (missing env)', () => {})
   return
 }
 
-suite.testAsync('can connect using sasl/scram', async () => {
-  const client = new pg.Client(config)
-  let usingSasl = false
-  client.connection.once('authenticationSASL', () => {
-    usingSasl = true
+suite.test('can connect using sasl/scram with channel binding enabled (if using SSL)', async () => {
+  const client = new pg.Client({ ...config, enableChannelBinding: true })
+  let usingChannelBinding = false
+  let hasPeerCert = false
+  client.connection.once('authenticationSASLContinue', () => {
+    hasPeerCert = client.connection.stream.getPeerCertificate === 'function'
+    usingChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256-PLUS'
   })
   await client.connect()
-  assert.ok(usingSasl, 'Should be using SASL for authentication')
+  assert.ok(usingChannelBinding || !hasPeerCert, 'Should be using SCRAM-SHA-256-PLUS for authentication if using SSL')
   await client.end()
 })
 
-suite.testAsync('sasl/scram fails when password is wrong', async () => {
+suite.test('can connect using sasl/scram with channel binding disabled', async () => {
+  const client = new pg.Client({ ...config, enableChannelBinding: false })
+  let usingSASLWithoutChannelBinding = false
+  client.connection.once('authenticationSASLContinue', () => {
+    usingSASLWithoutChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256'
+  })
+  await client.connect()
+  assert.ok(usingSASLWithoutChannelBinding, 'Should be using SCRAM-SHA-256 (no channel binding) for authentication')
+  await client.end()
+})
+
+suite.test('sasl/scram fails when password is wrong', async () => {
   const client = new pg.Client({
     ...config,
     password: config.password + 'append-something-to-make-it-bad',
@@ -74,12 +88,12 @@ suite.testAsync('sasl/scram fails when password is wrong', async () => {
   assert.ok(usingSasl, 'Should be using SASL for authentication')
 })
 
-suite.testAsync('sasl/scram fails when password is empty', async () => {
+suite.test('sasl/scram fails when password is empty', async () => {
   const client = new pg.Client({
     ...config,
     // We use a password function here so the connection defaults do not
     // override the empty string value with one from process.env.PGPASSWORD
-    password: () =>  '',
+    password: () => '',
   })
   let usingSasl = false
   client.connection.once('authenticationSASL', () => {
@@ -94,3 +108,82 @@ suite.testAsync('sasl/scram fails when password is empty', async () => {
   )
   assert.ok(usingSasl, 'Should be using SASL for authentication')
 })
+
+/**
+ * SASLprep regression coverage. RFC 5802 / RFC 4013 require the SCRAM client
+ * to normalize the password (B.1 mapping → NFKC → prohibition + bidi check)
+ * before feeding it into PBKDF2. PostgreSQL's server applies the same
+ * SASLprep when computing the verifier, so any password whose NFKC form
+ * differs from the raw form would otherwise authenticate against psql/libpq
+ * but fail against pg with `28P01`.
+ *
+ * To exercise these tests, provision a role whose password contains an
+ * NFKC-asymmetric character. For example, in psql:
+ *
+ *     SET password_encryption = 'scram-sha-256';
+ *     CREATE ROLE scram_unicode_test LOGIN PASSWORD U&'IX-\2168';
+ *
+ * `\2168` is ROMAN NUMERAL IX; the server SASLprep-normalizes this to
+ * `IX-IX` when computing the verifier. Then export:
+ *
+ *     SCRAM_TEST_PGUSER_UNICODE=scram_unicode_test
+ *     SCRAM_TEST_PGPASSWORD_UNICODE='IX-\u2168'   (i.e. the raw form)
+ *
+ * If either env var is unset the suite is skipped, matching the convention
+ * of the ASCII SCRAM block above.
+ */
+const unicodeConfig = {
+  user: process.env.SCRAM_TEST_PGUSER_UNICODE,
+  password: process.env.SCRAM_TEST_PGPASSWORD_UNICODE,
+  host: process.env.SCRAM_TEST_PGHOST,
+  port: process.env.SCRAM_TEST_PGPORT,
+  database: process.env.SCRAM_TEST_PGDATABASE,
+}
+
+if (!unicodeConfig.user || !unicodeConfig.password) {
+  suite.test('skipping SCRAM unicode tests (missing env)', () => {})
+} else {
+  suite.test('sasl/scram authenticates a password requiring SASLprep (raw form)', async () => {
+    const client = new pg.Client(unicodeConfig)
+    let usingSasl = false
+    client.connection.once('authenticationSASL', () => {
+      usingSasl = true
+    })
+    await client.connect()
+    assert.ok(usingSasl, 'Should be using SASL for authentication')
+    await client.end()
+  })
+
+  suite.test('sasl/scram authenticates the NFKC-equivalent ASCII form of the same password', async () => {
+    // The unicode password contains a codepoint that NFKC-decomposes to ASCII
+    // (e.g. U+2168 → "IX"). The server stored the verifier from the
+    // SASLprep'd ASCII form, so feeding the client the ASCII form directly
+    // must also authenticate. This proves that the prep step is symmetric:
+    // any NFKC-equivalent representation reaches the same PBKDF2 input.
+    const client = new pg.Client({
+      ...unicodeConfig,
+      password: unicodeConfig.password.normalize('NFKC'),
+    })
+    await client.connect()
+    await client.end()
+  })
+
+  suite.test('sasl/scram fails when unicode password is wrong', async () => {
+    const client = new pg.Client({
+      ...unicodeConfig,
+      password: unicodeConfig.password + 'append-something-to-make-it-bad',
+    })
+    let usingSasl = false
+    client.connection.once('authenticationSASL', () => {
+      usingSasl = true
+    })
+    await assert.rejects(
+      () => client.connect(),
+      {
+        code: '28P01',
+      },
+      'Error code should be for a password error'
+    )
+    assert.ok(usingSasl, 'Should be using SASL for authentication')
+  })
+}

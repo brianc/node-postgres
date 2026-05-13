@@ -1,36 +1,40 @@
 'use strict'
-var domain = require('domain')
-var helper = require('./../test-helper')
-var Client = require('./../../lib/native')
+const domain = require('domain')
+const helper = require('./../test-helper')
+const Client = require('./../../lib/native')
 const suite = new helper.Suite()
+const assert = require('assert')
 
-suite.test('fires callback with results', function (done) {
-  var client = new Client(helper.config)
+suite.test('fires callback with results', async function () {
+  const client = new Client(helper.config)
   client.connect()
-  client.query(
-    'SELECT 1 as num',
-    assert.calls(function (err, result) {
-      assert(!err)
-      assert.equal(result.rows[0].num, 1)
-      assert.strictEqual(result.rowCount, 1)
-      client.query(
-        'SELECT * FROM person WHERE name = $1',
-        ['Brian'],
-        assert.calls(function (err, result) {
-          assert(!err)
-          assert.equal(result.rows[0].name, 'Brian')
-          client.end(done)
-        })
-      )
-    })
-  )
+  await helper.createPersonTable(client)
+  return new Promise((resolve) => {
+    client.query(
+      'SELECT 1 as num',
+      assert.calls(function (err, result) {
+        assert(!err)
+        assert.equal(result.rows[0].num, 1)
+        assert.strictEqual(result.rowCount, 1)
+        client.query(
+          'SELECT * FROM person WHERE name = $1',
+          ['Brian'],
+          assert.calls(function (err, result) {
+            assert(!err)
+            assert.equal(result.rows[0].name, 'Brian')
+            client.end(resolve)
+          })
+        )
+      })
+    )
+  })
 })
 
 suite.test('preserves domain', function (done) {
-  var dom = domain.create()
+  const dom = domain.create()
 
   dom.run(function () {
-    var client = new Client(helper.config)
+    const client = new Client(helper.config)
     assert.ok(dom === require('domain').active, 'domain is active')
     client.connect()
     client.query('select 1', function () {

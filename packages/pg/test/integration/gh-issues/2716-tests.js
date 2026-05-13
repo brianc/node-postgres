@@ -4,7 +4,7 @@ const helper = require('../test-helper')
 const suite = new helper.Suite()
 
 // https://github.com/brianc/node-postgres/issues/2716
-suite.testAsync('client.end() should resolve if already ended', async () => {
+suite.test('client.end() should resolve if already ended', async () => {
   const client = new helper.pg.Client()
   await client.connect()
 

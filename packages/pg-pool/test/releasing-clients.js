@@ -1,7 +1,6 @@
 const Pool = require('../')
 
 const expect = require('expect.js')
-const net = require('net')
 
 describe('releasing clients', () => {
   it('removes a client which cannot be queried', async () => {

@@ -1,6 +1,5 @@
 const expect = require('expect.js')
 const co = require('co')
-const _ = require('lodash')
 
 const describe = require('mocha').describe
 const it = require('mocha').it

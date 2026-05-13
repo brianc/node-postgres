@@ -1,22 +1,62 @@
 'use strict'
 const crypto = require('./utils')
+const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
 
-function startSession(mechanisms) {
-  if (mechanisms.indexOf('SCRAM-SHA-256') === -1) {
-    throw new Error('SASL: Only mechanism SCRAM-SHA-256 is currently supported')
+// SASLprep (RFC 4013) — minimal in-tree implementation.
+//
+// Per RFC 5802 §2.2, the SCRAM-SHA-256 client must normalize the password via
+// SASLprep before feeding it into PBKDF2. PostgreSQL's server applies the same
+// SASLprep when computing the stored verifier, and libpq does the same client
+// side, so passwords whose NFKC form differs from the raw form
+// would otherwise authenticate against psql/libpq but fail against pg with `28P01`.
+//
+// We deliberately implement only the three steps that change the byte content:
+//   1. RFC 3454 Table C.1.2 (non-ASCII space) → U+0020 SPACE.
+//   2. RFC 3454 Table B.1 (commonly mapped to nothing) → empty.
+//   3. NFKC normalization.
+// We skip the prohibition (RFC 4013 §2.3) and bidi (RFC 3454 §6) checks.
+// libpq is forgiving on those paths and Postgres's own SASLprep matches that
+// leniency for legacy roles, so omitting the rejection logic keeps existing
+// roles working without adding complexity.
+function saslprep(password) {
+  // RFC 3454 Table C.1.2 — non-ASCII space characters, mapped to U+0020.
+  const nonAsciiSpace = /[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000]/g
+  // RFC 3454 Table B.1 — "commonly mapped to nothing". The set intentionally
+  // contains zero-width joiners and variation selectors — the very characters
+  // ESLint's no-misleading-character-class warns about — because they combine
+  // with their neighbors and the RFC strips them for that reason.
+  // eslint-disable-next-line no-misleading-character-class
+  const mappedToNothing = /[\u00AD\u034F\u1806\u180B\u180C\u180D\u200C\u200D\u2060\uFE00-\uFE0F\uFEFF]/g
+  return password.replace(nonAsciiSpace, ' ').replace(mappedToNothing, '').normalize('NFKC')
+}
+
+function startSession(mechanisms, stream) {
+  const candidates = ['SCRAM-SHA-256']
+  if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
+
+  const mechanism = candidates.find((candidate) => mechanisms.includes(candidate))
+
+  if (!mechanism) {
+    throw new Error('SASL: Only mechanism(s) ' + candidates.join(' and ') + ' are supported')
+  }
+
+  if (mechanism === 'SCRAM-SHA-256-PLUS' && typeof stream.getPeerCertificate !== 'function') {
+    // this should never happen if we are really talking to a Postgres server
+    throw new Error('SASL: Mechanism SCRAM-SHA-256-PLUS requires a certificate')
   }
 
   const clientNonce = crypto.randomBytes(18).toString('base64')
+  const gs2Header = mechanism === 'SCRAM-SHA-256-PLUS' ? 'p=tls-server-end-point' : stream ? 'y' : 'n'
 
   return {
-    mechanism: 'SCRAM-SHA-256',
+    mechanism,
     clientNonce,
-    response: 'n,,n=*,r=' + clientNonce,
+    response: gs2Header + ',,n=*,r=' + clientNonce,
     message: 'SASLInitialResponse',
   }
 }
 
-async function continueSession(session, password, serverData) {
+async function continueSession(session, password, serverData, stream) {
   if (session.message !== 'SASLInitialResponse') {
     throw new Error('SASL: Last message was not SASLInitialResponse')
   }
@@ -38,19 +78,33 @@ async function continueSession(session, password, serverData) {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: server nonce is too short')
   }
 
-  var clientFirstMessageBare = 'n=*,r=' + session.clientNonce
-  var serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
-  var clientFinalMessageWithoutProof = 'c=biws,r=' + sv.nonce
-  var authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
+  const clientFirstMessageBare = 'n=*,r=' + session.clientNonce
+  const serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
 
-  var saltBytes = Buffer.from(sv.salt, 'base64')
-  var saltedPassword = await crypto.deriveKey(password, saltBytes, sv.iteration)
-  var clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
-  var storedKey = await crypto.sha256(clientKey)
-  var clientSignature = await crypto.hmacSha256(storedKey, authMessage)
-  var clientProof = xorBuffers(Buffer.from(clientKey), Buffer.from(clientSignature)).toString('base64')
-  var serverKey = await crypto.hmacSha256(saltedPassword, 'Server Key')
-  var serverSignatureBytes = await crypto.hmacSha256(serverKey, authMessage)
+  // without channel binding:
+  let channelBinding = stream ? 'eSws' : 'biws' // 'y,,' or 'n,,', base64-encoded
+
+  // override if channel binding is in use:
+  if (session.mechanism === 'SCRAM-SHA-256-PLUS') {
+    const peerCert = stream.getPeerCertificate().raw
+    let hashName = signatureAlgorithmHashFromCertificate(peerCert)
+    if (hashName === 'MD5' || hashName === 'SHA-1') hashName = 'SHA-256'
+    const certHash = await crypto.hashByName(hashName, peerCert)
+    const bindingData = Buffer.concat([Buffer.from('p=tls-server-end-point,,'), Buffer.from(certHash)])
+    channelBinding = bindingData.toString('base64')
+  }
+
+  const clientFinalMessageWithoutProof = 'c=' + channelBinding + ',r=' + sv.nonce
+  const authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
+
+  const saltBytes = Buffer.from(sv.salt, 'base64')
+  const saltedPassword = await crypto.deriveKey(saslprep(password), saltBytes, sv.iteration)
+  const clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
+  const storedKey = await crypto.sha256(clientKey)
+  const clientSignature = await crypto.hmacSha256(storedKey, authMessage)
+  const clientProof = xorBuffers(Buffer.from(clientKey), Buffer.from(clientSignature)).toString('base64')
+  const serverKey = await crypto.hmacSha256(saltedPassword, 'Server Key')
+  const serverSignatureBytes = await crypto.hmacSha256(serverKey, authMessage)
 
   session.message = 'SASLResponse'
   session.serverSignature = Buffer.from(serverSignatureBytes).toString('base64')
@@ -152,7 +206,13 @@ function parseServerFirstMessage(data) {
 
 function parseServerFinalMessage(serverData) {
   const attrPairs = parseAttributePairs(serverData)
+  const error = attrPairs.get('e')
   const serverSignature = attrPairs.get('v')
+
+  if (error) {
+    throw new Error(`SASL: SCRAM-SERVER-FINAL-MESSAGE: server returned error: "${error}"`)
+  }
+
   if (!serverSignature) {
     throw new Error('SASL: SCRAM-SERVER-FINAL-MESSAGE: server signature is missing')
   } else if (!isBase64(serverSignature)) {

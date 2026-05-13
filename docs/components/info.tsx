@@ -1,5 +1,4 @@
-import React from 'react'
-import { Callout } from 'nextra-theme-docs'
+import { Callout } from 'nextra/components'
 
 export const Info = ({ children }) => {
   return <Callout emoji="ℹ️">{children}</Callout>

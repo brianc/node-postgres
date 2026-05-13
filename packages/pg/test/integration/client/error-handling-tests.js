@@ -1,14 +1,14 @@
 'use strict'
 
-var helper = require('./test-helper')
-var util = require('util')
+const helper = require('./test-helper')
 
-var pg = helper.pg
+const pg = helper.pg
+const assert = require('assert')
 const Client = pg.Client
 const DatabaseError = pg.DatabaseError
 
-var createErorrClient = function () {
-  var client = helper.client()
+const createErorrClient = function () {
+  const client = helper.client()
   client.once('error', function (err) {
     assert.fail('Client shoud not throw error during query execution')
   })
@@ -47,7 +47,7 @@ suite.test('re-using connections results in error callback', (done) => {
   })
 })
 
-suite.testAsync('re-using connections results in promise rejection', () => {
+suite.test('re-using connections results in promise rejection', () => {
   const client = new Client()
   return client.connect().then(() => {
     return helper.rejection(client.connect()).then((err) => {
@@ -78,7 +78,7 @@ suite.test('using a client after closing it results in error', (done) => {
 })
 
 suite.test('query receives error on client shutdown', function (done) {
-  var client = new Client()
+  const client = new Client()
   client.connect(
     assert.success(function () {
       const config = {
@@ -102,8 +102,8 @@ suite.test('query receives error on client shutdown', function (done) {
   )
 })
 
-var ensureFuture = function (testClient, done) {
-  var goodQuery = testClient.query(new pg.Query('select age from boom'))
+const ensureFuture = function (testClient, done) {
+  const goodQuery = testClient.query(new pg.Query('select age from boom'))
   assert.emits(goodQuery, 'row', function (row) {
     assert.equal(row.age, 28)
     done()
@@ -111,12 +111,12 @@ var ensureFuture = function (testClient, done) {
 }
 
 suite.test('when query is parsing', (done) => {
-  var client = createErorrClient()
+  const client = createErorrClient()
 
-  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
+  client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
   // this query wont parse since there isn't a table named bang
-  var query = client.query(
+  const query = client.query(
     new pg.Query({
       text: 'select * from bang where name = $1',
       values: ['0'],
@@ -129,11 +129,11 @@ suite.test('when query is parsing', (done) => {
 })
 
 suite.test('when a query is binding', function (done) {
-  var client = createErorrClient()
+  const client = createErorrClient()
 
-  var q = client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
+  client.query({ text: 'CREATE TEMP TABLE boom(age integer); INSERT INTO boom (age) VALUES (28);' })
 
-  var query = client.query(
+  const query = client.query(
     new pg.Query({
       text: 'select * from boom where age = $1',
       values: ['asldkfjasdf'],
@@ -150,7 +150,7 @@ suite.test('when a query is binding', function (done) {
 })
 
 suite.test('non-query error with callback', function (done) {
-  var client = new Client({
+  const client = new Client({
     user: 'asldkfjsadlfkj',
   })
   client.connect(
@@ -162,7 +162,7 @@ suite.test('non-query error with callback', function (done) {
 })
 
 suite.test('non-error calls supplied callback', function (done) {
-  var client = new Client({
+  const client = new Client({
     user: helper.args.user,
     password: helper.args.password,
     host: helper.args.host,
@@ -179,7 +179,7 @@ suite.test('non-error calls supplied callback', function (done) {
 })
 
 suite.test('when connecting to an invalid host with callback', function (done) {
-  var client = new Client({
+  const client = new Client({
     user: 'very invalid username',
   })
   client.on('error', () => {
@@ -192,7 +192,7 @@ suite.test('when connecting to an invalid host with callback', function (done) {
 })
 
 suite.test('when connecting to invalid host with promise', function (done) {
-  var client = new Client({
+  const client = new Client({
     user: 'very invalid username',
   })
   client.on('error', () => {
@@ -202,7 +202,7 @@ suite.test('when connecting to invalid host with promise', function (done) {
 })
 
 suite.test('non-query error', function (done) {
-  var client = new Client({
+  const client = new Client({
     user: 'asldkfjsadlfkj',
   })
   client.connect().catch((e) => {
@@ -212,9 +212,9 @@ suite.test('non-query error', function (done) {
 })
 
 suite.test('within a simple query', (done) => {
-  var client = createErorrClient()
+  const client = createErorrClient()
 
-  var query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"))
+  const query = client.query(new pg.Query("select eeeee from yodas_dsflsd where pixistix = 'zoiks!!!'"))
 
   assert.emits(query, 'error', function (error) {
     if (!helper.config.native) {

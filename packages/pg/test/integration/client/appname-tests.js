@@ -1,23 +1,24 @@
 'use strict'
-var helper = require('./test-helper')
-var Client = helper.Client
+const helper = require('./test-helper')
+const Client = helper.Client
+const assert = require('assert')
 
-var suite = new helper.Suite()
+const suite = new helper.Suite()
 
-var conInfo = helper.config
+const conInfo = helper.config
 
 function getConInfo(override) {
   return Object.assign({}, conInfo, override)
 }
 
 function getAppName(conf, cb) {
-  var client = new Client(conf)
+  const client = new Client(conf)
   client.connect(
     assert.success(function () {
       client.query(
         'SHOW application_name',
         assert.success(function (res) {
-          var appName = res.rows[0].application_name
+          const appName = res.rows[0].application_name
           cb(appName)
           client.end()
         })
@@ -27,7 +28,6 @@ function getAppName(conf, cb) {
 }
 
 suite.test('No default appliation_name ', function (done) {
-  var conf = getConInfo()
   getAppName({}, function (res) {
     assert.strictEqual(res, '')
     done()
@@ -35,8 +35,8 @@ suite.test('No default appliation_name ', function (done) {
 })
 
 suite.test('fallback_application_name is used', function (done) {
-  var fbAppName = 'this is my app'
-  var conf = getConInfo({
+  const fbAppName = 'this is my app'
+  const conf = getConInfo({
     fallback_application_name: fbAppName,
   })
   getAppName(conf, function (res) {
@@ -46,8 +46,8 @@ suite.test('fallback_application_name is used', function (done) {
 })
 
 suite.test('application_name is used', function (done) {
-  var appName = 'some wired !@#$% application_name'
-  var conf = getConInfo({
+  const appName = 'some wired !@#$% application_name'
+  const conf = getConInfo({
     application_name: appName,
   })
   getAppName(conf, function (res) {
@@ -57,9 +57,9 @@ suite.test('application_name is used', function (done) {
 })
 
 suite.test('application_name has precedence over fallback_application_name', function (done) {
-  var appName = 'some wired !@#$% application_name'
-  var fbAppName = 'some other strange $$test$$ appname'
-  var conf = getConInfo({
+  const appName = 'some wired !@#$% application_name'
+  const fbAppName = 'some other strange $$test$$ appname'
+  const conf = getConInfo({
     application_name: appName,
     fallback_application_name: fbAppName,
   })
@@ -70,9 +70,9 @@ suite.test('application_name has precedence over fallback_application_name', fun
 })
 
 suite.test('application_name from connection string', function (done) {
-  var appName = 'my app'
-  var conParams = require('../../../lib/connection-parameters')
-  var conf
+  const appName = 'my app'
+  const conParams = require('../../../lib/connection-parameters')
+  let conf
   if (process.argv[2]) {
     conf = new conParams(process.argv[2] + '?application_name=' + appName)
   } else {
@@ -87,7 +87,7 @@ suite.test('application_name from connection string', function (done) {
 // TODO: make the test work for native client too
 if (!helper.args.native) {
   suite.test('application_name is read from the env', function (done) {
-    var appName = (process.env.PGAPPNAME = 'testest')
+    const appName = (process.env.PGAPPNAME = 'testest')
     getAppName({}, function (res) {
       delete process.env.PGAPPNAME
       assert.strictEqual(res, appName)
