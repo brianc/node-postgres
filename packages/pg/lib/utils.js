@@ -18,14 +18,14 @@ function arrayString(val) {
   let result = '{'
   for (let i = 0; i < val.length; i++) {
     if (i > 0) {
-      result = result + ','
+      result += ','
     }
-    if (val[i] === null || typeof val[i] === 'undefined') {
-      result = result + 'NULL'
-    } else if (Array.isArray(val[i])) {
-      result = result + arrayString(val[i])
-    } else if (ArrayBuffer.isView(val[i])) {
-      let item = val[i]
+    let item = val[i]
+    if (item == null) {
+      result += 'NULL'
+    } else if (Array.isArray(item)) {
+      result += arrayString(item)
+    } else if (ArrayBuffer.isView(item)) {
       if (!(item instanceof Buffer)) {
         const buf = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
         if (buf.length === item.byteLength) {
@@ -36,10 +36,10 @@ function arrayString(val) {
       }
       result += '\\\\x' + item.toString('hex')
     } else {
-      result += escapeElement(prepareValue(val[i]))
+      result += escapeElement(prepareValue(item))
     }
   }
-  result = result + '}'
+  result += '}'
   return result
 }
 
