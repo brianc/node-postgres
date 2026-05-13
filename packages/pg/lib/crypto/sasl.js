@@ -2,6 +2,34 @@
 const crypto = require('./utils')
 const { signatureAlgorithmHashFromCertificate } = require('./cert-signatures')
 
+// SASLprep (RFC 4013) — minimal in-tree implementation.
+//
+// Per RFC 5802 §2.2, the SCRAM-SHA-256 client must normalize the password via
+// SASLprep before feeding it into PBKDF2. PostgreSQL's server applies the same
+// SASLprep when computing the stored verifier, and libpq does the same client
+// side, so passwords whose NFKC form differs from the raw form
+// would otherwise authenticate against psql/libpq but fail against pg with `28P01`.
+//
+// We deliberately implement only the three steps that change the byte content:
+//   1. RFC 3454 Table C.1.2 (non-ASCII space) → U+0020 SPACE.
+//   2. RFC 3454 Table B.1 (commonly mapped to nothing) → empty.
+//   3. NFKC normalization.
+// We skip the prohibition (RFC 4013 §2.3) and bidi (RFC 3454 §6) checks.
+// libpq is forgiving on those paths and Postgres's own SASLprep matches that
+// leniency for legacy roles, so omitting the rejection logic keeps existing
+// roles working without adding complexity.
+function saslprep(password) {
+  // RFC 3454 Table C.1.2 — non-ASCII space characters, mapped to U+0020.
+  const nonAsciiSpace = /[\u00A0\u1680\u2000-\u200B\u202F\u205F\u3000]/g
+  // RFC 3454 Table B.1 — "commonly mapped to nothing". The set intentionally
+  // contains zero-width joiners and variation selectors — the very characters
+  // ESLint's no-misleading-character-class warns about — because they combine
+  // with their neighbors and the RFC strips them for that reason.
+  // eslint-disable-next-line no-misleading-character-class
+  const mappedToNothing = /[\u00AD\u034F\u1806\u180B\u180C\u180D\u200C\u200D\u2060\uFE00-\uFE0F\uFEFF]/g
+  return password.replace(nonAsciiSpace, ' ').replace(mappedToNothing, '').normalize('NFKC')
+}
+
 function startSession(mechanisms, stream) {
   const candidates = ['SCRAM-SHA-256']
   if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
@@ -70,7 +98,7 @@ async function continueSession(session, password, serverData, stream) {
   const authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
   const saltBytes = Buffer.from(sv.salt, 'base64')
-  const saltedPassword = await crypto.deriveKey(password, saltBytes, sv.iteration)
+  const saltedPassword = await crypto.deriveKey(saslprep(password), saltBytes, sv.iteration)
   const clientKey = await crypto.hmacSha256(saltedPassword, 'Client Key')
   const storedKey = await crypto.sha256(clientKey)
   const clientSignature = await crypto.hmacSha256(storedKey, authMessage)

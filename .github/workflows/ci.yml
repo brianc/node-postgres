@@ -56,6 +56,13 @@ jobs:
       PGTESTNOSSL: 'true'
       SCRAM_TEST_PGUSER: scram_test
       SCRAM_TEST_PGPASSWORD: test4scram
+      SCRAM_TEST_PGUSER_UNICODE: scram_unicode_test
+      # Raw form of a password whose NFKC normalization differs from itself.
+      # U+2168 (ROMAN NUMERAL IX) decomposes to ASCII "IX" under NFKC; the
+      # server stores the verifier from the SASLprep-normalized form, so the
+      # client must apply SASLprep too. This is the regression check for the
+      # RFC 4013 fix in packages/pg/lib/crypto/sasl.js.
+      SCRAM_TEST_PGPASSWORD_UNICODE: "IX-\u2168"
     steps:
       - name: Show OS
         run: |
@@ -63,7 +70,8 @@ jobs:
       - run: |
           psql \
             -c "SET password_encryption = 'scram-sha-256'" \
-            -c "CREATE ROLE scram_test LOGIN PASSWORD 'test4scram'"
+            -c "CREATE ROLE scram_test LOGIN PASSWORD 'test4scram'" \
+            -c "CREATE ROLE scram_unicode_test LOGIN PASSWORD U&'IX-\2168'"
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
