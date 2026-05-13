@@ -21,7 +21,8 @@ process.on('uncaughtException', function (d) {
   } else {
     console.log(d)
   }
-  process.exit(-1)
+  // causes xargs to abort right away
+  process.exit(255)
 })
 const expect = function (callback, timeout) {
   const executed = false
@@ -64,12 +65,6 @@ if (isNativeMode) process.stdout.write(' (native)')
 
 process.on('exit', function () {
   console.log('')
-})
-
-process.on('uncaughtException', function (err) {
-  console.error('\n %s', err.stack || err.toString())
-  // causes xargs to abort right away
-  process.exit(255)
 })
 
 const getTimezoneOffset = Date.prototype.getTimezoneOffset
