@@ -72,11 +72,4 @@ class Suite {
   }
 }
 
-process.on('unhandledRejection', (e) => {
-  setImmediate(() => {
-    console.error('Unhandled promise rejection')
-    throw e
-  })
-})
-
 module.exports = Suite
