@@ -84,14 +84,6 @@ const resetTimezoneOffset = function () {
   Date.prototype.getTimezoneOffset = getTimezoneOffset
 }
 
-const rejection = (promise) =>
-  promise.then(
-    (value) => {
-      throw new Error(`Promise resolved when rejection was expected; value: ${sys.inspect(value)}`)
-    },
-    (error) => error
-  )
-
 if (Object.isExtensible(assert)) {
   assert.same = function (actual, expected) {
     for (const key in expected) {
@@ -214,6 +206,5 @@ module.exports = {
   Client: Client,
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset,
-  rejection: rejection,
   createPersonTable: createPersonTable,
 }

@@ -47,14 +47,11 @@ suite.test('re-using connections results in error callback', (done) => {
   })
 })
 
-suite.test('re-using connections results in promise rejection', () => {
+suite.test('re-using connections results in promise rejection', async () => {
   const client = new Client()
-  return client.connect().then(() => {
-    return helper.rejection(client.connect()).then((err) => {
-      assert(err instanceof Error)
-      return client.end()
-    })
-  })
+  await client.connect()
+  await assert.rejects(client.connect(), Error)
+  await client.end()
 })
 
 suite.test('using a client after closing it results in error', (done) => {
