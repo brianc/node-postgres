@@ -37,9 +37,8 @@ async function jsSerial(label, query, seconds) {
 }
 
 async function jsPipelined(label, makeQueries, batchSize, seconds) {
-  const client = new pg.Client()
+  const client = new pg.Client({ pipeline: true })
   await client.connect()
-  client.pipelining = true
 
   // warmup
   for (let i = 0; i < 10; i++) {

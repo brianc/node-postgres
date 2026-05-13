@@ -239,9 +239,6 @@ class Pool extends EventEmitter {
 
   newClient(pendingItem) {
     const client = new this.Client(this.options)
-    if (this.options.pipelining) {
-      client.pipelining = true
-    }
     this._clients.push(client)
     const idleListener = makeIdleListener(this, client)
 

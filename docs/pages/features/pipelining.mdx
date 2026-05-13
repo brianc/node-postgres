@@ -23,14 +23,13 @@ In benchmarks, pipelining typically delivers **2-3x throughput** for batches of 
 
 ## Enabling pipelining
 
-Pipelining is opt-in. Set `client.pipelining = true` after connecting:
+Pipelining is opt-in. Pass `pipeline: true` to the `Client` constructor:
 
 ```js
 import { Client } from 'pg'
 
-const client = new Client()
+const client = new Client({ pipeline: true })
 await client.connect()
-client.pipelining = true
 
 const [r1, r2, r3] = await Promise.all([
   client.query('SELECT 1 AS num'),
@@ -47,15 +46,15 @@ All query types work with pipelining: plain text, parameterized, and named prepa
 
 ## Pipelining with a pool
 
-Pass `pipelining: true` in the pool config to enable it on every client the pool creates:
+Pass `pipeline: true` in the pool config to enable it on every client the pool creates:
 
 ```js
 import { Pool } from 'pg'
 
-const pool = new Pool({ pipelining: true })
+const pool = new Pool({ pipeline: true })
 
 const client = await pool.connect()
-// client.pipelining is already true
+// client.pipeline is already true
 
 const [users, orders] = await Promise.all([
   client.query('SELECT * FROM users WHERE id = $1', [1]),
@@ -108,7 +107,8 @@ const results = await Promise.all(queries.map(q => client.query(q)))
 Calling `client.end()` while pipelined queries are in flight will wait for all of them to complete before closing the connection:
 
 ```js
-client.pipelining = true
+const client = new Client({ pipeline: true })
+await client.connect()
 
 const p1 = client.query('SELECT 1')
 const p2 = client.query('SELECT 2')

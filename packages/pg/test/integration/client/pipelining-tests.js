@@ -3,9 +3,8 @@ const helper = require('./test-helper')
 const assert = require('assert')
 const suite = new helper.Suite()
 
-suite.test('basic pipelining with simple queries', async function () {
-  const client = helper.client()
-  client.pipelining = true
+suite.test('basic pipeline with simple queries', async function () {
+  const client = helper.client(undefined, { pipeline: true })
 
   const [r1, r2, r3] = await Promise.all([
     client.query('SELECT 1 AS num'),
@@ -20,9 +19,8 @@ suite.test('basic pipelining with simple queries', async function () {
   await client.end()
 })
 
-suite.test('pipelining with parameterized queries', async function () {
-  const client = helper.client()
-  client.pipelining = true
+suite.test('pipeline with parameterized queries', async function () {
+  const client = helper.client(undefined, { pipeline: true })
 
   const [r1, r2, r3] = await Promise.all([
     client.query('SELECT $1::int AS num', [10]),
@@ -37,9 +35,8 @@ suite.test('pipelining with parameterized queries', async function () {
   await client.end()
 })
 
-suite.test('pipelining with named prepared statements', async function () {
-  const client = helper.client()
-  client.pipelining = true
+suite.test('pipeline with named prepared statements', async function () {
+  const client = helper.client(undefined, { pipeline: true })
 
   const [r1, r2] = await Promise.all([
     client.query({ name: 'fetch-num', text: 'SELECT $1::int AS num', values: [42] }),
@@ -52,9 +49,8 @@ suite.test('pipelining with named prepared statements', async function () {
   await client.end()
 })
 
-suite.test('pipelining error isolation', async function () {
-  const client = helper.client()
-  client.pipelining = true
+suite.test('pipeline error isolation', async function () {
+  const client = helper.client(undefined, { pipeline: true })
 
   const results = await Promise.allSettled([
     client.query('SELECT 1 AS num'),
@@ -71,9 +67,8 @@ suite.test('pipelining error isolation', async function () {
   await client.end()
 })
 
-suite.test('pipelining drain event', async function () {
-  const client = helper.client()
-  client.pipelining = true
+suite.test('pipeline drain event', async function () {
+  const client = helper.client(undefined, { pipeline: true })
 
   const drainPromise = new Promise((resolve) => {
     client.on('drain', resolve)
@@ -87,10 +82,9 @@ suite.test('pipelining drain event', async function () {
   await client.end()
 })
 
-// #12: end() during active pipelining — should drain gracefully, not destroy
+// #12: end() during active pipeline — should drain gracefully, not destroy
 suite.test('end() waits for in-flight pipelined queries to complete', async function () {
-  const client = helper.client()
-  client.pipelining = true
+  const client = helper.client(undefined, { pipeline: true })
 
   // Fire queries then call end() immediately without awaiting them
   const p1 = client.query('SELECT 1 AS num')
@@ -110,8 +104,7 @@ suite.test(
   'named statement parse error cleans up and allows re-preparation',
   !helper.args.native &&
     async function () {
-      const client = helper.client()
-      client.pipelining = true
+      const client = helper.client(undefined, { pipeline: true })
 
       // Use an invalid type to force a server-side parse error
       const err = await client
@@ -133,13 +126,12 @@ suite.test(
 // #14: query_timeout with pipelining
 // When an already-sent pipelined query times out, the connection is destroyed
 // to unblock the pipeline — subsequent queries error rather than hanging.
-// Native client does not support query_timeout in pipelining mode.
+// Native client does not support query_timeout in pipeline mode.
 suite.test(
   'query_timeout on sent pipelined query destroys connection to unblock',
   !helper.args.native &&
     async function () {
-      const client = helper.client()
-      client.pipelining = true
+      const client = helper.client(undefined, { pipeline: true })
       client.on('error', () => {}) // absorb the 'error' event emitted when stream is destroyed
 
       const results = await Promise.allSettled([

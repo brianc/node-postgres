@@ -36,8 +36,8 @@ const Client = (module.exports = function (config) {
   this._connecting = false
   this._connected = false
   this._queryable = true
-  this.pipelining = false
-  this._pipeliningInFlight = false
+  this.pipeline = Boolean(config.pipeline)
+  this._pipelineInFlight = false
 
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
@@ -236,7 +236,7 @@ Client.prototype.query = function (config, values, callback) {
     return result
   }
 
-  if (this._queryQueue.length > 0 && !this.pipelining) {
+  if (this._queryQueue.length > 0 && !this.pipeline) {
     queryQueueLengthDeprecationNotice()
   }
 
@@ -274,8 +274,8 @@ Client.prototype.end = function (cb) {
     })
   }
 
-  // If pipelining has in-flight or queued queries, wait for them to drain before closing
-  if (this.pipelining && (this._pipeliningInFlight || this._queryQueue.length > 0)) {
+  // If pipeline has in-flight or queued queries, wait for them to drain before closing
+  if (this.pipeline && (this._pipelineInFlight || this._queryQueue.length > 0)) {
     this.once('drain', doEnd)
   } else {
     doEnd()
@@ -291,7 +291,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
   if (!this._connected) {
     return
   }
-  if (this.pipelining && !initialConnection) {
+  if (this.pipeline && !initialConnection) {
     return this._pulsePipelinedQueryQueue()
   }
   if (this._hasActiveQuery()) {
@@ -313,7 +313,7 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
 }
 
 Client.prototype._pulsePipelinedQueryQueue = function () {
-  if (!this._connected || this._pipeliningInFlight) {
+  if (!this._connected || this._pipelineInFlight) {
     return
   }
   if (this._queryQueue.length === 0) {
@@ -323,7 +323,7 @@ Client.prototype._pulsePipelinedQueryQueue = function () {
     return
   }
 
-  this._pipeliningInFlight = true
+  this._pipelineInFlight = true
   const self = this
   const queries = []
   const nativeQueries = []
@@ -346,7 +346,7 @@ Client.prototype._pulsePipelinedQueryQueue = function () {
   }
 
   this.native.pipeline(queries, function (err, results) {
-    self._pipeliningInFlight = false
+    self._pipelineInFlight = false
 
     if (err) {
       // Total pipeline failure — error all queries

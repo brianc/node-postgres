@@ -114,10 +114,9 @@ test('executing query', function () {
     })
   })
 
-  test('pipelining', function () {
+  test('pipeline', function () {
     test('sends all queries immediately after readyForQuery', function () {
-      const client = helper.client()
-      client.pipelining = true
+      const client = helper.client({ pipeline: true })
       client.connection.emit('readyForQuery')
       client.query('one')
       client.query('two')
@@ -129,8 +128,7 @@ test('executing query', function () {
     })
 
     test('completes queries in order', function (done) {
-      const client = helper.client()
-      client.pipelining = true
+      const client = helper.client({ pipeline: true })
       const con = client.connection
       con.emit('readyForQuery')
 
@@ -157,8 +155,7 @@ test('executing query', function () {
     })
 
     test('emits drain after all queries complete', function (done) {
-      const client = helper.client()
-      client.pipelining = true
+      const client = helper.client({ pipeline: true })
       const con = client.connection
       con.emit('readyForQuery')
 
@@ -174,8 +171,7 @@ test('executing query', function () {
     })
 
     test('extended protocol: sends parse/bind/sync for each pipelined parameterized query', function () {
-      const client = helper.client()
-      client.pipelining = true
+      const client = helper.client({ pipeline: true })
       const con = client.connection
       con.emit('readyForQuery')
 
@@ -193,8 +189,7 @@ test('executing query', function () {
     })
 
     test('named statement: parse sent only once when pipelining the same name', function () {
-      const client = helper.client()
-      client.pipelining = true
+      const client = helper.client({ pipeline: true })
       const con = client.connection
       con.emit('readyForQuery')
 
@@ -207,24 +202,9 @@ test('executing query', function () {
       assert.lengthIs(con.bindMessages, 2)
     })
 
-    test('enabling pipelining while no queries are in flight', function () {
+    test('pipeline disabled by default', function () {
       const client = helper.client()
-      const con = client.connection
-      con.emit('readyForQuery')
-
-      // start non-pipelining
-      assert.equal(client.pipelining, false)
-      client.query('before')
-      assert.lengthIs(con.queries, 1)
-
-      // simulate server responds
-      con.emit('readyForQuery')
-
-      // now enable pipelining — should work for subsequent queries
-      client.pipelining = true
-      client.query('after-one')
-      client.query('after-two')
-      assert.lengthIs(con.queries, 3)
+      assert.equal(client.pipeline, false)
     })
   })
 

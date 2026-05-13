@@ -84,7 +84,7 @@ class Client extends EventEmitter {
       })
     this._queryQueue = []
     this._sentQueryQueue = []
-    this.pipelining = false
+    this.pipeline = Boolean(c.pipeline)
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -590,7 +590,7 @@ class Client extends EventEmitter {
   }
 
   _pulseQueryQueue() {
-    if (this.pipelining) {
+    if (this.pipeline) {
       this._pulsePipelinedQueryQueue()
       return
     }
@@ -696,7 +696,7 @@ class Client extends EventEmitter {
         const index = this._queryQueue.indexOf(query)
         if (index > -1) {
           this._queryQueue.splice(index, 1)
-        } else if (this.pipelining) {
+        } else if (this.pipeline) {
           // Query already sent — the pipeline is blocked until it completes.
           // Destroy the connection to unblock all remaining pipelined queries.
           this.connection.stream.destroy()
@@ -734,7 +734,7 @@ class Client extends EventEmitter {
       return result
     }
 
-    if (this._queryQueue.length > 0 && !this.pipelining) {
+    if (this._queryQueue.length > 0 && !this.pipeline) {
       queryQueueLengthDeprecationNotice()
     }
     this._queryQueue.push(query)
@@ -766,14 +766,14 @@ class Client extends EventEmitter {
       // socket is dead — force close
       this.connection.stream.destroy()
     } else if (
-      this.pipelining &&
+      this.pipeline &&
       (this._getActiveQuery() || this._sentQueryQueue.length > 0 || this._queryQueue.length > 0)
     ) {
       // pipelined queries are already on the wire (or queued to send) and will
       // complete normally; wait for drain then do a graceful goodbye
       this.once('drain', () => this.connection.end())
     } else if (this._getActiveQuery()) {
-      // non-pipelining: a hung query could block end forever — force disconnect
+      // non-pipeline: a hung query could block end forever — force disconnect
       this.connection.stream.destroy()
     } else {
       this.connection.end()

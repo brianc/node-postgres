@@ -203,10 +203,10 @@ describe('pool', function () {
       })
     })
 
-    it('enables pipelining on clients when configured', async function () {
-      const pool = new Pool({ pipelining: true })
+    it('enables pipeline on clients when configured', async function () {
+      const pool = new Pool({ pipeline: true })
       const client = await pool.connect()
-      expect(client.pipelining).to.be(true)
+      expect(client.pipeline).to.be(true)
 
       const [r1, r2, r3] = await Promise.all([
         client.query('SELECT 1 AS num'),
@@ -222,10 +222,10 @@ describe('pool', function () {
       return pool.end()
     })
 
-    it('does not enable pipelining by default', async function () {
+    it('does not enable pipeline by default', async function () {
       const pool = new Pool()
       const client = await pool.connect()
-      expect(client.pipelining).to.be(false)
+      expect(client.pipeline).to.be(false)
       client.release()
       return pool.end()
     })

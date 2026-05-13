@@ -10,8 +10,8 @@ if (helper.args.native) {
 }
 
 // creates a client from cli parameters
-helper.client = function (cb) {
-  const client = new Client()
+helper.client = function (cb, options) {
+  const client = new Client(options)
   client.connect(cb)
   return client
 }
