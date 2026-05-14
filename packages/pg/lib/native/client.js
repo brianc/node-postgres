@@ -249,8 +249,10 @@ Client.prototype.end = function (cb) {
 
   this._ending = true
 
-  if (!this._connected) {
-    this.once('connect', this.end.bind(this, cb))
+  if (this._connecting && !this._connected) {
+    this.once('connect', () => {
+      this.end(() => {})
+    })
   }
   let result
   if (!cb) {

@@ -230,6 +230,21 @@ suite.test('callback is fired once and only once', function (done) {
   )
 })
 
+suite.test('no-op Client#end callback is called exactly once', (done) => {
+  const client = new helper.Client()
+  let called = false
+
+  client.end(() => {
+    assert(!called)
+    called = true
+
+    client.connect((err) => {
+      assert.ifError(err)
+      client.end(done)
+    })
+  })
+})
+
 suite.test('can provide callback and config object', function (done) {
   const pool = new pg.Pool()
   pool.connect(
