@@ -716,6 +716,7 @@ class Client extends EventEmitter {
     if (!this.connection._connecting || this._ended) {
       if (cb) {
         cb()
+        return
       } else {
         return this._Promise.resolve()
       }
