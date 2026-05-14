@@ -605,14 +605,14 @@ class Client extends EventEmitter {
     // can take in strings, config object or query object
     let query
     let result
-    let readTimeout
-    let readTimeoutTimer
-    let queryCallback
 
-    if (config === null || config === undefined) {
+    if (config == null) {
       throw new TypeError('Client was passed a null or undefined query')
-    } else if (typeof config.submit === 'function') {
-      readTimeout = config.query_timeout || this.connectionParameters.query_timeout
+    }
+
+    const readTimeout = config.query_timeout || this.connectionParameters.query_timeout
+
+    if (typeof config.submit === 'function') {
       result = query = config
       if (!query.callback) {
         if (typeof values === 'function') {
@@ -622,7 +622,6 @@ class Client extends EventEmitter {
         }
       }
     } else {
-      readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       query = new Query(config, values, callback)
       if (!query.callback) {
         result = new this._Promise((resolve, reject) => {
@@ -639,9 +638,9 @@ class Client extends EventEmitter {
     }
 
     if (readTimeout) {
-      queryCallback = query.callback || (() => {})
+      const queryCallback = query.callback || (() => {})
 
-      readTimeoutTimer = setTimeout(() => {
+      const readTimeoutTimer = setTimeout(() => {
         const error = new Error('Query read timeout')
 
         process.nextTick(() => {
