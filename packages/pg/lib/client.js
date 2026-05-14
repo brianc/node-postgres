@@ -610,8 +610,6 @@ class Client extends EventEmitter {
       throw new TypeError('Client was passed a null or undefined query')
     }
 
-    const readTimeout = config.query_timeout || this.connectionParameters.query_timeout
-
     if (typeof config.submit === 'function') {
       result = query = config
       if (!query.callback) {
@@ -637,6 +635,7 @@ class Client extends EventEmitter {
       }
     }
 
+    const readTimeout = config.query_timeout || this.connectionParameters.query_timeout
     if (readTimeout) {
       const queryCallback = query.callback || (() => {})
 
