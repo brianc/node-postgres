@@ -187,6 +187,35 @@ assert(pool.idleCount === 0)
 assert(pool.totalCount === 0)
 ```
 
+`client.destroyOnDispose: boolean`
+
+`client[Symbol.dispose]() => void`
+
+Alternatively, pool clients support [Explicit Resource Management](https://tc39.es/proposal-explicit-resource-management/), which means you can use the `using` syntax to release them if your runtime supports it.
+
+```js
+
+import { Pool } from 'pg'
+
+const pool = new Pool()
+{
+  // check out a single client
+  using client = await pool.connect()
+
+  // client.release() implicitly called at the end of scope
+}
+
+{
+  // check out a single client
+  using client = await pool.connect()
+  client.destroyOnDispose = true
+
+  // client.release(true) implicitly called at the end of scope
+}
+```
+
+If you want the client to be destroyed instead of being returned to the pool at the end of the scope, (i.e. calling `client.release(true)` at the end of the scope), set the `destroyOnRelease` property to `true`.
+
 <Alert>
   <div>
     You <strong>must</strong> release a client when you are finished with it.
