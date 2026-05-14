@@ -1,11 +1,6 @@
 'use strict'
 
 const async = require('async')
-const { deprecate } = require('util')
-
-const deprecatedTestAsync = deprecate(function (name, cb) {
-  this.test(name, cb)
-}, 'Suite#testAsync is deprecated. Use Suite#test instead - it handles promises & async functions just fine.')
 
 class Test {
   constructor(name, cb) {
@@ -75,17 +70,6 @@ class Suite {
     const test = new Test(name, cb)
     this._queue.push(test)
   }
-
-  testAsync(name, cb) {
-    return deprecatedTestAsync.call(this, name, cb)
-  }
 }
-
-process.on('unhandledRejection', (e) => {
-  setImmediate(() => {
-    console.error('Unhandled promise rejection')
-    throw e
-  })
-})
 
 module.exports = Suite

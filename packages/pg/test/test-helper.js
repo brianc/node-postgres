@@ -21,7 +21,8 @@ process.on('uncaughtException', function (d) {
   } else {
     console.log(d)
   }
-  process.exit(-1)
+  // causes xargs to abort right away
+  process.exit(255)
 })
 const expect = function (callback, timeout) {
   const executed = false
@@ -66,12 +67,6 @@ process.on('exit', function () {
   console.log('')
 })
 
-process.on('uncaughtException', function (err) {
-  console.error('\n %s', err.stack || err.toString())
-  // causes xargs to abort right away
-  process.exit(255)
-})
-
 const getTimezoneOffset = Date.prototype.getTimezoneOffset
 
 const setTimezoneOffset = function (minutesOffset) {
@@ -83,14 +78,6 @@ const setTimezoneOffset = function (minutesOffset) {
 const resetTimezoneOffset = function () {
   Date.prototype.getTimezoneOffset = getTimezoneOffset
 }
-
-const rejection = (promise) =>
-  promise.then(
-    (value) => {
-      throw new Error(`Promise resolved when rejection was expected; value: ${sys.inspect(value)}`)
-    },
-    (error) => error
-  )
 
 if (Object.isExtensible(assert)) {
   assert.same = function (actual, expected) {
@@ -122,49 +109,6 @@ if (Object.isExtensible(assert)) {
         callback.apply(item, arguments)
       }
     })
-  }
-
-  assert.UTCDate = function (actual, year, month, day, hours, min, sec, milisecond) {
-    const actualYear = actual.getUTCFullYear()
-    assert.equal(actualYear, year, 'expected year ' + year + ' but got ' + actualYear)
-
-    const actualMonth = actual.getUTCMonth()
-    assert.equal(actualMonth, month, 'expected month ' + month + ' but got ' + actualMonth)
-
-    const actualDate = actual.getUTCDate()
-    assert.equal(actualDate, day, 'expected day ' + day + ' but got ' + actualDate)
-
-    const actualHours = actual.getUTCHours()
-    assert.equal(actualHours, hours, 'expected hours ' + hours + ' but got ' + actualHours)
-
-    const actualMin = actual.getUTCMinutes()
-    assert.equal(actualMin, min, 'expected min ' + min + ' but got ' + actualMin)
-
-    const actualSec = actual.getUTCSeconds()
-    assert.equal(actualSec, sec, 'expected sec ' + sec + ' but got ' + actualSec)
-
-    const actualMili = actual.getUTCMilliseconds()
-    assert.equal(actualMili, milisecond, 'expected milisecond ' + milisecond + ' but got ' + actualMili)
-  }
-
-  const spit = function (actual, expected) {
-    console.log('')
-    console.log('actual ' + sys.inspect(actual))
-    console.log('expect ' + sys.inspect(expected))
-    console.log('')
-  }
-
-  assert.equalBuffers = function (actual, expected) {
-    if (actual.length != expected.length) {
-      spit(actual, expected)
-      assert.equal(actual.length, expected.length)
-    }
-    for (let i = 0; i < actual.length; i++) {
-      if (actual[i] != expected[i]) {
-        spit(actual, expected)
-      }
-      assert.equal(actual[i], expected[i])
-    }
   }
 
   assert.empty = function (actual) {
@@ -257,6 +201,5 @@ module.exports = {
   Client: Client,
   setTimezoneOffset: setTimezoneOffset,
   resetTimezoneOffset: resetTimezoneOffset,
-  rejection: rejection,
   createPersonTable: createPersonTable,
 }

@@ -14,7 +14,7 @@ suite.test('cleartext password auth responds with password', function () {
   const packets = client.connection.stream.packets
   assert.lengthIs(packets, 1)
   const packet = packets[0]
-  assert.equalBuffers(packet, [0x70, 0, 0, 0, 6, 33, 0])
+  assert.deepStrictEqual(packet, Buffer.from([0x70, 0, 0, 0, 6, 33, 0]))
 })
 
 suite.test('cleartext password auth does not crash with null password using pg-pass', function () {
