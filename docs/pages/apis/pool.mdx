@@ -63,6 +63,11 @@ type Config = {
   // middleware so that you can rotate the underlying servers. The default is disabled (value of zero).
   maxLifetimeSeconds?: number
 
+  // When true, automatically removes connections with open or failed transactions from the pool
+  // when they are released. This provides protection against "connection poisoning" where
+  // uncommitted transactions leak across different requests. Default is false.
+  evictOnOpenTransaction?: boolean
+
   // Called once when a new client is created, before it is made available to the pool.
   // The client is fully connected and queryable at this point.
   // Can be a regular function or an async function.
@@ -84,6 +89,7 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
   maxLifetimeSeconds: 60,
+  evictOnOpenTransaction: true,
 })
 ```
 
