@@ -2,11 +2,6 @@
 const helper = require('../test-helper')
 const pg = helper.pg
 
-process.on('unhandledRejection', function (e) {
-  console.error(e, e.stack)
-  process.exit(1)
-})
-
 const suite = new helper.Suite()
 
 suite.test('promise API async stack trace in pool', async function outerFunction() {
