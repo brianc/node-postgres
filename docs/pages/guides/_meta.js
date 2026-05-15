@@ -3,4 +3,5 @@ export default {
   'async-express': 'Express with Async/Await',
   'pool-sizing': 'Pool Sizing',
   upgrading: 'Upgrading',
+  pgpass: 'Using .pgpass',
 }
