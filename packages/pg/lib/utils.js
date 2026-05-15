@@ -2,20 +2,13 @@
 
 const defaults = require('./defaults')
 
-const util = require('util')
-const { isDate } = util.types || util // Node 8 doesn't have `util.types`
+const { isDate } = require('util/types')
 
 function escapeElement(elementRepresentation) {
   const escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
   return '"' + escaped + '"'
 }
-
-// Node.js v4 does not support those Buffer.from params
-const bufferFrom =
-  Buffer.from(new Uint8Array(1).buffer, 0, 0).length === 0
-    ? Buffer.from
-    : (arrayBuffer, byteOffset, length) => Buffer.from(arrayBuffer).slice(byteOffset, byteOffset + length)
 
 // convert a JS array to a postgres array literal
 // uses comma separator so won't work for types like box that use
@@ -33,7 +26,7 @@ function arrayString(val) {
       result += arrayString(item)
     } else if (ArrayBuffer.isView(item)) {
       if (!(item instanceof Buffer)) {
-        item = bufferFrom(item.buffer, item.byteOffset, item.byteLength)
+        item = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
       }
       result += '\\\\x' + item.toString('hex')
     } else {
@@ -58,7 +51,7 @@ const prepareValue = function (val, seen) {
       return val
     }
     if (ArrayBuffer.isView(val)) {
-      return bufferFrom(val.buffer, val.byteOffset, val.byteLength)
+      return Buffer.from(val.buffer, val.byteOffset, val.byteLength)
     }
     if (isDate(val)) {
       if (defaults.parseInputDatesAsUTC) {
