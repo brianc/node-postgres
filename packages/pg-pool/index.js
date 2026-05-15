@@ -1,5 +1,6 @@
 'use strict'
 const EventEmitter = require('events').EventEmitter
+const { poolConnectChannel, poolReleaseChannel, poolRemoveChannel, shouldTrace } = require('./diagnostics')
 
 const NOOP = function () {}
 
@@ -178,6 +179,10 @@ class Pool extends EventEmitter {
 
     this._clients = this._clients.filter((c) => c !== client)
     const context = this
+    if (shouldTrace(poolRemoveChannel)) {
+      poolRemoveChannel.publish({ client: { processID: client.processID } })
+    }
+
     client.end(() => {
       context.emit('remove', client)
 
@@ -195,6 +200,31 @@ class Pool extends EventEmitter {
 
     const response = promisify(this.Promise, cb)
     const result = response.result
+
+    if (shouldTrace(poolConnectChannel)) {
+      const context = {
+        pool: {
+          totalCount: this.totalCount,
+          idleCount: this.idleCount,
+          waitingCount: this.waitingCount,
+          maxSize: this.options.max,
+        },
+      }
+      const origCb = response.callback
+      const enrichedCb = (err, client, done) => {
+        if (client) context.client = { processID: client.processID, reused: !!client._poolUseCount }
+        return origCb(err, client, done)
+      }
+      poolConnectChannel.traceCallback(
+        (tracedCb) => {
+          response.callback = tracedCb
+        },
+        0,
+        context,
+        null,
+        enrichedCb
+      )
+    }
 
     // if we don't have to connect a new client, don't do so
     if (this._isFull() || this._idle.length) {
@@ -387,6 +417,10 @@ class Pool extends EventEmitter {
     client._poolUseCount = (client._poolUseCount || 0) + 1
 
     this.emit('release', err, client)
+
+    if (shouldTrace(poolReleaseChannel)) {
+      poolReleaseChannel.publish({ client: { processID: client.processID }, error: err || undefined })
+    }
 
     // TODO(bmc): expose a proper, public interface _queryable and _ending
     if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
