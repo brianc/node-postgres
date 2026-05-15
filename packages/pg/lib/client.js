@@ -84,6 +84,8 @@ class Client extends EventEmitter {
         encoding: this.connectionParameters.client_encoding || 'utf8',
       })
     this._queryQueue = []
+    this._sentQueryQueue = []
+    this.pipeline = Boolean(c.pipeline)
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -126,6 +128,9 @@ class Client extends EventEmitter {
       enqueueError(activeQuery)
       this._activeQuery = null
     }
+
+    this._sentQueryQueue.forEach(enqueueError)
+    this._sentQueryQueue.length = 0
 
     this._queryQueue.forEach(enqueueError)
     this._queryQueue.length = 0
@@ -408,6 +413,9 @@ class Client extends EventEmitter {
     }
 
     this._activeQuery = null
+    if (activeQuery.name) {
+      delete this.connection.submittedNamedStatements[activeQuery.name]
+    }
     activeQuery.handleError(msg, this.connection)
   }
 
@@ -478,6 +486,7 @@ class Client extends EventEmitter {
     // it again on the same client
     if (activeQuery.name) {
       this.connection.parsedStatements[activeQuery.name] = activeQuery.text
+      delete this.connection.submittedNamedStatements[activeQuery.name]
     }
   }
 
@@ -556,6 +565,10 @@ class Client extends EventEmitter {
       })
     } else if (client._queryQueue.indexOf(query) !== -1) {
       client._queryQueue.splice(client._queryQueue.indexOf(query), 1)
+    } else if (client._sentQueryQueue.indexOf(query) !== -1) {
+      // Query already sent on wire — can't remove it without corrupting the
+      // pipeline. No-op the callback so the result is silently discarded.
+      query.callback = () => {}
     }
   }
 
@@ -579,6 +592,10 @@ class Client extends EventEmitter {
   }
 
   _pulseQueryQueue() {
+    if (this.pipeline) {
+      this._pulsePipelinedQueryQueue()
+      return
+    }
     if (this.readyForQuery === true) {
       this._activeQuery = this._queryQueue.shift()
       const activeQuery = this._getActiveQuery()
@@ -598,6 +615,31 @@ class Client extends EventEmitter {
         this._activeQuery = null
         this.emit('drain')
       }
+    }
+  }
+
+  _pulsePipelinedQueryQueue() {
+    if (!this._connected || !this._queryable) {
+      return
+    }
+    while (this._queryQueue.length > 0) {
+      const query = this._queryQueue.shift()
+      this.hasExecuted = true
+      const queryError = query.submit(this.connection)
+      if (queryError) {
+        process.nextTick(() => {
+          query.handleError(queryError, this.connection)
+        })
+        continue
+      }
+      this._sentQueryQueue.push(query)
+    }
+    if (this.readyForQuery && !this._activeQuery && this._sentQueryQueue.length > 0) {
+      this._activeQuery = this._sentQueryQueue.shift()
+      this.readyForQuery = false
+    }
+    if (!this._activeQuery && this._sentQueryQueue.length === 0 && this._queryQueue.length === 0 && this.hasExecuted) {
+      this.emit('drain')
     }
   }
 
@@ -652,10 +694,15 @@ class Client extends EventEmitter {
         // just do nothing if query completes
         query.callback = () => {}
 
-        // Remove from queue
+        // Remove from queue (only safe if not yet sent)
         const index = this._queryQueue.indexOf(query)
         if (index > -1) {
           this._queryQueue.splice(index, 1)
+        } else if (this.pipeline) {
+          // Query already sent — the pipeline is blocked until it completes.
+          // Destroy the connection to unblock all remaining pipelined queries.
+          this.connection.stream.destroy()
+          return
         }
 
         this._pulseQueryQueue()
@@ -689,7 +736,7 @@ class Client extends EventEmitter {
       return result
     }
 
-    if (this._queryQueue.length > 0) {
+    if (this._queryQueue.length > 0 && !this.pipeline) {
       queryQueueLengthDeprecationNotice()
     }
     this._queryQueue.push(query)
@@ -722,9 +769,18 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this._getActiveQuery() || !this._queryable) {
-      // if we have an active query we need to force a disconnect
-      // on the socket - otherwise a hung query could block end forever
+    if (!this._queryable) {
+      // socket is dead — force close
+      this.connection.stream.destroy()
+    } else if (
+      this.pipeline &&
+      (this._getActiveQuery() || this._sentQueryQueue.length > 0 || this._queryQueue.length > 0)
+    ) {
+      // pipelined queries are already on the wire (or queued to send) and will
+      // complete normally; wait for drain then do a graceful goodbye
+      this.once('drain', () => this.connection.end())
+    } else if (this._getActiveQuery()) {
+      // non-pipeline: a hung query could block end forever — force disconnect
       this.connection.stream.destroy()
     } else {
       this.connection.end()

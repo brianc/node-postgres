@@ -199,6 +199,10 @@ Client.prototype._emitResult = function (pq) {
       break
     }
 
+    case 'PGRES_PIPELINE_SYNC':
+    case 'PGRES_PIPELINE_ABORTED':
+      break
+
     default:
       this._readError('unrecognized command status: ' + status)
       break
@@ -312,6 +316,158 @@ Client.prototype._onResult = function (result) {
     this._rows.push(result.rows)
   }
   this._resultCount++
+}
+
+// Send a batch of queries in pipeline mode and collect results in order.
+// Each entry in `queries` is {text, values?, name?}.
+// `cb(err, results)` where results is an array, one per query,
+// of {err, rows, result} objects.
+Client.prototype.pipeline = function (queries, cb) {
+  const pq = this.pq
+
+  if (!pq.pipelineModeSupported || !pq.pipelineModeSupported()) {
+    return cb(new Error('Pipeline mode is not supported. Requires PostgreSQL 14+ client libraries.'))
+  }
+
+  if (!pq.enterPipelineMode()) {
+    return cb(new Error(pq.errorMessage() || 'Failed to enter pipeline mode'))
+  }
+
+  pq.setNonBlocking(true)
+
+  // Send all queries, each followed by a sync
+  for (let i = 0; i < queries.length; i++) {
+    const q = queries[i]
+    let sent
+    if (q.name) {
+      if (q._alreadyPrepared) {
+        sent = pq.sendQueryPrepared(q.name, q.values || [])
+      } else {
+        // send prepare then execute in same pipeline batch
+        sent = pq.sendPrepare(q.name, q.text, (q.values || []).length)
+        if (sent) {
+          sent = pq.sendQueryPrepared(q.name, q.values || [])
+        }
+      }
+    } else {
+      // In pipeline mode, simple query protocol (sendQuery) is not allowed.
+      // Always use extended query protocol (sendQueryParams).
+      sent = pq.sendQueryParams(q.text, q.values || [])
+    }
+
+    if (!sent) {
+      const err = new Error(pq.errorMessage() || 'Failed to send pipelined query')
+      pq.exitPipelineMode()
+      return cb(err)
+    }
+
+    pq.pipelineSync()
+  }
+
+  // Flush all queued data to the socket
+  this._waitForDrain(pq, (err) => {
+    if (err) {
+      pq.exitPipelineMode()
+      return cb(err)
+    }
+    this._readPipelineResults(queries, cb)
+  })
+}
+
+// Read pipeline results for `queries.length` sync points.
+// Calls cb(null, results) when all syncs have been received.
+Client.prototype._readPipelineResults = function (queries, cb) {
+  const pq = this.pq
+  const self = this
+  const results = []
+  let queryIndex = 0
+  let currentResult = null
+  let currentError = null
+
+  const processResults = function () {
+    if (!pq.consumeInput()) {
+      pq.exitPipelineMode()
+      return cb(new Error(pq.errorMessage() || 'Failed to consume input'))
+    }
+
+    while (!pq.isBusy()) {
+      if (!pq.getResult()) {
+        // null between result groups in pipeline — try again
+        if (pq.isBusy()) return // more data needed
+        if (!pq.getResult()) {
+          // truly no more results — should not happen before all syncs
+          break
+        }
+      }
+
+      const status = pq.resultStatus()
+
+      if (status === 'PGRES_PIPELINE_SYNC') {
+        // End of one query's results + sync
+        if (currentError) {
+          results.push({ err: currentError, rows: null, result: null })
+        } else if (currentResult) {
+          results.push({ err: null, rows: currentResult.rows, result: currentResult })
+        } else {
+          results.push({ err: null, rows: [], result: null })
+        }
+        currentResult = null
+        currentError = null
+        queryIndex++
+
+        if (queryIndex >= queries.length) {
+          // All queries processed
+          pq.exitPipelineMode()
+          return cb(null, results)
+        }
+        continue
+      }
+
+      if (status === 'PGRES_FATAL_ERROR') {
+        currentError = new Error(pq.resultErrorMessage())
+        // Extract error fields
+        const fields = pq.resultErrorFields()
+        if (fields) {
+          for (const key in fields) {
+            currentError[key] = fields[key]
+          }
+        }
+        continue
+      }
+
+      if (status === 'PGRES_PIPELINE_ABORTED') {
+        // Query skipped due to previous error in same sync group
+        continue
+      }
+
+      if (status === 'PGRES_TUPLES_OK' || status === 'PGRES_COMMAND_OK' || status === 'PGRES_EMPTY_QUERY') {
+        currentResult = self._consumeQueryResults(pq)
+        continue
+      }
+    }
+
+    // Still waiting for more data — will be called again when readable
+  }
+
+  // Use the libuv readable watcher
+  this._stopReading()
+  let done = false
+  const origCb = cb
+  cb = function (err, results) {
+    if (done) return
+    done = true
+    pq.removeListener('readable', onReadable)
+    self._stopReading()
+    origCb(err, results)
+  }
+  const onReadable = function () {
+    processResults()
+  }
+  pq.on('readable', onReadable)
+  pq.startReader()
+
+  // Try an initial read in case data is already available
+  processResults()
 }
 
 Client.prototype._onReadyForQuery = function () {

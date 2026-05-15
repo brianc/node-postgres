@@ -69,6 +69,11 @@ type Config = {
   // If the function throws or returns a promise that rejects, the client is destroyed
   // and the error is returned to the caller requesting the connection.
   onConnect?: (client: Client) => void | Promise<void>
+
+  // When set to true, enables query pipelining on every client the pool creates.
+  // Pipelined clients send queries to the server without waiting for previous responses.
+  // Default is false. See /features/pipelining for details.
+  pipeline?: boolean
 }
 ```
 
