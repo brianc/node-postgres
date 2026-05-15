@@ -152,7 +152,13 @@ const bind = (config: BindOpts = {}): Buffer => {
   writer.addCString(portal).addCString(statement)
   writer.addInt16(len)
 
-  writeValues(values, config.valueMapper)
+  try {
+    writeValues(values, config.valueMapper)
+  } catch (err) {
+    writer.clear()
+    paramWriter.clear()
+    throw err
+  }
 
   writer.addInt16(len)
   writer.add(paramWriter.flush())

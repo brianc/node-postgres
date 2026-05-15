@@ -273,4 +273,62 @@ describe('serializer', () => {
     const expected = new BufferList().addInt16(1234).addInt16(5678).addInt32(3).addInt32(4).join(true)
     assert.deepEqual(actual, expected)
   })
+
+  describe('bind error recovery', () => {
+    const throwingMapper = () => {
+      throw new Error('valueMapper error')
+    }
+
+    it('produces correct bind output after a valueMapper exception', () => {
+      assert.throws(() => {
+        serialize.bind({
+          values: ['fail'],
+          valueMapper: throwingMapper,
+        })
+      }, /valueMapper error/)
+
+      const actual = serialize.bind({
+        portal: 'bang',
+        statement: 'woo',
+        values: ['1', 'hi', null, 'zing'],
+      })
+      const expectedBuffer = new BufferList()
+        .addCString('bang')
+        .addCString('woo')
+        .addInt16(4)
+        .addInt16(0)
+        .addInt16(0)
+        .addInt16(0)
+        .addInt16(0)
+        .addInt16(4)
+        .addInt32(1)
+        .add(Buffer.from('1'))
+        .addInt32(2)
+        .add(Buffer.from('hi'))
+        .addInt32(-1)
+        .addInt32(4)
+        .add(Buffer.from('zing'))
+        .addInt16(1)
+        .addInt16(0)
+        .join(true, 'B')
+      assert.deepEqual(actual, expectedBuffer)
+    })
+
+    it('produces correct output from other serializer methods after a failed bind', () => {
+      assert.throws(() => {
+        serialize.bind({
+          values: ['fail'],
+          valueMapper: throwingMapper,
+        })
+      }, /valueMapper error/)
+
+      const parseActual = serialize.parse({ text: '!' })
+      const parseExpected = new BufferList().addCString('').addCString('!').addInt16(0).join(true, 'P')
+      assert.deepEqual(parseActual, parseExpected)
+
+      const queryActual = serialize.query('select 1')
+      const queryExpected = new BufferList().addCString('select 1').join(true, 'Q')
+      assert.deepEqual(queryActual, queryExpected)
+    })
+  })
 })
