@@ -17,6 +17,7 @@ This repo is a monorepo which contains the core [pg](https://github.com/brianc/n
 - [pg-query-stream](https://github.com/brianc/node-postgres/tree/master/packages/pg-query-stream)
 - [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string)
 - [pg-protocol](https://github.com/brianc/node-postgres/tree/master/packages/pg-protocol)
+- [pg-batch-query](https://github.com/brianc/node-postgres/tree/master/packages/pg-batch-query)
 
 ## Install
 
