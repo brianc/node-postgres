@@ -4,11 +4,6 @@ const helper = require('../test-helper')
 const pg = helper.pg
 const assert = require('assert')
 
-process.on('unhandledRejection', function (e) {
-  console.error(e, e.stack)
-  process.exit(1)
-})
-
 const suite = new helper.Suite()
 
 suite.test('promise API', (cb) => {
