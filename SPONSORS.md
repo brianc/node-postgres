@@ -20,6 +20,7 @@ node-postgres is made possible by the helpful contributors from the community as
 - [loveland](https://github.com/loveland)
 - [gajus](https://github.com/gajus)
 - [thirdiron](https://github.com/thirdiron)
+- [kiwicopple](https://github.com/kiwicopple)
 
 # Supporters
 

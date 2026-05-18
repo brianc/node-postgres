@@ -17,14 +17,14 @@ export default {
   footer: {
     content: (
       <span>
-        As of 2026-03-01 I am taking a break from the workforce to focus entirely on this project! Please consider{' '}
+        Please consider{' '}
         <a
           href="https://github.com/sponsors/brianc"
           target="_blank"
           rel="noopener noreferrer"
           style={{ textDecoration: 'underline' }}
         >
-          sponsoring this work on GitHub
+          sponsoring this project on GitHub!
         </a>
         !
       </span>
