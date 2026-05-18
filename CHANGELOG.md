@@ -4,6 +4,13 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.21.0
+
+- Handle [SASL SCRAM](https://github.com/brianc/node-postgres/pull/3521) server error responses properly.
+- Add support for [node@26](https://github.com/brianc/node-postgres/pull/3667).
+- Add `scramMaxIterations` [config option](https://github.com/brianc/node-postgres/pull/3677).
+- Add `client.getTransactionStatus()` [method](https://github.com/brianc/node-postgres/pull/3645).
+
 ## pg@8.20.0
 
 - Add [onConnect](https://github.com/brianc/node-postgres/pull/3620) callback to pg.Pool constructor options allowing for async initialization of newly created & connected pooled clients.
