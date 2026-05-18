@@ -36,6 +36,17 @@ const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
   'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.'
 )
 
+function coerceNumberOrDefault(value, defaultValue) {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : defaultValue
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value)
+    return Number.isFinite(n) ? n : defaultValue
+  }
+  return defaultValue
+}
+
 class Client extends EventEmitter {
   constructor(config) {
     super()
@@ -74,6 +85,7 @@ class Client extends EventEmitter {
     this._txStatus = null
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
+    this.scramMaxIterations = coerceNumberOrDefault(c.scramMaxIterations, sasl.DEFAULT_MAX_SCRAM_ITERATIONS)
     this.connection =
       c.connection ||
       new Connection({
@@ -307,7 +319,11 @@ class Client extends EventEmitter {
   _handleAuthSASL(msg) {
     this._getPassword(() => {
       try {
-        this.saslSession = sasl.startSession(msg.mechanisms, this.enableChannelBinding && this.connection.stream)
+        this.saslSession = sasl.startSession(
+          msg.mechanisms,
+          this.enableChannelBinding && this.connection.stream,
+          this.scramMaxIterations
+        )
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
       } catch (err) {
         this.connection.emit('error', err)
