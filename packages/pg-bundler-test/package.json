@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "esbuild": "^0.25.5",
     "pg-cloudflare": "^1.4.0",
