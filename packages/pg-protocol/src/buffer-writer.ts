@@ -58,6 +58,26 @@ export class Writer {
     return this
   }
 
+  // Write an Int32 byte-length prefix immediately followed by the string's UTF-8
+  // bytes. Postgres' Bind wire format prefixes every parameter with its length,
+  // and doing it in one method computes Buffer.byteLength ONCE — the previous
+  // `addInt32(Buffer.byteLength(s)).addString(s)` pairing scanned the string
+  // three times (byteLength for the prefix, byteLength again inside addString,
+  // then the encode), which is costly for large text parameters.
+  public addInt32PrefixedString(string: string): Writer {
+    const len = Buffer.byteLength(string)
+    this.ensure(4 + len)
+    const buffer = this.buffer
+    let offset = this.offset
+    buffer[offset++] = (len >>> 24) & 0xff
+    buffer[offset++] = (len >>> 16) & 0xff
+    buffer[offset++] = (len >>> 8) & 0xff
+    buffer[offset++] = (len >>> 0) & 0xff
+    buffer.write(string, offset, 'utf-8')
+    this.offset = offset + len
+    return this
+  }
+
   public add(otherBuffer: Buffer): Writer {
     this.ensure(otherBuffer.length)
     otherBuffer.copy(this.buffer, this.offset)
