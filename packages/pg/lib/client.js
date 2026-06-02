@@ -726,7 +726,7 @@ class Client extends EventEmitter {
 
     if (shouldTrace(queryChannel) && query.callback) {
       const context = {
-        query: { text: query.text, name: query.name, rowMode: query._rowMode },
+        query: { text: query.text, name: query.name },
         client: {
           database: this.database,
           host: this.host,
