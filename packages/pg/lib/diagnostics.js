@@ -7,8 +7,8 @@ let connectionChannel = noopChannel
 
 try {
   let dc
-  if (typeof process.getBuiltInModule === 'function') {
-    dc = process.getBuiltInModule('diagnostics_channel')
+  if (typeof process.getBuiltinModule === 'function') {
+    dc = process.getBuiltinModule('diagnostics_channel')
   } else {
     dc = require('diagnostics_channel')
   }
