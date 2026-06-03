@@ -133,7 +133,7 @@ describe('serializer', () => {
     it('encodes a multi-byte string param with its UTF-8 byte length, not char length', function () {
       // Guards the single-pass addInt32PrefixedString write path: the Int32
       // length prefix must be the UTF-8 byte count, not String.length. 'héllo中🎉'
-      // is 7 code units / 8 chars but 13 UTF-8 bytes.
+      // is 7 code points / 8 UTF-16 code units but 13 UTF-8 bytes.
       const value = 'héllo中🎉'
       const bytes = Buffer.from(value, 'utf8')
       assert.notEqual(bytes.length, value.length) // sanity: the divergence we're testing
