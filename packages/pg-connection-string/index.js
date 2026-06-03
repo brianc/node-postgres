@@ -78,6 +78,12 @@ function parse(str, options = {}) {
     config.ssl = {}
   }
 
+  // sslnegotiation=direct implies SSL is in use (libpq requires sslmode>=require),
+  // so enable SSL if the connection string did not otherwise configure it.
+  if (config.sslnegotiation === 'direct' && config.ssl === undefined) {
+    config.ssl = true
+  }
+
   // Only try to load fs if we expect to read from the disk
   const fs = config.sslcert || config.sslkey || config.sslrootcert ? require('fs') : null
 

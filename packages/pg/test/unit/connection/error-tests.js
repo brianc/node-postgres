@@ -60,6 +60,77 @@ const SSLNegotiationPacketTests = [
   },
 ]
 
+suite.test('direct SSL negotiation upgrades to TLS without an SSLRequest packet', function (done) {
+  const con = new Connection({ stream: new MemoryStream(), ssl: true, sslNegotiation: 'direct' })
+
+  // capture the upgrade instead of performing a real TLS handshake
+  let upgradeCalled = false
+  con.upgradeToSSL = function () {
+    upgradeCalled = true
+  }
+
+  con.connect(1234, 'localhost')
+
+  // simulate the raw socket connecting
+  con.stream.emit('connect')
+
+  // no SSLRequest packet should have been written to the underlying stream
+  assert.equal(con.stream.packets.length, 0, 'direct negotiation must not send an SSLRequest packet')
+  assert.equal(upgradeCalled, true, 'direct negotiation must upgrade to TLS on connect')
+  done()
+})
+
+suite.test('direct SSL negotiation passes ALPN protocol to the secure stream', function (done) {
+  const streamModule = require('../../../lib/stream')
+  const originalGetSecureStream = streamModule.getSecureStream
+
+  let capturedOptions = null
+  streamModule.getSecureStream = function (options) {
+    capturedOptions = options
+    return options.socket
+  }
+
+  try {
+    const con = new Connection({ stream: new MemoryStream(), ssl: true, sslNegotiation: 'direct' })
+    con.connect(1234, 'localhost')
+    con.stream.emit('connect')
+
+    assert(capturedOptions, 'getSecureStream should have been called')
+    assert.deepEqual(
+      capturedOptions.ALPNProtocols,
+      ['postgresql'],
+      'direct negotiation must request the postgresql ALPN protocol'
+    )
+    done()
+  } finally {
+    streamModule.getSecureStream = originalGetSecureStream
+  }
+})
+
+suite.test('traditional SSL negotiation does not set ALPN protocol', function (done) {
+  const streamModule = require('../../../lib/stream')
+  const originalGetSecureStream = streamModule.getSecureStream
+
+  let capturedOptions = null
+  streamModule.getSecureStream = function (options) {
+    capturedOptions = options
+    return options.socket
+  }
+
+  try {
+    const con = new Connection({ stream: new MemoryStream(), ssl: true })
+    con.connect(1234, 'localhost')
+    // traditional path: server signals SSL support with an 'S' byte
+    con.stream.emit('data', Buffer.from('S'))
+
+    assert(capturedOptions, 'getSecureStream should have been called')
+    assert.equal(capturedOptions.ALPNProtocols, undefined, 'traditional negotiation must not request ALPN')
+    done()
+  } finally {
+    streamModule.getSecureStream = originalGetSecureStream
+  }
+})
+
 for (const tc of SSLNegotiationPacketTests) {
   suite.test(tc.testName, function (done) {
     // our fake postgres server

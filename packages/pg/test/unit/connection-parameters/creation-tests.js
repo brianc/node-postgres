@@ -358,3 +358,62 @@ suite.test('ssl is set on client', function () {
     })
   )
 })
+
+suite.test('sslnegotiation defaults to undefined', function () {
+  const subject = new ConnectionParameters({})
+  assert.strictEqual(subject.sslnegotiation, undefined)
+})
+
+suite.test('sslnegotiation=direct is read from config', function () {
+  const subject = new ConnectionParameters({ ssl: true, sslnegotiation: 'direct' })
+  assert.strictEqual(subject.sslnegotiation, 'direct')
+})
+
+suite.test('sslnegotiation=postgres is read from config', function () {
+  const subject = new ConnectionParameters({ ssl: true, sslnegotiation: 'postgres' })
+  assert.strictEqual(subject.sslnegotiation, 'postgres')
+})
+
+suite.test('sslnegotiation rejects invalid values', function () {
+  assert.throws(() => new ConnectionParameters({ ssl: true, sslnegotiation: 'bogus' }), /Invalid sslnegotiation value/)
+})
+
+suite.test('sslnegotiation=direct requires ssl', function () {
+  assert.throws(() => new ConnectionParameters({ ssl: false, sslnegotiation: 'direct' }), /requires SSL to be enabled/)
+})
+
+suite.test('sslnegotiation is read from PGSSLNEGOTIATION env var', function () {
+  const original = process.env.PGSSLNEGOTIATION
+  process.env.PGSSLNEGOTIATION = 'direct'
+  try {
+    const subject = new ConnectionParameters({ ssl: true })
+    assert.strictEqual(subject.sslnegotiation, 'direct')
+  } finally {
+    if (original === undefined) {
+      delete process.env.PGSSLNEGOTIATION
+    } else {
+      process.env.PGSSLNEGOTIATION = original
+    }
+  }
+})
+
+suite.test('sslnegotiation is included in libpq connection string', function () {
+  const subject = new ConnectionParameters({
+    user: 'brian',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+    ssl: true,
+    sslnegotiation: 'direct',
+  })
+  subject.getLibpqConnectionString(
+    assert.calls(function (err, pgCString) {
+      assert(!err)
+      assert.equal(
+        pgCString.indexOf("sslnegotiation='direct'") !== -1,
+        true,
+        'libpqConnectionString should contain sslnegotiation'
+      )
+    })
+  )
+})

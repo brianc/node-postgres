@@ -49,6 +49,31 @@ const config = {
 }
 ```
 
+## Direct SSL negotiation
+
+By default node-postgres uses the traditional PostgreSQL SSL negotiation: it sends an `SSLRequest` packet, waits for the server to acknowledge it, and only then starts the TLS handshake. PostgreSQL 17 and newer also support _direct_ SSL negotiation, where the TLS handshake begins immediately on connect (similar to HTTPS), saving one network round-trip.
+
+To use direct negotiation, set `sslnegotiation: 'direct'`. SSL must be enabled, and the server must be PostgreSQL 17+ configured to accept direct SSL connections.
+
+```js
+const config = {
+  database: 'database-name',
+  host: 'host-or-ip',
+  ssl: { rejectUnauthorized: false },
+  sslnegotiation: 'direct',
+}
+```
+
+It can also be supplied via a connection string. When `sslnegotiation=direct` is present, SSL is enabled automatically if not otherwise configured:
+
+```js
+const config = {
+  connectionString: 'postgres://user:password@host:port/db?sslmode=require&sslnegotiation=direct',
+}
+```
+
+Direct negotiation requests the `postgresql` ALPN protocol during the TLS handshake, as required by the server. The default value is `'postgres'`, which preserves the traditional `SSLRequest` behavior. You can also set the `PGSSLNEGOTIATION` environment variable.
+
 ## Channel binding
 
 If the PostgreSQL server offers SCRAM-SHA-256-PLUS (i.e. channel binding) for TLS/SSL connections, you can enable this as follows:

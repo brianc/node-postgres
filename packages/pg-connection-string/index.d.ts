@@ -22,6 +22,7 @@ export interface ConnectionOptions {
   database: string | null | undefined
   client_encoding?: string
   ssl?: boolean | string | SSLConfig
+  sslnegotiation?: 'postgres' | 'direct'
 
   application_name?: string
   fallback_application_name?: string

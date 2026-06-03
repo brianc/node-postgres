@@ -3,7 +3,8 @@
 const EventEmitter = require('events').EventEmitter
 
 const { parse, serialize } = require('pg-protocol')
-const { getStream, getSecureStream } = require('./stream')
+const stream = require('./stream')
+const { getStream } = stream
 
 const flushBuffer = serialize.flush()
 const syncBuffer = serialize.sync()
@@ -24,6 +25,7 @@ class Connection extends EventEmitter {
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
     this.parsedStatements = {}
     this.ssl = config.ssl || false
+    this.sslNegotiation = config.sslNegotiation || 'postgres'
     this._ending = false
     this._emitMessage = false
     const self = this
@@ -65,6 +67,14 @@ class Connection extends EventEmitter {
       return this.attachListeners(this.stream)
     }
 
+    // With direct SSL negotiation the TLS handshake starts immediately on the
+    // raw socket, skipping the SSLRequest packet and the server's 'S'/'N' reply.
+    if (this.sslNegotiation === 'direct') {
+      return this.stream.once('connect', function () {
+        self.upgradeToSSL(host, reportStreamError)
+      })
+    }
+
     this.stream.once('data', function (buffer) {
       const responseCode = buffer.toString('utf8')
       switch (responseCode) {
@@ -78,32 +88,43 @@ class Connection extends EventEmitter {
           self.stream.end()
           return self.emit('error', new Error('There was an error establishing an SSL connection'))
       }
-      const options = {
-        socket: self.stream,
-      }
-
-      if (self.ssl !== true) {
-        Object.assign(options, self.ssl)
-
-        if ('key' in self.ssl) {
-          options.key = self.ssl.key
-        }
-      }
-
-      const net = require('net')
-      if (net.isIP && net.isIP(host) === 0) {
-        options.servername = host
-      }
-      try {
-        self.stream = getSecureStream(options)
-      } catch (err) {
-        return self.emit('error', err)
-      }
-      self.attachListeners(self.stream)
-      self.stream.on('error', reportStreamError)
-
-      self.emit('sslconnect')
+      self.upgradeToSSL(host, reportStreamError)
     })
+  }
+
+  upgradeToSSL(host, reportStreamError) {
+    const self = this
+    const options = {
+      socket: self.stream,
+    }
+
+    if (self.ssl !== true) {
+      Object.assign(options, self.ssl)
+
+      if ('key' in self.ssl) {
+        options.key = self.ssl.key
+      }
+    }
+
+    // Direct SSL negotiation requires ALPN so the server can confirm it is
+    // speaking the PostgreSQL protocol over the TLS connection.
+    if (self.sslNegotiation === 'direct') {
+      options.ALPNProtocols = ['postgresql']
+    }
+
+    const net = require('net')
+    if (net.isIP && net.isIP(host) === 0) {
+      options.servername = host
+    }
+    try {
+      self.stream = stream.getSecureStream(options)
+    } catch (err) {
+      return self.emit('error', err)
+    }
+    self.attachListeners(self.stream)
+    self.stream.on('error', reportStreamError)
+
+    self.emit('sslconnect')
   }
 
   attachListeners(stream) {

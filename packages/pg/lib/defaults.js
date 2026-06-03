@@ -49,6 +49,9 @@ module.exports = {
 
   ssl: false,
 
+  // SSL negotiation style: 'postgres' (traditional SSLRequest) or 'direct'
+  sslnegotiation: undefined,
+
   application_name: undefined,
 
   fallback_application_name: undefined,
