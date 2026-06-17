@@ -17,7 +17,7 @@ We do not include break-fix version release in this file.
 
 ## pg@8.19.0
 
-- [Deprecate interal query queue](https://github.com/brianc/node-postgres/pull/3603).
+- [Deprecate internal query queue](https://github.com/brianc/node-postgres/pull/3603).
 - Pass connection parameters [to password callback](https://github.com/brianc/node-postgres/pull/3602).
 
 ## pg@8.18.0

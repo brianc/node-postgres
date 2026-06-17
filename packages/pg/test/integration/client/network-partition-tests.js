@@ -14,8 +14,8 @@ const Server = function (response) {
 
 Server.prototype.start = function (cb) {
   // this is our fake postgres server
-  // it responds with our specified response immediatley after receiving every buffer
-  // this is sufficient into convincing the client its connectet to a valid backend
+  // it responds with our specified response immediately after receiving every buffer
+  // this is sufficient into convincing the client its connected to a valid backend
   // if we respond with a readyForQuery message
   this.server = net.createServer(
     function (socket) {

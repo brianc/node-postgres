@@ -28,7 +28,7 @@ import {
 } from './messages'
 import { BufferReader } from './buffer-reader'
 
-// every message is prefixed with a single bye
+// every message is prefixed with a single byte
 const CODE_LENGTH = 1
 // every message has an int32 length which includes itself but does
 // NOT include the code in the length
