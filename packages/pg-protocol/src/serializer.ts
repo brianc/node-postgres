@@ -48,7 +48,7 @@ const password = (password: string): Buffer => {
 
 const sendSASLInitialResponseMessage = function (mechanism: string, initialResponse: string): Buffer {
   // 0x70 = 'p'
-  writer.addCString(mechanism).addInt32(Buffer.byteLength(initialResponse)).addString(initialResponse)
+  writer.addCString(mechanism).addInt32PrefixedString(initialResponse)
 
   return writer.flush(code.startup)
 }
@@ -135,8 +135,8 @@ const writeValues = function (values: any[], valueMapper?: ValueMapper): void {
     } else {
       // add the param type (string) to the writer
       writer.addInt16(ParamType.STRING)
-      paramWriter.addInt32(Buffer.byteLength(mappedVal))
-      paramWriter.addString(mappedVal)
+      // length prefix + UTF-8 bytes in one pass (Buffer.byteLength computed once)
+      paramWriter.addInt32PrefixedString(mappedVal)
     }
   }
 }

@@ -129,6 +129,28 @@ describe('serializer', () => {
         .join(true, 'B')
       assert.deepEqual(actual, expectedBuffer)
     })
+
+    it('encodes a multi-byte string param with its UTF-8 byte length, not char length', function () {
+      // Guards the single-pass addInt32PrefixedString write path: the Int32
+      // length prefix must be the UTF-8 byte count, not String.length. 'héllo中🎉'
+      // is 7 code points / 8 UTF-16 code units but 13 UTF-8 bytes.
+      const value = 'héllo中🎉'
+      const bytes = Buffer.from(value, 'utf8')
+      assert.notEqual(bytes.length, value.length) // sanity: the divergence we're testing
+      const actual = serialize.bind({ values: [value] })
+      const expectedBuffer = new BufferList()
+        .addCString('') // portal
+        .addCString('') // statement
+        .addInt16(1) // param format code count
+        .addInt16(0) // format code for the one value (text)
+        .addInt16(1) // value count
+        .addInt32(bytes.length) // 13 — the UTF-8 byte length, NOT value.length (8)
+        .add(bytes)
+        .addInt16(1) // result format code count
+        .addInt16(0) // result format (text)
+        .join(true, 'B')
+      assert.deepEqual(actual, expectedBuffer)
+    })
   })
 
   it('with custom valueMapper', function () {
