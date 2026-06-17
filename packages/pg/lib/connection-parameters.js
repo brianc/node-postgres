@@ -99,6 +99,18 @@ class ConnectionParameters {
       })
     }
 
+    // How to negotiate SSL: 'postgres' (default, the traditional SSLRequest
+    // handshake) or 'direct' (start the TLS handshake immediately on connect).
+    this.sslnegotiation = val('sslnegotiation', config, 'PGSSLNEGOTIATION')
+    if (this.sslnegotiation !== undefined && this.sslnegotiation !== 'postgres' && this.sslnegotiation !== 'direct') {
+      throw new Error(
+        `Invalid sslnegotiation value: "${this.sslnegotiation}". Valid values are "postgres" and "direct".`
+      )
+    }
+    if (this.sslnegotiation === 'direct' && !this.ssl) {
+      throw new Error('sslnegotiation=direct requires SSL to be enabled')
+    }
+
     this.client_encoding = val('client_encoding', config)
     this.replication = val('replication', config)
     // a domain socket begins with '/'
@@ -144,6 +156,7 @@ class ConnectionParameters {
     add(params, ssl, 'sslkey')
     add(params, ssl, 'sslcert')
     add(params, ssl, 'sslrootcert')
+    add(params, this, 'sslnegotiation')
 
     if (this.database) {
       params.push('dbname=' + quoteParamValue(this.database))

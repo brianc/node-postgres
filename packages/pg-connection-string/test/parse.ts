@@ -216,6 +216,29 @@ describe('parse', function () {
     subject.ssl?.should.equal(true)
   })
 
+  it('configuration parameter sslnegotiation=direct', function () {
+    const connectionString = 'pg:///?sslnegotiation=direct'
+    const subject = parse(connectionString)
+    subject.sslnegotiation?.should.equal('direct')
+    // direct negotiation implies SSL is enabled
+    subject.ssl?.should.equal(true)
+  })
+
+  it('configuration parameter sslnegotiation=postgres', function () {
+    const connectionString = 'pg:///?sslnegotiation=postgres'
+    const subject = parse(connectionString)
+    subject.sslnegotiation?.should.equal('postgres')
+    // traditional negotiation does not change ssl
+    ;(subject.ssl === undefined).should.equal(true)
+  })
+
+  it('sslnegotiation=direct keeps an explicit ssl config', function () {
+    const connectionString = 'pg:///?sslnegotiation=direct&sslmode=require'
+    const subject = parse(connectionString)
+    subject.sslnegotiation?.should.equal('direct')
+    subject.ssl?.should.eql({})
+  })
+
   it('configuration parameter sslcert=/path/to/cert', function () {
     const connectionString = 'pg:///?sslcert=' + __dirname + '/example.cert'
     const subject = parse(connectionString)

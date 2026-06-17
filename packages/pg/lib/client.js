@@ -91,6 +91,7 @@ class Client extends EventEmitter {
       new Connection({
         stream: c.stream,
         ssl: this.connectionParameters.ssl,
+        sslNegotiation: this.connectionParameters.sslnegotiation,
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
@@ -100,6 +101,7 @@ class Client extends EventEmitter {
     this.processID = null
     this.secretKey = null
     this.ssl = this.connectionParameters.ssl || false
+    this.sslNegotiation = this.connectionParameters.sslnegotiation || 'postgres'
     // As with Password, make SSL->Key (the private key) non-enumerable.
     // It won't show up in stack traces
     // or if the client is console.logged
@@ -177,7 +179,11 @@ class Client extends EventEmitter {
     // once connection is established send startup message
     con.on('connect', function () {
       if (self.ssl) {
-        con.requestSsl()
+        // With direct SSL negotiation the connection upgrades to TLS without an
+        // SSLRequest packet, so the startup message is sent after 'sslconnect'.
+        if (self.sslNegotiation !== 'direct') {
+          con.requestSsl()
+        }
       } else {
         con.startup(self.getStartupConf())
       }
