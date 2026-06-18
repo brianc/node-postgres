@@ -25,26 +25,39 @@ jobs:
     needs: lint
     services:
       postgres:
-        image: ghcr.io/railwayapp-templates/postgres-ssl
+        image: ghcr.io/railwayapp-templates/postgres-ssl:${{ matrix.postgres }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_HOST_AUTH_METHOD: 'md5'
           POSTGRES_DB: ci_db_test
+          # PostgreSQL 18's official image defaults PGDATA to a versioned
+          # subdirectory (/var/lib/postgresql/18/docker), but the
+          # railwayapp-templates/postgres-ssl entrypoint requires PGDATA to
+          # start with /var/lib/postgresql/data so we pin it explicitly. This is
+          # also the default for the older images, so it is a no-op there.
+          PGDATA: /var/lib/postgresql/data
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       fail-fast: false
       matrix:
-        node:
-          - '16'
-          - '18'
-          - '20'
-          - '22'
-          - '24'
-          - '26'
-    name: Node.js ${{ matrix.node }}
+        include:
+          # Historical Node.js versions tested against a single PostgreSQL version
+          - { node: '16', postgres: &stable_postgres '18' }
+          - { node: '18', postgres: *stable_postgres }
+          - { node: '20', postgres: *stable_postgres }
+          - { node: '22', postgres: *stable_postgres }
+          - { node: '24', postgres: *stable_postgres }
+          # Latest Node.js version tested against multiple PostgreSQL versions
+          - { node: &latest_node '26', postgres: '13' }
+          - { node: *latest_node, postgres: '14' }
+          - { node: *latest_node, postgres: '15' }
+          - { node: *latest_node, postgres: '16' }
+          - { node: *latest_node, postgres: '17' }
+          - { node: *latest_node, postgres: '18' }
+    name: Node.js ${{ matrix.node }} x PostgreSQL ${{ matrix.postgres }}
     runs-on: ubuntu-latest
     env:
       PGUSER: postgres
