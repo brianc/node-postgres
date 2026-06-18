@@ -44,8 +44,6 @@ jobs:
           - '22'
           - '24'
           - '26'
-        os:
-          - ubuntu-latest
     name: Node.js ${{ matrix.node }}
     runs-on: ubuntu-latest
     env:
