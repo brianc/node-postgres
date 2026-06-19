@@ -53,9 +53,11 @@ const sendSASLInitialResponseMessage = function (mechanism: string, initialRespo
   return writer.flush(code.startup)
 }
 
-const sendSCRAMClientFinalMessage = function (additionalData: string): Buffer {
+const sendSASLResponseMessage = function (additionalData: string): Buffer {
   return writer.addString(additionalData).flush(code.startup)
 }
+
+const sendSCRAMClientFinalMessage = sendSASLResponseMessage
 
 const query = (text: string): Buffer => {
   return writer.addCString(text).flush(code.query)
@@ -261,6 +263,7 @@ const serialize = {
   password,
   requestSsl,
   sendSASLInitialResponseMessage,
+  sendSASLResponseMessage,
   sendSCRAMClientFinalMessage,
   query,
   parse,
