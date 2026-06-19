@@ -18,6 +18,7 @@ $ npm install pg
 
 ### Features
 
+- [Fastest PostgreSQL client for Node.js](https://github.com/nigrosimone/postgres-benchmarks)
 - Pure JavaScript client and native libpq bindings share _the same API_
 - Connection pooling
 - Extensible JS ↔ PostgreSQL data-type coercion

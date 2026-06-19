@@ -4,7 +4,7 @@
 <span class="badge-npmversion"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/v/pg.svg" alt="NPM version" /></a></span>
 <span class="badge-npmdownloads"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/pg.svg" alt="NPM downloads" /></a></span>
 
-Non-blocking [Truly Fastest](https://github.com/nigrosimone/postgres-benchmarks) PostgreSQL client for Node.js. Pure JavaScript and optional native libpq bindings.
+Non-blocking PostgreSQL client for Node.js (and bun, deno, cloudflare, etc...). Pure JavaScript and optional native libpq bindings.
 
 ## Monorepo
 
@@ -34,6 +34,7 @@ The source repo for the documentation is available for contribution [here](https
 
 ### Features
 
+- [Fastest PostgreSQL client for Node.js](https://github.com/nigrosimone/postgres-benchmarks)
 - Pure JavaScript client and native libpq bindings share _the same API_
 - Connection pooling
 - Extensible JS ↔ PostgreSQL data-type coercion

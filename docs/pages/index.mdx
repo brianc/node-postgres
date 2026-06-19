@@ -13,6 +13,8 @@ node-postgres is a collection of node.js modules for interfacing with your Postg
 
 node-postgres supports every version of the PostgreSQL database from 8.x to the most recent version of PostgreSQL.
 
+node-postgres supports all current and LTS versions of node as well as bun, deno, and cloudflare workers.
+
 ## Install
 
 ```bash
@@ -66,12 +68,12 @@ import { Client } from 'pg'
 const client = await new Client().connect()
 
 try {
-   const res = await client.query('SELECT $1::text as message', ['Hello world!'])
-   console.log(res.rows[0].message) // Hello world!
+  const res = await client.query('SELECT $1::text as message', ['Hello world!'])
+  console.log(res.rows[0].message) // Hello world!
 } catch (err) {
-   console.error(err);
+  console.error(err)
 } finally {
-   await client.end()
+  await client.end()
 }
 ```
 
