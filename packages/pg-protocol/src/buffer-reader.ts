@@ -45,7 +45,7 @@ export class BufferReader {
     const start = this.offset
     let end = start
     // eslint-disable-next-line no-empty
-    while (this.buffer[end++] !== 0) {}
+    while (this.buffer[end++]) {}
     this.offset = end
     return this.buffer.toString(this.encoding, start, end - 1)
   }
