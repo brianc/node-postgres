@@ -3,7 +3,7 @@ pg-connection-string
 
 [![NPM](https://nodei.co/npm/pg-connection-string.png?compact=true)](https://nodei.co/npm/pg-connection-string/)
 
-Functions for dealing with a PostgresSQL connection string
+Functions for dealing with a PostgreSQL connection string
 
 `parse` method taken from [node-postgres](https://github.com/brianc/node-postgres.git)
 Copyright (c) 2010-2014 Brian Carlson (brian.m.carlson@gmail.com)
