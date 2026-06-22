@@ -56,7 +56,7 @@ function makeIdleListener(pool, client) {
     client.on('error', () => {
       pool.log('additional client error after disconnection due to error', err)
     })
-    pool._remove(client)
+    pool._remove(client, pool._pulseQueue.bind(pool))
     // TODO - document that once the pool emits an error
     // the client has already been closed & purged and is unusable
     pool.emit('error', err, client)
@@ -124,6 +124,16 @@ class Pool extends EventEmitter {
     return this._clients.length > this.options.min
   }
 
+  _ensureMinimum() {
+    if (this.ending || this.ended) return
+    const needed = this.options.min - this._clients.length
+    for (let i = 0; i < needed; i++) {
+      this.newClient(new PendingItem((err, client, clientRelease) => {
+        if (!err) clientRelease()
+      }))
+    }
+  }
+
   _pulseQueue() {
     this.log('pulse queue')
     if (this.ended) {
@@ -177,6 +187,7 @@ class Pool extends EventEmitter {
     }
 
     this._clients = this._clients.filter((c) => c !== client)
+    this._ensureMinimum()
     const context = this
     client.end(() => {
       context.emit('remove', client)

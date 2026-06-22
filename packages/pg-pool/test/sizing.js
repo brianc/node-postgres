@@ -81,13 +81,16 @@ describe('pool size of 1', () => {
   )
 
   it(
-    'does remove clients when at or below min if maxLifetimeSeconds is reached',
+    'retires and replaces clients at or below min when maxLifetimeSeconds is reached',
     co.wrap(function* () {
       const pool = new Pool({ max: 1, min: 1, idleTimeoutMillis: 10, maxLifetimeSeconds: 1 })
       const client = yield pool.connect()
       client.release()
-      yield new Promise((resolve) => setTimeout(resolve, 1020))
-      expect(pool.idleCount).to.equal(0)
+      // Wait long enough for the original client to expire and a replacement to connect
+      yield new Promise((resolve) => setTimeout(resolve, 1500))
+      // Original client was retired; pool refills to min with a fresh connection
+      expect(pool.totalCount).to.equal(1)
+      expect(pool.idleCount).to.equal(1)
       return yield pool.end()
     })
   )
