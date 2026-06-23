@@ -111,6 +111,13 @@ describe('parse', function () {
     subject.host?.should.equal('localhost')
   })
 
+  it('strips the brackets from an IPv6 host', function () {
+    const subject = parse('postgres://user:pw@[2001:db8::1]:5432/mydb')
+    subject.host?.should.equal('2001:db8::1')
+    subject.port?.should.equal('5432')
+    parse('postgres://[::1]/db').host?.should.equal('::1')
+  })
+
   it('url is properly encoded', function () {
     const encoded = 'pg://bi%25na%25%25ry%20:s%40f%23@localhost/%20u%2520rl'
     const subject = parse(encoded)

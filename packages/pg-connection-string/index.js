@@ -50,7 +50,10 @@ function parse(str, options = {}) {
     config.client_encoding = result.searchParams.get('encoding')
     return config
   }
-  const hostname = dummyHost ? '' : result.hostname
+  // The WHATWG URL parser keeps the square brackets around an IPv6 literal
+  // (e.g. [::1]); strip them so config.host is a bare address that libpq, and
+  // node's net.connect / dns.lookup, can use directly.
+  const hostname = (dummyHost ? '' : result.hostname).replace(/^\[(.+)\]$/, '$1')
   if (!config.host) {
     // Only set the host if there is no equivalent query param.
     config.host = decodeURIComponent(hostname)
