@@ -24,6 +24,7 @@ class Connection extends EventEmitter {
     this._keepAlive = config.keepAlive
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
     this.parsedStatements = {}
+    this.submittedNamedStatements = {}
     this.ssl = config.ssl || false
     this.sslNegotiation = config.sslNegotiation || 'postgres'
     this._ending = false

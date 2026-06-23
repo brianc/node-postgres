@@ -36,6 +36,8 @@ const Client = (module.exports = function (config) {
   this._connecting = false
   this._connected = false
   this._queryable = true
+  this.pipeline = Boolean(config.pipeline)
+  this._pipelineInFlight = false
 
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
@@ -234,7 +236,7 @@ Client.prototype.query = function (config, values, callback) {
     return result
   }
 
-  if (this._queryQueue.length > 0) {
+  if (this._queryQueue.length > 0 && !this.pipeline) {
     queryQueueLengthDeprecationNotice()
   }
 
@@ -261,16 +263,25 @@ Client.prototype.end = function (cb) {
     })
   }
 
-  this.native.end(function () {
-    self._connected = false
+  const doEnd = function () {
+    self.native.end(function () {
+      self._connected = false
 
-    self._errorAllQueries(new Error('Connection terminated'))
+      self._errorAllQueries(new Error('Connection terminated'))
 
-    process.nextTick(() => {
-      self.emit('end')
-      if (cb) cb()
+      process.nextTick(() => {
+        self.emit('end')
+        if (cb) cb()
+      })
     })
-  })
+  }
+
+  // If pipeline has in-flight or queued queries, wait for them to drain before closing
+  if (this.pipeline && (this._pipelineInFlight || this._queryQueue.length > 0)) {
+    this.once('drain', doEnd)
+  } else {
+    doEnd()
+  }
   return result
 }
 
@@ -281,6 +292,9 @@ Client.prototype._hasActiveQuery = function () {
 Client.prototype._pulseQueryQueue = function (initialConnection) {
   if (!this._connected) {
     return
+  }
+  if (this.pipeline && !initialConnection) {
+    return this._pulsePipelinedQueryQueue()
   }
   if (this._hasActiveQuery()) {
     return
@@ -297,6 +311,83 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
   const self = this
   query.once('_done', function () {
     self._pulseQueryQueue()
+  })
+}
+
+Client.prototype._pulsePipelinedQueryQueue = function () {
+  if (!this._connected || this._pipelineInFlight) {
+    return
+  }
+  if (this._queryQueue.length === 0) {
+    if (this.hasExecuted) {
+      this.emit('drain')
+    }
+    return
+  }
+
+  this._pipelineInFlight = true
+  const self = this
+  const queries = []
+  const nativeQueries = []
+  const utils = require('../utils')
+
+  while (this._queryQueue.length > 0) {
+    const query = this._queryQueue.shift()
+    this.hasExecuted = true
+    nativeQueries.push(query)
+
+    const values = query.values ? query.values.map(utils.prepareValue) : null
+    const pipelineEntry = { text: query.text, name: query.name }
+    if (values) {
+      pipelineEntry.values = values
+    }
+    if (query.name && this.namedQueries[query.name]) {
+      pipelineEntry._alreadyPrepared = true
+    }
+    queries.push(pipelineEntry)
+  }
+
+  this.native.pipeline(queries, function (err, results) {
+    self._pipelineInFlight = false
+
+    if (err) {
+      // Total pipeline failure — error all queries
+      for (let i = 0; i < nativeQueries.length; i++) {
+        const q = nativeQueries[i]
+        q.native = self.native
+        q.handleError(err)
+      }
+      self._pulsePipelinedQueryQueue()
+      return
+    }
+
+    // Deliver results to each query
+    for (let i = 0; i < nativeQueries.length; i++) {
+      const q = nativeQueries[i]
+      const r = results[i]
+      q.native = self.native
+
+      if (r.err) {
+        q.handleError(r.err)
+      } else {
+        // Track named queries on success
+        if (q.name) {
+          self.namedQueries[q.name] = q.text
+        }
+        q.state = 'end'
+        q.emit('end', r.result)
+        if (q.callback) {
+          q.callback(null, r.result)
+        }
+      }
+
+      setImmediate(function () {
+        q.emit('_done')
+      })
+    }
+
+    // Process any queries that arrived while we were reading
+    self._pulsePipelinedQueryQueue()
   })
 }
 

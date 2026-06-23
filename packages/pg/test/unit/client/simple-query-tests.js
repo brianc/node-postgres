@@ -114,6 +114,100 @@ test('executing query', function () {
     })
   })
 
+  test('pipeline', function () {
+    test('sends all queries immediately after readyForQuery', function () {
+      const client = helper.client({ pipeline: true })
+      client.connection.emit('readyForQuery')
+      client.query('one')
+      client.query('two')
+      client.query('three')
+      assert.lengthIs(client.connection.queries, 3)
+      assert.equal(client.connection.queries[0], 'one')
+      assert.equal(client.connection.queries[1], 'two')
+      assert.equal(client.connection.queries[2], 'three')
+    })
+
+    test('completes queries in order', function (done) {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      const results = []
+      client.query('one', (err, res) => {
+        results.push('one')
+      })
+      client.query('two', (err, res) => {
+        results.push('two')
+      })
+      client.query('three', (err, res) => {
+        results.push('three')
+      })
+
+      // simulate server responding to each query in order
+      con.emit('readyForQuery')
+      con.emit('readyForQuery')
+      con.emit('readyForQuery')
+
+      process.nextTick(() => {
+        assert.deepStrictEqual(results, ['one', 'two', 'three'])
+        done()
+      })
+    })
+
+    test('emits drain after all queries complete', function (done) {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query('one')
+      client.query('two')
+
+      client.on('drain', () => {
+        done()
+      })
+
+      con.emit('readyForQuery')
+      con.emit('readyForQuery')
+    })
+
+    test('extended protocol: sends parse/bind/sync for each pipelined parameterized query', function () {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query({ text: 'SELECT $1::int', values: [1] })
+      client.query({ text: 'SELECT $1::int', values: [2] })
+
+      // both parse messages should have been sent immediately
+      assert.lengthIs(con.parseMessages, 2)
+      assert.equal(con.parseMessages[0].text, 'SELECT $1::int')
+      assert.equal(con.parseMessages[1].text, 'SELECT $1::int')
+      // both bind messages too
+      assert.lengthIs(con.bindMessages, 2)
+      // each query sends its own sync
+      assert.equal(con.syncCount, 2)
+    })
+
+    test('named statement: parse sent only once when pipelining the same name', function () {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query({ name: 'my-stmt', text: 'SELECT $1::int', values: [1] })
+      client.query({ name: 'my-stmt', text: 'SELECT $1::int', values: [2] })
+
+      // parse sent only once — second query reuses the submitted statement
+      assert.lengthIs(con.parseMessages, 1)
+      // both bind messages sent
+      assert.lengthIs(con.bindMessages, 2)
+    })
+
+    test('pipeline disabled by default', function () {
+      const client = helper.client()
+      assert.equal(client.pipeline, false)
+    })
+  })
+
   test('handles errors', function () {
     const client = helper.client()
 
