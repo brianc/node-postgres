@@ -157,8 +157,12 @@ class Connection extends EventEmitter {
     this._send(serialize.sendSASLInitialResponseMessage(mechanism, initialResponse))
   }
 
+  sendSASLResponseMessage(additionalData) {
+    this._send(serialize.sendSASLResponseMessage(additionalData))
+  }
+
   sendSCRAMClientFinalMessage(additionalData) {
-    this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
+    this.sendSASLResponseMessage(additionalData)
   }
 
   _send(buffer) {

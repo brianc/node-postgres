@@ -13,3 +13,13 @@ suite.test('pool with copied settings includes password', () => {
 
   assert.equal(copy.options.password, 'original')
 })
+
+suite.test('pool with copied settings includes OAuth bearer token', () => {
+  const original = new helper.pg.Pool({
+    oauthBearerToken: 'original',
+  })
+
+  const copy = new helper.pg.Pool(original.options)
+
+  assert.equal(copy.options.oauthBearerToken, 'original')
+})

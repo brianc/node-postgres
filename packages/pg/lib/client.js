@@ -65,6 +65,12 @@ class Client extends EventEmitter {
       writable: true,
       value: this.connectionParameters.password,
     })
+    Object.defineProperty(this, 'oauthBearerToken', {
+      configurable: true,
+      enumerable: false,
+      writable: true,
+      value: this.connectionParameters.oauthBearerToken,
+    })
 
     this.replication = this.connectionParameters.replication
 
@@ -305,6 +311,33 @@ class Client extends EventEmitter {
     }
   }
 
+  _getOAuthBearerToken(cb) {
+    const con = this.connection
+    if (typeof this.oauthBearerToken === 'function') {
+      let tokenResult
+      try {
+        tokenResult = this.oauthBearerToken(this.connectionParameters)
+      } catch (err) {
+        process.nextTick(() => con.emit('error', err))
+        return
+      }
+      this._Promise.resolve(tokenResult).then(
+        (token) => {
+          if (typeof token !== 'string') {
+            con.emit('error', new TypeError('OAuth bearer token must be a string'))
+            return
+          }
+          cb(token)
+        },
+        (err) => {
+          con.emit('error', err)
+        }
+      )
+    } else {
+      cb(this.oauthBearerToken)
+    }
+  }
+
   _handleAuthCleartextPassword(msg) {
     this._getPassword(() => {
       this.connection.password(this.password)
@@ -323,18 +356,35 @@ class Client extends EventEmitter {
   }
 
   _handleAuthSASL(msg) {
-    this._getPassword(() => {
+    const hasOAuth = msg.mechanisms.includes('OAUTHBEARER')
+    const hasScram = msg.mechanisms.includes('SCRAM-SHA-256') || msg.mechanisms.includes('SCRAM-SHA-256-PLUS')
+
+    const beginSASLSession = (oauthBearerToken) => {
       try {
-        this.saslSession = sasl.startSession(
-          msg.mechanisms,
-          this.enableChannelBinding && this.connection.stream,
-          this.scramMaxIterations
-        )
+        this.saslSession = sasl.startSession(msg.mechanisms, this.enableChannelBinding && this.connection.stream, {
+          oauthBearerToken,
+          scramMaxIterations: this.scramMaxIterations,
+        })
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
       } catch (err) {
         this.connection.emit('error', err)
       }
-    })
+    }
+
+    if (hasOAuth && this.oauthBearerToken != null) {
+      return this._getOAuthBearerToken((oauthBearerToken) => {
+        beginSASLSession(oauthBearerToken)
+      })
+    }
+
+    if (hasScram) {
+      return this._getPassword(() => {
+        beginSASLSession()
+      })
+    }
+
+    // Let sasl.startSession throw the unsupported-mechanism error.
+    beginSASLSession()
   }
 
   async _handleAuthSASLContinue(msg) {
@@ -345,7 +395,14 @@ class Client extends EventEmitter {
         msg.data,
         this.enableChannelBinding && this.connection.stream
       )
-      this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
+      this.connection.sendSASLResponseMessage(this.saslSession.response)
+      if (this.saslSession.oauthError) {
+        this.connection.emit(
+          'error',
+          new Error('SASL: OAUTHBEARER authentication failed: ' + this.saslSession.oauthError)
+        )
+        return
+      }
     } catch (err) {
       this.connection.emit('error', err)
     }
