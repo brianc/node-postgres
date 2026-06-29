@@ -129,6 +129,74 @@ client = new Client({
 })
 ```
 
+## Multiple hosts
+
+node-postgres supports connecting to multiple PostgreSQL hosts. Pass arrays to `host` and `port` to enable automatic failover — the client tries each host in order and uses the first one it can reach.
+
+```js
+import { Client } from 'pg'
+
+const client = new Client({
+  host: ['primary.db.com', 'replica1.db.com', 'replica2.db.com'],
+  port: 5432, // single port reused for all hosts
+  database: 'mydb',
+  user: 'dbuser',
+  password: 'secretpassword',
+})
+
+await client.connect() // tries hosts left to right until one succeeds
+```
+
+You can also specify a different port for each host:
+
+```js
+const client = new Client({
+  host: ['host-a.db.com', 'host-b.db.com'],
+  port: [5432, 5433],
+  database: 'mydb',
+})
+```
+
+Host lists may mix TCP hosts and Unix socket directories. Each entry is interpreted independently:
+
+```js
+const client = new Client({
+  host: ['/var/run/postgresql', 'db.example.com'],
+  port: 5432,
+  database: 'mydb',
+})
+```
+
+For an absolute host path, the port is used as the Unix socket filename extension (`.s.PGSQL.5432`). Other host values use TCP.
+
+Port rules (same as libpq):
+- **one port** — reused for every host
+- **one port per host** — each port is paired with the corresponding host by index
+- any other combination throws at construction time
+
+### target_session_attrs
+
+Use `targetSessionAttrs` to control which host is accepted based on its role. This mirrors the [libpq `target_session_attrs`](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNECT-TARGET-SESSION-ATTRS) option.
+
+```js
+const client = new Client({
+  host: ['primary.db.com', 'replica.db.com'],
+  port: 5432,
+  targetSessionAttrs: 'read-write', // only connect to a writable primary
+})
+```
+
+| Value | Accepted server |
+|---|---|
+| `any` (default) | any server |
+| `read-write` | server where `transaction_read_only = off` |
+| `read-only` | server where `transaction_read_only = on` |
+| `primary` | server that is not in hot standby |
+| `standby` | server that is in hot standby |
+| `prefer-standby` | standby if available, otherwise any |
+
+When all hosts are exhausted without finding a matching server, the client emits an error.
+
 ## Connection URI
 
 You can initialize both a pool and a client with a connection string URI as well. This is common in environments like Heroku where the database connection string is supplied to your application dyno through an environment variable. Connection string parsing brought to you by [pg-connection-string](https://github.com/brianc/node-postgres/tree/master/packages/pg-connection-string).

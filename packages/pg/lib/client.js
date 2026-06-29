@@ -8,6 +8,7 @@ const ConnectionParameters = require('./connection-parameters')
 const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
+const MultiConnection = require('./multi-connection')
 const crypto = require('./crypto/utils')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
@@ -86,16 +87,23 @@ class Client extends EventEmitter {
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.scramMaxIterations = coerceNumberOrDefault(c.scramMaxIterations, sasl.DEFAULT_MAX_SCRAM_ITERATIONS)
+    const targetSessionAttrs = c.targetSessionAttrs || this.connectionParameters.targetSessionAttrs || null
+    const connectionConfig = {
+      stream: c.stream,
+      ssl: this.connectionParameters.ssl,
+      sslNegotiation: this.connectionParameters.sslnegotiation,
+      keepAlive: c.keepAlive || false,
+      keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
+      encoding: this.connectionParameters.client_encoding || 'utf8',
+      targetSessionAttrs: targetSessionAttrs,
+    }
+    const needsMultiConnection =
+      Array.isArray(this.host) ||
+      Array.isArray(this.port) ||
+      Boolean(targetSessionAttrs && targetSessionAttrs !== 'any')
+
     this.connection =
-      c.connection ||
-      new Connection({
-        stream: c.stream,
-        ssl: this.connectionParameters.ssl,
-        sslNegotiation: this.connectionParameters.sslnegotiation,
-        keepAlive: c.keepAlive || false,
-        keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
-        encoding: this.connectionParameters.client_encoding || 'utf8',
-      })
+      c.connection || (needsMultiConnection ? new MultiConnection(connectionConfig) : new Connection(connectionConfig))
     this._queryQueue = []
     this.binary = c.binary || defaults.binary
     this.processID = null
@@ -170,7 +178,9 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this.host && this.host.indexOf('/') === 0) {
+    if (con instanceof MultiConnection || Array.isArray(this.host)) {
+      con.connect(this.port, this.host)
+    } else if (this.host && this.host.indexOf('/') === 0) {
       con.connect(this.host + '/.s.PGSQL.' + this.port)
     } else {
       con.connect(this.port, this.host)
@@ -566,7 +576,7 @@ class Client extends EventEmitter {
     if (client.activeQuery === query) {
       const con = this.connection
 
-      if (this.host && this.host.indexOf('/') === 0) {
+      if (!Array.isArray(this.host) && this.host && this.host.indexOf('/') === 0) {
         con.connect(this.host + '/.s.PGSQL.' + this.port)
       } else {
         con.connect(this.port, this.host)
