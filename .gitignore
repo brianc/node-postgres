@@ -11,3 +11,4 @@ dist
 .vscode/
 manually-test-on-heroku.js
 tsconfig.tsbuildinfo
+.history
