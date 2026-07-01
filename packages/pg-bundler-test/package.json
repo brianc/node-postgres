@@ -11,7 +11,7 @@
     "esbuild": "^0.25.5",
     "pg-cloudflare": "^1.4.0",
     "rollup": "^4.41.1",
-    "vite": "^7.1.7",
+    "vite": "^8.1.2",
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1"
   },
