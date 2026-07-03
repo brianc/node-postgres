@@ -3,6 +3,17 @@
 const defaults = require('./defaults')
 
 const { isDate } = require('util/types')
+const nodeUtils = require('util')
+
+// see https://github.com/brianc/node-postgres/issues/3318
+// invalid Date objects (e.g. new Date(undefined), whose .getTime() is NaN) used to be
+// serialized as the meaningless string '0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN', which
+// Postgres cannot parse. This is deprecated in pg@8 (serialized as NULL, with a warning)
+// and will throw an error in pg@9.
+const invalidDateDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Passing an invalid Date (i.e. one whose .getTime() is NaN) as a query parameter is deprecated and will throw an error in pg@9.0. It currently serializes to NULL. See https://github.com/brianc/node-postgres/issues/3318'
+)
 
 function escapeElement(elementRepresentation) {
   const escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
@@ -30,7 +41,15 @@ function arrayString(val) {
       }
       result += '\\\\x' + item.toString('hex')
     } else {
-      result += escapeElement(prepareValue(item))
+      // prepareValue can itself return null (e.g. an invalid Date, see #3318),
+      // so re-check for null on its result rather than assuming item's nullness
+      // implies the prepared value's nullness.
+      const preparedItem = prepareValue(item)
+      if (preparedItem == null) {
+        result += 'NULL'
+      } else {
+        result += escapeElement(preparedItem)
+      }
     }
   }
   result += '}'
@@ -54,6 +73,10 @@ const prepareValue = function (val, seen) {
       return Buffer.from(val.buffer, val.byteOffset, val.byteLength)
     }
     if (isDate(val)) {
+      if (isNaN(val.getTime())) {
+        invalidDateDeprecationNotice()
+        return null
+      }
       if (defaults.parseInputDatesAsUTC) {
         return dateToStringUTC(val)
       } else {

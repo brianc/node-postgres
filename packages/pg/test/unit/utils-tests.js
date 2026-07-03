@@ -89,6 +89,42 @@ test('prepareValues: 1 BC date prepared properly', function () {
   helper.resetTimezoneOffset()
 })
 
+test('prepareValues: invalid date never serializes to a NaN string and warns of deprecation', async function () {
+  // GIVEN an invalid Date param (.getTime() is NaN)
+  const invalidDate = new Date(undefined)
+  assert.ok(isNaN(invalidDate.getTime()), 'test setup: date must be invalid')
+
+  let sawDeprecationWarning = false
+  const onWarning = (warning) => {
+    if (warning.name === 'DeprecationWarning' && /invalid date/i.test(warning.message)) {
+      sawDeprecationWarning = true
+    }
+  }
+  process.on('warning', onWarning)
+
+  let out
+  try {
+    // WHEN it is serialized by the parameter path
+    out = utils.prepareValue(invalidDate)
+    // deprecation warnings are emitted asynchronously (process.emitWarning queues a
+    // nextTick/immediate task) - give the event loop a turn before asserting on it
+    await new Promise((resolve) => setImmediate(resolve))
+  } finally {
+    process.removeListener('warning', onWarning)
+  }
+
+  // THEN it never produces the "0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN" garbage string
+  assert.notStrictEqual(out, '0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN')
+  // AND it emits the blessed pg@8 deprecation warning (pg@9 will throw instead, see #3318)
+  assert.ok(sawDeprecationWarning, 'expected a DeprecationWarning to be emitted for an invalid date')
+})
+
+test('prepareValues: invalid date array element never serializes to a NaN string', function () {
+  const invalidDate = new Date('not a real date')
+  const out = utils.prepareValue([invalidDate])
+  assert.ok(!/NaN/.test(out), 'expected no NaN components in array-serialized invalid date, got: ' + out)
+})
+
 test('prepareValues: undefined prepared properly', function () {
   const out = utils.prepareValue(void 0)
   assert.strictEqual(out, null)
