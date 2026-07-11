@@ -2,7 +2,7 @@ import { Readable } from 'stream'
 import { Submittable, Connection } from 'pg'
 import Cursor from 'pg-cursor'
 
-interface QueryStreamConfig {
+export interface QueryStreamConfig {
   batchSize?: number
   highWaterMark?: number
   rowMode?: 'array'
