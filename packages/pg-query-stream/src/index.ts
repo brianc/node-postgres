@@ -72,4 +72,8 @@ class QueryStream extends Readable implements Submittable {
   }
 }
 
+namespace QueryStream {
+  export type Config = QueryStreamConfig
+}
+
 export = QueryStream
