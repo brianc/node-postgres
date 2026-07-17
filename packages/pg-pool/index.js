@@ -249,14 +249,26 @@ class Pool extends EventEmitter {
     let timeoutHit = false
     if (this.options.connectionTimeoutMillis) {
       tid = setTimeout(() => {
+        this.log('ending client due to timeout')
+        timeoutHit = true
+        // Reject the checkout at the deadline and stop tracking this client
+        // immediately, so a connect that hangs (or never calls back) can neither
+        // delay the timeout past connectionTimeoutMillis nor leak into _clients.
+        this._clients = this._clients.filter((c) => c !== client)
+        if (!pendingItem.timedOut) {
+          pendingItem.timedOut = true
+          pendingItem.callback(new Error('Connection terminated due to connection timeout'), undefined, NOOP)
+        }
+        this._pulseQueue()
+        // Tear the half-open connection down cleanly (send a Terminate rather
+        // than ripping out the local socket) in the background, and silence the
+        // dying client's errors so they don't surface as an unhandled 'error'
+        // (which can crash the process, e.g. with pg-native).
+        client.removeAllListeners('error')
+        client.on('error', () => {})
         if (client.connection) {
-          this.log('ending client due to timeout')
-          timeoutHit = true
-          client.connection.stream.destroy()
+          client.connection.end()
         } else if (!client.isConnected()) {
-          this.log('ending client due to timeout')
-          timeoutHit = true
-          // force kill the node driver, and let libpq do its teardown
           client.end()
         }
       }, this.options.connectionTimeoutMillis)
@@ -282,6 +294,14 @@ class Pool extends EventEmitter {
         if (!pendingItem.timedOut) {
           pendingItem.callback(err, undefined, NOOP)
         }
+      } else if (timeoutHit) {
+        // Race: the connection finished establishing after the timeout already
+        // rejected the checkout and removed this client. Just close the
+        // late-completing connection cleanly so no backend is leaked.
+        this.log('client connected after timeout, discarding')
+        client.removeAllListeners('error')
+        client.on('error', () => {})
+        client.end()
       } else {
         this.log('new client connected')
 
