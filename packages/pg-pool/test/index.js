@@ -203,6 +203,33 @@ describe('pool', function () {
       })
     })
 
+    it('enables pipeline on clients when configured', async function () {
+      const pool = new Pool({ pipeline: true })
+      const client = await pool.connect()
+      expect(client.pipeline).to.be(true)
+
+      const [r1, r2, r3] = await Promise.all([
+        client.query('SELECT 1 AS num'),
+        client.query('SELECT 2 AS num'),
+        client.query('SELECT 3 AS num'),
+      ])
+
+      expect(r1.rows[0].num).to.eql(1)
+      expect(r2.rows[0].num).to.eql(2)
+      expect(r3.rows[0].num).to.eql(3)
+
+      client.release()
+      return pool.end()
+    })
+
+    it('does not enable pipeline by default', async function () {
+      const pool = new Pool()
+      const client = await pool.connect()
+      expect(client.pipeline).to.be(false)
+      client.release()
+      return pool.end()
+    })
+
     it('recovers from query errors', function () {
       const pool = new Pool()
 
