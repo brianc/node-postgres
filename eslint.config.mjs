@@ -71,6 +71,8 @@ export default defineConfig([
 
     rules: {
       'no-undef': 'off',
+      'no-redeclare': 'off',
+      '@typescript-eslint/no-redeclare': 'error',
     },
   },
 ])
