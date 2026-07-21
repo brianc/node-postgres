@@ -1,0 +1,86 @@
+name: OAuth integration
+
+on:
+  pull_request:
+    paths:
+      - packages/pg/lib/client.js
+      - packages/pg/lib/connection-parameters.js
+      - packages/pg/lib/connection.js
+      - packages/pg/lib/crypto/sasl.js
+      - packages/pg-protocol/src/serializer.ts
+      - packages/pg/test/integration/client/oauth-tests.js
+      - packages/pg/test/oauth-postgres/**
+      - .github/workflows/oauth-integration.yml
+  push:
+    branches: [master]
+    paths:
+      - packages/pg/lib/client.js
+      - packages/pg/lib/connection-parameters.js
+      - packages/pg/lib/connection.js
+      - packages/pg/lib/crypto/sasl.js
+      - packages/pg-protocol/src/serializer.ts
+      - packages/pg/test/integration/client/oauth-tests.js
+      - packages/pg/test/oauth-postgres/**
+      - .github/workflows/oauth-integration.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OAUTH_TEST_PGHOST: localhost
+      OAUTH_TEST_PGPORT: 55433
+      OAUTH_TEST_PGUSER: oauth_test
+      OAUTH_TEST_PGDATABASE: oauth_test
+      OAUTH_TEST_TOKEN: node-postgres-test-token
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - uses: docker/setup-buildx-action@v3
+      - name: Build OAuth PostgreSQL image
+        uses: docker/build-push-action@v6
+        with:
+          context: packages/pg/test/oauth-postgres
+          load: true
+          tags: node-postgres-oauth
+          cache-from: type=gha,scope=oauth-postgres
+          cache-to: type=gha,mode=max,scope=oauth-postgres
+      - name: Start OAuth PostgreSQL
+        run: |
+          docker run --detach --rm \
+            --name node-postgres-oauth \
+            --env POSTGRES_USER=postgres \
+            --env POSTGRES_PASSWORD=postgres \
+            --env POSTGRES_DB=oauth_test \
+            --env PGDATA=/var/lib/postgresql/data \
+            --publish 55433:5432 \
+            node-postgres-oauth
+      - name: Wait for PostgreSQL
+        run: |
+          for attempt in $(seq 1 30); do
+            if docker exec node-postgres-oauth pg_isready; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Test OAuth authentication
+        run: node packages/pg/test/integration/client/oauth-tests.js
+      - name: Show PostgreSQL logs
+        if: failure()
+        run: docker logs node-postgres-oauth || true
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker stop node-postgres-oauth || true
