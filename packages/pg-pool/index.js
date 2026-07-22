@@ -249,14 +249,24 @@ class Pool extends EventEmitter {
     let timeoutHit = false
     if (this.options.connectionTimeoutMillis) {
       tid = setTimeout(() => {
+        // the native client reports itself connected before its connect callback fires
+        if (!client.connection && client.isConnected()) {
+          return
+        }
+
+        this.log('ending client due to timeout')
+        timeoutHit = true
+        this._clients = this._clients.filter((c) => c !== client)
+        if (!pendingItem.timedOut) {
+          pendingItem.timedOut = true
+          pendingItem.callback(new Error('Connection terminated due to connection timeout'), undefined, NOOP)
+        }
+        this._pulseQueue()
+        client.removeAllListeners('error')
+        client.on('error', () => {})
         if (client.connection) {
-          this.log('ending client due to timeout')
-          timeoutHit = true
-          client.connection.stream.destroy()
-        } else if (!client.isConnected()) {
-          this.log('ending client due to timeout')
-          timeoutHit = true
-          // force kill the node driver, and let libpq do its teardown
+          client.connection.end()
+        } else {
           client.end()
         }
       }, this.options.connectionTimeoutMillis)
@@ -282,6 +292,11 @@ class Pool extends EventEmitter {
         if (!pendingItem.timedOut) {
           pendingItem.callback(err, undefined, NOOP)
         }
+      } else if (timeoutHit) {
+        this.log('client connected after timeout, discarding')
+        client.removeAllListeners('error')
+        client.on('error', () => {})
+        client.end()
       } else {
         this.log('new client connected')
 
