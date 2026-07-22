@@ -30,6 +30,7 @@ class Query extends EventEmitter {
     // potential for multiple results
     this._results = this._result
     this._canceledDueToError = false
+    this._hasSentSync = false
   }
 
   requiresPreparation() {
@@ -104,9 +105,7 @@ class Query extends EventEmitter {
     this._result.addCommandComplete(msg)
     // need to sync after each command complete of a prepared statement
     // if we were using a row count which results in multiple calls to _getRows
-    if (this.rows) {
-      connection.sync()
-    }
+    this._syncRows(connection)
   }
 
   // if a named prepared statement is created with empty query text
@@ -114,13 +113,12 @@ class Query extends EventEmitter {
   // since we pipeline sync immediately after execute we don't need to do anything here
   // unless we have rows specified, in which case we did not pipeline the initial sync call
   handleEmptyQuery(connection) {
-    if (this.rows) {
-      connection.sync()
-    }
+    this._syncRows(connection)
   }
 
   handleError(err, connection) {
     // need to sync after error during a prepared statement
+    this._syncRows(connection)
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
@@ -147,6 +145,13 @@ class Query extends EventEmitter {
       }
     }
     this.emit('end', this._results)
+  }
+
+  _syncRows(connection) {
+    if (this.rows && !this._hasSentSync) {
+      this._hasSentSync = true
+      connection.sync()
+    }
   }
 
   submit(connection) {
@@ -231,6 +236,7 @@ class Query extends EventEmitter {
       // we should close parse to avoid leaking connections
       connection.close({ type: 'S', name: this.name })
       connection.sync()
+      this._hasSentSync = true
 
       this.handleError(err, connection)
       return
