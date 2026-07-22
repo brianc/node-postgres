@@ -116,18 +116,48 @@ const pool = new Pool({
 
 ### Unix Domain Sockets
 
-Connections to unix sockets can also be made. This can be useful on distros like Ubuntu, where authentication is managed via the socket connection instead of a password.
+Connections to unix sockets can also be made by setting `host` to the directory that contains the PostgreSQL socket (commonly `/var/run/postgresql` or `/tmp`).
 
 ```js
 import pg from 'pg'
 const { Client } = pg
-client = new Client({
+const client = new Client({
+  host: '/cloudsql/myproject:zone:mydb',
   user: 'username',
   password: 'password',
-  host: '/cloudsql/myproject:zone:mydb',
   database: 'database_name',
 })
 ```
+
+### Peer authentication (password-less)
+
+PostgreSQL [peer authentication](https://www.postgresql.org/docs/current/auth-peer.html) allows the operating system user to authenticate to a local database without a password. Peer auth only works over a local unix socket connection, not TCP.
+
+To use it with node-postgres, point `host` at the socket directory and omit the password:
+
+```js
+import pg from 'pg'
+const { Pool, Client } = pg
+
+const pool = new Pool({
+  host: '/var/run/postgresql',
+  database: 'mydb',
+})
+
+console.log(await pool.query('SELECT NOW()'))
+await pool.end()
+
+const client = new Client({
+  host: '/var/run/postgresql',
+  database: 'mydb',
+})
+
+await client.connect()
+console.log(await client.query('SELECT NOW()'))
+await client.end()
+```
+
+The client connects as the OS user that runs the process (unless you set `user`). This is common on Linux installs where `pg_hba.conf` uses `peer` for local connections.
 
 ## Connection URI
 
