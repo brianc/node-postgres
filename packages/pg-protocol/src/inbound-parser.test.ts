@@ -3,7 +3,7 @@ import BufferList from './testing/buffer-list'
 import { parse } from '.'
 import assert from 'assert'
 import { PassThrough } from 'stream'
-import { BackendMessage } from './messages'
+import { BackendMessage, DataRowMessage, Field } from './messages'
 import { Parser } from './parser'
 
 const authOkBuffer = buffers.authenticationOk()
@@ -305,6 +305,40 @@ describe('PgPacketStream', function () {
         fields: ['test'],
       })
     })
+
+    describe('parsing data row with an empty, a multi-byte and a null field', function () {
+      testForMessage(buffers.dataRow(['', 'héllo → 🐘', null, 'ok']), {
+        name: 'dataRow',
+        fieldCount: 4,
+        fields: ['', 'héllo → 🐘', null, 'ok'],
+      })
+    })
+
+    it('decodes fields lazily, and only once', async function () {
+      const [message] = (await parseBuffers([buffers.dataRow(['a', null, 'b'])])) as DataRowMessage[]
+      // fieldCount is known without decoding any cell
+      assert.strictEqual(message.fieldCount, 3)
+      const fields = message.fields
+      assert.deepEqual(fields, ['a', null, 'b'])
+      // the decoded array is memoized, so repeated reads do not re-decode
+      assert.strictEqual(message.fields, fields)
+    })
+
+    it('exposes the undecoded payload', async function () {
+      const [message] = (await parseBuffers([buffers.dataRow(['🐘'])])) as DataRowMessage[]
+      // offset points at the int16 field count, i.e. past the 1 byte code and int32 length
+      assert.strictEqual(message.offset, 5)
+      assert.strictEqual(message.bytes.readInt16BE(message.offset), 1)
+      const len = message.bytes.readInt32BE(message.offset + 2)
+      assert.strictEqual(len, 4)
+      assert.deepEqual(message.bytes.subarray(message.offset + 6, message.offset + 6 + len), Buffer.from('🐘'))
+    })
+
+    it('accepts pre-decoded fields for backwards compatibility', function () {
+      const message = new DataRowMessage(11, ['a', null])
+      assert.strictEqual(message.fieldCount, 2)
+      assert.deepEqual(message.fields, ['a', null])
+    })
   })
 
   describe('notice message', function () {
@@ -521,13 +555,11 @@ describe('PgPacketStream', function () {
 
     const verifyMessages = function (messages: any[]) {
       assert.strictEqual(messages.length, 2)
-      assert.deepEqual(messages[0], {
-        name: 'dataRow',
-        fieldCount: 1,
-        length: 11,
-        fields: ['!'],
-      })
-      assert.equal(messages[0].fields[0], '!')
+      // dataRow decodes its cells lazily, so assert its shape rather than its own properties
+      assert.strictEqual(messages[0].name, 'dataRow')
+      assert.strictEqual(messages[0].length, 11)
+      assert.strictEqual(messages[0].fieldCount, 1)
+      assert.deepEqual(messages[0].fields, ['!'])
       assert.deepEqual(messages[1], {
         name: 'readyForQuery',
         length: 5,
@@ -567,9 +599,125 @@ describe('PgPacketStream', function () {
     })
   })
 
+  // every message is parsed out of the chunk it arrived in, except the one message per chunk that
+  // straddles a chunk boundary, so exercise every way a stream can be cut up
+  describe('chunked parsing', function () {
+    const stream = Buffer.concat([
+      buffers.rowDescription([
+        {
+          name: 'id',
+          tableID: 1,
+          attributeNumber: 1,
+          dataTypeID: 23,
+          dataTypeSize: 4,
+          typeModifier: -1,
+          formatCode: 0,
+        },
+        {
+          name: 'name',
+          tableID: 1,
+          attributeNumber: 2,
+          dataTypeID: 25,
+          dataTypeSize: -1,
+          typeModifier: -1,
+          formatCode: 0,
+        },
+      ]),
+      buffers.dataRow(['one', null, 'héllo → 🐘']),
+      buffers.dataRow([]),
+      // longer than the smaller chunk sizes below, so that one message spans several chunks
+      buffers.dataRow(['x'.repeat(300)]),
+      buffers.commandComplete('SELECT 3'),
+      buffers.readyForQuery(),
+    ])
+
+    const expected = [
+      'rowDescription(id,name)',
+      'dataRow(one,NULL,héllo → 🐘)',
+      'dataRow()',
+      `dataRow(${'x'.repeat(300)})`,
+      'commandComplete(SELECT 3)',
+      'readyForQuery(5)',
+    ]
+
+    it('parses the whole stream in one chunk', function () {
+      assert.deepEqual(parseChunks([stream]), expected)
+    })
+
+    it('parses the stream split at every offset', function () {
+      for (let split = 1; split < stream.byteLength; split++) {
+        const chunks = [copyOf(stream, 0, split), copyOf(stream, split, stream.byteLength)]
+        assert.deepEqual(parseChunks(chunks), expected, `split at ${split}`)
+      }
+    })
+
+    it('parses a message far larger than the chunks carrying it', function () {
+      // big enough that reassembling it has to grow its buffer several times
+      const cell = 'z'.repeat(3 * 1024 * 1024)
+      const bigStream = Buffer.concat([buffers.dataRow([cell, 'small']), buffers.readyForQuery()])
+      const summaries = parseChunks(intoChunks(bigStream, 64 * 1024))
+      assert.deepEqual(summaries, [`dataRow(${cell},small)`, 'readyForQuery(5)'])
+    })
+
+    it('parses the stream in fixed size chunks', function () {
+      for (const size of [1, 2, 3, 4, 5, 7, 13, 64, 128]) {
+        assert.deepEqual(parseChunks(intoChunks(stream, size)), expected, `${size} byte chunks`)
+      }
+    })
+
+    it('keeps messages valid after later chunks are parsed', function () {
+      // messages are views over the bytes they were parsed from, so hold them all and read them
+      // only once the whole stream has gone through the parser
+      const parser = new Parser()
+      const messages: BackendMessage[] = []
+      for (const chunk of intoChunks(stream, 7)) {
+        parser.parse(chunk, (msg) => messages.push(msg))
+      }
+      assert.deepEqual(messages.map(summarize), expected)
+    })
+  })
+
   it('cleans up the reader after handling a packet', function () {
     const parser = new Parser()
     parser.parse(oneFieldBuf, () => {})
     assert.strictEqual((parser as any).reader.buffer.byteLength, 0)
   })
 })
+
+/** Parses `chunks` with one parser, summarizing each message as it is emitted. */
+const parseChunks = function (chunks: Buffer[]): string[] {
+  const parser = new Parser()
+  const summaries: string[] = []
+  for (const chunk of chunks) {
+    parser.parse(chunk, (msg) => summaries.push(summarize(msg)))
+  }
+  return summaries
+}
+
+/** A message's contents as a string, i.e. `dataRow(one,NULL)`, so a whole stream can be compared at once. */
+const summarize = function (msg: any): string {
+  switch (msg.name) {
+    case 'dataRow':
+      return `dataRow(${msg.fields.map((field: string | null) => (field === null ? 'NULL' : field)).join(',')})`
+    case 'rowDescription':
+      return `rowDescription(${msg.fields.map((field: Field) => field.name).join(',')})`
+    case 'commandComplete':
+      return `commandComplete(${msg.text})`
+    default:
+      return `${msg.name}(${msg.length})`
+  }
+}
+
+/** Cuts `buffer` into standalone `size` byte chunks, i.e. the reads a socket would deliver. */
+const intoChunks = function (buffer: Buffer, size: number): Buffer[] {
+  const chunks: Buffer[] = []
+  for (let offset = 0; offset < buffer.byteLength; offset += size) {
+    chunks.push(copyOf(buffer, offset, Math.min(offset + size, buffer.byteLength)))
+  }
+  return chunks
+}
+
+/** Copies `buffer` between the given offsets, i.e. so each chunk is its own allocation. */
+const copyOf = function (buffer: Buffer, start: number, end: number): Buffer {
+  return Buffer.from(buffer.subarray(start, end))
+}

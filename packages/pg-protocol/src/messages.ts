@@ -1,5 +1,7 @@
 export type Mode = 'text' | 'binary'
 
+const emptyBuffer = Buffer.allocUnsafe(0)
+
 export type MessageName =
   | 'parseComplete'
   | 'bindComplete'
@@ -227,13 +229,64 @@ export class CommandCompleteMessage {
 }
 
 export class DataRowMessage {
-  public readonly fieldCount: number
   public readonly name: MessageName = 'dataRow'
+  public readonly fieldCount: number
+  /** The buffer holding this row's payload, i.e. for reading raw cell bytes without decoding them. */
+  public readonly bytes: Buffer
+  // assigned up front, i.e. so that reading `fields` does not change the object's shape
+  private decodedFields: (string | null)[] | undefined = undefined
+
+  /** Wraps the row's payload, i.e. `offset` points at the payload's `int16` field count within `bytes`. */
+  constructor(length: number, bytes: Buffer, offset: number)
+  /** @deprecated Pass the payload range instead; pre-decoded fields are accepted for backwards compatibility. */
+  constructor(length: number, fields: (string | null)[])
   constructor(
     public length: number,
-    public fields: any[]
+    bytesOrFields: Buffer | (string | null)[],
+    public readonly offset: number = 0
   ) {
-    this.fieldCount = fields.length
+    if (Array.isArray(bytesOrFields)) {
+      this.bytes = emptyBuffer
+      this.decodedFields = bytesOrFields
+      this.fieldCount = bytesOrFields.length
+    } else {
+      this.bytes = bytesOrFields
+      this.fieldCount = bytesOrFields.readInt16BE(offset)
+    }
+  }
+
+  /**
+   * This row's cells, decoded from `bytes` on first access and then memoized.
+   *
+   * Values are identical to decoding every cell up front, with `null` for a SQL NULL. A message
+   * stays readable for as long as it is held: `bytes` is either the socket chunk the row arrived
+   * in or, when the row straddled two chunks, a buffer of its own, and the parser reuses neither.
+   * Holding a row therefore also holds the chunk it came from.
+   */
+  public get fields(): (string | null)[] {
+    if (this.decodedFields === undefined) {
+      this.decodedFields = this.decodeFields()
+    }
+    return this.decodedFields
+  }
+
+  /** Walks the payload's length-prefixed cells, i.e. `int32 len` (`-1` for NULL) then `len` bytes of utf8. */
+  private decodeFields(): (string | null)[] {
+    const { bytes, fieldCount } = this
+    const fields: (string | null)[] = new Array(fieldCount)
+    // skip the int16 field count that `offset` points at
+    let cursor = this.offset + 2
+    for (let i = 0; i < fieldCount; i++) {
+      const len = bytes.readInt32BE(cursor)
+      cursor += 4
+      if (len === -1) {
+        fields[i] = null
+      } else {
+        fields[i] = bytes.toString('utf-8', cursor, cursor + len)
+        cursor += len
+      }
+    }
+    return fields
   }
 }
 
