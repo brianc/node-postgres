@@ -143,7 +143,10 @@ function dateToStringUTC(date) {
 
 function normalizeQueryConfig(config, values, callback) {
   // can take in strings or config objects
-  config = typeof config === 'string' ? { text: config } : config
+  // the config object is caller-owned and must never be mutated -- copy it
+  // so callback/values assigned below don't leak into the caller's object
+  // and corrupt subsequent, unrelated invocations that reuse the same config
+  config = typeof config === 'string' ? { text: config } : { ...config }
   if (values) {
     if (typeof values === 'function') {
       config.callback = values

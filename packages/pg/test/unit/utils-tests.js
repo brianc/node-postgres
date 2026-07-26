@@ -33,6 +33,20 @@ test('normalizing query configs', function () {
   assert.deepEqual(config, { text: 'TEXT', values: [10], callback: callback })
 })
 
+test('normalizeQueryConfig does not mutate the passed-in config object', function () {
+  // Regression test for https://github.com/brianc/node-postgres/issues/2651
+  // The config object is caller-owned; writing `callback`/`values` onto it
+  // leaks state into later, unrelated calls that reuse the same object.
+  const original = { text: 'TEXT' }
+  const callback = function () {}
+
+  const normalized = utils.normalizeQueryConfig(original, [10], callback)
+
+  assert.equal(original.callback, undefined)
+  assert.equal(original.values, undefined)
+  assert.deepEqual(normalized, { text: 'TEXT', values: [10], callback: callback })
+})
+
 test('prepareValues: buffer prepared properly', function () {
   const buf = Buffer.from('quack')
   const out = utils.prepareValue(buf)
