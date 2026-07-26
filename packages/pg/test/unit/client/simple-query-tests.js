@@ -152,9 +152,7 @@ test('executing query', function () {
   })
 
   test('reusing a config object across calls', function () {
-    // Regression test for https://github.com/brianc/node-postgres/issues/2651
-    // Using a config object with a callback once must not leave it unusable
-    // for a later, promise-style call with the same object.
+    // Regression test for https://github.com/brianc/node-postgres/issues/2651.
     test('does not leak callback state into a later promise-style call', function () {
       const client = helper.client()
       const config = { text: 'SELECT $1', values: [1] }

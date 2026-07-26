@@ -34,9 +34,7 @@ test('normalizing query configs', function () {
 })
 
 test('normalizeQueryConfig does not mutate the passed-in config object', function () {
-  // Regression test for https://github.com/brianc/node-postgres/issues/2651
-  // The config object is caller-owned; writing `callback`/`values` onto it
-  // leaks state into later, unrelated calls that reuse the same object.
+  // Regression test for https://github.com/brianc/node-postgres/issues/2651.
   const original = { text: 'TEXT' }
   const callback = function () {}
 
