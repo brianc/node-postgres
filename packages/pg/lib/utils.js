@@ -144,7 +144,7 @@ function dateToStringUTC(date) {
 function normalizeQueryConfig(config, values, callback) {
   // can take in strings or config objects
   // Copy config so normalization does not mutate the caller's object.
-  config = typeof config === 'string' ? { text: config } : { ...config }
+  config = typeof config === 'string' ? { text: config } : cloneQueryConfig(config)
   if (values) {
     if (typeof values === 'function') {
       config.callback = values
@@ -156,6 +156,13 @@ function normalizeQueryConfig(config, values, callback) {
     config.callback = callback
   }
   return config
+}
+
+function cloneQueryConfig(config) {
+  if (config == null) {
+    return config
+  }
+  return Object.defineProperties(Object.create(Object.getPrototypeOf(config)), Object.getOwnPropertyDescriptors(config))
 }
 
 // Ported from PostgreSQL 9.2.4 source code in src/interfaces/libpq/fe-exec.c
