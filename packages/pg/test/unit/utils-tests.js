@@ -78,6 +78,18 @@ test('prepareValues: BC date prepared properly', function () {
   helper.resetTimezoneOffset()
 })
 
+test('prepareValues: invalid date throws error', function () {
+  assert.throws(function () {
+    utils.prepareValue(new Date(undefined))
+  }, /Invalid Date/)
+  assert.throws(function () {
+    utils.prepareValue(new Date(NaN))
+  }, /Invalid Date/)
+  assert.throws(function () {
+    utils.prepareValue(new Date('not a date'))
+  }, /Invalid Date/)
+})
+
 test('prepareValues: 1 BC date prepared properly', function () {
   helper.setTimezoneOffset(-330)
 

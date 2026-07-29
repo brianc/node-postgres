@@ -54,6 +54,9 @@ const prepareValue = function (val, seen) {
       return Buffer.from(val.buffer, val.byteOffset, val.byteLength)
     }
     if (isDate(val)) {
+      if (isNaN(val.getTime())) {
+        throw new Error('Invalid Date value provided to query parameter')
+      }
       if (defaults.parseInputDatesAsUTC) {
         return dateToStringUTC(val)
       } else {
