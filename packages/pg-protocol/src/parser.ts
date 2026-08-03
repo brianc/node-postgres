@@ -300,7 +300,8 @@ const parseParameterDescriptionMessage = (reader: BufferReader) => {
   const parameterCount = reader.int16()
   const message = new ParameterDescriptionMessage(LATEINIT_LENGTH, parameterCount)
   for (let i = 0; i < parameterCount; i++) {
-    message.dataTypeIDs[i] = reader.int32()
+    // OIDs are unsigned, same as dataTypeID in parseField above
+    message.dataTypeIDs[i] = reader.uint32()
   }
   return message
 }
