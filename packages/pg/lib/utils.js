@@ -1,8 +1,16 @@
 'use strict'
 
 const defaults = require('./defaults')
+const nodeUtils = require('util')
 
 const { isDate } = require('util/types')
+
+// Invalid Date values serialize to nonsense like "0NaN-NaN-NaNTNaN:..." today.
+// Warn in pg@8; pg@9 will reject them with an error. See #3318.
+const invalidDateDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Passing an Invalid Date to pg is deprecated and will throw in pg@9.0'
+)
 
 function escapeElement(elementRepresentation) {
   const escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
@@ -54,6 +62,9 @@ const prepareValue = function (val, seen) {
       return Buffer.from(val.buffer, val.byteOffset, val.byteLength)
     }
     if (isDate(val)) {
+      if (Number.isNaN(val.getTime())) {
+        invalidDateDeprecationNotice()
+      }
       if (defaults.parseInputDatesAsUTC) {
         return dateToStringUTC(val)
       } else {

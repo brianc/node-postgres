@@ -89,6 +89,45 @@ test('prepareValues: 1 BC date prepared properly', function () {
   helper.resetTimezoneOffset()
 })
 
+test('prepareValues: invalid date emits deprecation warning', function (done) {
+  const warnings = []
+  const onWarning = (warning) => {
+    warnings.push(warning)
+  }
+  process.on('warning', onWarning)
+
+  let out
+  try {
+    out = utils.prepareValue(new Date(NaN))
+    // pg@8 keeps the historical (nonsensical) serialization; pg@9 will throw instead
+    assert.strictEqual(typeof out, 'string')
+    assert.ok(out.includes('NaN'))
+  } catch (err) {
+    process.removeListener('warning', onWarning)
+    return done(err)
+  }
+
+  // process.emitWarning is delivered on nextTick
+  process.nextTick(function () {
+    process.removeListener('warning', onWarning)
+    try {
+      assert.ok(
+        warnings.some(
+          (w) =>
+            w.name === 'DeprecationWarning' &&
+            typeof w.message === 'string' &&
+            w.message.includes('Invalid Date') &&
+            w.message.includes('pg@9.0')
+        ),
+        'expected DeprecationWarning about Invalid Date'
+      )
+      done()
+    } catch (err) {
+      done(err)
+    }
+  })
+})
+
 test('prepareValues: undefined prepared properly', function () {
   const out = utils.prepareValue(void 0)
   assert.strictEqual(out, null)
