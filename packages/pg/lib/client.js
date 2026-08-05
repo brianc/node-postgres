@@ -680,6 +680,19 @@ class Client extends EventEmitter {
           this._queryQueue.splice(index, 1)
         }
 
+        if (this._getActiveQuery() === query) {
+          // This query is already on the wire and the server may never answer.
+          // The protocol state can't be put back from here: readyForQuery is
+          // only set again by a ReadyForQuery message, so the pulse below would
+          // never run its body again and every later query on this client would
+          // sit in _queryQueue forever. Tear the socket down the way end() does
+          // for a hung query, and mark the client unusable so a pool discards it
+          // on release instead of handing it to the next caller.
+          this._ending = true
+          this._queryable = false
+          this.connection.stream.destroy()
+        }
+
         this._pulseQueryQueue()
       }, readTimeout)
 
