@@ -690,7 +690,9 @@ class Client extends EventEmitter {
           // on release instead of handing it to the next caller.
           this._ending = true
           this._queryable = false
-          this.connection.stream.destroy()
+          if (typeof this.connection.stream?.destroy === 'function') {
+            this.connection.stream.destroy()
+          }
         }
 
         this._pulseQueryQueue()
