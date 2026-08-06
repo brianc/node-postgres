@@ -1,0 +1,229 @@
+---
+title: Tracing Channels
+---
+
+node-postgres publishes lifecycle events on a set of named tracing channels so
+you can instrument queries, connections, and pool activity without
+monkey-patching. If you're building an APM integration, custom tracer, or just
+want structured logging of your database calls, you can subscribe to these
+channels and node-postgres will tell you when things happen.
+
+Tracing is built on
+[`node:diagnostics_channel`](https://nodejs.org/api/diagnostics_channel.html)
+and requires Node.js 20+. On older versions or non-Node runtimes it silently
+no-ops. When nothing is listening the overhead is zero since every emission site
+is guarded by a `hasSubscribers` check.
+
+## Quick start
+
+Here's a minimal example that logs every query with its duration:
+
+```js
+import dc from 'node:diagnostics_channel'
+
+const timings = new WeakMap()
+const channel = dc.tracingChannel('pg:query')
+
+channel.subscribe({
+  start(ctx) {
+    timings.set(ctx, process.hrtime.bigint())
+  },
+  asyncEnd(ctx) {
+    const elapsed = Number(process.hrtime.bigint() - timings.get(ctx)) / 1e6
+    console.log(`${ctx.query.text} completed in ${elapsed.toFixed(2)}ms`)
+    timings.delete(ctx)
+  },
+  error(ctx) {
+    timings.delete(ctx)
+  },
+  end() {},
+  asyncStart() {},
+})
+```
+
+You don't need to change how you create clients or pools. Just subscribe to the
+channel and node-postgres handles the rest.
+
+## The channels
+
+### TracingChannels
+
+These emit the full lifecycle: `start`, `end`, `asyncStart`, `asyncEnd`, and
+`error`.
+
+| Channel | Fires for |
+| --- | --- |
+| `pg:query` | Each `client.query()` call |
+| `pg:connection` | Each `client.connect()` call |
+| `pg:pool:connect` | Each `pool.connect()` call (acquiring a client from the pool) |
+
+### Plain channels
+
+These publish a single message. Subscribe with `dc.channel(name).subscribe(cb)`.
+
+| Channel | Fires for |
+| --- | --- |
+| `pg:pool:release` | A client is released back to the pool |
+| `pg:pool:remove` | A client is removed from the pool |
+
+### How they fit together
+
+A typical pooled request moves through the channels in this order:
+
+```text
+pg:pool:connect              acquire a client from the pool
+ └─ pg:connection            connect (only if the pool creates a new client)
+pg:query                     execute the query
+pg:pool:release              release the client back to the pool
+```
+
+`pg:connection` only fires when the pool has to establish a new connection. For
+reused clients it is skipped. `pg:pool:remove` fires separately when a client
+is evicted (e.g. after an error or when `maxUses` is exceeded).
+
+## Lifecycle events
+
+Each tracing channel exposes five sub-channels that fire in a fixed order
+depending on whether the operation completes synchronously or asynchronously:
+
+- **Synchronous success:** `start` -> `end`
+- **Synchronous failure:** `start` -> `error` -> `end`
+- **Asynchronous success:** `start` -> `end` -> `asyncStart` -> `asyncEnd`
+- **Asynchronous failure:** `start` -> `end` -> `asyncStart` -> `error` -> `asyncEnd`
+
+In practice queries and connections are always asynchronous, so you'll mostly
+work with `start` and `asyncEnd`. The context object is shared across all
+events for a single operation, and properties like `result` and `error` are
+added as the operation progresses.
+
+## Context payloads
+
+### pg:query
+
+```js
+{
+  query: {
+    text: 'SELECT $1::int',  // the query text
+    name: undefined,          // prepared statement name, if any
+  },
+  client: {
+    database: 'mydb',
+    host: 'localhost',
+    port: 5432,
+    user: 'postgres',
+    processID: 123,           // PostgreSQL backend process ID
+    ssl: false,
+  },
+  // added on asyncEnd:
+  result: {
+    rowCount: 1,
+    command: 'SELECT',
+  },
+}
+```
+
+### pg:connection
+
+```js
+{
+  connection: {
+    database: 'mydb',
+    host: 'localhost',
+    port: 5432,
+    user: 'postgres',
+    ssl: false,
+  },
+}
+```
+
+### pg:pool:connect
+
+```js
+{
+  pool: {
+    totalCount: 2,      // total clients in the pool
+    idleCount: 1,        // idle clients available
+    waitingCount: 0,     // callers waiting for a client
+    maxSize: 10,         // configured pool maximum
+  },
+  // added on asyncEnd:
+  client: {
+    processID: 123,
+    reused: true,        // whether the client was already in the pool
+  },
+}
+```
+
+### pg:pool:release
+
+```js
+{
+  client: { processID: 123 },
+  error: undefined,           // the Error passed to release(err), if any
+}
+```
+
+### pg:pool:remove
+
+```js
+{
+  client: { processID: 123 },
+}
+```
+
+## More examples
+
+### Monitoring pool usage
+
+```js
+import dc from 'node:diagnostics_channel'
+
+const poolConnect = dc.tracingChannel('pg:pool:connect')
+const poolRelease = dc.channel('pg:pool:release')
+
+poolConnect.subscribe({
+  start(ctx) {
+    console.log('pool checkout:', ctx.pool.idleCount, 'idle,', ctx.pool.waitingCount, 'waiting')
+  },
+  asyncEnd(ctx) {
+    console.log('checked out client', ctx.client.processID, '(reused:', ctx.client.reused + ')')
+  },
+  error() {},
+  end() {},
+  asyncStart() {},
+})
+
+poolRelease.subscribe((msg) => {
+  console.log('client', msg.client.processID, 'released')
+})
+```
+
+### Subscribing to all query events
+
+```js
+import dc from 'node:diagnostics_channel'
+
+const channel = dc.tracingChannel('pg:query')
+
+channel.subscribe({
+  start(ctx) {
+    console.log('query started:', ctx.query.text)
+  },
+  asyncEnd(ctx) {
+    console.log('query completed:', ctx.result.command, ctx.result.rowCount, 'rows')
+  },
+  error(ctx) {
+    console.error('query failed:', ctx.error)
+  },
+  end() {},
+  asyncStart() {},
+})
+```
+
+## Notes
+
+- These channels report observability events. They are not hooks for altering
+  behavior; mutating a context payload does not change node-postgres internals.
+- The plain channels (`pg:pool:release`, `pg:pool:remove`) are not
+  TracingChannels because they represent point-in-time events with no async
+  continuation.
