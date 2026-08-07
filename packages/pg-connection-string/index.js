@@ -50,7 +50,7 @@ function parse(str, options = {}) {
     config.client_encoding = result.searchParams.get('encoding')
     return config
   }
-  const hostname = dummyHost ? '' : result.hostname
+  const hostname = (dummyHost ? '' : result.hostname).replace(/^\[(.+)\]$/, '$1')
   if (!config.host) {
     // Only set the host if there is no equivalent query param.
     config.host = decodeURIComponent(hostname)
