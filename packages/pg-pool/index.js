@@ -27,7 +27,7 @@ function throwOnDoubleRelease() {
   throw new Error('Release called on client which has already been released to the pool.')
 }
 
-function promisify(Promise, callback) {
+function promisify(callback) {
   if (callback) {
     return { callback: callback, result: undefined }
   }
@@ -93,7 +93,6 @@ class Pool extends EventEmitter {
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
     this.log = this.options.log || function () {}
     this.Client = this.options.Client || Client || require('pg').Client
-    this.Promise = this.options.Promise || global.Promise
 
     if (typeof this.options.idleTimeoutMillis === 'undefined') {
       this.options.idleTimeoutMillis = 10000
@@ -109,7 +108,6 @@ class Pool extends EventEmitter {
   }
 
   _promiseTry(f) {
-    const Promise = this.Promise
     if (typeof Promise.try === 'function') {
       return Promise.try(f)
     }
@@ -190,10 +188,10 @@ class Pool extends EventEmitter {
   connect(cb) {
     if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
-      return cb ? cb(err) : this.Promise.reject(err)
+      return cb ? cb(err) : Promise.reject(err)
     }
 
-    const response = promisify(this.Promise, cb)
+    const response = promisify(cb)
     const result = response.result
 
     // if we don't have to connect a new client, don't do so
@@ -431,7 +429,7 @@ class Pool extends EventEmitter {
   query(text, values, cb) {
     // guard clause against passing a function as the first parameter
     if (typeof text === 'function') {
-      const response = promisify(this.Promise, text)
+      const response = promisify(text)
       setImmediate(function () {
         return response.callback(new Error('Passing a function as the first parameter to pool.query is not supported'))
       })
@@ -443,7 +441,7 @@ class Pool extends EventEmitter {
       cb = values
       values = undefined
     }
-    const response = promisify(this.Promise, cb)
+    const response = promisify(cb)
     cb = response.callback
 
     this.connect((err, client) => {
@@ -489,10 +487,10 @@ class Pool extends EventEmitter {
     this.log('ending')
     if (this.ending) {
       const err = new Error('Called end on pool more than once')
-      return cb ? cb(err) : this.Promise.reject(err)
+      return cb ? cb(err) : Promise.reject(err)
     }
     this.ending = true
-    const promised = promisify(this.Promise, cb)
+    const promised = promisify(cb)
     this._endCallback = promised.callback
     this._pulseQueue()
     return promised.result

@@ -24,7 +24,6 @@ const Client = (module.exports = function (config) {
   EventEmitter.call(this)
   config = config || {}
 
-  this._Promise = config.Promise || global.Promise
   this._types = new TypeOverrides(config.types)
 
   this.native = new Native({
@@ -134,7 +133,7 @@ Client.prototype.connect = function (callback) {
     return
   }
 
-  return new this._Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     this._connect((error) => {
       if (error) {
         reject(error)
@@ -176,7 +175,7 @@ Client.prototype.query = function (config, values, callback) {
     query = new NativeQuery(config, values, callback)
     if (!query.callback) {
       let resolveOut, rejectOut
-      result = new this._Promise((resolve, reject) => {
+      result = new Promise((resolve, reject) => {
         resolveOut = resolve
         rejectOut = reject
       }).catch((err) => {
@@ -254,7 +253,7 @@ Client.prototype.end = function (cb) {
   }
   let result
   if (!cb) {
-    result = new this._Promise(function (resolve, reject) {
+    result = new Promise(function (resolve, reject) {
       cb = (err) => (err ? reject(err) : resolve())
     })
   }

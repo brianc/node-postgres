@@ -18,7 +18,6 @@ class Cursor extends EventEmitter {
     this._queue = []
     this.state = 'initialized'
     this._result = new Result(this._conf.rowMode, this._conf.types)
-    this._Promise = this._conf.Promise || global.Promise
     this._cb = null
     this._rows = null
     this._portal = null
@@ -212,7 +211,7 @@ class Cursor extends EventEmitter {
     let promise
 
     if (!cb) {
-      promise = new this._Promise((resolve, reject) => {
+      promise = new Promise((resolve, reject) => {
         cb = (err) => (err ? reject(err) : resolve())
       })
     }
@@ -235,7 +234,7 @@ class Cursor extends EventEmitter {
     let promise
 
     if (!cb) {
-      promise = new this._Promise((resolve, reject) => {
+      promise = new Promise((resolve, reject) => {
         cb = (err, rows) => (err ? reject(err) : resolve(rows))
       })
     }

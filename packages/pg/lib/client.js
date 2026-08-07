@@ -20,11 +20,6 @@ const queryQueueDeprecationNotice = nodeUtils.deprecate(
   'Client.queryQueue is deprecated and will be removed in pg@9.0.'
 )
 
-const byoPromiseDeprecationNotice = nodeUtils.deprecate(
-  () => {},
-  'Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in pg@9.0.'
-)
-
 const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
   () => {},
   'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.'
@@ -53,10 +48,6 @@ class Client extends EventEmitter {
 
     const c = config || {}
 
-    if (c.Promise) {
-      byoPromiseDeprecationNotice()
-    }
-    this._Promise = c.Promise || global.Promise
     this._types = new TypeOverrides(c.types)
     this._ending = false
     this._ended = false
@@ -205,7 +196,7 @@ class Client extends EventEmitter {
       return
     }
 
-    return new this._Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this._connect((error) => {
         if (error) {
           reject(error)
@@ -247,8 +238,7 @@ class Client extends EventEmitter {
       return
     }
     const con = this.connection
-    this._Promise
-      .resolve()
+    Promise.resolve()
       .then(() => this.password(this.connectionParameters))
       .then((pass) => {
         if (pass !== undefined) {
@@ -604,7 +594,7 @@ class Client extends EventEmitter {
       readTimeout = config.query_timeout || this.connectionParameters.query_timeout
       query = new Query(config, values, callback)
       if (!query.callback) {
-        result = new this._Promise((resolve, reject) => {
+        result = new Promise((resolve, reject) => {
           query.callback = (err, res) => (err ? reject(err) : resolve(res))
         }).catch((err) => {
           // replace the stack trace that leads to `TCP.onStreamRead` with one that leads back to the
@@ -692,7 +682,7 @@ class Client extends EventEmitter {
       if (cb) {
         cb()
       } else {
-        return this._Promise.resolve()
+        return Promise.resolve()
       }
     }
 
@@ -707,7 +697,7 @@ class Client extends EventEmitter {
     if (cb) {
       this.connection.once('end', cb)
     } else {
-      return new this._Promise((resolve) => {
+      return new Promise((resolve) => {
         this.connection.once('end', resolve)
       })
     }
