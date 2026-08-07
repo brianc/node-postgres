@@ -55,8 +55,9 @@ const Client = (module.exports = function (config) {
   this.host = cp.host
   this.port = cp.port
 
-  // a hash to hold named queries
-  this.namedQueries = {}
+  // a hash to hold named queries, prototypeless so a query named after an inherited
+  // property (`constructor`, `__proto__`, …) cannot be mistaken for one already prepared
+  this.namedQueries = Object.create(null)
 })
 
 Client.Query = NativeQuery

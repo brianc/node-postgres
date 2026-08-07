@@ -22,7 +22,9 @@ class Connection extends EventEmitter {
 
     this._keepAlive = config.keepAlive
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
-    this.parsedStatements = {}
+    // prototypeless so a statement named after an inherited property
+    // (`constructor`, `__proto__`, …) cannot be mistaken for one already parsed
+    this.parsedStatements = Object.create(null)
     this.ssl = config.ssl || false
     this._ending = false
     this._emitMessage = false
