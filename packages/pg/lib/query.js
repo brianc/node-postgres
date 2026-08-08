@@ -153,7 +153,7 @@ class Query extends EventEmitter {
     if (typeof this.text !== 'string' && typeof this.name !== 'string') {
       return new Error('A query must have either text or a name. Supplying neither is unsupported.')
     }
-    const previous = connection.parsedStatements[this.name]
+    const previous = connection.parsedStatements[this.name] || connection.submittedNamedStatements[this.name]
     if (this.text && previous && this.text !== previous) {
       return new Error(`Prepared statements must be unique - '${this.name}' was used for a different statement`)
     }
@@ -183,7 +183,7 @@ class Query extends EventEmitter {
   }
 
   hasBeenParsed(connection) {
-    return this.name && connection.parsedStatements[this.name]
+    return this.name && (connection.parsedStatements[this.name] || connection.submittedNamedStatements[this.name])
   }
 
   handlePortalSuspended(connection) {
@@ -214,6 +214,9 @@ class Query extends EventEmitter {
         name: this.name,
         types: this.types,
       })
+      if (this.name) {
+        connection.submittedNamedStatements[this.name] = this.text
+      }
     }
 
     // because we're mapping user supplied values to

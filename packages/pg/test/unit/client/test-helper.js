@@ -10,7 +10,22 @@ const makeClient = function (config) {
   connection.query = function (text) {
     this.queries.push(text)
   }
+  connection.parse = function (msg) {
+    this.parseMessages.push(msg)
+  }
+  connection.bind = function (msg) {
+    this.bindMessages.push(msg)
+  }
+  connection.describe = function (msg) {}
+  connection.execute = function (msg) {}
+  connection.sync = function () {
+    this.syncCount++
+  }
+  connection.flush = function () {}
   connection.queries = []
+  connection.parseMessages = []
+  connection.bindMessages = []
+  connection.syncCount = 0
   const client = new Client({ connection: connection, ...config })
   client.connect()
   client.connection.emit('connect')

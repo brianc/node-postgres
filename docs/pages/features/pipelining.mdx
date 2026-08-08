@@ -1,0 +1,132 @@
+---
+title: Pipelining
+---
+
+import { Alert } from '/components/alert.tsx'
+
+## What is pipelining?
+
+By default node-postgres waits for each query to complete before sending the next one. This means every query pays a full network round-trip of latency. **Query pipelining** sends multiple queries to the server without waiting for responses, and the server processes them in order. Each query still gets its own result (or error), but you avoid the idle time between them.
+
+```
+sequential (default)             pipelined
+─────────────────────           ─────────────────────
+ client ──Parse──▶ server        client ──Parse──▶ server
+ client ◀──Ready── server               ──Parse──▶
+ client ──Parse──▶ server               ──Parse──▶
+ client ◀──Ready── server        client ◀──Ready── server
+ client ──Parse──▶ server        client ◀──Ready── server
+ client ◀──Ready── server        client ◀──Ready── server
+```
+
+In benchmarks, pipelining typically delivers **2-3x throughput** for batches of simple queries on a local connection, with larger gains over higher-latency links.
+
+## Enabling pipelining
+
+Pipelining is opt-in. Pass `pipeline: true` to the `Client` constructor:
+
+```js
+import { Client } from 'pg'
+
+const client = new Client({ pipeline: true })
+await client.connect()
+
+const [r1, r2, r3] = await Promise.all([
+  client.query('SELECT 1 AS num'),
+  client.query('SELECT 2 AS num'),
+  client.query('SELECT 3 AS num'),
+])
+
+console.log(r1.rows[0].num, r2.rows[0].num, r3.rows[0].num) // 1 2 3
+
+await client.end()
+```
+
+All query types work with pipelining: plain text, parameterized, and named prepared statements.
+
+## Pipelining with a pool
+
+Pass `pipeline: true` in the pool config to enable it on every client the pool creates:
+
+```js
+import { Pool } from 'pg'
+
+const pool = new Pool({ pipeline: true })
+
+const client = await pool.connect()
+// client.pipeline is already true
+
+const [users, orders] = await Promise.all([
+  client.query('SELECT * FROM users WHERE id = $1', [1]),
+  client.query('SELECT * FROM orders WHERE user_id = $1', [1]),
+])
+
+client.release()
+```
+
+<Alert>
+  <div>
+    <code>pool.query()</code> checks out a client for a single query and releases it immediately, so pipelining has no effect there. Use <code>pool.connect()</code> to check out a client and send multiple queries on it.
+  </div>
+</Alert>
+
+## Error isolation
+
+Each pipelined query gets its own error boundary. A failing query in the middle of a batch does not break the other queries:
+
+```js
+const results = await Promise.allSettled([
+  client.query('SELECT 1 AS num'),
+  client.query('SELECT INVALID SYNTAX'),
+  client.query('SELECT 3 AS num'),
+])
+
+console.log(results[0].status) // 'fulfilled'
+console.log(results[1].status) // 'rejected'
+console.log(results[2].status) // 'fulfilled'
+```
+
+This works because node-postgres sends a `Sync` message after each query, which is how PostgreSQL delimits error boundaries in the extended query protocol.
+
+## Named prepared statements
+
+Named prepared statements work with pipelining. When two pipelined queries share the same statement name, node-postgres sends `Parse` only once and reuses the prepared statement for subsequent queries:
+
+```js
+const queries = Array.from({ length: 100 }, (_, i) => ({
+  name: 'get-user',
+  text: 'SELECT * FROM users WHERE id = $1',
+  values: [i],
+}))
+
+const results = await Promise.all(queries.map(q => client.query(q)))
+```
+
+## Graceful shutdown
+
+Calling `client.end()` while pipelined queries are in flight will wait for all of them to complete before closing the connection:
+
+```js
+const client = new Client({ pipeline: true })
+await client.connect()
+
+const p1 = client.query('SELECT 1')
+const p2 = client.query('SELECT 2')
+const endPromise = client.end()
+
+// Both queries will resolve normally
+const [r1, r2] = await Promise.all([p1, p2])
+await endPromise
+```
+
+## When to use pipelining
+
+Pipelining is most useful when you have multiple **independent** queries that don't depend on each other's results. Common use cases:
+
+- Fetching data from multiple tables in parallel for a page load
+- Inserting or updating multiple rows simultaneously
+- Running a batch of analytics queries
+
+<div className="alert alert-warning">
+  Do not use pipelining inside a transaction if you need to read the result of one query before issuing the next. Pipelined queries are all sent before any responses arrive, so you cannot branch on intermediate results. For dependent queries within a transaction, use sequential <code>await</code> calls instead.
+</div>
