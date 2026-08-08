@@ -161,6 +161,8 @@ const oneParameterDescBuf = buffers.parameterDescription([1111])
 
 const twoParameterDescBuf = buffers.parameterDescription([2222, 3333])
 
+const bigOidParameterDescBuf = buffers.parameterDescription([3000000003])
+
 const expectedEmptyParameterDescriptionMessage = {
   name: 'parameterDescription',
   length: 6,
@@ -180,6 +182,13 @@ const expectedTwoParameterMessage = {
   length: 14,
   parameterCount: 2,
   dataTypeIDs: [2222, 3333],
+}
+
+const expectedBigOidParameterMessage = {
+  name: 'parameterDescription',
+  length: 10,
+  parameterCount: 1,
+  dataTypeIDs: [3000000003],
 }
 
 const testForMessage = function (buffer: Buffer, expectedMessage: any) {
@@ -288,6 +297,7 @@ describe('PgPacketStream', function () {
     testForMessage(emptyParameterDescriptionBuffer, expectedEmptyParameterDescriptionMessage)
     testForMessage(oneParameterDescBuf, expectedOneParameterMessage)
     testForMessage(twoParameterDescBuf, expectedTwoParameterMessage)
+    testForMessage(bigOidParameterDescBuf, expectedBigOidParameterMessage)
   })
 
   describe('parsing rows', function () {
