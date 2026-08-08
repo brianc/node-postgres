@@ -4,6 +4,10 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.23.0
+
+- Add support for query [`pipelineing`](https://github.com/brianc/node-postgres/pull/3652).
+
 ## pg@8.22.0
 
 - Add support for [sslnegotiation=direct](https://github.com/brianc/node-postgres/pull/3688) for PostgreSQL 17+.
