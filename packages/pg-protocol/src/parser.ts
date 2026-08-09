@@ -83,6 +83,8 @@ export class Parser {
   private bufferOffset: number = 0
   private reader = new BufferReader()
   private mode: Mode
+  // Column formats from the most recent RowDescription, or null before any has been seen.
+  private rowDescriptionFormats: Mode[] | null = null
 
   constructor(opts?: StreamOptions) {
     if (opts?.mode === 'binary') {
@@ -188,7 +190,7 @@ export class Parser {
         message = emptyQuery
         break
       case MessageCodes.DataRow:
-        message = parseDataRowMessage(reader)
+        message = parseDataRowMessage(reader, this.rowDescriptionFormats)
         break
       case MessageCodes.CommandComplete:
         message = parseCommandCompleteMessage(reader)
@@ -214,9 +216,14 @@ export class Parser {
       case MessageCodes.NoticeMessage:
         message = parseErrorMessage(reader, 'notice')
         break
-      case MessageCodes.RowDescriptionMessage:
-        message = parseRowDescriptionMessage(reader)
+      case MessageCodes.RowDescriptionMessage: {
+        const rowDescription = parseRowDescriptionMessage(reader)
+        // Remember the column formats: the DataRows that follow carry no format information of
+        // their own, and message arrive in wire order, so the most recent RowDescription applies.
+        this.rowDescriptionFormats = rowDescription.fields.map((field) => field.format)
+        message = rowDescription
         break
+      }
       case MessageCodes.ParameterDescriptionMessage:
         message = parseParameterDescriptionMessage(reader)
         break
@@ -306,13 +313,16 @@ const parseParameterDescriptionMessage = (reader: BufferReader) => {
   return message
 }
 
-const parseDataRowMessage = (reader: BufferReader) => {
+// `formats` comes from the RowDescription that precedes these DataRows. Fields the server sent in
+// binary format are handed back as raw bytes; decoding them as utf-8 would silently corrupt any
+// value containing a byte >= 0x80. Text fields keep their existing string representation.
+const parseDataRowMessage = (reader: BufferReader, formats: Mode[] | null) => {
   const fieldCount = reader.int16()
   const fields: any[] = new Array(fieldCount)
   for (let i = 0; i < fieldCount; i++) {
     const len = reader.int32()
     // a -1 for length means the value of the field is null
-    fields[i] = len === -1 ? null : reader.string(len)
+    fields[i] = len === -1 ? null : formats?.[i] === 'binary' ? reader.bytes(len) : reader.string(len)
   }
   return new DataRowMessage(LATEINIT_LENGTH, fields)
 }
