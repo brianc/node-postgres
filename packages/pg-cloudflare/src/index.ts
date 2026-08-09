@@ -107,7 +107,7 @@ export class CloudflareSocket extends EventEmitter {
   end(data = Buffer.alloc(0), encoding: BufferEncoding = 'utf8', callback: (...args: unknown[]) => void = () => {}) {
     log('ending CF socket')
     this.write(data, encoding, (err) => {
-      this._cfSocket!.close()
+      this._cfSocket?.close()
       if (callback) callback(err)
     })
     return this
