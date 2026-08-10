@@ -1,3 +1,6 @@
+const path = require('path')
+const { fork } = require('child_process')
+const Cursor = require('pg-cursor')
 const describe = require('mocha').describe
 const it = require('mocha').it
 const expect = require('expect.js')
@@ -54,6 +57,210 @@ describe('pipeline', () => {
     await pool.end()
   })
 
+  it('answers every query of a large burst', async () => {
+    const pool = await warm({ max: 2, pipeline: true })
+    const nums = Array.from({ length: 500 }, (_, i) => i)
+    const results = await Promise.all(nums.map((num) => pool.query('SELECT $1::int AS num', [num])))
+
+    expect(results.map((res) => res.rows[0].num)).to.eql(nums)
+    expect(pool.totalCount).to.equal(2)
+    await pool.end()
+  })
+
+  it('accepts the callback and the values forms', async () => {
+    const pool = new Pool({ max: 1, pipeline: true })
+    const withValues = await new Promise((resolve, reject) => {
+      pool.query('SELECT $1::int AS num', [7], (err, res) => (err ? reject(err) : resolve(res)))
+    })
+    const withoutValues = await new Promise((resolve, reject) => {
+      pool.query('SELECT 8 AS num', (err, res) => (err ? reject(err) : resolve(res)))
+    })
+
+    expect(withValues.rows[0].num).to.equal(7)
+    expect(withoutValues.rows[0].num).to.equal(8)
+    await pool.end()
+  })
+
+  it('pipelines named prepared statements', async () => {
+    const pool = await warm({ max: 1, pipeline: true })
+    const nums = Array.from({ length: 20 }, (_, i) => i)
+    const results = await Promise.all(
+      nums.map((num) => pool.query({ name: 'pipeline-test', text: 'SELECT $1::int AS num', values: [num] }))
+    )
+
+    expect(results.map((res) => res.rows[0].num)).to.eql(nums)
+    await pool.end()
+  })
+
+  it('keeps the connection when a query is rejected before it is written', async () => {
+    const pool = await warm({ max: 1, pipeline: true })
+    await pool.query({ text: 'SELECT $1::int', values: 'not an array' }).then(
+      () => {
+        throw new Error('expected the query to fail')
+      },
+      (err) => expect(err.message).to.contain('must be an array')
+    )
+
+    expect((await pool.query('SELECT 1 AS num')).rows[0].num).to.equal(1)
+    expect(pool.totalCount).to.equal(1)
+    expect(pool.idleCount).to.equal(1)
+    await pool.end()
+  })
+
+  it('stays usable when a query fails while it is being written', async () => {
+    const circular = {}
+    circular.self = circular
+    const pool = await warm({ max: 1, pipeline: true })
+    await pool.query('SELECT $1::text', [circular]).then(
+      () => {
+        throw new Error('expected the query to fail')
+      },
+      (err) => expect(err.message).to.contain('circular')
+    )
+
+    expect((await pool.query('SELECT 1 AS num')).rows[0].num).to.equal(1)
+    await pool.end()
+  })
+
+  it('refuses a submittable instead of holding the connection', async () => {
+    const pool = await warm({ max: 1, pipeline: true })
+    await pool.query(new Cursor('SELECT * FROM generate_series(0, 10)')).then(
+      () => {
+        throw new Error('expected the query to be refused')
+      },
+      (err) => expect(err.message).to.contain('pool.connect()')
+    )
+
+    expect((await pool.query('SELECT 1 AS num')).rows[0].num).to.equal(1)
+    expect(pool.idleCount).to.equal(1)
+    await pool.end()
+  })
+
+  it('waits for the queries in flight when maxUses drops the connection', async () => {
+    const pool = new Pool({ max: 1, maxUses: 1, pipeline: true })
+    const query = pool.query('SELECT pg_sleep(0.3), 1 AS num')
+    await wait(60)
+
+    const started = Date.now()
+    await pool.end()
+    expect(Date.now() - started).to.be.greaterThan(150)
+    expect((await query).rows[0].num).to.equal(1)
+  })
+
+  it('does not hold more connections than max while recycling', async () => {
+    const application_name = 'pipeline-recycle-test'
+    const spy = new Pool({ max: 1 })
+    const pool = new Pool({ max: 2, maxUses: 3, pipeline: true, application_name })
+    const count = async () => {
+      const res = await spy.query('SELECT count(*)::int AS c FROM pg_stat_activity WHERE application_name = $1', [
+        application_name,
+      ])
+      return res.rows[0].c
+    }
+
+    let peak = 0
+    const watch = setInterval(() => count().then((c) => (peak = Math.max(peak, c))), 10)
+    for (let round = 0; round < 5; round++) {
+      await Promise.all(Array.from({ length: 4 }, () => pool.query('SELECT pg_sleep(0.1)')))
+    }
+    clearInterval(watch)
+
+    expect(peak).to.be.lessThan(3)
+    await pool.end()
+    await spy.end()
+  })
+
+  it('recycles connections on maxUses while pipelining', async () => {
+    const pool = await warm({ max: 1, maxUses: 3, pipeline: true })
+    const removed = []
+    pool.on('remove', () => removed.push(1))
+
+    const nums = Array.from({ length: 10 }, (_, i) => i)
+    const results = await Promise.all(nums.map((num) => pool.query('SELECT $1::int AS num', [num])))
+    expect(results.map((res) => res.rows[0].num)).to.eql(nums)
+
+    await wait(100)
+    expect(removed.length).to.be.greaterThan(1)
+    await pool.end()
+  })
+
+  it('answers in order on a single connection', async () => {
+    const pool = await warm({ max: 1, maxPipeline: 100, pipeline: true })
+    const nums = Array.from({ length: 100 }, (_, i) => i)
+    const order = []
+    await Promise.all(
+      nums.map((num) => pool.query('SELECT $1::int AS num', [num]).then((res) => order.push(res.rows[0].num)))
+    )
+
+    expect(order).to.eql(nums)
+    await pool.end()
+  })
+
+  it('runs the connection hooks once per connection, not per query', async () => {
+    let connects = 0
+    let verifies = 0
+    const pool = new Pool({
+      max: 2,
+      pipeline: true,
+      onConnect: (client) => client.query("SET application_name = 'pipeline-test'").then(() => connects++),
+      verify: (client, cb) => {
+        verifies++
+        cb()
+      },
+    })
+    const nums = Array.from({ length: 20 }, (_, i) => i)
+    const results = await Promise.all(nums.map((num) => pool.query('SELECT $1::int AS num', [num])))
+
+    expect(results.map((res) => res.rows[0].num)).to.eql(nums)
+    expect(connects).to.equal(pool.totalCount)
+    expect(verifies).to.equal(pool.totalCount)
+    expect((await pool.query('SHOW application_name')).rows[0].application_name).to.equal('pipeline-test')
+    await pool.end()
+  })
+
+  it('times out a query that waits too long for a connection', async () => {
+    const pool = await warm({ max: 1, maxPipeline: 1, connectionTimeoutMillis: 60, pipeline: true })
+    const slow = pool.query('SELECT pg_sleep(0.3)')
+    await pool.query('SELECT 1 AS num').then(
+      () => {
+        throw new Error('expected the query to time out')
+      },
+      (err) => expect(err.message).to.contain('timeout exceeded')
+    )
+
+    await slow
+    expect((await pool.query('SELECT 2 AS num')).rows[0].num).to.equal(2)
+    expect(pool.waitingCount).to.equal(0)
+    await pool.end()
+  })
+
+  it('rotates a pipelining connection on maxLifetimeSeconds', async () => {
+    const pool = await warm({ max: 1, maxLifetimeSeconds: 1, pipeline: true })
+    const first = await pool.query('SELECT pg_backend_pid() AS pid')
+    await wait(1400)
+    const second = await pool.query('SELECT pg_backend_pid() AS pid')
+
+    expect(second.rows[0].pid).to.not.equal(first.rows[0].pid)
+    await pool.end()
+  })
+
+  it('keeps a transaction on a connection of its own', async () => {
+    const pool = await warm({ max: 2, pipeline: true })
+    const client = await pool.connect()
+    await client.query('BEGIN')
+    const inside = await client.query('SELECT pg_backend_pid() AS pid')
+
+    const outside = await Promise.all([
+      pool.query('SELECT pg_backend_pid() AS pid'),
+      pool.query('SELECT pg_backend_pid() AS pid'),
+    ])
+    expect(outside.map((res) => res.rows[0].pid)).to.not.contain(inside.rows[0].pid)
+
+    await client.query('COMMIT')
+    client.release()
+    await pool.end()
+  })
+
   it('gives pool.connect a connection nobody else is using', async () => {
     const pool = await warm({ max: 1, pipeline: true })
     const query = pool.query('SELECT pg_sleep(0.2)')
@@ -91,6 +298,16 @@ describe('pipeline', () => {
     await pool.end()
   })
 
+  it('removes a connection that goes idle after a long query', async () => {
+    const pool = await warm({ max: 1, idleTimeoutMillis: 100, pipeline: true })
+    await pool.query('SELECT pg_sleep(0.15)')
+    expect(pool.totalCount).to.equal(1)
+
+    await wait(250)
+    expect(pool.totalCount).to.equal(0)
+    await pool.end()
+  })
+
   it('reports a broken connection to every query on it', async () => {
     const pool = new Pool({ max: 1, pipeline: true })
     let client
@@ -107,6 +324,22 @@ describe('pipeline', () => {
 
     expect((await pool.query('SELECT 1 AS num')).rows[0].num).to.equal(1)
     await pool.end()
+  })
+
+  it('lets the program exit when allowExitOnIdle is set', function (done) {
+    const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
+      stdio: ['ignore', 'pipe', 'inherit', 'ipc'],
+      env: { ...process.env, ALLOW_EXIT_ON_IDLE: '1', PIPELINE: '1' },
+    })
+    let result = ''
+    child.stdout.setEncoding('utf8')
+    child.stdout.on('data', (chunk) => (result += chunk))
+    child.on('error', done)
+    child.on('exit', (exitCode) => {
+      expect(exitCode).to.equal(0)
+      expect(result).to.equal('completed first\ncompleted second\n')
+      done()
+    })
   })
 
   it('waits for the queries in flight on end', async () => {

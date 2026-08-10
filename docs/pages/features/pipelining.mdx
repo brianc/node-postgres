@@ -71,7 +71,7 @@ Queries can also complete in a different order than without pipelining, which is
 default.
 
 `pool.connect()` is not affected: it still checks out a connection nobody else is using, so
-transactions, `SET` and cursors keep working as before.
+transactions and `SET` keep working as before.
 
 ```js
 const client = await pool.connect()
@@ -83,6 +83,11 @@ try {
   client.release()
 }
 ```
+
+`pool.query()` refuses a submittable (`pg-cursor`, `pg-query-stream`) while pipelining, because
+those read their rows over several round trips and cannot share a connection. Check out a client
+with `pool.connect()` for them. `connectionTimeoutMillis` also covers the wait for a free pipeline
+slot, not only the wait for a connection.
 
 ## Error isolation
 
@@ -115,6 +120,12 @@ const queries = Array.from({ length: 100 }, (_, i) => ({
 
 const results = await Promise.all(queries.map(q => client.query(q)))
 ```
+
+## Query timeouts
+
+`query_timeout` cannot cancel a single pipelined query, because the queries behind it are already on the wire. 
+When it fires node-postgres closes the connection, so the other queries sharing it fail too. 
+With a pool the connection is then replaced, and `pool.query()` keeps working, but you should have a `pool.on('error')` listener as usual.
 
 ## Graceful shutdown
 
