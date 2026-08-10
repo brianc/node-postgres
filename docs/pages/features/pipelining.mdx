@@ -86,8 +86,9 @@ try {
 
 `pool.query()` refuses a submittable (`pg-cursor`, `pg-query-stream`) while pipelining, because
 those read their rows over several round trips and cannot share a connection. Check out a client
-with `pool.connect()` for them. `connectionTimeoutMillis` also covers the wait for a free pipeline
-slot, not only the wait for a connection.
+with `pool.connect()` for them. `connectionTimeoutMillis` counts the wait for a pipeline slot too,
+so a query can time out with a connect error while the pool has a healthy connection sitting at
+`maxPipeline`.
 
 ## Error isolation
 
