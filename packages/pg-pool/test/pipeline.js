@@ -107,6 +107,41 @@ describe('pipeline', () => {
     await pool.end()
   })
 
+  it('delivers the right rows to the queries behind a failed write', async () => {
+    const circular = {}
+    circular.self = circular
+    const pool = await warm({ max: 1, pipeline: true })
+    const slow = pool.query('SELECT pg_sleep(0.2)')
+    const bad = pool.query('SELECT $1::text AS bad', [circular])
+    const third = pool.query('SELECT 333 AS num')
+    const fourth = pool.query('SELECT 444 AS num')
+
+    await bad.then(
+      () => {
+        throw new Error('expected the query to fail')
+      },
+      (err) => expect(err.message).to.contain('circular')
+    )
+    expect((await third).rows).to.eql([{ num: 333 }])
+    expect((await fourth).rows).to.eql([{ num: 444 }])
+    await slow
+    await pool.end()
+  })
+
+  it('rotates the connection on maxLifetimeSeconds under constant load', async function () {
+    this.timeout(5000)
+    const pool = await warm({ max: 1, maxLifetimeSeconds: 1, pipeline: true })
+    const pids = new Set()
+    const until = Date.now() + 2500
+    while (Date.now() < until) {
+      const res = await pool.query('SELECT pg_backend_pid() AS pid, pg_sleep(0.02)')
+      pids.add(res.rows[0].pid)
+    }
+
+    expect(pids.size).to.be.greaterThan(1)
+    await pool.end()
+  })
+
   it('stays usable when a query fails while it is being written', async () => {
     const circular = {}
     circular.self = circular

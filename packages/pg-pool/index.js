@@ -461,7 +461,15 @@ class Pool extends EventEmitter {
     this.emit('release', err, client)
 
     // TODO(bmc): expose a proper, public interface _queryable and _ending
-    if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
+    if (
+      err ||
+      this.ending ||
+      !client._queryable ||
+      client._ending ||
+      client._poolUseCount >= this.options.maxUses ||
+      // already condemned by an earlier release, keep it out of _idle or it takes new queries forever
+      client._poolRemoveWhenIdle
+    ) {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
@@ -602,8 +610,14 @@ class Pool extends EventEmitter {
 
       client._poolPipelined = inFlight(client) + 1
       this.log('dispatching query')
+      let written = false
       let answered = false
       const answer = (err, res) => {
+        // an error while the query is being written answers on the submit stack. finish the write
+        // first: releasing here would dispatch the next query ahead of this one on the client queue
+        if (!written) {
+          return process.nextTick(answer, err, res)
+        }
         // a query that fails while it is being written is answered twice by the client
         if (answered) {
           return
@@ -630,6 +644,7 @@ class Pool extends EventEmitter {
 
       try {
         client.query(text, values, answer)
+        written = true
       } catch (err) {
         answered = true
         client._poolPipelined--

@@ -238,6 +238,10 @@ The number of clients which are not checked out but are currently idle in the po
 
 The number of queued requests waiting on a client when all clients are checked out. It can be helpful to monitor this number to see if you need to adjust the size of the pool.
 
+With `pipeline: true` a connection is counted as idle as soon as its queries are written, not when
+the results arrive, so `idleCount` can be positive while every connection is working and
+`waitingCount` grows once they are all at `maxPipeline`.
+
 ## events
 
 `Pool` instances are also instances of [`EventEmitter`](https://nodejs.org/api/events.html).
