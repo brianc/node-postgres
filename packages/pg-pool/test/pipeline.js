@@ -279,6 +279,58 @@ describe('pipeline', () => {
     await pool.end()
   })
 
+  it('spreads queries over the connection with the fewest in flight', async () => {
+    const pool = await warm({ max: 2, pipeline: true })
+    // occupy both connections once so they are both open and idle
+    await Promise.all([pool.query('SELECT pg_sleep(0.05)'), pool.query('SELECT pg_sleep(0.05)')])
+
+    const results = await Promise.all(
+      Array.from({ length: 6 }, () => pool.query('SELECT pg_backend_pid() AS pid, pg_sleep(0.15)'))
+    )
+    const perPid = {}
+    results.forEach((res) => (perPid[res.rows[0].pid] = (perPid[res.rows[0].pid] || 0) + 1))
+
+    expect(Object.values(perPid)).to.eql([3, 3])
+    await pool.end()
+  })
+
+  it('emits acquire and release once per query', async () => {
+    const pool = await warm({ max: 2, pipeline: true })
+    let acquires = 0
+    let releases = 0
+    pool.on('acquire', () => acquires++)
+    pool.on('release', () => releases++)
+
+    await Promise.all(Array.from({ length: 10 }, (_, i) => pool.query('SELECT $1::int AS num', [i])))
+    expect(acquires).to.equal(10)
+    expect(releases).to.equal(10)
+    await pool.end()
+  })
+
+  it('rejects the query when the connection cannot be made', async () => {
+    const pool = new Pool({ port: 1, host: 'localhost', pipeline: true, connectionTimeoutMillis: 2000 })
+    await pool.query('SELECT 1').then(
+      () => {
+        throw new Error('expected the query to fail')
+      },
+      (err) => expect(err).to.be.an(Error)
+    )
+    expect(pool.totalCount).to.equal(0)
+    await pool.end()
+  })
+
+  it('rejects the query when the verify hook fails', async () => {
+    const pool = new Pool({ pipeline: true, verify: (client, cb) => cb(new Error('verify says no')) })
+    await pool.query('SELECT 1').then(
+      () => {
+        throw new Error('expected the query to fail')
+      },
+      (err) => expect(err.message).to.equal('verify says no')
+    )
+    expect(pool.totalCount).to.equal(0)
+    await pool.end()
+  })
+
   it('keeps a transaction on a connection of its own', async () => {
     const pool = await warm({ max: 2, pipeline: true })
     const client = await pool.connect()
@@ -346,7 +398,9 @@ describe('pipeline', () => {
   it('reports a broken connection to every query on it', async () => {
     const pool = new Pool({ max: 1, pipeline: true })
     let client
+    const poolErrors = []
     pool.once('connect', (c) => (client = c))
+    pool.on('error', (err) => poolErrors.push(err))
     await pool.query('SELECT 1')
 
     const queries = [1, 2, 3].map(() => pool.query('SELECT pg_sleep(0.2)'))
@@ -356,6 +410,8 @@ describe('pipeline', () => {
     const results = await Promise.allSettled(queries)
     expect(results.map((res) => res.status)).to.eql(['rejected', 'rejected', 'rejected'])
     expect(pool.totalCount).to.equal(0)
+    // the queries got the error on their own callbacks, the pool must not repeat it
+    expect(poolErrors).to.have.length(0)
 
     expect((await pool.query('SELECT 1 AS num')).rows[0].num).to.equal(1)
     await pool.end()
