@@ -326,6 +326,26 @@ describe('pipeline', () => {
     await pool.end()
   })
 
+  it('removes a client only once when it dies while waiting for removal', async () => {
+    const pool = new Pool({ max: 1, maxUses: 1, pipeline: true })
+    let client
+    const removed = []
+    pool.once('connect', (c) => (client = c))
+    pool.on('remove', (c) => removed.push(c))
+
+    const queries = [1, 2].map(() => pool.query('SELECT pg_sleep(0.3)'))
+    await wait(100)
+    // released once, so maxUses already marked it for removal with the query in flight
+    client.connection.stream.destroy()
+
+    await Promise.allSettled(queries)
+    await wait(100)
+    expect(removed.filter((c) => c === client).length).to.equal(1)
+
+    expect((await pool.query('SELECT 1 AS num')).rows[0].num).to.equal(1)
+    await pool.end()
+  })
+
   it('lets the program exit when allowExitOnIdle is set', function (done) {
     const child = fork(path.join(__dirname, 'idle-timeout-exit.js'), [], {
       stdio: ['ignore', 'pipe', 'inherit', 'ipc'],

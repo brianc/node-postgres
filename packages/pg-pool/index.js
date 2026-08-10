@@ -236,6 +236,8 @@ class Pool extends EventEmitter {
   }
 
   _remove(client, callback) {
+    // the deferred removal is done here, don't repeat it when the last answer lands
+    client._poolRemoveWhenIdle = false
     const removed = removeWhere(this._idle, (item) => item.client === client)
 
     if (removed !== undefined) {
