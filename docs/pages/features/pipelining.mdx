@@ -51,24 +51,38 @@ Pass `pipeline: true` in the pool config to enable it on every client the pool c
 ```js
 import { Pool } from 'pg'
 
-const pool = new Pool({ pipeline: true })
-
-const client = await pool.connect()
-// client.pipeline is already true
+const pool = new Pool({ max: 10, pipeline: true, maxPipeline: 10 })
 
 const [users, orders] = await Promise.all([
-  client.query('SELECT * FROM users WHERE id = $1', [1]),
-  client.query('SELECT * FROM orders WHERE user_id = $1', [1]),
+  pool.query('SELECT * FROM users WHERE id = $1', [1]),
+  pool.query('SELECT * FROM orders WHERE user_id = $1', [1]),
 ])
-
-client.release()
 ```
 
-<Alert>
-  <div>
-    <code>pool.query()</code> checks out a client for a single query and releases it immediately, so pipelining has no effect there. Use <code>pool.connect()</code> to check out a client and send multiple queries on it.
-  </div>
-</Alert>
+Without pipelining `pool.query()` holds a connection for one query, so a query has to wait for a
+free connection. With `pipeline: true` the pool sends it on a connection that is already working,
+once every connection is busy. It opens connections up to `max` first, then picks the one with the
+fewest queries in flight, up to `maxPipeline` per connection (default 10).
+
+`max` is still the number of connections. It is not the number of queries in flight anymore, those
+can reach `max * maxPipeline`. This does not add load on the server, PostgreSQL runs a pipeline
+serially on the same backend, but a query can wait behind the ones already sent on its connection.
+Queries can also complete in a different order than without pipelining, which is why this is off by
+default.
+
+`pool.connect()` is not affected: it still checks out a connection nobody else is using, so
+transactions, `SET` and cursors keep working as before.
+
+```js
+const client = await pool.connect()
+try {
+  await client.query('BEGIN')
+  await client.query('INSERT INTO users(name) VALUES($1)', ['brianc'])
+  await client.query('COMMIT')
+} finally {
+  client.release()
+}
+```
 
 ## Error isolation
 

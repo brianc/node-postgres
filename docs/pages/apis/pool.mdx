@@ -31,6 +31,8 @@ type Config = {
   // Maximum number of clients the pool should contain.
   // By default this is set to 10. There is some nuance to setting the maximum size of your pool.
   // See https://node-postgres.com/guides/pool-sizing for more information.
+  // With `pipeline: true` this is still the number of connections, but the number of queries
+  // in flight can reach max * maxPipeline.
   max?: number
 
   // Minimum number of clients the pool should hold on to and _not_ destroy with the idleTimeoutMillis.
@@ -71,9 +73,16 @@ type Config = {
   onConnect?: (client: Client) => void | Promise<void>
 
   // When set to true, enables query pipelining on every client the pool creates.
-  // Pipelined clients send queries to the server without waiting for previous responses.
-  // Default is false. See /features/pipelining for details.
+  // Pipelined clients send queries to the server without waiting for previous responses, and
+  // pool.query() can use a connection that is already working instead of waiting for a free one.
+  // pool.connect() is not affected, it still checks out a connection nobody else is using.
+  // Queries can complete in a different order, so the default is false.
+  // See /features/pipelining for details.
   pipeline?: boolean
+
+  // Maximum number of queries pool.query() sends on the same connection before waiting.
+  // Only used with `pipeline: true`. The default is 10.
+  maxPipeline?: number
 }
 ```
 
