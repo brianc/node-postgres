@@ -117,7 +117,8 @@ const enum ParamType {
 }
 
 const writeValues = function (values: any[], valueMapper: ValueMapper | undefined, formatsOffset: number): void {
-  for (let i = 0; i < values.length; i++) {
+  const len = values.length
+  for (let i = 0; i < len; i++) {
     const mappedVal = valueMapper ? valueMapper(values[i], i) : values[i]
     let formatByte = ParamType.STRING
 
