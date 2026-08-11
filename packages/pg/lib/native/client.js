@@ -337,7 +337,7 @@ Client.prototype._pulsePipelinedQueryQueue = function () {
     nativeQueries.push(query)
 
     const values = query.values ? query.values.map(utils.prepareValue) : null
-    const pipelineEntry = { text: query.text, name: query.name }
+    const pipelineEntry = { text: query.text, name: query.name, arrayMode: query._arrayMode }
     if (values) {
       pipelineEntry.values = values
     }
