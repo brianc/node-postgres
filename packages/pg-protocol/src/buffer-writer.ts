@@ -16,7 +16,7 @@ export class Writer {
       // https://stackoverflow.com/questions/2269063/buffer-growth-strategy
       const newSize = oldBuffer.length + (oldBuffer.length >> 1) + size
       this.buffer = Buffer.allocUnsafe(newSize)
-      oldBuffer.copy(this.buffer)
+      oldBuffer.copy(this.buffer, 0, 0, this.offset)
     }
   }
 
