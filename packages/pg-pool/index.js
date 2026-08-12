@@ -109,8 +109,13 @@ class Pool extends EventEmitter {
     this.options.max = this.options.max || this.options.poolSize || 10
     this.options.min = this.options.min || 0
     // max stays the number of connections, queries in flight can reach max * maxPipeline
-    this.options.pipeline = Boolean(this.options.pipeline)
-    this.options.maxPipeline = this.options.maxPipeline || 10
+    this.options.maxPipeline = this.options.maxPipeline || 1
+    // maxPipeline > 1 is what turns pool.query() pipelining on, and it needs pipelining clients.
+    // `pipeline` keeps its own meaning, it is passed to the Client as any other option
+    this._pipeline = this.options.maxPipeline > 1
+    if (this._pipeline) {
+      this.options.pipeline = true
+    }
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
@@ -200,7 +205,7 @@ class Pool extends EventEmitter {
     if (!this._idle.length) {
       return undefined
     }
-    if (!this.options.pipeline) {
+    if (!this._pipeline) {
       return this._idle.pop()
     }
 
@@ -539,7 +544,7 @@ class Pool extends EventEmitter {
     const response = promisify(this.Promise, cb)
     cb = response.callback
 
-    if (this.options.pipeline) {
+    if (this._pipeline) {
       this._pipelineQuery(text, values, cb)
       return response.result
     }

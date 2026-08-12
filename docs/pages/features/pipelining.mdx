@@ -46,12 +46,29 @@ All query types work with pipelining: plain text, parameterized, and named prepa
 
 ## Pipelining with a pool
 
-Pass `pipeline: true` in the pool config to enable it on every client the pool creates:
+Pass `pipeline: true` in the pool config to enable it on every client the pool creates. Each client
+pipelines the queries you send on it after `pool.connect()`, `pool.query()` works as usual:
 
 ```js
 import { Pool } from 'pg'
 
-const pool = new Pool({ max: 10, pipeline: true, maxPipeline: 10 })
+const pool = new Pool({ pipeline: true })
+
+const client = await pool.connect()
+// client.pipeline is already true
+const [users, orders] = await Promise.all([
+  client.query('SELECT * FROM users WHERE id = $1', [1]),
+  client.query('SELECT * FROM orders WHERE user_id = $1', [1]),
+])
+client.release()
+```
+
+## Pipelining pool.query()
+
+Set `maxPipeline` to more than 1 to let `pool.query()` pipeline too:
+
+```js
+const pool = new Pool({ max: 10, maxPipeline: 10 })
 
 const [users, orders] = await Promise.all([
   pool.query('SELECT * FROM users WHERE id = $1', [1]),
@@ -59,10 +76,11 @@ const [users, orders] = await Promise.all([
 ])
 ```
 
-Without pipelining `pool.query()` holds a connection for one query, so a query has to wait for a
-free connection. With `pipeline: true` the pool sends it on a connection that is already working,
-once every connection is busy. It opens connections up to `max` first, then picks the one with the
-fewest queries in flight, up to `maxPipeline` per connection (default 10).
+By default (`maxPipeline: 1`) `pool.query()` holds a connection for one query, so a query has to
+wait for a free connection. With a higher `maxPipeline` the pool sends it on a connection that is
+already working, once every connection is busy. It opens connections up to `max` first, then picks
+the one with the fewest queries in flight, up to `maxPipeline` per connection. The clients it
+creates are pipelining clients, so `pipeline: true` is implied.
 
 `max` is still the number of connections. It is not the number of queries in flight anymore, those
 can reach `max * maxPipeline`. This does not add load on the server, PostgreSQL runs a pipeline

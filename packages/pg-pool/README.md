@@ -36,8 +36,7 @@ const pool2 = new Pool({
   idleTimeoutMillis: 1000, // close idle clients after 1 second
   connectionTimeoutMillis: 1000, // return an error after 1 second if connection could not be established
   maxUses: 7500, // close (and replace) a connection after it has been used 7500 times (see below for discussion)
-  pipeline: false, // when true, pool.query() can send a query on a connection that is still waiting for results
-  maxPipeline: 10, // queries pool.query() may send on the same connection before waiting, only used with pipeline: true
+  maxPipeline: 1, // queries pool.query() may send on the same connection before waiting, more than 1 lets it use a connection that is still working
 })
 
 // you can supply a custom client constructor

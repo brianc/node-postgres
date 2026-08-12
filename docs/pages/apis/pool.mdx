@@ -31,7 +31,7 @@ type Config = {
   // Maximum number of clients the pool should contain.
   // By default this is set to 10. There is some nuance to setting the maximum size of your pool.
   // See https://node-postgres.com/guides/pool-sizing for more information.
-  // With `pipeline: true` this is still the number of connections, but the number of queries
+  // With `maxPipeline` this is still the number of connections, but the number of queries
   // in flight can reach max * maxPipeline.
   max?: number
 
@@ -73,15 +73,15 @@ type Config = {
   onConnect?: (client: Client) => void | Promise<void>
 
   // When set to true, enables query pipelining on every client the pool creates.
-  // Pipelined clients send queries to the server without waiting for previous responses, and
-  // pool.query() can use a connection that is already working instead of waiting for a free one.
-  // pool.connect() is not affected, it still checks out a connection nobody else is using.
-  // Queries can complete in a different order, so the default is false.
-  // See /features/pipelining for details.
+  // Pipelined clients send queries to the server without waiting for previous responses.
+  // Default is false. See /features/pipelining for details.
   pipeline?: boolean
 
   // Maximum number of queries pool.query() sends on the same connection before waiting.
-  // Only used with `pipeline: true`. The default is 10.
+  // The default is 1: a connection serves one query at a time. A higher value lets pool.query()
+  // use a connection that is already working instead of waiting for a free one, and implies
+  // pipeline: true. pool.connect() is not affected, it still checks out a connection nobody else
+  // is using. Queries can complete in a different order, so this is off by default.
   maxPipeline?: number
 }
 ```
@@ -238,7 +238,7 @@ The number of clients which are not checked out but are currently idle in the po
 
 The number of queued requests waiting on a client when all clients are checked out. It can be helpful to monitor this number to see if you need to adjust the size of the pool.
 
-With `pipeline: true` a connection is counted as idle as soon as its queries are written, not when
+With `maxPipeline` a connection is counted as idle as soon as its queries are written, not when
 the results arrive, so `idleCount` can be positive while every connection is working and
 `waitingCount` grows once they are all at `maxPipeline`.
 
