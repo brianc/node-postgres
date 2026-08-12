@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events').EventEmitter
 
-const { parse, serialize } = require('pg-protocol')
+const { parse, serialize } = require('pg-protocol/dist/index.js')
 const stream = require('./stream')
 const { getStream } = stream
 
