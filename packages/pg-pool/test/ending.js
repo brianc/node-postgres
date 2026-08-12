@@ -107,6 +107,25 @@ describe('pool ending', () => {
     await pool.end()
   })
 
+  it('can be used again with callbacks while duplicate end still errors', (done) => {
+    const pool = new Pool({ Client: MockClient })
+
+    pool.end(() => {
+      pool.end((err) => {
+        expect(err).to.be.an(Error)
+        pool.query('SELECT 1', (err, result) => {
+          if (err) return done(err)
+          expect(result.rows[0].value).to.equal(1)
+          pool.connect((err, client) => {
+            if (err) return done(err)
+            client.release()
+            pool.end(done)
+          })
+        })
+      })
+    })
+  })
+
   it('cannot be used while end is still draining', async () => {
     const pool = new Pool({ Client: DeferredEndClient })
     const client = await pool.connect()
