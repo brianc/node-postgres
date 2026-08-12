@@ -337,7 +337,7 @@ Client.prototype._pulsePipelinedQueryQueue = function () {
     nativeQueries.push(query)
 
     const values = query.values ? query.values.map(utils.prepareValue) : null
-    const pipelineEntry = { text: query.text, name: query.name }
+    const pipelineEntry = { text: query.text, name: query.name, arrayMode: query._arrayMode }
     if (values) {
       pipelineEntry.values = values
     }
@@ -351,13 +351,21 @@ Client.prototype._pulsePipelinedQueryQueue = function () {
     self._pipelineInFlight = false
 
     if (err) {
-      // Total pipeline failure — error all queries
+      // Total pipeline failure. Per-query errors arrive on results[i].err, so reaching here means
+      // the connection itself is gone: mark it unusable and say so, the way the JS client and the
+      // non-pipelined native path both do. Without this the client looks healthy after losing its
+      // backend, a Pool never discards it, and everything routed to it fails one query at a time
+      // for the life of the process.
+      self._connected = false
+      self._queryable = false
       for (let i = 0; i < nativeQueries.length; i++) {
         const q = nativeQueries[i]
         q.native = self.native
         q.handleError(err)
       }
-      self._pulsePipelinedQueryQueue()
+      self._errorAllQueries(err)
+      self.emit('error', err)
+      self.emit('end')
       return
     }
 

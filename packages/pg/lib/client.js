@@ -888,6 +888,24 @@ class Client extends EventEmitter {
       query._result._types = this._types
     }
 
+    // A query that keeps a portal open across round trips cannot share a pipelined connection: the
+    // queries written behind it are answered out of its portal, so rows land on the wrong query and
+    // the reads that follow fail with 'portal does not exist'. Refuse it instead of corrupting.
+    if (this.pipeline) {
+      const portalQuery =
+        typeof config.submit === 'function' && !(query instanceof Query)
+          ? 'Custom query classes such as pg-cursor and pg-query-stream are'
+          : query.rows
+          ? 'The `rows` option is'
+          : null
+      if (portalQuery) {
+        process.nextTick(() => {
+          query.handleError(new Error(`${portalQuery} not supported in pipeline mode`), this.connection)
+        })
+        return result
+      }
+    }
+
     if (!this._queryable) {
       process.nextTick(() => {
         query.handleError(new Error('Client has encountered a connection error and is not queryable'), this.connection)
