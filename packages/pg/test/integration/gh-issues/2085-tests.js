@@ -10,6 +10,16 @@ if (process.env.PGTESTNOSSL) {
   return
 }
 
+// The native client leaves SSL to libpq, which uses the system OpenSSL. Node 16 and
+// earlier statically link OpenSSL 1.1.1 and export its symbols into the process, where
+// they collide with the OpenSSL 3 the system libpq is built against: the handshake
+// completes, but no peer certificate can be retrieved, so libpq reports "certificate
+// could not be obtained: no SSL error reported". Node 18 is the first release to bundle
+// OpenSSL 3, and nothing on this side of the boundary can make an earlier one work.
+if (helper.args.native && parseInt(process.versions.openssl, 10) < 3) {
+  return
+}
+
 suite.test('it should connect over ssl', async () => {
   const ssl = helper.args.native
     ? 'require'
