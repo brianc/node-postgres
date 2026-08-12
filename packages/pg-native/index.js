@@ -174,8 +174,8 @@ Client.prototype._stopReading = function () {
   this.pq.removeListener('readable', this._read)
 }
 
-Client.prototype._consumeQueryResults = function (pq) {
-  return buildResult(pq, this._types, this.arrayMode)
+Client.prototype._consumeQueryResults = function (pq, arrayMode = this.arrayMode) {
+  return buildResult(pq, this._types, arrayMode)
 }
 
 Client.prototype._emitResult = function (pq) {
@@ -441,7 +441,7 @@ Client.prototype._readPipelineResults = function (queries, cb) {
       }
 
       if (status === 'PGRES_TUPLES_OK' || status === 'PGRES_COMMAND_OK' || status === 'PGRES_EMPTY_QUERY') {
-        currentResult = self._consumeQueryResults(pq)
+        currentResult = self._consumeQueryResults(pq, queries[queryIndex].arrayMode)
         continue
       }
     }
