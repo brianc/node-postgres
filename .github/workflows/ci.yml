@@ -64,11 +64,8 @@ jobs:
       PGPASSWORD: postgres
       PGHOST: localhost
       PGDATABASE: ci_db_test
-      # PGTESTNOSSL is generally unset: the postgres-ssl service image above has SSL
+      # PGTESTNOSSL is no longer set: the postgres-ssl service image above has SSL
       # configured, so the SSL and SCRAM channel binding tests can run for real here.
-      # But Node 16 native build cannot retrieve the server certificate through libpq,
-      # so the SSL tests stay off there.
-      PGTESTNOSSL: ${{ matrix.node == 16 && 'true' || '' }}
       SCRAM_TEST_PGUSER: scram_test
       SCRAM_TEST_PGPASSWORD: test4scram
       SCRAM_TEST_PGUSER_UNICODE: scram_unicode_test

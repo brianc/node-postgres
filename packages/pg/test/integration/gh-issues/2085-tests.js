@@ -11,11 +11,13 @@ if (process.env.PGTESTNOSSL) {
 }
 
 // The native client leaves SSL to libpq, which uses the system OpenSSL. Node 16 and
-// earlier statically link OpenSSL 1.1.1 and export its symbols into the process, where
-// they collide with the OpenSSL 3 the system libpq is built against: the handshake
-// completes, but no peer certificate can be retrieved, so libpq reports "certificate
-// could not be obtained: no SSL error reported". Node 18 is the first release to bundle
-// OpenSSL 3, and nothing on this side of the boundary can make an earlier one work.
+// earlier statically link OpenSSL 1.1.1 and export its symbols, which take precedence
+// over the OpenSSL 3 that a current libpq is built against: libpq's calls to SSL_new and
+// SSL_connect land in 1.1.1, while its call to SSL_get1_peer_certificate, a name 1.1.1
+// does not define, lands in OpenSSL 3 and reads a structure it does not recognize. So the
+// handshake completes but no peer certificate can be retrieved, and libpq reports
+// "certificate could not be obtained: no SSL error reported". Node 18 is the first release
+// to bundle OpenSSL 3, and nothing on this side of the boundary can make an earlier one work.
 if (helper.args.native && parseInt(process.versions.openssl, 10) < 3) {
   return
 }
