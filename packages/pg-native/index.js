@@ -386,8 +386,12 @@ Client.prototype._readPipelineResults = function (queries, cb) {
 
   const processResults = function () {
     if (!pq.consumeInput()) {
-      pq.exitPipelineMode()
-      return cb(new Error(pq.errorMessage() || 'Failed to consume input'))
+      // read the message before anything else touches the connection: libpq appends to a single
+      // error buffer, and exiting pipeline mode on a connection that is still busy adds its own
+      // "cannot exit pipeline mode while busy" to the end of the reason the caller actually wants.
+      // The connection is finished either way, so there is nothing to exit cleanly for.
+      const message = pq.errorMessage()
+      return cb(new Error(message || 'Failed to consume input'))
     }
 
     while (!pq.isBusy()) {
@@ -395,8 +399,10 @@ Client.prototype._readPipelineResults = function (queries, cb) {
         // null between result groups in pipeline — try again
         if (pq.isBusy()) return // more data needed
         if (!pq.getResult()) {
-          // truly no more results — should not happen before all syncs
-          break
+          // libpq has no result left and is not waiting for one, yet we have not seen a sync for
+          // every query. Nothing further is owed on this connection, so breaking out would return
+          // without ever calling cb and strand the caller. Fail the batch instead.
+          return cb(new Error(pq.errorMessage() || 'Connection ended before the pipeline completed'))
         }
       }
 
@@ -436,7 +442,13 @@ Client.prototype._readPipelineResults = function (queries, cb) {
       }
 
       if (status === 'PGRES_PIPELINE_ABORTED') {
-        // Query skipped due to previous error in same sync group
+        // The server refused to run this one: an earlier query in the same sync group failed and
+        // the pipeline is aborted until the next sync. Falling through left currentError and
+        // currentResult null, so the sync branch below handed back {err: null, rows: []} and a
+        // statement that never ran looked like one that matched no rows.
+        if (!currentError) {
+          currentError = new Error('Query was not executed: an earlier query in the same pipeline failed')
+        }
         continue
       }
 
@@ -465,6 +477,11 @@ Client.prototype._readPipelineResults = function (queries, cb) {
   }
   pq.on('readable', onReadable)
   pq.startReader()
+  // startReader() has to be recorded, or _stopReading() short-circuits on the flag and leaves the
+  // poll watcher running after the batch is over. A later finish() then closes the handle with the
+  // watcher still armed, and the next startReader() on it aborts the process with
+  // "uv_poll_start: Assertion `!uv__is_closing(handle)' failed".
+  this._reading = true
 
   // Try an initial read in case data is already available
   processResults()
