@@ -3,16 +3,19 @@
 const { EventEmitter } = require('events')
 
 const Result = require('./result')
-const utils = require('./utils')
+const { prepareValue } = require('./utils')
+const { normalizeQueryConfig } = require('./internal/utils.js')
 
 class Query extends EventEmitter {
   constructor(config, values, callback) {
     super()
+    ;({
+      config,
+      text: this.text,
+      values: this.values,
+      callback: this.callback,
+    } = normalizeQueryConfig(config, values, callback))
 
-    config = utils.normalizeQueryConfig(config, values, callback)
-
-    this.text = config.text
-    this.values = config.values
     this.rows = config.rows
     this.types = config.types
     this.name = config.name
@@ -20,10 +23,9 @@ class Query extends EventEmitter {
     this.binary = config.binary
     // use unique portal name each time
     this.portal = config.portal || ''
-    this.callback = config.callback
     this._rowMode = config.rowMode
-    if (process.domain && config.callback) {
-      this.callback = process.domain.bind(config.callback)
+    if (process.domain && this.callback) {
+      this.callback = process.domain.bind(this.callback)
     }
     this._result = new Result(this._rowMode, this.types)
 
@@ -228,7 +230,7 @@ class Query extends EventEmitter {
         statement: this.name,
         values: this.values,
         binary: this.binary,
-        valueMapper: utils.prepareValue,
+        valueMapper: prepareValue,
       })
     } catch (err) {
       // we should close parse to avoid leaking connections
