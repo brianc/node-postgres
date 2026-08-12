@@ -240,7 +240,8 @@ The number of queued requests waiting on a client when all clients are checked o
 Whenever the pool establishes a new client connection to the PostgreSQL backend it will emit the `connect` event with the newly connected client.
 
 <Alert>
-  The event listener does not wait for promises or async functions. If you want to run setup commands on each new client, use the `onConnect` option. (See documentation above.)
+  The event listener does not wait for promises or async functions. If you want to run setup commands on each new
+  client, use the `onConnect` option. (See documentation above.)
 </Alert>
 
 ### acquire
@@ -260,9 +261,8 @@ If the backend goes down or a network partition is encountered all the idle, con
 The error listener is passed the error as the first argument and the client upon which the error occurred as the 2nd argument. The client will be automatically terminated and removed from the pool, it is only passed to the error handler in case you want to inspect it.
 
 <Alert>
-  <div>You probably want to add an event listener to the pool to catch background errors!</div>
-  Just like other event emitters, if a pool emits an <code>error</code> event and no listeners are added node will emit an
-  uncaught error and potentially crash your node process.
+  The pool has a default no-op error listener so an idle client error does not become an uncaught exception. Add your
+  own listener to observe, log, or otherwise handle these background errors.
 </Alert>
 
 ### release

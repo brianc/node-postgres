@@ -10,6 +10,26 @@ const pgdatabase = process.env['PGDATABASE'] || process.env.USER
 const pgport = process.env['PGPORT'] || 5432
 
 test('client settings', function () {
+  test('does not throw an unhandled error event', function () {
+    const client = new Client()
+    const expectedError = new Error('unexpected idle client error')
+
+    assert.doesNotThrow(() => client.emit('error', expectedError))
+  })
+
+  test('emits errors to user listeners', function () {
+    const client = new Client()
+    const expectedError = new Error('unexpected idle client error')
+    let emittedError
+
+    client.on('error', (error) => {
+      emittedError = error
+    })
+    client.emit('error', expectedError)
+
+    assert.strictEqual(emittedError, expectedError)
+  })
+
   test('defaults', function () {
     const client = new Client()
     assert.equal(client.user, pguser)

@@ -66,6 +66,7 @@ function makeIdleListener(pool, client) {
 class Pool extends EventEmitter {
   constructor(options, Client) {
     super()
+    this.on('error', () => {})
     this.options = Object.assign({}, options)
 
     if (options != null && 'password' in options) {

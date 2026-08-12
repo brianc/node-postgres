@@ -234,10 +234,13 @@ const pool = new Pool()
 // attach an error handler to the pool for when a connected, idle client
 // receives an error by being disconnected, etc
 pool.on('error', function (error, client) {
-  // handle this in the same way you would treat process.on('uncaughtException')
+  // observe or otherwise handle the background error
   // it is supplied the error as well as the idle client which received the error
 })
 ```
+
+Pools include a default no-op error listener so an idle client error does not become an uncaught exception. Add your own
+listener to observe, log, or otherwise handle these background errors.
 
 #### connect
 

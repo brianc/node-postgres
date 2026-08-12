@@ -6,6 +6,26 @@ const assert = require('assert')
 const suite = new helper.Suite()
 const test = suite.test.bind(suite)
 
+test('does not throw an unhandled error event', function () {
+  const client = new Client(helper.config)
+  const expectedError = new Error('unexpected idle client error')
+
+  assert.doesNotThrow(() => client.emit('error', expectedError))
+})
+
+test('emits errors to user listeners', function () {
+  const client = new Client(helper.config)
+  const expectedError = new Error('unexpected idle client error')
+  let emittedError
+
+  client.on('error', (error) => {
+    emittedError = error
+  })
+  client.emit('error', expectedError)
+
+  assert.strictEqual(emittedError, expectedError)
+})
+
 const setupClient = function () {
   const client = new Client(helper.config)
   client.connect()

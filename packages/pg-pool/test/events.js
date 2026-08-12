@@ -7,6 +7,26 @@ const it = require('mocha').it
 const Pool = require('../')
 
 describe('events', function () {
+  it('does not throw an unhandled error event', function () {
+    const pool = new Pool({ Client: mockClient() })
+    const expectedError = new Error('unexpected idle client error')
+
+    expect(() => pool.emit('error', expectedError)).to.not.throwException()
+  })
+
+  it('emits errors to user listeners', function () {
+    const pool = new Pool({ Client: mockClient() })
+    const expectedError = new Error('unexpected idle client error')
+    let emittedError
+
+    pool.on('error', function (error) {
+      emittedError = error
+    })
+    pool.emit('error', expectedError)
+
+    expect(emittedError).to.be(expectedError)
+  })
+
   it('emits connect before callback', function (done) {
     const pool = new Pool()
     let emittedClient = false
