@@ -1,8 +1,15 @@
 'use strict'
 
 const defaults = require('./defaults')
+const nodeUtils = require('util')
 
 const { isDate } = require('util/types')
+
+const invalidDateDeprecationNotice = nodeUtils.deprecate(
+  () => {},
+  'Sending an invalid date to Postgres is deprecated and will throw an error in the next major version of pg. Ensure any Date object passed as a query parameter is valid.',
+  'PG_INVALID_DATE'
+)
 
 function escapeElement(elementRepresentation) {
   const escaped = elementRepresentation.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
@@ -54,6 +61,9 @@ const prepareValue = function (val, seen) {
       return Buffer.from(val.buffer, val.byteOffset, val.byteLength)
     }
     if (isDate(val)) {
+      if (isNaN(val.getTime())) {
+        invalidDateDeprecationNotice()
+      }
       if (defaults.parseInputDatesAsUTC) {
         return dateToStringUTC(val)
       } else {

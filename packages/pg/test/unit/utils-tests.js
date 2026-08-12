@@ -89,6 +89,23 @@ test('prepareValues: 1 BC date prepared properly', function () {
   helper.resetTimezoneOffset()
 })
 
+test('prepareValue: invalid date emits deprecation warning', function () {
+  const warningSeen = new Promise((resolve) => {
+    const onWarning = (warning) => {
+      if (warning.code === 'PG_INVALID_DATE') {
+        process.removeListener('warning', onWarning)
+        resolve()
+      }
+    }
+    process.on('warning', onWarning)
+  })
+
+  const out = utils.prepareValue(new Date(NaN))
+  assert.strictEqual(out, '0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN')
+
+  return warningSeen
+})
+
 test('prepareValues: undefined prepared properly', function () {
   const out = utils.prepareValue(void 0)
   assert.strictEqual(out, null)
