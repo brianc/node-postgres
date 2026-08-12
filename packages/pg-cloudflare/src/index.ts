@@ -84,9 +84,13 @@ export class CloudflareSocket extends EventEmitter {
 
   write(
     data: Uint8Array | string,
-    encoding: BufferEncoding = 'utf8',
+    encoding: BufferEncoding | ((...args: unknown[]) => void) = 'utf8',
     callback: (...args: unknown[]) => void = () => {}
   ) {
+    if (typeof encoding === 'function') {
+      callback = encoding
+      encoding = 'utf8'
+    }
     if (data.length === 0) return callback()
     if (typeof data === 'string') data = Buffer.from(data, encoding)
 
@@ -107,7 +111,10 @@ export class CloudflareSocket extends EventEmitter {
   end(data = Buffer.alloc(0), encoding: BufferEncoding = 'utf8', callback: (...args: unknown[]) => void = () => {}) {
     log('ending CF socket')
     this.write(data, encoding, (err) => {
-      this._cfSocket?.close()
+      this._cfSocket
+        ?.close()
+        .then(() => this._emitClose())
+        .catch((e) => this.emit('error', e))
       if (callback) callback(err)
     })
     return this
@@ -138,14 +145,19 @@ export class CloudflareSocket extends EventEmitter {
   _addClosedHandler() {
     this._cfSocket!.closed.then(() => {
       if (!this._upgrading) {
-        log('CF socket closed')
-        this._cfSocket = null
-        this.emit('close')
+        this._emitClose()
       } else {
         this._upgrading = false
         this._upgraded = true
       }
     }).catch((e) => this.emit('error', e))
+  }
+
+  private _emitClose() {
+    if (!this._cfSocket) return
+    log('CF socket closed')
+    this._cfSocket = null
+    this.emit('close')
   }
 }
 
