@@ -1,5 +1,22 @@
 # Local development
 
+## In a container
+
+The quickest way to get a server the whole suite can run against, SSL included, is the
+script that starts the same image CI uses. It works with either podman or docker, and
+prints the environment variables to export:
+
+```sh
+packages/pg/script/test-server.sh        # start it
+packages/pg/script/test-server.sh stop   # remove it again
+```
+
+SSL is worth having even if you are not working on it, since the SCRAM channel binding
+tests are skipped without it. Pass `POSTGRES_VERSION` to test against another release,
+e.g. `POSTGRES_VERSION=13 packages/pg/script/test-server.sh`.
+
+## On the host
+
 Steps to install and configure Postgres on Mac for developing against locally
 
 1. Install homebrew

@@ -6,6 +6,10 @@ const defaults = require('./defaults')
 
 const parse = require('pg-connection-string').parse // parses a connection string
 
+const { resolveAuthRequirement } = require('./require-auth')
+
+const { resolveChannelBinding } = require('./channel-binding')
+
 const val = function (key, config, envVar) {
   if (config[key]) {
     return config[key]
@@ -20,6 +24,20 @@ const val = function (key, config, envVar) {
   }
 
   return envVar || defaults[key]
+}
+
+// These two are spelled as libpq spells them, as client_encoding and application_name
+// are, so a camelCased attempt at one is not recognized. Both exist to refuse weak
+// authentication, so proceeding without them would make exactly the connection they were
+// set to prevent: an error, and not a warning, which the connection would outlive.
+const libpqSpellings = { channelBinding: 'channel_binding', requireAuth: 'require_auth' }
+
+const rejectCamelCasedOptions = function (config) {
+  for (const [camelCased, libpqSpelling] of Object.entries(libpqSpellings)) {
+    if (config[camelCased] !== undefined) {
+      throw new Error(`The ${camelCased} option is not recognized: spell it ${libpqSpelling}, as libpq does.`)
+    }
+  }
 }
 
 const readSSLConfigFromEnvironment = function () {
@@ -50,15 +68,30 @@ const add = function (params, config, paramName) {
 }
 
 class ConnectionParameters {
-  constructor(config) {
+  // `native` says these parameters are for libpq rather than this library's own protocol
+  // implementation, which decides who checks what: libpq negotiates SSL of its own accord
+  // and performs authentication methods this library does not, so a configuration it can
+  // honor must not be rejected here.
+  constructor(config, { native = false } = {}) {
+    // The boolean enableChannelBinding option is only honored in the client config:
+    // a connection string carries libpq's channel_binding parameter instead.
+    const enableChannelBinding = typeof config === 'string' ? undefined : config && config.enableChannelBinding
+
     // if a string is passed, it is a raw connection string so we parse it into a config
     config = typeof config === 'string' ? parse(config) : config || {}
 
     // if the config has a connectionString defined, parse IT into the config we use
     // this will override other default values with what is stored in connectionString
     if (config.connectionString) {
-      config = Object.assign({}, config, parse(config.connectionString))
+      // The parser suppresses its sslmode deprecation warning when channel binding
+      // is required, so it needs any setting that is not in the connection string.
+      const channelBinding = resolveChannelBinding(config.channel_binding, enableChannelBinding)
+      config = Object.assign({}, config, parse(config.connectionString, { channelBinding }))
     }
+
+    // After the merge, so that a camelCased query parameter is caught as well: the parser
+    // passes through anything it does not recognize.
+    rejectCamelCasedOptions(config)
 
     this.user = val('user', config)
     this.database = val('database', config)
@@ -111,6 +144,30 @@ class ConnectionParameters {
       throw new Error('sslnegotiation=direct requires SSL to be enabled')
     }
 
+    // Use of SCRAM channel binding: 'require', 'prefer' (the default, using it when
+    // the server offers it) or 'disable'.
+    this.channel_binding = resolveChannelBinding(config.channel_binding, enableChannelBinding)
+    // This client only encrypts a connection when asked to, so requiring a binding to the
+    // server's certificate without SSL could never be satisfied. libpq, on the other hand,
+    // negotiates SSL by default, and reports the shortfall itself if it ends up without.
+    if (!native && this.channel_binding === 'require' && !this.ssl) {
+      throw new Error('channel_binding=require requires SSL to be enabled')
+    }
+
+    // The authentication method(s) the server may ask for. The requirement derived from
+    // it, which the client enforces, also carries any channel binding requirement.
+    // An explicitly empty value requires nothing and is honored over the environment, as
+    // it is in libpq's own conninfo; val() would fall through to the environment instead,
+    // since it tests truthiness. It is kept as an empty string rather than dropped, so
+    // that it reaches libpq: absence there is not the same thing, because libpq reads
+    // PGREQUIREAUTH itself for a parameter the conninfo does not mention, and an empty one
+    // it takes to require nothing. The cost is that a libpq older than PostgreSQL 16 will
+    // reject the parameter, but only for someone who asked for it by name.
+    const requireAuth =
+      config.require_auth !== undefined ? config.require_auth : val('require_auth', config, 'PGREQUIREAUTH')
+    this.require_auth = requireAuth ?? undefined
+    this.authRequirement = resolveAuthRequirement(this.require_auth, this.channel_binding, { native })
+
     this.client_encoding = val('client_encoding', config)
     this.replication = val('replication', config)
     // a domain socket begins with '/'
@@ -157,6 +214,15 @@ class ConnectionParameters {
     add(params, ssl, 'sslcert')
     add(params, ssl, 'sslrootcert')
     add(params, this, 'sslnegotiation')
+    // Only when it differs from libpq's own default, so that we neither say anything
+    // redundant nor pass an unknown parameter to a libpq older than PostgreSQL 11.
+    if (this.channel_binding !== 'prefer') {
+      add(params, this, 'channel_binding')
+    }
+    // Needs no such guard: this is undefined unless it was asked for, and add() skips
+    // undefined values, so a libpq older than PostgreSQL 16 is never passed a parameter
+    // it would reject.
+    add(params, this, 'require_auth')
 
     if (this.database) {
       params.push('dbname=' + quoteParamValue(this.database))

@@ -64,7 +64,8 @@ jobs:
       PGPASSWORD: postgres
       PGHOST: localhost
       PGDATABASE: ci_db_test
-      PGTESTNOSSL: 'true'
+      # PGTESTNOSSL is deliberately unset: the postgres-ssl service image above has SSL
+      # configured, so the SSL and SCRAM channel binding tests can run for real here.
       SCRAM_TEST_PGUSER: scram_test
       SCRAM_TEST_PGPASSWORD: test4scram
       SCRAM_TEST_PGUSER_UNICODE: scram_unicode_test

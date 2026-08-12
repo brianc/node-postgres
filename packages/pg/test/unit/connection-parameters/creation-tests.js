@@ -397,6 +397,302 @@ suite.test('sslnegotiation is read from PGSSLNEGOTIATION env var', function () {
   }
 })
 
+suite.test('channel_binding defaults to prefer', function () {
+  const subject = new ConnectionParameters({})
+  assert.strictEqual(subject.channel_binding, 'prefer')
+})
+
+suite.test('channel_binding is read from config', function () {
+  for (const channel_binding of ['disable', 'prefer', 'require']) {
+    const subject = new ConnectionParameters({ ssl: true, channel_binding })
+    assert.strictEqual(subject.channel_binding, channel_binding)
+  }
+})
+
+suite.test('channel_binding is read from a connection string', function () {
+  const subject = new ConnectionParameters({ connectionString: 'postgres://host/db?channel_binding=disable' })
+  assert.strictEqual(subject.channel_binding, 'disable')
+})
+
+suite.test('channel_binding rejects invalid values', function () {
+  assert.throws(() => new ConnectionParameters({ channel_binding: 'bogus' }), /Invalid channel_binding value/)
+  assert.throws(
+    () => new ConnectionParameters({ connectionString: 'postgres://host/db?channel_binding=bogus' }),
+    /Invalid channel_binding value/
+  )
+})
+
+suite.test('channel_binding=require requires ssl', function () {
+  assert.throws(
+    () => new ConnectionParameters({ ssl: false, channel_binding: 'require' }),
+    /channel_binding=require requires SSL to be enabled/
+  )
+})
+
+suite.test('the boolean enableChannelBinding option maps onto the channel binding levels', function () {
+  assert.strictEqual(new ConnectionParameters({ enableChannelBinding: true }).channel_binding, 'prefer')
+  assert.strictEqual(new ConnectionParameters({ enableChannelBinding: false }).channel_binding, 'disable')
+})
+
+suite.test('enableChannelBinding also accepts the channel binding levels', function () {
+  const subject = new ConnectionParameters({ ssl: true, enableChannelBinding: 'require' })
+  assert.strictEqual(subject.channel_binding, 'require')
+})
+
+suite.test('channel_binding takes precedence over enableChannelBinding', function () {
+  const subject = new ConnectionParameters({ channel_binding: 'disable', enableChannelBinding: true })
+  assert.strictEqual(subject.channel_binding, 'disable')
+})
+
+suite.test('enableChannelBinding is ignored in a connection string', function () {
+  // Only libpq's channel_binding parameter is recognized there, so the default stands.
+  const subject = new ConnectionParameters({ connectionString: 'postgres://host/db?enableChannelBinding=disable' })
+  assert.strictEqual(subject.channel_binding, 'prefer')
+})
+
+suite.test('a camelCased channelBinding or requireAuth is rejected rather than ignored', function () {
+  assert.throws(
+    () => new ConnectionParameters({ channelBinding: 'require' }),
+    /The channelBinding option is not recognized: spell it channel_binding/
+  )
+  assert.throws(
+    () => new ConnectionParameters({ requireAuth: 'scram-sha-256' }),
+    /The requireAuth option is not recognized: spell it require_auth/
+  )
+
+  // the parser passes query parameters it does not recognize through as they are written,
+  // so a connection string is held to the same spelling
+  assert.throws(
+    () => new ConnectionParameters({ connectionString: 'postgres://host/db?channelBinding=require' }),
+    /The channelBinding option is not recognized/
+  )
+
+  // the libpq spellings, and the legacy enableChannelBinding option, are what work
+  const subject = new ConnectionParameters({
+    channel_binding: 'disable',
+    require_auth: 'md5',
+    enableChannelBinding: true,
+  })
+  assert.strictEqual(subject.channel_binding, 'disable')
+  assert.strictEqual(subject.require_auth, 'md5')
+})
+
+suite.test('channel_binding is read from PGCHANNELBINDING env var', function () {
+  const original = process.env.PGCHANNELBINDING
+  process.env.PGCHANNELBINDING = 'disable'
+  try {
+    const subject = new ConnectionParameters({})
+    assert.strictEqual(subject.channel_binding, 'disable')
+  } finally {
+    if (original === undefined) {
+      delete process.env.PGCHANNELBINDING
+    } else {
+      process.env.PGCHANNELBINDING = original
+    }
+  }
+})
+
+suite.test('channel_binding is included in libpq connection string when it is not the libpq default', function () {
+  const subject = new ConnectionParameters({
+    user: 'brian',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+    ssl: true,
+    channel_binding: 'require',
+  })
+  subject.getLibpqConnectionString(
+    assert.calls(function (err, pgCString) {
+      assert(!err)
+      assert.equal(
+        pgCString.indexOf("channel_binding='require'") !== -1,
+        true,
+        'libpqConnectionString should contain channel_binding'
+      )
+    })
+  )
+})
+
+suite.test('channel_binding is omitted from libpq connection string when it is the libpq default', function () {
+  const subject = new ConnectionParameters({
+    user: 'brian',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+  })
+  subject.getLibpqConnectionString(
+    assert.calls(function (err, pgCString) {
+      assert(!err)
+      assert.equal(pgCString.indexOf('channel_binding'), -1, 'libpqConnectionString should not contain channel_binding')
+    })
+  )
+})
+
+suite.test('require_auth is unset by default, requiring nothing of the server', function () {
+  const subject = new ConnectionParameters({})
+  assert.strictEqual(subject.require_auth, undefined)
+  assert.strictEqual(subject.authRequirement, null)
+})
+
+suite.test('require_auth is read from config', function () {
+  const subject = new ConnectionParameters({ require_auth: 'md5' })
+  assert.strictEqual(subject.require_auth, 'md5')
+  assert.deepStrictEqual([...subject.authRequirement.allowedMethods], ['md5'])
+})
+
+suite.test('require_auth is read from a connection string', function () {
+  const subject = new ConnectionParameters({ connectionString: 'postgres://host/db?require_auth=scram-sha-256' })
+  assert.strictEqual(subject.require_auth, 'scram-sha-256')
+  assert.deepStrictEqual([...subject.authRequirement.allowedMethods], ['scram-sha-256'])
+})
+
+suite.test('require_auth is read from PGREQUIREAUTH env var', function () {
+  const original = process.env.PGREQUIREAUTH
+  process.env.PGREQUIREAUTH = 'password'
+  try {
+    assert.strictEqual(new ConnectionParameters({}).require_auth, 'password')
+    // config takes precedence over the environment
+    assert.strictEqual(new ConnectionParameters({ require_auth: 'md5' }).require_auth, 'md5')
+
+    // an explicitly empty config value requires nothing, and says so in preference to the
+    // environment, rather than being treated as absent and falling through to it. It is
+    // kept verbatim so that libpq hears it as well, which the conninfo test below covers.
+    const explicitlyEmpty = new ConnectionParameters({ require_auth: '' })
+    assert.strictEqual(explicitlyEmpty.require_auth, '')
+    assert.strictEqual(explicitlyEmpty.authRequirement, null)
+
+    // as in libpq, an empty setting requires nothing rather than permitting nothing
+    process.env.PGREQUIREAUTH = ''
+    const subject = new ConnectionParameters({})
+    assert.strictEqual(subject.require_auth, undefined)
+    assert.strictEqual(subject.authRequirement, null)
+  } finally {
+    if (original === undefined) {
+      delete process.env.PGREQUIREAUTH
+    } else {
+      process.env.PGREQUIREAUTH = original
+    }
+  }
+})
+
+suite.test('require_auth rejects values it could never satisfy', function () {
+  assert.throws(() => new ConnectionParameters({ require_auth: 'bogus' }), /Invalid require_auth value/)
+  assert.throws(() => new ConnectionParameters({ require_auth: 'gss' }), /cannot be satisfied/)
+  assert.throws(
+    () => new ConnectionParameters({ connectionString: 'postgres://host/db?require_auth=md5,!password' }),
+    /cannot be mixed/
+  )
+})
+
+suite.test('channel_binding=require narrows the requirement to bound SCRAM', function () {
+  const subject = new ConnectionParameters({ ssl: true, channel_binding: 'require', require_auth: 'md5,scram-sha-256' })
+  assert.deepStrictEqual([...subject.authRequirement.allowedMethods], ['scram-sha-256'])
+  assert.strictEqual(subject.authRequirement.channelBindingRequired, true)
+  // the setting itself is passed through unchanged, for libpq to enforce in its own way
+  assert.strictEqual(subject.require_auth, 'md5,scram-sha-256')
+})
+
+suite.test('channel_binding=require conflicts with a require_auth that rules out SCRAM', function () {
+  assert.throws(
+    () => new ConnectionParameters({ ssl: true, channel_binding: 'require', require_auth: 'md5' }),
+    /channel_binding=require cannot be satisfied by require_auth="md5"/
+  )
+})
+
+// Parameters bound for libpq are libpq's to judge: it authenticates by methods this
+// library does not implement, and it negotiates SSL whether or not one was configured
+// here, so a configuration it can honor must not be refused on this side.
+suite.test('parameters for libpq permit the methods libpq performs', function () {
+  const subject = new ConnectionParameters({ require_auth: 'gss' }, { native: true })
+  assert.deepStrictEqual([...subject.authRequirement.allowedMethods], ['gss'])
+  assert.strictEqual(subject.require_auth, 'gss')
+
+  // the same configuration cannot work with this library's own protocol implementation
+  assert.throws(() => new ConnectionParameters({ require_auth: 'gss' }), /cannot be satisfied/)
+})
+
+suite.test('parameters for libpq leave SSL negotiation to libpq', function () {
+  // ssl is stated either way, since earlier tests in this file leave defaults.ssl set.
+  // A falsy one is not passed on to libpq as an sslmode at all, so libpq goes on to
+  // negotiate SSL by its own default and can bind the channel after all.
+  const subject = new ConnectionParameters({ ssl: false, channel_binding: 'require' }, { native: true })
+  assert.strictEqual(subject.channel_binding, 'require')
+
+  assert.throws(
+    () => new ConnectionParameters({ ssl: false, channel_binding: 'require' }),
+    /requires SSL to be enabled/
+  )
+})
+
+suite.test('parameters for libpq are still checked for what libpq would reject', function () {
+  assert.throws(() => new ConnectionParameters({ require_auth: 'bogus' }, { native: true }), /Invalid require_auth/)
+  assert.throws(() => new ConnectionParameters({ require_auth: 'md5,!gss' }, { native: true }), /cannot be mixed/)
+  assert.throws(
+    () => new ConnectionParameters({ channel_binding: 'require', require_auth: 'gss' }, { native: true }),
+    /channel_binding=require cannot be satisfied by require_auth="gss"/
+  )
+  assert.throws(
+    () => new ConnectionParameters({ channel_binding: 'bogus' }, { native: true }),
+    /Invalid channel_binding/
+  )
+})
+
+suite.test('an explicitly empty require_auth reaches libpq, overriding the environment there too', function () {
+  const original = process.env.PGREQUIREAUTH
+  process.env.PGREQUIREAUTH = 'scram-sha-256'
+
+  try {
+    const subject = new ConnectionParameters(
+      { user: 'brian', host: 'localhost', port: 5432, database: 'postgres', require_auth: '' },
+      { native: true }
+    )
+    assert.strictEqual(subject.require_auth, '')
+    assert.strictEqual(subject.authRequirement, null)
+
+    subject.getLibpqConnectionString(
+      assert.calls(function (err, pgCString) {
+        assert(!err)
+        // Saying nothing would leave libpq to read PGREQUIREAUTH for itself, undoing the
+        // override; an empty value is how conninfo says that nothing is required.
+        assert.notStrictEqual(pgCString.indexOf("require_auth=''"), -1, pgCString)
+      })
+    )
+  } finally {
+    if (original === undefined) {
+      delete process.env.PGREQUIREAUTH
+    } else {
+      process.env.PGREQUIREAUTH = original
+    }
+  }
+})
+
+suite.test('require_auth is included in libpq connection string only when set', function () {
+  new ConnectionParameters({
+    user: 'brian',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+  }).getLibpqConnectionString(
+    assert.calls(function (err, pgCString) {
+      assert(!err)
+      assert.equal(pgCString.indexOf('require_auth'), -1, 'libpqConnectionString should not contain require_auth')
+    })
+  )
+
+  new ConnectionParameters({
+    user: 'brian',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+    require_auth: 'scram-sha-256',
+  }).getLibpqConnectionString(
+    assert.calls(function (err, pgCString) {
+      assert(!err)
+      assert.notStrictEqual(pgCString.indexOf("require_auth='scram-sha-256'"), -1)
+    })
+  )
+})
+
 suite.test('sslnegotiation is included in libpq connection string', function () {
   const subject = new ConnectionParameters({
     user: 'brian',

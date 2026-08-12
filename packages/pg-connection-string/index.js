@@ -136,6 +136,14 @@ function parse(str, options = {}) {
       }
     }
   } else {
+    // A required channel binding authenticates the server to the client, so none
+    // of the weaker libpq sslmode guarantees warned about below can be exploited.
+    // Only the connection string is visible here, so the caller passes on any
+    // setting it holds itself, and the connection string takes precedence.
+    // Note: options.channelBinding may be boolean rather than string, but testing
+    // against `"require"` remains correct (neither boolean value means the same).
+    const channelBinding = config.channel_binding || options.channelBinding
+
     switch (config.sslmode) {
       case 'disable': {
         config.ssl = false
@@ -145,7 +153,7 @@ function parse(str, options = {}) {
       case 'require':
       case 'verify-ca':
       case 'verify-full': {
-        if (config.sslmode !== 'verify-full') {
+        if (config.sslmode !== 'verify-full' && channelBinding !== 'require') {
           deprecatedSslModeWarning(config.sslmode)
         }
         break
