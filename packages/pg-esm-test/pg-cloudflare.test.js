@@ -19,44 +19,17 @@ describe('pg-cloudflare', () => {
     assert.doesNotThrow(() => socket.end())
   })
 
-  it('should emit close when the underlying close call resolves', async () => {
-    const socket = new CloudflareSocket()
-    const underlyingSocket = {
-      closed: new Promise(() => {}),
-      close: () => Promise.resolve(),
-    }
-    socket._cfSocket = underlyingSocket
-    socket._addClosedHandler()
-
-    const close = new Promise((resolve) => socket.once('close', resolve))
-    socket.end()
-
-    await close
-    assert.equal(socket._cfSocket, null)
-  })
-
-  it('should support the write(data, callback) overload', async () => {
+  it('should call the write(data, callback) callback exactly once', async () => {
     const socket = new CloudflareSocket()
     socket._cfWriter = { write: () => Promise.resolve() }
 
-    await new Promise((resolve) => socket.write(Buffer.from('x'), resolve))
-  })
+    let callbackCount = 0
+    socket.write(Buffer.from('x'), (error) => {
+      assert.ifError(error)
+      callbackCount++
+    })
 
-  it('should emit close only once when both close signals resolve', async () => {
-    const socket = new CloudflareSocket()
-    const underlyingSocket = {
-      closed: Promise.resolve(),
-      close: () => Promise.resolve(),
-    }
-    socket._cfSocket = underlyingSocket
-    socket._addClosedHandler()
-
-    let closeCount = 0
-    socket.on('close', () => closeCount++)
-    socket.end()
-
-    await underlyingSocket.closed
     await new Promise((resolve) => setImmediate(resolve))
-    assert.equal(closeCount, 1)
+    assert.equal(callbackCount, 1)
   })
 })

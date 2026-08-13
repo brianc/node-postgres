@@ -82,15 +82,15 @@ export class CloudflareSocket extends EventEmitter {
     this.emit('data', Buffer.from(value))
   }
 
+  write(data: Uint8Array | string, callback?: (error?: unknown) => void): true | void
+  write(data: Uint8Array | string, encoding?: BufferEncoding, callback?: (error?: unknown) => void): true | void
   write(
     data: Uint8Array | string,
-    encoding: BufferEncoding | ((...args: unknown[]) => void) = 'utf8',
-    callback: (...args: unknown[]) => void = () => {}
-  ) {
-    if (typeof encoding === 'function') {
-      callback = encoding
-      encoding = 'utf8'
-    }
+    encodingOrCallback: BufferEncoding | ((error?: unknown) => void) = 'utf8',
+    callback: (error?: unknown) => void = () => {}
+  ): true | void {
+    const encoding = typeof encodingOrCallback === 'function' ? 'utf8' : encodingOrCallback
+    if (typeof encodingOrCallback === 'function') callback = encodingOrCallback
     if (data.length === 0) return callback()
     if (typeof data === 'string') data = Buffer.from(data, encoding)
 
@@ -111,10 +111,7 @@ export class CloudflareSocket extends EventEmitter {
   end(data = Buffer.alloc(0), encoding: BufferEncoding = 'utf8', callback: (...args: unknown[]) => void = () => {}) {
     log('ending CF socket')
     this.write(data, encoding, (err) => {
-      this._cfSocket
-        ?.close()
-        .then(() => this._emitClose())
-        .catch((e) => this.emit('error', e))
+      this._cfSocket?.close()
       if (callback) callback(err)
     })
     return this
@@ -145,19 +142,14 @@ export class CloudflareSocket extends EventEmitter {
   _addClosedHandler() {
     this._cfSocket!.closed.then(() => {
       if (!this._upgrading) {
-        this._emitClose()
+        log('CF socket closed')
+        this._cfSocket = null
+        this.emit('close')
       } else {
         this._upgrading = false
         this._upgraded = true
       }
     }).catch((e) => this.emit('error', e))
-  }
-
-  private _emitClose() {
-    if (!this._cfSocket) return
-    log('CF socket closed')
-    this._cfSocket = null
-    this.emit('close')
   }
 }
 
