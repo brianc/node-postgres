@@ -23,13 +23,18 @@ describe('pg-cloudflare', () => {
     const socket = new CloudflareSocket()
     socket._cfWriter = { write: () => Promise.resolve() }
 
-    let callbackCount = 0
+    let resolve
+    const promise = new Promise((resolvePromise) => {
+      resolve = resolvePromise
+    })
+    let called = false
     socket.write(Buffer.from('x'), (error) => {
       assert.ifError(error)
-      callbackCount++
+      assert(!called)
+      called = true
+      resolve()
     })
 
-    await new Promise((resolve) => setImmediate(resolve))
-    assert.equal(callbackCount, 1)
+    await promise
   })
 })
