@@ -82,11 +82,15 @@ export class CloudflareSocket extends EventEmitter {
     this.emit('data', Buffer.from(value))
   }
 
+  write(data: Uint8Array | string, callback?: (error?: unknown) => void): true | void
+  write(data: Uint8Array | string, encoding?: BufferEncoding, callback?: (error?: unknown) => void): true | void
   write(
     data: Uint8Array | string,
-    encoding: BufferEncoding = 'utf8',
-    callback: (...args: unknown[]) => void = () => {}
-  ) {
+    encodingOrCallback: BufferEncoding | ((error?: unknown) => void) = 'utf8',
+    callback: (error?: unknown) => void = () => {}
+  ): true | void {
+    const encoding = typeof encodingOrCallback === 'function' ? 'utf8' : encodingOrCallback
+    if (typeof encodingOrCallback === 'function') callback = encodingOrCallback
     if (data.length === 0) return callback()
     if (typeof data === 'string') data = Buffer.from(data, encoding)
 

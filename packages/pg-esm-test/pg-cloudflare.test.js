@@ -18,4 +18,23 @@ describe('pg-cloudflare', () => {
 
     assert.doesNotThrow(() => socket.end())
   })
+
+  it('should call the write(data, callback) callback exactly once', async () => {
+    const socket = new CloudflareSocket()
+    socket._cfWriter = { write: () => Promise.resolve() }
+
+    let resolve
+    const promise = new Promise((resolvePromise) => {
+      resolve = resolvePromise
+    })
+    let called = false
+    socket.write(Buffer.from('x'), (error) => {
+      assert.ifError(error)
+      assert(!called)
+      called = true
+      resolve()
+    })
+
+    await promise
+  })
 })
