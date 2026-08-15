@@ -1,6 +1,7 @@
 'use strict'
 const helper = require('./test-helper')
 const utils = require('./../../lib/utils')
+const { normalizeQueryConfig } = require('../../lib/internal/utils.js')
 const defaults = require('./../../lib').defaults
 const assert = require('assert')
 const suite = new helper.Suite()
@@ -13,36 +14,34 @@ test('ensure types is exported on root object', function () {
   assert(pg.types.setTypeParser)
 })
 
+const text = 'TEXT'
+const callback = function () {}
+const values = [10]
+
 test('normalizing query configs', function () {
   let config
-  const callback = function () {}
 
-  config = utils.normalizeQueryConfig({ text: 'TEXT' })
-  assert.same(config, { text: 'TEXT' })
+  config = { text }
+  assert.same(normalizeQueryConfig(config), { config, text, values: undefined, callback: undefined })
 
-  config = utils.normalizeQueryConfig({ text: 'TEXT' }, [10])
-  assert.deepEqual(config, { text: 'TEXT', values: [10] })
+  assert.same(normalizeQueryConfig(config, values), { config, text, values, callback: undefined })
 
-  config = utils.normalizeQueryConfig({ text: 'TEXT', values: [10] })
-  assert.deepEqual(config, { text: 'TEXT', values: [10] })
+  config = { text, values }
+  assert.same(normalizeQueryConfig(config), { config, text, values, callback: undefined })
 
-  config = utils.normalizeQueryConfig('TEXT', [10], callback)
-  assert.deepEqual(config, { text: 'TEXT', values: [10], callback: callback })
+  const normalized = normalizeQueryConfig(text, values, callback)
+  assert.same(normalized, { text, values, callback })
+  assert.deepStrictEqual(normalized.config, {})
 
-  config = utils.normalizeQueryConfig({ text: 'TEXT', values: [10] }, callback)
-  assert.deepEqual(config, { text: 'TEXT', values: [10], callback: callback })
+  assert.same(normalizeQueryConfig({ text, values }, callback), { text, values, callback })
 })
 
 test('normalizeQueryConfig does not mutate the passed-in config object', function () {
   // Regression test for https://github.com/brianc/node-postgres/issues/2651.
-  const original = { text: 'TEXT' }
-  const callback = function () {}
-
-  const normalized = utils.normalizeQueryConfig(original, [10], callback)
-
-  assert.equal(original.callback, undefined)
-  assert.equal(original.values, undefined)
-  assert.deepEqual(normalized, { text: 'TEXT', values: [10], callback: callback })
+  const original = { text }
+  const normalized = utils.normalizeQueryConfig(original, values, callback)
+  assert.deepStrictEqual(original, { text })
+  assert.same(normalized, { text, values, callback })
 })
 
 test('normalizeQueryConfig preserves inherited config properties', function () {
@@ -57,15 +56,10 @@ test('normalizeQueryConfig preserves inherited config properties', function () {
   }
 
   const original = new QueryConfig()
-  const callback = function () {}
-
-  const normalized = utils.normalizeQueryConfig(original, [10], callback)
-
+  const normalized = utils.normalizeQueryConfig(original, values, callback)
   assert.equal(original.callback, undefined)
   assert.equal(original.values, undefined)
-  assert.equal(normalized.text, 'TEXT')
-  assert.deepEqual(normalized.values, [10])
-  assert.equal(normalized.callback, callback)
+  assert.same(normalized, { text, values, callback })
 })
 
 test('prepareValues: buffer prepared properly', function () {
