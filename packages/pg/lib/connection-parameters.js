@@ -79,6 +79,16 @@ class ConnectionParameters {
       value: val('password', config),
     })
 
+    // oauthBearerToken is intentionally not read from environment variables.
+    // OAuth bearer tokens are short-lived credentials obtained programmatically;
+    // they should not be stored in env vars the way a static password would be.
+    Object.defineProperty(this, 'oauthBearerToken', {
+      configurable: true,
+      enumerable: false,
+      writable: true,
+      value: config.oauthBearerToken,
+    })
+
     this.binary = val('binary', config)
     this.options = val('options', config)
 

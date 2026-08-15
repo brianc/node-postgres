@@ -1,4 +1,5 @@
 'use strict'
+const assert = require('assert')
 const EventEmitter = require('events').EventEmitter
 
 const helper = require('../test-helper')
@@ -35,11 +36,22 @@ p.setKeepAlive = function () {}
 p.closed = false
 p.writable = true
 
-const createClient = function () {
+assert.equalBuffers = function (actual, expected) {
+  assert(Buffer.isBuffer(actual), 'actual must be a Buffer')
+  assert(Buffer.isBuffer(expected), 'expected must be a Buffer')
+  assert.equal(actual.compare(expected), 0)
+}
+
+const createClient = function (config) {
   const stream = new MemoryStream()
-  const client = new Client({
-    connection: new Connection({ stream: stream }),
-  })
+  const client = new Client(
+    Object.assign(
+      {
+        connection: new Connection({ stream: stream }),
+      },
+      config
+    )
+  )
   client.connect()
   return client
 }

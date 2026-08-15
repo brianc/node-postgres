@@ -12,6 +12,7 @@ Every field of the `config` object is entirely optional. A `Client` instance wil
 type Config = {
   user?: string, // default process.env.PGUSER || process.env.USER
   password?: string or function, //default process.env.PGPASSWORD
+  oauthBearerToken?: string or function, // bearer token or callback returning a bearer token for OAUTHBEARER authentication
   host?: string, // default process.env.PGHOST
   port?: number, // default process.env.PGPORT
   database?: string, // default process.env.PGDATABASE || user
