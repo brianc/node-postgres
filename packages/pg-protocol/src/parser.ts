@@ -39,6 +39,11 @@ const HEADER_LENGTH = CODE_LENGTH + LEN_LENGTH
 // A placeholder for a `BackendMessage`’s length value that will be set after construction.
 const LATEINIT_LENGTH = -1
 
+// How much of a straddling message’s claimed length we are willing to allocate up front. Beyond
+// this the buffer grows as the bytes actually arrive, so that a bogus length in a corrupt stream
+// cannot ask for an enormous allocation.
+const MAX_EAGER_MESSAGE_LENGTH = 1024 * 1024
+
 export type Packet = {
   code: number
   packet: Buffer
@@ -77,10 +82,27 @@ const enum MessageCodes {
 
 export type MessageCallback = (msg: BackendMessage) => void
 
+/**
+ * Parses the backend’s messages out of the chunks the socket delivers.
+ *
+ * A chunk is however many bytes one socket read returned, which has nothing to do with where
+ * messages begin and end: the backend writes a continuous stream of length-prefixed messages, so
+ * unless a read happens to land exactly on a message boundary it ends part way through one — which,
+ * for a result of any size, is nearly every read. A message can also be longer than a single read
+ * (a wide row, or one large cell), and then spans several chunks. Only the message at the tail of a
+ * chunk can be incomplete, though, so at most one message per chunk needs bytes from another one.
+ *
+ * That message is reassembled into a buffer of its own; every other message is parsed in place, as
+ * a view over the chunk it arrived in. Neither buffer is ever written to again, so a message stays
+ * valid for as long as it is held — and holding one holds the whole chunk it came from.
+ */
 export class Parser {
-  private buffer: Buffer = emptyBuffer
-  private bufferLength: number = 0
-  private bufferOffset: number = 0
+  // The bytes of a message that straddles two chunks, i.e. only ever one message’s worth. Every
+  // other message is parsed in place, out of the chunk it arrived in.
+  private partial: Buffer = emptyBuffer
+  private partialLength: number = 0
+  // The straddling message’s full length, or -1 while its own header is still incomplete.
+  private partialTotal: number = -1
   private reader = new BufferReader()
   private mode: Mode
 
@@ -91,67 +113,93 @@ export class Parser {
     this.mode = opts?.mode || 'text'
   }
 
-  public parse(buffer: Buffer, callback: MessageCallback) {
-    this.mergeBuffer(buffer)
-    const bufferFullLength = this.bufferOffset + this.bufferLength
-    let offset = this.bufferOffset
-    while (offset + HEADER_LENGTH <= bufferFullLength) {
+  public parse(chunk: Buffer, callback: MessageCallback) {
+    const chunkLength = chunk.byteLength
+    // finish the message the previous chunk cut in half, if any, before parsing this one
+    let offset = this.partialLength > 0 ? this.completePartial(chunk, callback) : 0
+    while (offset + HEADER_LENGTH <= chunkLength) {
       // code is 1 byte long - it identifies the message type
-      const code = this.buffer[offset]
+      const code = chunk[offset]
       // length is 1 Uint32BE - it is the length of the message EXCLUDING the code
-      const length = this.buffer.readUInt32BE(offset + CODE_LENGTH)
+      const length = chunk.readUInt32BE(offset + CODE_LENGTH)
       const fullMessageLength = CODE_LENGTH + length
-      if (fullMessageLength + offset <= bufferFullLength) {
-        const message = this.handlePacket(offset + HEADER_LENGTH, code, length, this.buffer)
+      if (fullMessageLength + offset <= chunkLength) {
+        const message = this.handlePacket(offset + HEADER_LENGTH, code, length, chunk)
         callback(message)
         offset += fullMessageLength
       } else {
         break
       }
     }
-    if (offset === bufferFullLength) {
-      // No more use for the buffer
-      this.buffer = emptyBuffer
-      this.bufferLength = 0
-      this.bufferOffset = 0
-    } else {
-      // Adjust the cursors of remainingBuffer
-      this.bufferLength = bufferFullLength - offset
-      this.bufferOffset = offset
+    if (offset < chunkLength) {
+      this.startPartial(chunk, offset)
     }
   }
 
-  private mergeBuffer(buffer: Buffer): void {
-    if (this.bufferLength > 0) {
-      const newLength = this.bufferLength + buffer.byteLength
-      const newFullLength = newLength + this.bufferOffset
-      if (newFullLength > this.buffer.byteLength) {
-        // We can't concat the new buffer with the remaining one
-        let newBuffer: Buffer
-        if (newLength <= this.buffer.byteLength && this.bufferOffset >= this.bufferLength) {
-          // We can move the relevant part to the beginning of the buffer instead of allocating a new buffer
-          newBuffer = this.buffer
-        } else {
-          // Allocate a new larger buffer
-          let newBufferLength = this.buffer.byteLength * 2
-          while (newLength >= newBufferLength) {
-            newBufferLength *= 2
-          }
-          newBuffer = Buffer.allocUnsafe(newBufferLength)
-        }
-        // Move the remaining buffer to the new one
-        this.buffer.copy(newBuffer, 0, this.bufferOffset, this.bufferOffset + this.bufferLength)
-        this.buffer = newBuffer
-        this.bufferOffset = 0
+  /** Copies the trailing bytes of `chunk` that do not yet form a whole message into their own buffer. */
+  private startPartial(chunk: Buffer, offset: number): void {
+    const remaining = chunk.byteLength - offset
+    this.partial = emptyBuffer
+    this.partialLength = 0
+    // the length is only known once the header is complete
+    this.partialTotal = remaining >= HEADER_LENGTH ? CODE_LENGTH + chunk.readUInt32BE(offset + CODE_LENGTH) : -1
+    this.growPartial(remaining)
+    chunk.copy(this.partial, 0, offset)
+    this.partialLength = remaining
+  }
+
+  /**
+   * Fills the straddling message from the head of `chunk` and emits it once whole, returning the
+   * offset in `chunk` where parsing continues.
+   */
+  private completePartial(chunk: Buffer, callback: MessageCallback): number {
+    let consumed = 0
+    if (this.partialTotal === -1) {
+      // the header itself was split, so complete it before its length can be read
+      consumed = Math.min(HEADER_LENGTH - this.partialLength, chunk.byteLength)
+      chunk.copy(this.partial, this.partialLength, 0, consumed)
+      this.partialLength += consumed
+      if (this.partialLength < HEADER_LENGTH) {
+        return consumed
       }
-      // Concat the new buffer with the remaining one
-      buffer.copy(this.buffer, this.bufferOffset + this.bufferLength)
-      this.bufferLength = newLength
-    } else {
-      this.buffer = buffer
-      this.bufferOffset = 0
-      this.bufferLength = buffer.byteLength
+      this.partialTotal = CODE_LENGTH + this.partial.readUInt32BE(CODE_LENGTH)
     }
+    if (this.partialLength < this.partialTotal) {
+      const available = Math.min(this.partialTotal - this.partialLength, chunk.byteLength - consumed)
+      this.growPartial(this.partialLength + available)
+      chunk.copy(this.partial, this.partialLength, consumed, consumed + available)
+      this.partialLength += available
+      consumed += available
+      if (this.partialLength < this.partialTotal) {
+        return consumed
+      }
+    }
+    // hand the buffer off to the message and forget it, so that nothing is ever parsed twice out
+    // of the same bytes and the message stays valid for as long as it is held
+    const partial = this.partial
+    this.partial = emptyBuffer
+    this.partialLength = 0
+    this.partialTotal = -1
+    const message = this.handlePacket(HEADER_LENGTH, partial[0], partial.readUInt32BE(CODE_LENGTH), partial)
+    callback(message)
+    return consumed
+  }
+
+  /** Sizes `partial` to hold at least `needed` bytes, i.e. the whole message when its length is known. */
+  private growPartial(needed: number): void {
+    if (needed <= this.partial.byteLength) {
+      return
+    }
+    // grow geometrically, jumping straight to the message's full length when that is known and
+    // modest, and always keeping room for the header its length is read from
+    const whole = this.partialTotal === -1 ? HEADER_LENGTH : Math.min(this.partialTotal, MAX_EAGER_MESSAGE_LENGTH)
+    let capacity = Math.max(needed, whole, this.partial.byteLength * 2)
+    if (this.partialTotal !== -1 && capacity > this.partialTotal) {
+      capacity = this.partialTotal
+    }
+    const grown = Buffer.allocUnsafe(capacity)
+    this.partial.copy(grown, 0, 0, this.partialLength)
+    this.partial = grown
   }
 
   private handlePacket(offset: number, code: number, length: number, bytes: Buffer): BackendMessage {
@@ -188,7 +236,8 @@ export class Parser {
         message = emptyQuery
         break
       case MessageCodes.DataRow:
-        message = parseDataRowMessage(reader)
+        // the cells are decoded lazily, on the first read of `message.fields`
+        message = new DataRowMessage(LATEINIT_LENGTH, bytes, offset)
         break
       case MessageCodes.CommandComplete:
         message = parseCommandCompleteMessage(reader)
@@ -304,17 +353,6 @@ const parseParameterDescriptionMessage = (reader: BufferReader) => {
     message.dataTypeIDs[i] = reader.uint32()
   }
   return message
-}
-
-const parseDataRowMessage = (reader: BufferReader) => {
-  const fieldCount = reader.int16()
-  const fields: any[] = new Array(fieldCount)
-  for (let i = 0; i < fieldCount; i++) {
-    const len = reader.int32()
-    // a -1 for length means the value of the field is null
-    fields[i] = len === -1 ? null : reader.string(len)
-  }
-  return new DataRowMessage(LATEINIT_LENGTH, fields)
 }
 
 const parseParameterStatusMessage = (reader: BufferReader) => {
