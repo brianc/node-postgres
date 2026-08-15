@@ -9,9 +9,10 @@ const matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/
 // passed as second argument to provided callback
 class Result {
   constructor(rowMode, types) {
-    this.command = null
-    this.rowCount = null
-    this.oid = null
+    this._command = undefined
+    this._rowCount = undefined
+    this._oid = undefined
+    this._commandCompleteMsg = undefined
     this.rows = []
     this.fields = []
     this._parsers = undefined
@@ -26,25 +27,10 @@ class Result {
 
   // adds a command complete message
   addCommandComplete(msg) {
-    let match
-    if (msg.text) {
-      // pure javascript
-      match = matchRegexp.exec(msg.text)
-    } else {
-      // native bindings
-      match = matchRegexp.exec(msg.command)
-    }
-    if (match) {
-      this.command = match[1]
-      if (match[3]) {
-        // COMMAND OID ROWS
-        this.oid = parseInt(match[2], 10)
-        this.rowCount = parseInt(match[3], 10)
-      } else if (match[2]) {
-        // COMMAND ROWS
-        this.rowCount = parseInt(match[2], 10)
-      }
-    }
+    this._commandCompleteMsg = msg
+    this._command = undefined
+    this._rowCount = undefined
+    this._oid = undefined
   }
 
   _parseRowAsArray(rowData) {
@@ -103,6 +89,52 @@ class Result {
     }
 
     this._prebuiltEmptyResultObject = { ...row }
+  }
+  get command() {
+    this._parseCommandCompleteIfNeeded()
+    return this._command
+  }
+
+  get rowCount() {
+    this._parseCommandCompleteIfNeeded()
+    return this._rowCount
+  }
+
+  get oid() {
+    this._parseCommandCompleteIfNeeded()
+    return this._oid
+  }
+
+  _parseCommandCompleteIfNeeded() {
+    if (this._command !== undefined || !this._commandCompleteMsg) {
+      return
+    }
+    let match
+    const msg = this._commandCompleteMsg
+    if (msg.text) {
+      match = matchRegexp.exec(msg.text)
+    } else {
+      match = matchRegexp.exec(msg.command)
+    }
+    if (match) {
+      this._command = match[1]
+      if (match[3]) {
+        // COMMAND OID ROWS
+        this._oid = parseInt(match[2], 10)
+        this._rowCount = parseInt(match[3], 10)
+      } else if (match[2]) {
+        // COMMAND ROWS
+        this._oid = null
+        this._rowCount = parseInt(match[2], 10)
+      } else {
+        this._oid = null
+        this._rowCount = null
+      }
+    } else {
+      this._command = null
+      this._oid = null
+      this._rowCount = null
+    }
   }
 }
 
