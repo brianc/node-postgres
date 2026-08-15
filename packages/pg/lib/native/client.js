@@ -41,7 +41,7 @@ const Client = (module.exports = function (config) {
 
   // keep these on the object for legacy reasons
   // for the time being. TODO: deprecate all this jazz
-  const cp = (this.connectionParameters = new ConnectionParameters(config))
+  const cp = (this.connectionParameters = new ConnectionParameters(config, { native: true }))
   if (config.nativeConnectionString) cp.nativeConnectionString = config.nativeConnectionString
   this.user = cp.user
 

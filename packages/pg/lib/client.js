@@ -2,6 +2,8 @@ const EventEmitter = require('events').EventEmitter
 const utils = require('./utils')
 const nodeUtils = require('util')
 const sasl = require('./crypto/sasl')
+const { checkAuthRequest, resolveAuthRequirement } = require('./require-auth')
+const { normalizeChannelBinding } = require('./channel-binding')
 const TypeOverrides = require('./type-overrides')
 
 const ConnectionParameters = require('./connection-parameters')
@@ -84,7 +86,23 @@ class Client extends EventEmitter {
     this._activeQuery = null
     this._txStatus = null
 
-    this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
+    // Use of SCRAM-SHA-256-PLUS: 'require', 'prefer' (when the server offers it) or
+    // 'disable'. ConnectionParameters resolves this from the channel_binding and
+    // enableChannelBinding options and the PGCHANNELBINDING environment variable.
+    this._channelBinding = this.connectionParameters.channel_binding
+    // What the server has to do to authenticate itself, from require_auth and
+    // channel_binding, or null if any supported method will do
+    this._authRequirement = this.connectionParameters.authRequirement
+    // Whether the client has done all the authenticating it is going to do, and whether
+    // that included binding the exchange to the server's certificate
+    this._authFinished = false
+    this._channelBound = false
+    // Whether a requirement has been broken, which nothing later can put right. Anything
+    // computed for an authentication request has to consult this again before writing its
+    // answer: hashing a password and computing a SCRAM proof each take a turn of the event
+    // loop, and Connection#end() sends its Terminate before ending the stream, so a write
+    // that arrived in the meantime would still reach the server.
+    this._authAborted = false
     this.scramMaxIterations = coerceNumberOrDefault(c.scramMaxIterations, sasl.DEFAULT_MAX_SCRAM_ITERATIONS)
     this.connection =
       c.connection ||
@@ -114,6 +132,30 @@ class Client extends EventEmitter {
     }
 
     this._connectionTimeoutMillis = c.connectionTimeoutMillis || 0
+  }
+
+  get channelBinding() {
+    return this._channelBinding
+  }
+
+  // Changing the level after construction re-derives what the server has to do, so that
+  // the two cannot come to disagree over whether channel binding is mandatory. The value
+  // is checked as it would have been in the constructor, so that a level this client does
+  // not know cannot pass for the weakest one.
+  set channelBinding(value) {
+    this._channelBinding = normalizeChannelBinding(value)
+    this._authRequirement = resolveAuthRequirement(this.connectionParameters.require_auth, this._channelBinding)
+  }
+
+  // Kept in step with channelBinding, since this was the option's original name and
+  // shape. Levels pass through, so assigning 'require' does not weaken to 'prefer', and
+  // booleans mean what they always did.
+  get enableChannelBinding() {
+    return this.channelBinding !== 'disable'
+  }
+
+  set enableChannelBinding(value) {
+    this.channelBinding = value
   }
 
   get activeQuery() {
@@ -255,6 +297,7 @@ class Client extends EventEmitter {
     con.on('authenticationSASL', this._handleAuthSASL.bind(this))
     con.on('authenticationSASLContinue', this._handleAuthSASLContinue.bind(this))
     con.on('authenticationSASLFinal', this._handleAuthSASLFinal.bind(this))
+    con.on('authenticationOk', this._handleAuthenticationOk.bind(this))
     con.on('backendKeyData', this._handleBackendKeyData.bind(this))
     con.on('error', this._handleErrorEvent.bind(this))
     con.on('errorMessage', this._handleErrorMessage.bind(this))
@@ -273,6 +316,16 @@ class Client extends EventEmitter {
 
   _getPassword(cb) {
     const con = this.connection
+    // Looking a password up can be asynchronous, and a requirement can be broken while it
+    // is in flight, so what was permitted when the lookup began is checked again before
+    // anything is answered with.
+    const answer = () => {
+      if (this._authAborted) {
+        return
+      }
+      cb()
+    }
+
     if (typeof this.password === 'function') {
       this._Promise
         .resolve()
@@ -287,13 +340,13 @@ class Client extends EventEmitter {
           } else {
             this.connectionParameters.password = this.password = null
           }
-          cb()
+          answer()
         })
         .catch((err) => {
           con.emit('error', err)
         })
     } else if (this.password !== null) {
-      cb()
+      answer()
     } else {
       try {
         const pgPass = require('pgpass')
@@ -302,7 +355,7 @@ class Client extends EventEmitter {
             pgPassDeprecationNotice()
             this.connectionParameters.password = this.password = pass
           }
-          cb()
+          answer()
         })
       } catch (e) {
         this.emit('error', e)
@@ -310,17 +363,77 @@ class Client extends EventEmitter {
     }
   }
 
+  // Fails the connection: the caller hears of the error through connect(), and the
+  // connection is closed so that a server which carries on regardless cannot reach a
+  // usable session. The messages that carry on regardless may already be here, since a
+  // server can pipeline the whole of a successful login into one packet, so the failure
+  // is recorded rather than left to be inferred from the connection being closed.
+  _abortAuthentication(err) {
+    this._authAborted = true
+    this._queryable = false
+    this.connection.emit('error', err)
+    this.connection.end()
+  }
+
+  // Mirrors libpq's check_expected_areq. Every authentication request is judged here
+  // before the client answers it, or even looks up a password, so that a server cannot
+  // escape a requirement by asking for a method whose handler forgot to check. That was
+  // CVE-2025-49146: pgjdbc honored channel_binding=require within a SCRAM exchange, but
+  // a server could ask for a plain password instead and face no such requirement.
+  _authRequestAllowed(method) {
+    // Nothing is answered once a requirement has been broken, not even a request that
+    // would have been permitted on its own: the connection is already on its way out.
+    if (this._authAborted) {
+      return false
+    }
+
+    // Authentication happens once. The server asks for one method and then says whether
+    // it was enough, so a further request means a server after something it has not been
+    // given: the password itself, say, from a client that had proved knowing it through
+    // SCRAM. Postgres stores only a SCRAM verifier, and someone in the middle holding a
+    // stolen one can complete that exchange, so what is asked for here is worth refusing
+    // whatever require_auth says.
+    if (this._authFinished && method !== 'none') {
+      this._abortAuthentication(
+        new Error(`The server requested ${method} authentication after the client had already authenticated`)
+      )
+      return false
+    }
+
+    const reason = checkAuthRequest({
+      requirement: this._authRequirement,
+      method,
+      authFinished: this._authFinished,
+      channelBound: this._channelBound,
+    })
+
+    if (reason === null) {
+      return true
+    }
+
+    this._abortAuthentication(new Error(reason))
+    return false
+  }
+
   _handleAuthCleartextPassword(msg) {
+    if (!this._authRequestAllowed('password')) return
+
     this._getPassword(() => {
       this.connection.password(this.password)
+      // as in libpq: having sent a password, we expect no further authentication request
+      this._authFinished = true
     })
   }
 
   _handleAuthMD5Password(msg) {
+    if (!this._authRequestAllowed('md5')) return
+
     this._getPassword(async () => {
       try {
         const hashedPassword = await crypto.postgresMd5PasswordHash(this.user, this.password, msg.salt)
+        if (this._authAborted) return
         this.connection.password(hashedPassword)
+        this._authFinished = true
       } catch (e) {
         this.emit('error', e)
       }
@@ -328,41 +441,55 @@ class Client extends EventEmitter {
   }
 
   _handleAuthSASL(msg) {
+    if (!this._authRequestAllowed('scram-sha-256')) return
+
     this._getPassword(() => {
       try {
-        this.saslSession = sasl.startSession(
-          msg.mechanisms,
-          this.enableChannelBinding && this.connection.stream,
-          this.scramMaxIterations
-        )
+        this.saslSession = sasl.startSession(msg.mechanisms, {
+          channelBinding: this.channelBinding,
+          sslInUse: Boolean(this.ssl),
+          stream: this.connection.stream,
+          scramMaxIterations: this.scramMaxIterations,
+        })
         this.connection.sendSASLInitialResponseMessage(this.saslSession.mechanism, this.saslSession.response)
       } catch (err) {
-        this.connection.emit('error', err)
+        this._abortAuthentication(err)
       }
     })
   }
 
   async _handleAuthSASLContinue(msg) {
+    if (!this._authRequestAllowed('scram-sha-256')) return
+
     try {
-      await sasl.continueSession(
-        this.saslSession,
-        this.password,
-        msg.data,
-        this.enableChannelBinding && this.connection.stream
-      )
+      await sasl.continueSession(this.saslSession, this.password, msg.data, this.connection.stream)
+      if (this._authAborted) return
       this.connection.sendSCRAMClientFinalMessage(this.saslSession.response)
     } catch (err) {
-      this.connection.emit('error', err)
+      this._abortAuthentication(err)
     }
   }
 
   _handleAuthSASLFinal(msg) {
+    if (!this._authRequestAllowed('scram-sha-256')) return
+
     try {
+      const { mechanism } = this.saslSession
       sasl.finalizeSession(this.saslSession, msg.data)
       this.saslSession = null
+      // The server has proved that it holds the verifier for our password, and with
+      // SCRAM-SHA-256-PLUS that proof is tied to the certificate of this TLS session.
+      this._authFinished = true
+      this._channelBound = mechanism === 'SCRAM-SHA-256-PLUS'
     } catch (err) {
-      this.connection.emit('error', err)
+      this._abortAuthentication(err)
     }
+  }
+
+  _handleAuthenticationOk() {
+    // 'none' is require_auth's name for a connection involving no authentication
+    // request, which is what this message amounts to if nothing preceded it
+    this._authRequestAllowed('none')
   }
 
   _handleBackendKeyData(msg) {
@@ -372,6 +499,23 @@ class Client extends EventEmitter {
 
   _handleReadyForQuery(msg) {
     if (this._connecting) {
+      // A server that declares the client logged in anyway does not get to make it so:
+      // this message may have arrived in the same packet as the request that was refused,
+      // and reporting a successful connection now would undo the refusal.
+      if (this._authAborted) {
+        return
+      }
+
+      // The last word on any requirement, since this is where the connection becomes
+      // usable. An AuthenticationOk is judged as it arrives, but a server can reach this
+      // point without having sent one: unlike libpq, which accepts nothing but an
+      // authentication request at this stage of its handshake, this client is listening
+      // for every message from the start. 'none' is require_auth's name for a connection
+      // that involved no authentication request at all.
+      if (!this._authRequestAllowed('none')) {
+        return
+      }
+
       this._connecting = false
       this._connected = true
       clearTimeout(this.connectionTimeoutHandle)

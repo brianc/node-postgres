@@ -90,8 +90,8 @@ If your change involves breaking backwards compatibility please please point tha
 1. Clone the repo
 2. Ensure you have installed libpq-dev in your system (the native bindings are built in the test process)
 3. From your workspace root run `yarn` and then `yarn lerna bootstrap`
-4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests. _note: you can skip the tests requring SSL by setting the environment variable `PGTESTNOSSL=1` if you're not changing any SSL related code_.
-5. Ensure you have the proper environment variables configured for connecting to your postgres instance. Using the standard `PG*` environment variables like `PGUSER` and `PGPASSWORD` etc...
+4. Ensure you have a PostgreSQL instance running with SSL enabled and an empty database for tests. Running `packages/pg/script/test-server.sh` starts one in a container, or see [LOCAL_DEV.md](./LOCAL_DEV.md) to configure your own. _note: you can skip the tests requring SSL by setting the environment variable `PGTESTNOSSL=1` if you're not changing any SSL related code_.
+5. Ensure you have the proper environment variables configured for connecting to your postgres instance. Using the standard `PG*` environment variables like `PGUSER` and `PGPASSWORD` etc... The script in step 4 prints the ones the SCRAM tests need.
 6. Run `yarn test` to run all the tests.
 
 ## Troubleshooting and FAQ

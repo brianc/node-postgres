@@ -4,6 +4,14 @@ For richer information consult the commit log on github with referenced pull req
 
 We do not include break-fix version release in this file.
 
+## pg@8.24.0
+
+- Add support for the `channel_binding` connection parameter (in a connection string, the client config or `PGCHANNELBINDING`): `"disable"`, `"prefer"` or `"require"`, following libpq. Also change default from `disable` to `prefer`, so channel binding is used whenever the server offers it. The previous `enableChannelBinding` boolean option is retained but deprecated: `true` maps to `"prefer"`.
+- Also add support for the `require_auth`/`PGREQUIREAUTH`  connection parameter, which specifies which authentication method(s) the client will accept from the server.
+- Both parameters retain libpq's spelling. A camelCased `channelBinding` or `requireAuth` throw an error rather than leaving a security setting silently ignored, and an unrecognized channel binding value is refused the same way.
+- These requirements are enforced against every authentication request, not only SCRAM exchanges, so a server cannot evade `channel_binding=require` by requesting some other kind of authentication (a downgrade recorded against another driver as [CVE-2025-49146](https://www.cve.org/CVERecord?id=CVE-2025-49146)).
+- The native (libpq) client validates `channel_binding` and `require_auth` natively, against libpq's wider range of supported auth types.
+
 ## pg@8.23.0
 
 - Add support for query [`pipelineing`](https://github.com/brianc/node-postgres/pull/3652).
