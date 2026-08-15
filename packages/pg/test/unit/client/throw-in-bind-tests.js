@@ -69,6 +69,23 @@ suite.test('emits error event when bind throws (no callback)', function (done) {
   client.query(query)
 })
 
+suite.test('calls sync once when bind throws for rows-limited query', function (done) {
+  const { client, con, calls } = setupClient()
+  con.emit('readyForQuery')
+  client.query(
+    new Query({
+      text: 'select $1',
+      values: ['x'],
+      rows: 1,
+      callback: function (err) {
+        assert.equal(err, bindError)
+        assert.equal(calls.sync, 1, 'sync should be called once')
+        done()
+      },
+    })
+  )
+})
+
 suite.test('send close when bind throws', function (done) {
   const { client, con, calls } = setupClient()
   con.emit('readyForQuery')
