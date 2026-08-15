@@ -14,6 +14,11 @@ describe('parse', function () {
     subject.database?.should.equal('lala')
   })
 
+  it('strips the URI brackets from an IPv6 host', function () {
+    parse('postgres://brian:pw@[::1]:5432/lala').host?.should.equal('::1')
+    parse('postgres://brian:pw@[2001:db8::1]:5432/lala').host?.should.equal('2001:db8::1')
+  })
+
   it('escape spaces if present', function () {
     const subject = parse('postgres://localhost/post gres')
     subject.database?.should.equal('post gres')
