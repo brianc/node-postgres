@@ -9,6 +9,7 @@ const Pool = require('pg-pool')
 const TypeOverrides = require('./type-overrides')
 const { DatabaseError } = require('pg-protocol')
 const { escapeIdentifier, escapeLiteral } = require('./utils')
+const cancelQuery = require('./cancel-query')
 
 const poolFactory = (Client) => {
   return class BoundPool extends Pool {
@@ -30,6 +31,7 @@ const PG = function (clientConstructor) {
   this.TypeOverrides = TypeOverrides
   this.escapeIdentifier = escapeIdentifier
   this.escapeLiteral = escapeLiteral
+  this.cancelQuery = cancelQuery
   this.Result = Result
   this.utils = utils
 }

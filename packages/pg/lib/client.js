@@ -9,6 +9,7 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
+const cancellation = require('./query-cancellation').js
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
@@ -98,6 +99,7 @@ class Client extends EventEmitter {
       })
     this._queryQueue = []
     this._sentQueryQueue = []
+    this._cancelState = null
     this.pipeline = Boolean(c.pipeline)
     this.binary = c.binary || defaults.binary
     this.processID = null
@@ -386,12 +388,16 @@ class Client extends EventEmitter {
       this.emit('connect')
     }
     const activeQuery = this._getActiveQuery()
+    if (activeQuery) {
+      activeQuery._pgSubmitState = 'settled'
+    }
     this._activeQuery = null
     this._txStatus = msg?.status ?? null
     this.readyForQuery = true
     if (activeQuery) {
       activeQuery.handleReadyForQuery(this.connection)
     }
+    cancellation.queryDone(this, activeQuery)
     this._pulseQueryQueue()
   }
 
@@ -418,6 +424,7 @@ class Client extends EventEmitter {
       return this._handleErrorWhileConnecting(err)
     }
     this._queryable = false
+    cancellation.fail(this, err)
     this._errorAllQueries(err)
     this.emit('error', err)
   }
@@ -571,27 +578,12 @@ class Client extends EventEmitter {
     return data
   }
 
+  _cancelQuery(failClosed) {
+    return cancellation.cancel(this, failClosed)
+  }
+
   cancel(client, query) {
-    if (client.activeQuery === query) {
-      const con = this.connection
-
-      if (this.host && this.host.indexOf('/') === 0) {
-        con.connect(this.host + '/.s.PGSQL.' + this.port)
-      } else {
-        con.connect(this.port, this.host)
-      }
-
-      // once connection is established send cancel message
-      con.on('connect', function () {
-        con.cancel(client.processID, client.secretKey)
-      })
-    } else if (client._queryQueue.indexOf(query) !== -1) {
-      client._queryQueue.splice(client._queryQueue.indexOf(query), 1)
-    } else if (client._sentQueryQueue.indexOf(query) !== -1) {
-      // Query already sent on wire — can't remove it without corrupting the
-      // pipeline. No-op the callback so the result is silently discarded.
-      query.callback = () => {}
-    }
+    cancellation.cancelLegacy(client, query)
   }
 
   setTypeParser(oid, format, parseFn) {
@@ -614,6 +606,12 @@ class Client extends EventEmitter {
   }
 
   _pulseQueryQueue() {
+    if (!this._queryable || this._ended) {
+      return
+    }
+    if (this._cancelState) {
+      return
+    }
     if (this.pipeline) {
       this._pulsePipelinedQueryQueue()
       return
@@ -624,8 +622,10 @@ class Client extends EventEmitter {
       if (activeQuery) {
         this.readyForQuery = false
         this.hasExecuted = true
+        cancellation.submitStart(activeQuery)
 
         const queryError = activeQuery.submit(this.connection)
+        cancellation.submitEnd(this, activeQuery, !queryError)
         if (queryError) {
           process.nextTick(() => {
             activeQuery.handleError(queryError, this.connection)
@@ -691,12 +691,18 @@ class Client extends EventEmitter {
         }).catch((err) => {
           // replace the stack trace that leads to `TCP.onStreamRead` with one that leads back to the
           // application that created the query
-          Error.captureStackTrace(err)
+          if (err instanceof Error) {
+            Error.captureStackTrace(err)
+          }
           throw err
         })
       } else if (typeof query.callback !== 'function') {
         throw new TypeError('callback is not a function')
       }
+    }
+
+    if (query instanceof Query && !cancellation.prepareQuery(this, query)) {
+      return result
     }
 
     const readTimeout = config.query_timeout || this.connectionParameters.query_timeout
@@ -748,6 +754,9 @@ class Client extends EventEmitter {
     // queries written behind it are answered out of its portal, so rows land on the wrong query and
     // the reads that follow fail with 'portal does not exist'. Refuse it instead of corrupting.
     if (this.pipeline) {
+      if (cancellation.rejectPipelineSignal(this, query)) {
+        return result
+      }
       const portalQuery =
         typeof config.submit === 'function' && !(query instanceof Query)
           ? 'Custom query classes such as pg-cursor and pg-query-stream are'
@@ -779,6 +788,7 @@ class Client extends EventEmitter {
     if (this._queryQueue.length > 0 && !this.pipeline) {
       queryQueueLengthDeprecationNotice()
     }
+    cancellation.queue(query)
     this._queryQueue.push(query)
     this._pulseQueryQueue()
     return result

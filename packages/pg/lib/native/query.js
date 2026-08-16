@@ -11,6 +11,7 @@ const NativeQuery = (module.exports = function (config, values, callback) {
   this.values = config.values
   this.name = config.name
   this.queryMode = config.queryMode
+  this.signal = config.signal
   this.callback = config.callback
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
@@ -49,7 +50,7 @@ const errorFieldMap = {
 NativeQuery.prototype.handleError = function (err) {
   // copy pq error fields into the error object
   const fields = this.native && this.native.pq.resultErrorFields()
-  if (fields) {
+  if (fields && err && typeof err === 'object') {
     for (const key in fields) {
       const normalizedFieldName = errorFieldMap[key] || key
       err[normalizedFieldName] = fields[key]

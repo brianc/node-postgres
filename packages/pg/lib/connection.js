@@ -5,6 +5,7 @@ const EventEmitter = require('events').EventEmitter
 const { parse, serialize } = require('pg-protocol')
 const stream = require('./stream')
 const { getStream } = stream
+const cancelConnection = require('./cancel-connection')
 
 const flushBuffer = serialize.flush()
 const syncBuffer = serialize.sync()
@@ -16,6 +17,8 @@ class Connection extends EventEmitter {
     super()
     config = config || {}
 
+    this._streamFactory = typeof config.stream === 'function' ? config.stream : null
+    this._hasCustomStream = Boolean(config.stream)
     this.stream = config.stream || getStream(config.ssl)
     if (typeof this.stream === 'function') {
       this.stream = this.stream(config)
@@ -27,6 +30,7 @@ class Connection extends EventEmitter {
     this.submittedNamedStatements = {}
     this.ssl = config.ssl || false
     this.sslNegotiation = config.sslNegotiation || 'postgres'
+    this._sslServername = config.sslServername
     this._ending = false
     this._emitMessage = false
     const self = this
@@ -41,10 +45,14 @@ class Connection extends EventEmitter {
     const self = this
 
     this._connecting = true
+    this._connectPort = port
+    this._connectHost = host
     this.stream.setNoDelay(true)
     this.stream.connect(port, host)
 
     this.stream.once('connect', function () {
+      self._cancelPort = self.stream.remotePort || port
+      self._cancelHost = self.stream.remoteAddress || host
       if (self._keepAlive) {
         self.stream.setKeepAlive(true, self._keepAliveInitialDelayMillis)
       }
@@ -114,8 +122,9 @@ class Connection extends EventEmitter {
     }
 
     const net = require('net')
-    if (net.isIP && net.isIP(host) === 0) {
-      options.servername = host
+    const servername = self._sslServername || host
+    if (servername && net.isIP && net.isIP(servername) === 0) {
+      options.servername = servername
     }
     try {
       self.stream = stream.getSecureStream(options)
@@ -146,8 +155,12 @@ class Connection extends EventEmitter {
     this.stream.write(serialize.startup(config))
   }
 
-  cancel(processID, secretKey) {
-    this._send(serialize.cancel(processID, secretKey))
+  cancel(processID, secretKey, callback) {
+    return this._send(serialize.cancel(processID, secretKey), callback)
+  }
+
+  cancelWithClone(processID, secretKey, timeoutMillis, signal) {
+    return cancelConnection(Connection, this, processID, secretKey, timeoutMillis, signal)
   }
 
   password(password) {
@@ -162,11 +175,12 @@ class Connection extends EventEmitter {
     this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
   }
 
-  _send(buffer) {
+  _send(buffer, callback) {
     if (!this.stream.writable) {
       return false
     }
-    return this.stream.write(buffer)
+    const accepted = this.stream.write(buffer, callback)
+    return callback ? true : accepted
   }
 
   query(text) {
