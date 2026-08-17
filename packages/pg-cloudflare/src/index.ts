@@ -82,15 +82,15 @@ export class CloudflareSocket extends EventEmitter {
     this.emit('data', Buffer.from(value))
   }
 
+  write(data: Uint8Array | string, callback?: (error?: unknown) => void): true | void
+  write(data: Uint8Array | string, encoding?: BufferEncoding, callback?: (error?: unknown) => void): true | void
   write(
     data: Uint8Array | string,
-    encoding: BufferEncoding | ((...args: unknown[]) => void) = 'utf8',
-    callback: (...args: unknown[]) => void = () => {}
-  ) {
-    if (typeof encoding === 'function') {
-      callback = encoding
-      encoding = 'utf8'
-    }
+    encodingOrCallback: BufferEncoding | ((error?: unknown) => void) = 'utf8',
+    callback: (error?: unknown) => void = () => {}
+  ): true | void {
+    const encoding = typeof encodingOrCallback === 'function' ? 'utf8' : encodingOrCallback
+    if (typeof encodingOrCallback === 'function') callback = encodingOrCallback
     if (data.length === 0) return callback()
     if (typeof data === 'string') data = Buffer.from(data, encoding)
 
@@ -108,15 +108,7 @@ export class CloudflareSocket extends EventEmitter {
     return true
   }
 
-  end(
-    data = Buffer.alloc(0),
-    encoding: BufferEncoding | ((...args: unknown[]) => void) = 'utf8',
-    callback: (...args: unknown[]) => void = () => {}
-  ) {
-    if (typeof encoding === 'function') {
-      callback = encoding
-      encoding = 'utf8'
-    }
+  end(data = Buffer.alloc(0), encoding: BufferEncoding = 'utf8', callback: (...args: unknown[]) => void = () => {}) {
     log('ending CF socket')
     this.write(data, encoding, (err) => {
       const socket = this._cfSocket
