@@ -37,4 +37,22 @@ describe('pg-cloudflare', () => {
 
     await promise
   })
+
+  it('should emit close when ending a socket whose closed promise never settles', async () => {
+    const socket = new CloudflareSocket()
+    socket._cfSocket = {
+      closed: new Promise(() => {}),
+      close: async () => {},
+    }
+    socket._addClosedHandler()
+
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('close event was not emitted')), 100)
+      socket.once('close', () => {
+        clearTimeout(timer)
+        resolve()
+      })
+      socket.end()
+    })
+  })
 })
