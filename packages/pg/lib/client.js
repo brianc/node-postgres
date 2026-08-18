@@ -50,6 +50,7 @@ function coerceNumberOrDefault(value, defaultValue) {
 class Client extends EventEmitter {
   constructor(config) {
     super()
+    this.on('error', () => {})
 
     this.connectionParameters = new ConnectionParameters(config)
     this.user = this.connectionParameters.user

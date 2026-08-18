@@ -22,6 +22,7 @@ const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
 
 const Client = (module.exports = function (config) {
   EventEmitter.call(this)
+  this.on('error', () => {})
   config = config || {}
 
   this._Promise = config.Promise || global.Promise

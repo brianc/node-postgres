@@ -60,6 +60,13 @@ test('client settings', function () {
   })
 })
 
+test('emitting an error without a listener does not throw', function () {
+  const client = new Client()
+  assert.doesNotThrow(function () {
+    client.emit('error', new Error('expected'))
+  })
+})
+
 test('initializing from a config string', function () {
   test('uses connectionString property', function () {
     const client = new Client({

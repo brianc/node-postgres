@@ -7,6 +7,11 @@ const it = require('mocha').it
 const Pool = require('../')
 
 describe('events', function () {
+  it('does not throw when an error has no listener', function () {
+    const pool = new Pool()
+    expect(() => pool.emit('error', new Error('problem'))).not.to.throwError()
+  })
+
   it('emits connect before callback', function (done) {
     const pool = new Pool()
     let emittedClient = false
