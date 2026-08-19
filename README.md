@@ -3,6 +3,7 @@
 ![Build Status](https://github.com/brianc/node-postgres/actions/workflows/ci.yml/badge.svg)
 <span class="badge-npmversion"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/v/pg.svg" alt="NPM version" /></a></span>
 <span class="badge-npmdownloads"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/pg.svg" alt="NPM downloads" /></a></span>
+<a href="https://inspect.software/software/brianc/node-postgres"><img src="https://raw.githubusercontent.com/inspect-software/badges/main/v1/b/brianc/node-postgres.svg" alt="inspect.software score badge for brianc/node-postgres" /></a>
 
 Non-blocking PostgreSQL client for Node.js (and bun, deno, cloudflare, etc...). Pure JavaScript and optional native libpq bindings.
 
