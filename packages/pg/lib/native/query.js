@@ -99,6 +99,12 @@ NativeQuery.prototype.submit = function (client) {
       return self.handleError(err)
     }
 
+    // COPY and other unhandled libpq statuses used to complete with no result
+    // object. Treat that as an error so callers never see success plus undefined.
+    if (results == null) {
+      return self.handleError(new Error('Native query completed without a result'))
+    }
+
     // emit row events for each row in the result
     if (self._emitRowEvents) {
       if (results.length > 1) {
