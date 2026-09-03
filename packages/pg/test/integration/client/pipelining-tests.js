@@ -101,14 +101,14 @@ suite.test('switches modes after becoming idle', async function () {
   const client = helper.client(undefined, { pipeline: true })
 
   await client.waitForIdle()
-  client.setPipeline(false)
+  client.pipeline = false
   assert.equal(client.pipeline, false)
 
   const regular = await client.query('SELECT 1 AS num')
   assert.equal(regular.rows[0].num, 1)
 
   await client.waitForIdle()
-  client.setPipeline(true)
+  client.pipeline = true
   assert.equal(client.pipeline, true)
 
   const [first, second] = await Promise.all([client.query('SELECT 2 AS num'), client.query('SELECT 3 AS num')])

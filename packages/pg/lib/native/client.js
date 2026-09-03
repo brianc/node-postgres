@@ -36,7 +36,7 @@ const Client = (module.exports = function (config) {
   this._connecting = false
   this._connected = false
   this._queryable = true
-  this.pipeline = Boolean(config.pipeline)
+  this._pipeline = Boolean(config.pipeline)
   this._pipelineInFlight = false
 
   // keep these on the object for legacy reasons
@@ -158,6 +158,23 @@ Client.prototype.isIdle = function () {
   )
 }
 
+Object.defineProperty(Client.prototype, 'pipeline', {
+  configurable: true,
+  get: function () {
+    return this._pipeline
+  },
+  set: function (pipeline) {
+    pipeline = Boolean(pipeline)
+    if (this._pipeline === pipeline) {
+      return
+    }
+    if (this._connected && !this.isIdle()) {
+      throw new Error('Client must be idle before changing pipeline mode')
+    }
+    this._pipeline = pipeline
+  },
+})
+
 Client.prototype.waitForIdle = function () {
   if (this.isIdle()) {
     return this._Promise.resolve()
@@ -191,16 +208,6 @@ Client.prototype.waitForIdle = function () {
     this.once('end', onEnd)
     check()
   })
-}
-
-Client.prototype.setPipeline = function (pipeline) {
-  if (this.pipeline === pipeline) {
-    return
-  }
-  if (!this.isIdle()) {
-    throw new Error('Client must be idle before changing pipeline mode')
-  }
-  this.pipeline = pipeline
 }
 
 // send a query to the server

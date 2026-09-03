@@ -98,7 +98,7 @@ class Client extends EventEmitter {
       })
     this._queryQueue = []
     this._sentQueryQueue = []
-    this.pipeline = Boolean(c.pipeline)
+    this._pipeline = Boolean(c.pipeline)
     this.binary = c.binary || defaults.binary
     this.processID = null
     this.secretKey = null
@@ -796,6 +796,21 @@ class Client extends EventEmitter {
     return this._txStatus
   }
 
+  get pipeline() {
+    return this._pipeline
+  }
+
+  set pipeline(pipeline) {
+    pipeline = Boolean(pipeline)
+    if (this._pipeline === pipeline) {
+      return
+    }
+    if (this._connected && !this.isIdle()) {
+      throw new Error('Client must be idle before changing pipeline mode')
+    }
+    this._pipeline = pipeline
+  }
+
   isIdle() {
     return (
       this._connected &&
@@ -841,16 +856,6 @@ class Client extends EventEmitter {
       this.once('end', onEnd)
       check()
     })
-  }
-
-  setPipeline(pipeline) {
-    if (this.pipeline === pipeline) {
-      return
-    }
-    if (!this.isIdle()) {
-      throw new Error('Client must be idle before changing pipeline mode')
-    }
-    this.pipeline = pipeline
   }
 
   end(cb) {

@@ -209,6 +209,13 @@ test('executing query', function () {
   })
 
   test('pipeline mode changes', function () {
+    test('allows switching modes before connecting', function () {
+      const client = helper.client()
+
+      client.pipeline = true
+      assert.equal(client.pipeline, true)
+    })
+
     test('reports idle only when the connection has no pending work', function () {
       const client = helper.client({ pipeline: true })
       const con = client.connection
@@ -243,18 +250,18 @@ test('executing query', function () {
       const con = client.connection
       con.emit('readyForQuery')
 
-      client.setPipeline(false)
+      client.pipeline = false
       assert.equal(client.pipeline, false)
 
       client.query('one')
       client.query('two')
       assert.lengthIs(con.queries, 1)
-      assert.throws(() => client.setPipeline(true), /Client must be idle/)
+      assert.throws(() => (client.pipeline = true), /Client must be idle/)
 
       con.emit('readyForQuery')
       assert.lengthIs(con.queries, 2)
       con.emit('readyForQuery')
-      client.setPipeline(true)
+      client.pipeline = true
       assert.equal(client.pipeline, true)
 
       client.query('three')
