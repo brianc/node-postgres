@@ -84,10 +84,12 @@ Resolves when the client becomes idle. Rejects if the client errors or closes fi
 await client.waitForIdle()
 client.pipeline = false
 
-// Run a cursor query and close it.
-
-await client.waitForIdle()
-client.pipeline = true
+try {
+  // Run a cursor query and close it.
+} finally {
+  await client.waitForIdle()
+  client.pipeline = true
+}
 ```
 
 ## client.query

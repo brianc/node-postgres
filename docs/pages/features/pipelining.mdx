@@ -78,10 +78,12 @@ You can temporarily disable pipelining for work that needs a non-pipelined conne
 await client.waitForIdle()
 client.pipeline = false
 
-// Run and close the non-pipelined work.
-
-await client.waitForIdle()
-client.pipeline = true
+try {
+  // Run and close the non-pipelined work.
+} finally {
+  await client.waitForIdle()
+  client.pipeline = true
+}
 ```
 
 When the client came from a pool configured with <code>pipeline: true</code>, restore pipelining before calling <code>client.release()</code>.
