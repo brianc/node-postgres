@@ -70,6 +70,22 @@ client.release()
   </div>
 </Alert>
 
+## Switching modes
+
+You can temporarily disable pipelining for work that needs a non-pipelined connection, such as a cursor. The client must be idle before changing modes; <code>setPipeline()</code> throws if any query is active, queued, or awaiting a response.
+
+```js
+await client.waitForIdle()
+client.setPipeline(false)
+
+// Run and close the non-pipelined work.
+
+await client.waitForIdle()
+client.setPipeline(true)
+```
+
+When the client came from a pool configured with <code>pipeline: true</code>, restore pipelining before calling <code>client.release()</code>.
+
 ## Error isolation
 
 Each pipelined query gets its own error boundary. A failing query in the middle of a batch does not break the other queries:
