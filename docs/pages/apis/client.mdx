@@ -59,13 +59,41 @@ await client.connect()
 
 ## client.pipeline
 
-`client.pipeline: boolean` (read-only)
+`client.pipeline: boolean`
 
 Whether this client has pipelining enabled. Set via the `pipeline` config option to the `Client` constructor. Defaults to `false`. See [Pipelining](/features/pipelining) for details and examples.
 
 ```js
 const client = new Client({ pipeline: true })
 await client.connect()
+```
+
+## client.isIdle
+
+`client.isIdle(): boolean`
+
+Returns whether the client is connected, ready for a new query, and has no active, queued, or pipelined queries.
+
+## client.waitForIdle
+
+`client.waitForIdle(): Promise<void>`
+
+Resolves when the client becomes idle. Rejects if the client errors or closes first.
+
+## client.setPipeline
+
+`client.setPipeline(pipeline: boolean): void`
+
+Enables or disables query pipelining. The client must be idle before changing modes.
+
+```js
+await client.waitForIdle()
+client.setPipeline(false)
+
+// Run a cursor query and close it.
+
+await client.waitForIdle()
+client.setPipeline(true)
 ```
 
 ## client.query

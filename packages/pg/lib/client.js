@@ -796,6 +796,63 @@ class Client extends EventEmitter {
     return this._txStatus
   }
 
+  isIdle() {
+    return (
+      this._connected &&
+      this._queryable &&
+      !this._ending &&
+      this.readyForQuery === true &&
+      this._activeQuery === null &&
+      this._queryQueue.length === 0 &&
+      this._sentQueryQueue.length === 0
+    )
+  }
+
+  waitForIdle() {
+    if (this.isIdle()) {
+      return this._Promise.resolve()
+    }
+
+    return new this._Promise((resolve, reject) => {
+      const cleanup = () => {
+        this.removeListener('connect', check)
+        this.removeListener('drain', check)
+        this.removeListener('error', onError)
+        this.removeListener('end', onEnd)
+      }
+      const check = () => {
+        if (this.isIdle()) {
+          cleanup()
+          resolve()
+        }
+      }
+      const onError = (error) => {
+        cleanup()
+        reject(error)
+      }
+      const onEnd = () => {
+        cleanup()
+        reject(new Error('Client was closed before becoming idle'))
+      }
+
+      this.on('connect', check)
+      this.on('drain', check)
+      this.once('error', onError)
+      this.once('end', onEnd)
+      check()
+    })
+  }
+
+  setPipeline(pipeline) {
+    if (this.pipeline === pipeline) {
+      return
+    }
+    if (!this.isIdle()) {
+      throw new Error('Client must be idle before changing pipeline mode')
+    }
+    this.pipeline = pipeline
+  }
+
   end(cb) {
     this._ending = true
 

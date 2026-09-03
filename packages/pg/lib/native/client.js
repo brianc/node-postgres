@@ -147,6 +147,62 @@ Client.prototype.connect = function (callback) {
   })
 }
 
+Client.prototype.isIdle = function () {
+  return (
+    this._connected &&
+    this._queryable &&
+    !this._ending &&
+    !this._pipelineInFlight &&
+    !this._hasActiveQuery() &&
+    this._queryQueue.length === 0
+  )
+}
+
+Client.prototype.waitForIdle = function () {
+  if (this.isIdle()) {
+    return this._Promise.resolve()
+  }
+
+  return new this._Promise((resolve, reject) => {
+    const cleanup = () => {
+      this.removeListener('connect', check)
+      this.removeListener('drain', check)
+      this.removeListener('error', onError)
+      this.removeListener('end', onEnd)
+    }
+    const check = () => {
+      if (this.isIdle()) {
+        cleanup()
+        resolve()
+      }
+    }
+    const onError = (error) => {
+      cleanup()
+      reject(error)
+    }
+    const onEnd = () => {
+      cleanup()
+      reject(new Error('Client was closed before becoming idle'))
+    }
+
+    this.on('connect', check)
+    this.on('drain', check)
+    this.once('error', onError)
+    this.once('end', onEnd)
+    check()
+  })
+}
+
+Client.prototype.setPipeline = function (pipeline) {
+  if (this.pipeline === pipeline) {
+    return
+  }
+  if (!this.isIdle()) {
+    throw new Error('Client must be idle before changing pipeline mode')
+  }
+  this.pipeline = pipeline
+}
+
 // send a query to the server
 // this method is highly overloaded to take
 // 1) string query, optional array of parameters, optional function callback

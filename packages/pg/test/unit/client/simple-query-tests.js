@@ -208,6 +208,77 @@ test('executing query', function () {
     })
   })
 
+  test('pipeline mode changes', function () {
+    test('reports idle only when the connection has no pending work', function () {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+
+      assert.equal(client.isIdle(), false)
+      con.emit('readyForQuery')
+      assert.equal(client.isIdle(), true)
+
+      client.query('one')
+      assert.equal(client.isIdle(), false)
+      con.emit('readyForQuery')
+      assert.equal(client.isIdle(), true)
+    })
+
+    test('waits for the pipeline to drain', async function () {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query('one')
+      client.query('two')
+      const idle = client.waitForIdle()
+
+      con.emit('readyForQuery')
+      con.emit('readyForQuery')
+      await idle
+      assert.equal(client.isIdle(), true)
+    })
+
+    test('only switches modes while idle', function () {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.setPipeline(false)
+      assert.equal(client.pipeline, false)
+
+      client.query('one')
+      client.query('two')
+      assert.lengthIs(con.queries, 1)
+      assert.throws(() => client.setPipeline(true), /Client must be idle/)
+
+      con.emit('readyForQuery')
+      assert.lengthIs(con.queries, 2)
+      con.emit('readyForQuery')
+      client.setPipeline(true)
+      assert.equal(client.pipeline, true)
+
+      client.query('three')
+      client.query('four')
+      assert.lengthIs(con.queries, 4)
+    })
+
+    test('rejects when the client errors before becoming idle', async function () {
+      const client = helper.client({ pipeline: true })
+      const con = client.connection
+      con.emit('readyForQuery')
+
+      client.query('one', () => {})
+      const idle = client.waitForIdle()
+      const error = new Error('connection failed')
+      con.emit('error', error)
+
+      await idle.then(
+        () => assert.fail('waitForIdle should reject'),
+        (err) => assert.equal(err, error)
+      )
+    })
+  })
+
   test('handles errors', function () {
     const client = helper.client()
 

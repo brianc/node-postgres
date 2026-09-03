@@ -97,6 +97,27 @@ suite.test('pipeline drain event', async function () {
   await client.end()
 })
 
+suite.test('switches modes after becoming idle', async function () {
+  const client = helper.client(undefined, { pipeline: true })
+
+  await client.waitForIdle()
+  client.setPipeline(false)
+  assert.equal(client.pipeline, false)
+
+  const regular = await client.query('SELECT 1 AS num')
+  assert.equal(regular.rows[0].num, 1)
+
+  await client.waitForIdle()
+  client.setPipeline(true)
+  assert.equal(client.pipeline, true)
+
+  const [first, second] = await Promise.all([client.query('SELECT 2 AS num'), client.query('SELECT 3 AS num')])
+  assert.equal(first.rows[0].num, 2)
+  assert.equal(second.rows[0].num, 3)
+
+  await client.end()
+})
+
 // #12: end() during active pipeline — should drain gracefully, not destroy
 suite.test('end() waits for in-flight pipelined queries to complete', async function () {
   const client = helper.client(undefined, { pipeline: true })
