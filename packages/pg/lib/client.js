@@ -832,6 +832,7 @@ class Client extends EventEmitter {
       const cleanup = () => {
         this.removeListener('connect', check)
         this.removeListener('drain', check)
+        this.connection.removeListener('readyForQuery', check)
         this.removeListener('error', onError)
         this.removeListener('end', onEnd)
       }
@@ -852,6 +853,7 @@ class Client extends EventEmitter {
 
       this.on('connect', check)
       this.on('drain', check)
+      this.connection.on('readyForQuery', check)
       this.once('error', onError)
       this.once('end', onEnd)
       check()

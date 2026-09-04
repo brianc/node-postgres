@@ -216,6 +216,15 @@ test('executing query', function () {
       assert.equal(client.pipeline, true)
     })
 
+    test('waits for the initial ReadyForQuery', async function () {
+      const client = helper.client({ pipeline: true })
+      const idle = client.waitForIdle()
+
+      client.connection.emit('readyForQuery')
+      await idle
+      assert.equal(client.isIdle(), true)
+    })
+
     test('reports idle only when the connection has no pending work', function () {
       const client = helper.client({ pipeline: true })
       const con = client.connection
