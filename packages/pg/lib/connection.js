@@ -23,8 +23,11 @@ class Connection extends EventEmitter {
 
     this._keepAlive = config.keepAlive
     this._keepAliveInitialDelayMillis = config.keepAliveInitialDelayMillis
-    this.parsedStatements = {}
-    this.submittedNamedStatements = {}
+    // Prepared-statement caches are keyed by user-supplied statement names, so they must not
+    // inherit from Object.prototype: a statement named e.g. `constructor` would otherwise read
+    // back as already-prepared and skip its Parse message. See issue #3625.
+    this.parsedStatements = Object.create(null)
+    this.submittedNamedStatements = Object.create(null)
     this.ssl = config.ssl || false
     this.sslNegotiation = config.sslNegotiation || 'postgres'
     this._ending = false
