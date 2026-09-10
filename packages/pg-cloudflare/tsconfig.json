@@ -18,7 +18,7 @@
         "./src/types/*"
       ]
     },
-    "types": ["node"]
+    "types": ["node", "mocha"]
   },
   "include": [
     "src/**/*"

@@ -6,6 +6,8 @@
   "types": "dist/index.d.ts",
   "license": "MIT",
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "mocha": "^11.7.5",
     "ts-node": "^8.5.4",
     "typescript": "^6.0.3"
   },
@@ -23,7 +25,8 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "prepublish": "yarn build",
-    "test": "echo e2e test in pg package"
+    "pretest": "yarn build",
+    "test": "mocha dist/**/*.test.js"
   },
   "repository": {
     "type": "git",
