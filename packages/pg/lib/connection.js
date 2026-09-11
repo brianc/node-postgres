@@ -201,7 +201,8 @@ class Connection extends EventEmitter {
   }
 
   sync() {
-    this._ending = true
+    // Sync is the extended-query protocol barrier, not a disconnect.
+    // Only end()/Terminate (and connect-timeout teardown) should set _ending.
     this._send(syncBuffer)
   }
 

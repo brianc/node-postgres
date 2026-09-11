@@ -29,6 +29,28 @@ suite.test('connection emits ECONNRESET errors during normal operation', functio
   con.stream.emit('error', e)
 })
 
+suite.test('connection emits ECONNRESET errors after Sync (Sync is not disconnect)', function (done) {
+  const con = new Connection({ stream: new MemoryStream() })
+  con.connect()
+  // Extended-query Sync used to incorrectly set _ending and swallow resets (#3769)
+  con.sync()
+  assert.equal(con._ending, false)
+  assert.emits(con, 'error', function (err) {
+    assert.equal(err.code, 'ECONNRESET')
+    done()
+  })
+  const e = new Error('Connection Reset')
+  e.code = 'ECONNRESET'
+  con.stream.emit('error', e)
+})
+
+suite.test('connection does not set _ending when calling sync()', function () {
+  const con = new Connection({ stream: new MemoryStream() })
+  con.connect()
+  con.sync()
+  assert.equal(con._ending, false)
+})
+
 suite.test('connection does not emit ECONNRESET errors during disconnect', function (done) {
   const con = new Connection({ stream: new MemoryStream() })
   con.connect()
