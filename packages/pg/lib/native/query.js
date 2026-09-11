@@ -2,16 +2,19 @@
 
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
-const utils = require('../utils')
+const { prepareValue } = require('../utils')
+const { normalizeQueryConfig } = require('../internal/utils.js')
 
 const NativeQuery = (module.exports = function (config, values, callback) {
   EventEmitter.call(this)
-  config = utils.normalizeQueryConfig(config, values, callback)
-  this.text = config.text
-  this.values = config.values
+  ;({
+    config,
+    text: this.text,
+    values: this.values,
+    callback: this.callback,
+  } = normalizeQueryConfig(config, values, callback))
   this.name = config.name
   this.queryMode = config.queryMode
-  this.callback = config.callback
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
 
@@ -133,7 +136,7 @@ NativeQuery.prototype.submit = function (client) {
       console.error('You supplied %s (%s)', this.name, this.name.length)
       console.error('This can cause conflicts and silent errors executing queries')
     }
-    const values = (this.values || []).map(utils.prepareValue)
+    const values = (this.values || []).map(prepareValue)
 
     // check if the client has already executed this named query
     // if so...just execute it again - skip the planning phase
@@ -155,7 +158,7 @@ NativeQuery.prototype.submit = function (client) {
       const err = new Error('Query values must be an array')
       return after(err)
     }
-    const vals = this.values.map(utils.prepareValue)
+    const vals = this.values.map(prepareValue)
     client.native.query(this.text, vals, after)
   } else if (this.queryMode === 'extended') {
     client.native.query(this.text, [], after)

@@ -29,7 +29,8 @@
       "default": "./package.json"
     },
     "./lib/*": "./lib/*.js",
-    "./lib/*.js": "./lib/*.js"
+    "./lib/*.js": "./lib/*.js",
+    "./lib/internal/*": null
   },
   "dependencies": {
     "pg-connection-string": "^2.14.0",
