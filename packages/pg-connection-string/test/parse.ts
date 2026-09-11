@@ -3,6 +3,7 @@ const expect = chai.expect
 chai.should()
 
 import { parse } from '../'
+import type { Options } from '../'
 
 describe('parse', function () {
   it('using connection string in client constructor', function () {
@@ -452,6 +453,72 @@ describe('parse', function () {
     expect(function () {
       parse(connectionString, { useLibpqCompat: true })
     }).to.throw()
+  })
+
+  describe('channel binding', function () {
+    // The sslmode deprecation warning is emitted at most once per process, so
+    // each case asserts against a freshly loaded copy of the module.
+    function warningsFrom(connectionString: string, options?: Options): string[] {
+      const modulePath = require.resolve('../index.js')
+      delete require.cache[modulePath]
+      const freshParse = require(modulePath).parse as typeof parse
+      const warnings: string[] = []
+      const emitWarning = process.emitWarning
+      process.emitWarning = ((warning: string | Error) => {
+        warnings.push(String(warning))
+      }) as typeof process.emitWarning
+      try {
+        freshParse(connectionString, options)
+      } finally {
+        process.emitWarning = emitWarning
+        delete require.cache[modulePath]
+      }
+      return warnings
+    }
+
+    it('configuration parameter channel_binding=require', function () {
+      const subject = parse('pg:///?channel_binding=require')
+      subject.channel_binding?.should.equal('require')
+    })
+
+    it('configuration parameter channel_binding=prefer', function () {
+      const subject = parse('pg:///?channel_binding=prefer')
+      subject.channel_binding?.should.equal('prefer')
+    })
+
+    it('configuration parameter channel_binding=disable', function () {
+      const subject = parse('pg:///?channel_binding=disable')
+      subject.channel_binding?.should.equal('disable')
+    })
+
+    it('channel_binding does not change the ssl configuration', function () {
+      const subject = parse('pg:///?sslmode=require&channel_binding=require')
+      subject.ssl?.should.eql({})
+    })
+
+    it('channel_binding=require suppresses the sslmode deprecation warning', function () {
+      for (const sslmode of ['prefer', 'require', 'verify-ca']) {
+        warningsFrom(`pg:///?sslmode=${sslmode}&channel_binding=require`).should.eql([])
+      }
+    })
+
+    it('other channel_binding values leave the sslmode deprecation warning in place', function () {
+      for (const channelBinding of ['', 'prefer', 'disable']) {
+        const warnings = warningsFrom(`pg:///?sslmode=require&channel_binding=${channelBinding}`)
+        warnings.should.have.length(1)
+        warnings[0].should.match(/SECURITY WARNING/)
+      }
+    })
+
+    it('channelBinding option suppresses the warning when the connection string omits it', function () {
+      warningsFrom('pg:///?sslmode=require', { channelBinding: 'require' }).should.eql([])
+    })
+
+    it('a channel_binding connection string parameter takes precedence over the option', function () {
+      const warnings = warningsFrom('pg:///?sslmode=require&channel_binding=disable', { channelBinding: 'require' })
+      warnings.should.have.length(1)
+      warnings[0].should.match(/SECURITY WARNING/)
+    })
   })
 
   it('allow other params like max, ...', function () {

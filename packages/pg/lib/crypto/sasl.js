@@ -32,9 +32,38 @@ function saslprep(password) {
 
 const DEFAULT_MAX_SCRAM_ITERATIONS = 100000
 
-function startSession(mechanisms, stream, scramMaxIterations = DEFAULT_MAX_SCRAM_ITERATIONS) {
+function startSession(mechanisms, options = {}) {
+  const {
+    channelBinding = 'prefer',
+    sslInUse = false,
+    stream,
+    scramMaxIterations = DEFAULT_MAX_SCRAM_ITERATIONS,
+  } = options
+
+  // Binding to 'tls-server-end-point' means hashing the server's certificate, so it
+  // takes a TLS connection that can produce one. Some streams cannot — a socket in a
+  // Cloudflare Worker, for instance.
+  const canBindChannel = sslInUse && Boolean(stream) && typeof stream.getPeerCertificate === 'function'
+  const useChannelBinding = canBindChannel && channelBinding !== 'disable'
+
+  if (channelBinding === 'require') {
+    if (!sslInUse) {
+      throw new Error('SASL: Channel binding is required, but SSL is not in use')
+    }
+    if (!canBindChannel) {
+      throw new Error('SASL: Channel binding is required, but this connection cannot provide the server certificate')
+    }
+  }
+
+  // A server offering channel binding over an unencrypted connection suggests SSL was
+  // stripped in transit. A real server should abort such an exchange itself to defeat
+  // downgrade attacks; to defend against MITM attacks, we do so too.
+  if (!sslInUse && mechanisms.includes('SCRAM-SHA-256-PLUS')) {
+    throw new Error('SASL: Server offered SCRAM-SHA-256-PLUS authentication over a non-SSL connection')
+  }
+
   const candidates = ['SCRAM-SHA-256']
-  if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
+  if (useChannelBinding) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
 
   const mechanism = candidates.find((candidate) => mechanisms.includes(candidate))
 
@@ -42,17 +71,24 @@ function startSession(mechanisms, stream, scramMaxIterations = DEFAULT_MAX_SCRAM
     throw new Error('SASL: Only mechanism(s) ' + candidates.join(' and ') + ' are supported')
   }
 
-  if (mechanism === 'SCRAM-SHA-256-PLUS' && typeof stream.getPeerCertificate !== 'function') {
-    // this should never happen if we are really talking to a Postgres server
-    throw new Error('SASL: Mechanism SCRAM-SHA-256-PLUS requires a certificate')
+  if (channelBinding === 'require' && mechanism !== 'SCRAM-SHA-256-PLUS') {
+    throw new Error(
+      'SASL: Channel binding is required, but the server did not offer an authentication method that supports it'
+    )
   }
 
   const clientNonce = crypto.randomBytes(18).toString('base64')
-  const gs2Header = mechanism === 'SCRAM-SHA-256-PLUS' ? 'p=tls-server-end-point' : stream ? 'y' : 'n'
+
+  // 'y' tells the server we could have bound the channel but were not offered the
+  // chance, which is how it detects a stripped SCRAM-SHA-256-PLUS mechanism; 'n' says
+  // we cannot bind at all. The server checks that the client-final message repeats
+  // this flag, so the session carries it rather than deriving it a second time.
+  const gs2Header = mechanism === 'SCRAM-SHA-256-PLUS' ? 'p=tls-server-end-point' : useChannelBinding ? 'y' : 'n'
 
   return {
     mechanism,
     clientNonce,
+    gs2Header,
     response: gs2Header + ',,n=*,r=' + clientNonce,
     message: 'SASLInitialResponse',
     scramMaxIterations,
@@ -96,19 +132,16 @@ async function continueSession(session, password, serverData, stream) {
   const clientFirstMessageBare = 'n=*,r=' + session.clientNonce
   const serverFirstMessage = 'r=' + sv.nonce + ',s=' + sv.salt + ',i=' + sv.iteration
 
-  // without channel binding:
-  let channelBinding = stream ? 'eSws' : 'biws' // 'y,,' or 'n,,', base64-encoded
-
-  // override if channel binding is in use:
+  let bindingData = Buffer.from(session.gs2Header + ',,')
   if (session.mechanism === 'SCRAM-SHA-256-PLUS') {
     const peerCert = stream.getPeerCertificate().raw
     let hashName = signatureAlgorithmHashFromCertificate(peerCert)
     if (hashName === 'MD5' || hashName === 'SHA-1') hashName = 'SHA-256'
     const certHash = await crypto.hashByName(hashName, peerCert)
-    const bindingData = Buffer.concat([Buffer.from('p=tls-server-end-point,,'), Buffer.from(certHash)])
-    channelBinding = bindingData.toString('base64')
+    bindingData = Buffer.concat([bindingData, Buffer.from(certHash)])
   }
 
+  const channelBinding = bindingData.toString('base64')
   const clientFinalMessageWithoutProof = 'c=' + channelBinding + ',r=' + sv.nonce
   const authMessage = clientFirstMessageBare + ',' + serverFirstMessage + ',' + clientFinalMessageWithoutProof
 
