@@ -79,6 +79,8 @@ const res = await client.query(query)
 console.log(res.rows[0])
 ```
 
+The config object can also include an [`AbortSignal`](/apis/client#query-cancellation). This is available for `client.query` and `pool.query`; use a checked-out client when you need the explicit `cancelQuery(client)` helper. See [Query cancellation](/features/query-cancellation) for the lifecycle and race semantics.
+
 The query config object allows for a few more advanced scenarios:
 
 ### Prepared statements

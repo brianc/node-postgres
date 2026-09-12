@@ -12,6 +12,7 @@ const TypeOverrides = require('../type-overrides')
 const EventEmitter = require('events').EventEmitter
 const util = require('util')
 const ConnectionParameters = require('../connection-parameters')
+const cancellation = require('../query-cancellation').native
 
 const NativeQuery = require('./query')
 
@@ -32,6 +33,7 @@ const Client = (module.exports = function (config) {
   })
 
   this._queryQueue = []
+  this._cancelState = null
   this._ending = false
   this._connecting = false
   this._connected = false
@@ -82,6 +84,10 @@ Client.prototype._errorAllQueries = function (err) {
   this._queryQueue.length = 0
 }
 
+Client.prototype._cancelQuery = function (failClosed) {
+  return cancellation.cancel(this, failClosed)
+}
+
 // connect to the backend
 // pass an optional callback to be called once connected
 // or with an error if there was a connection error
@@ -110,6 +116,7 @@ Client.prototype._connect = function (cb) {
       // handle connection errors from the native layer
       self.native.on('error', function (err) {
         self._queryable = false
+        cancellation.fail(self, err)
         self._errorAllQueries(err)
         self.emit('error', err)
       })
@@ -182,11 +189,17 @@ Client.prototype.query = function (config, values, callback) {
         resolveOut = resolve
         rejectOut = reject
       }).catch((err) => {
-        Error.captureStackTrace(err)
+        if (err instanceof Error) {
+          Error.captureStackTrace(err)
+        }
         throw err
       })
       query.callback = (err, res) => (err ? rejectOut(err) : resolveOut(res))
     }
+  }
+
+  if (query instanceof NativeQuery && !cancellation.prepareQuery(this, query)) {
+    return result
   }
 
   if (readTimeout) {
@@ -240,6 +253,10 @@ Client.prototype.query = function (config, values, callback) {
     queryQueueLengthDeprecationNotice()
   }
 
+  if (cancellation.rejectPipelineSignal(this, query)) {
+    return result
+  }
+  cancellation.queue(query)
   this._queryQueue.push(query)
   this._pulseQueryQueue()
   return result
@@ -267,6 +284,8 @@ Client.prototype.end = function (cb) {
     self.native.end(function () {
       self._connected = false
 
+      cancellation.fail(self, new Error('Connection terminated during query cancellation'))
+
       self._errorAllQueries(new Error('Connection terminated'))
 
       process.nextTick(() => {
@@ -290,11 +309,14 @@ Client.prototype._hasActiveQuery = function () {
 }
 
 Client.prototype._pulseQueryQueue = function (initialConnection) {
-  if (!this._connected) {
+  if (!this._connected || !this._queryable) {
     return
   }
   if (this.pipeline && !initialConnection) {
     return this._pulsePipelinedQueryQueue()
+  }
+  if (this._cancelState) {
+    return
   }
   if (this._hasActiveQuery()) {
     return
@@ -307,11 +329,18 @@ Client.prototype._pulseQueryQueue = function (initialConnection) {
     return
   }
   this._activeQuery = query
-  query.submit(this)
   const self = this
   query.once('_done', function () {
+    query._pgSubmitState = 'settled'
+    if (self._activeQuery === query) {
+      self._activeQuery = null
+    }
+    cancellation.queryDone(self, query)
     self._pulseQueryQueue()
   })
+  cancellation.submitStart(query)
+  query.submit(this)
+  cancellation.submitEnd(this, query, query.state !== 'error' && query.state !== 'end')
 }
 
 Client.prototype._pulsePipelinedQueryQueue = function () {
@@ -401,11 +430,7 @@ Client.prototype._pulsePipelinedQueryQueue = function () {
 
 // attempt to cancel an in-progress query
 Client.prototype.cancel = function (query) {
-  if (this._activeQuery === query) {
-    this.native.cancel(function () {})
-  } else if (this._queryQueue.indexOf(query) !== -1) {
-    this._queryQueue.splice(this._queryQueue.indexOf(query), 1)
-  }
+  cancellation.cancelLegacy(this, query)
 }
 
 Client.prototype.ref = function () {}

@@ -1,0 +1,46 @@
+---
+title: Query cancellation
+---
+
+## Why cancellation uses another connection
+
+PostgreSQL cannot receive a cancellation command on a connection while that connection is busy running a query. node-postgres therefore opens a short-lived connection to the same selected endpoint and sends a `CancelRequest` containing the active backend's process ID and secret key.
+
+This does not check out another `pg.Pool` client or create an authenticated database session. Concurrent cancellation calls for one client share the same operation, but different clients can still open short-lived cancel sockets at the same time and put pressure on PostgreSQL or proxy connection acceptance.
+
+The cancellation connection reuses the selected TCP address or Unix socket, SSL mode, and logical TLS server name. This matters when DNS returns multiple addresses or a connection uses failover: sending the request to a different server would not cancel the active backend.
+
+## Why cancellation has two completion conditions
+
+A cancellation request and the original query complete independently:
+
+1. The cancellation connection must finish writing the `CancelRequest` and reach EOF.
+2. The original query connection must reach `ReadyForQuery`.
+
+node-postgres pauses that client's query queue until both conditions are met. Without this barrier, a delayed cancellation request could arrive after the next query starts and cancel the wrong work.
+
+`cancelQuery(client)` resolving `true` means both sides completed safely. It does not mean cancellation won the race.
+
+## Race outcomes
+
+PostgreSQL decides the outcome once a query has been submitted:
+
+- If the query finishes first, its normal result is preserved.
+- If cancellation wins, the query rejects with PostgreSQL error code `57014`.
+- If an `AbortSignal` fires before submission, the query rejects with `signal.reason` and sends nothing.
+
+When delivery may have started but cannot be confirmed, node-postgres closes the original connection. This fail-closed behavior prevents an uncertain late cancellation request from affecting later work. A manual cancellation that fails before any write leaves the original query running and rejects only the `cancelQuery` promise.
+
+## Pools and transactions
+
+Explicit cancellation needs the client that owns the active query, so use `pool.connect()` rather than `pool.query()`. Keep the client checked out until the query and cancellation operation settle, then release it. A released `PoolClient` reference must not be reused.
+
+Cancellation does not roll back a transaction. When PostgreSQL cancels a statement inside a transaction, the transaction remains failed until the application issues `ROLLBACK`.
+
+## Limitations
+
+- Query cancellation is not supported in pipeline mode because multiple queries may already be in flight.
+- A concrete custom `stream` instance cannot create the second connection. Supply a stream factory when cancellation is required.
+- Successful dispatch cannot guarantee server-side cancellation because normal query completion may win the race.
+
+See the [`client.query` cancellation API](/apis/client#query-cancellation) for signatures and examples.
