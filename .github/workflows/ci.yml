@@ -93,3 +93,54 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile
       - run: yarn test
+
+  # A few fuzz rounds on a seed nobody chose, every push and every pull request. One run proves
+  # nothing; a few hundred runs walk over ground no hand written test reaches, and the seed
+  # changes every time so the coverage accumulates across pushes. A divergence turns this job
+  # red and prints the seed that reproduces it, with the case shrunk to the lines worth pasting
+  # into a test: replay it locally with `node fuzz/<tool>.js --seed N --rounds 1`.
+  #
+  # What the first runs found, each fixed in its own pull request: #3776 (a copyData chunk
+  # changing under whoever kept it), #3777 (binary results losing every byte utf8 cannot
+  # carry), #3778 (pg-native reporting NaN and '' for a missing row count or command), #3780
+  # (native errors without detail and hint), #3781 (a named empty statement failing from its
+  # second run). And one it cannot fix here: a Buffer parameter reaches libpq as a C string,
+  # #980, so the native arm draws none.
+  fuzz:
+    timeout-minutes: 15
+    needs: lint
+    services:
+      postgres:
+        image: ghcr.io/railwayapp-templates/postgres-ssl:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: 'md5'
+          POSTGRES_DB: ci_db_test
+          PGDATA: /var/lib/postgresql/data
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    runs-on: ubuntu-latest
+    env:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGDATABASE: ci_db_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - name: Fuzz the protocol parser against the bytes it was given, cut at random points
+        run: node fuzz/wire.js --rounds 500
+      - name: Fuzz pg against itself in every query mode
+        run: node fuzz/modes.js --rounds 100
+      - name: Fuzz pg against pg-native
+        run: node fuzz/native.js --rounds 100
