@@ -577,6 +577,24 @@ describe('PgPacketStream', function () {
     })
   })
 
+  // the row description says which columns are binary, and their values are bytes rather than
+  // text: decoding them as utf8 would lose every byte it cannot carry
+  it('keeps the bytes of a binary column', async function () {
+    const description = buffers.rowDescription([
+      { name: 'n', dataTypeID: 23, formatCode: 1 },
+      { name: 't', dataTypeID: 25, formatCode: 0 },
+    ])
+    const row = new BufferList()
+      .addInt16(2)
+      .addInt32(4)
+      .add(Buffer.from([0, 0, 0x03, 0xe8]))
+      .addInt32(2)
+      .add(Buffer.from('é', 'utf8'))
+      .join(true, 'D')
+    const messages = await parseBuffers([description, row])
+    assert.deepStrictEqual((messages[1] as any).fields, [Buffer.from([0, 0, 0x03, 0xe8]), 'é'])
+  })
+
   // the parser moves what is left of a chunk to the front of its buffer before reading the next
   // one, so a message that kept a view into that buffer would change after being delivered
   it('keeps a copyData chunk intact after the parser reuses its buffer', async function () {
