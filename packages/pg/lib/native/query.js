@@ -136,8 +136,9 @@ NativeQuery.prototype.submit = function (client) {
     const values = (this.values || []).map(utils.prepareValue)
 
     // check if the client has already executed this named query
-    // if so...just execute it again - skip the planning phase
-    if (client.namedQueries[this.name]) {
+    // if so...just execute it again - skip the planning phase. By presence, not truth: a
+    // named statement with an empty text is prepared all the same
+    if (client.namedQueries[this.name] !== undefined) {
       if (this.text && client.namedQueries[this.name] !== this.text) {
         const err = new Error(`Prepared statements must be unique - '${this.name}' was used for a different statement`)
         return after(err)
