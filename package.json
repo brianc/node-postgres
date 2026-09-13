@@ -17,7 +17,8 @@
     "docs:start": "cd docs && yarn dev",
     "pretest": "yarn build",
     "prepublish": "yarn build",
-    "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}'"
+    "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}' 'benchmark/*.js'",
+    "benchmark": "node benchmark/compare.js"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
