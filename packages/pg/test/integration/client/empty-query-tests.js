@@ -19,3 +19,17 @@ suite.test('callback supported', function (done) {
     client.end(done)
   })
 })
+
+// the name was recorded as parsed with its empty text, and then read as not parsed at all,
+// so the second run prepared it again and the server refused the duplicate
+suite.test('a named empty statement can run more than once', async function () {
+  const client = helper.client()
+  try {
+    for (let i = 0; i < 2; i++) {
+      const result = await client.query({ text: '', name: 'empty' })
+      assert.empty(result.rows)
+    }
+  } finally {
+    await client.end()
+  }
+})
