@@ -35,6 +35,8 @@ const errorFieldMap = {
   sqlState: 'code',
   statementPosition: 'position',
   messagePrimary: 'message',
+  messageDetail: 'detail',
+  messageHint: 'hint',
   context: 'where',
   schemaName: 'schema',
   tableName: 'table',
