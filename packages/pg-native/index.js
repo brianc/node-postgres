@@ -6,6 +6,10 @@ const types = require('pg-types')
 const buildResult = require('./lib/build-result')
 const CopyStream = require('./lib/copy-stream')
 
+// libpq gets every parameter as a C string, so a Buffer would be read as utf8 and cut at its
+// first zero byte. Its bytes travel as the hex form bytea accepts instead
+const textParams = (values) => values.map((value) => (Buffer.isBuffer(value) ? '\\x' + value.toString('hex') : value))
+
 // https://www.postgresql.org/docs/current/libpq-status.html#LIBPQ-PQTRANSACTIONSTATUS
 // 0=IDLE, 1=ACTIVE, 2=INTRANS, 3=INERROR
 const statusMap = { 0: 'I', 2: 'T', 3: 'E' }
@@ -63,7 +67,7 @@ Client.prototype.query = function (text, values, cb) {
 
   if (Array.isArray(values)) {
     queryFn = () => {
-      return this.pq.sendQueryParams(text, values)
+      return this.pq.sendQueryParams(text, textParams(values))
     }
   } else {
     queryFn = () => {
@@ -93,7 +97,7 @@ Client.prototype.execute = function (statementName, parameters, cb) {
   const self = this
 
   const fn = function () {
-    return self.pq.sendQueryPrepared(statementName, parameters)
+    return self.pq.sendQueryPrepared(statementName, textParams(parameters))
   }
 
   self._dispatchQuery(self.pq, fn, function (err, rows) {
@@ -120,7 +124,7 @@ Client.prototype.cancel = function (cb) {
 
 Client.prototype.querySync = function (text, values) {
   if (values) {
-    this.pq.execParams(text, values)
+    this.pq.execParams(text, textParams(values))
   } else {
     this.pq.exec(text)
   }
@@ -136,7 +140,7 @@ Client.prototype.prepareSync = function (statementName, text, nParams) {
 }
 
 Client.prototype.executeSync = function (statementName, parameters) {
-  this.pq.execPrepared(statementName, parameters)
+  this.pq.execPrepared(statementName, textParams(parameters))
   throwIfError(this.pq)
   return buildResult(this.pq, this._types, this.arrayMode).rows
 }
@@ -341,18 +345,18 @@ Client.prototype.pipeline = function (queries, cb) {
     let sent
     if (q.name) {
       if (q._alreadyPrepared) {
-        sent = pq.sendQueryPrepared(q.name, q.values || [])
+        sent = pq.sendQueryPrepared(q.name, textParams(q.values || []))
       } else {
         // send prepare then execute in same pipeline batch
         sent = pq.sendPrepare(q.name, q.text, (q.values || []).length)
         if (sent) {
-          sent = pq.sendQueryPrepared(q.name, q.values || [])
+          sent = pq.sendQueryPrepared(q.name, textParams(q.values || []))
         }
       }
     } else {
       // In pipeline mode, simple query protocol (sendQuery) is not allowed.
       // Always use extended query protocol (sendQueryParams).
-      sent = pq.sendQueryParams(q.text, q.values || [])
+      sent = pq.sendQueryParams(q.text, textParams(q.values || []))
     }
 
     if (!sent) {
