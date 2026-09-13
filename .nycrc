@@ -1,0 +1,14 @@
+{
+  "all": true,
+  "include": ["packages/*/index.js", "packages/*/lib/**", "packages/*/src/**", "packages/*/dist/**"],
+  "exclude": [
+    "**/*.test.*",
+    "**/*.d.ts",
+    "**/test/**",
+    "**/testing/**",
+    "packages/pg-protocol/src/b.ts",
+    "packages/pg-esm-test/**",
+    "packages/pg-bundler-test/**"
+  ],
+  "reporter": ["text", "lcov"]
+}
