@@ -131,7 +131,7 @@ client = new Client({
 
 ## Multiple hosts
 
-node-postgres supports connecting to multiple PostgreSQL hosts. Pass arrays to `host` and `port` to enable automatic failover — the client tries each host in order and uses the first one it can reach.
+The JavaScript driver supports connecting to multiple PostgreSQL hosts. Pass an array to `host` to try each host in order. `port` can be a single port or an array of ports.
 
 ```js
 import { Client } from 'pg'
@@ -146,6 +146,10 @@ const client = new Client({
 
 await client.connect() // tries hosts left to right until one succeeds
 ```
+
+Connection errors before TCP connects advance to the next host. Authentication and TLS errors stop the attempt. Once connected, the client stays on the selected host; it does not reconnect automatically if that connection is lost. `client.host` and `client.port` identify the selected endpoint.
+
+`connectionTimeoutMillis` limits the whole connection attempt, including all hosts and session checks. If you provide a custom `stream`, use a factory function so each attempt gets a fresh stream.
 
 You can also specify a different port for each host:
 
@@ -196,6 +200,8 @@ const client = new Client({
 | `prefer-standby` | standby if available, otherwise any |
 
 When all hosts are exhausted without finding a matching server, the client emits an error.
+
+Hosts that fail the session check are skipped. `prefer-standby` first tries every host for a standby, then retries from the beginning accepting any server if none matched.
 
 ## Connection URI
 

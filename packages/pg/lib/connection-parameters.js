@@ -73,6 +73,9 @@ class ConnectionParameters {
 
     const hosts = Array.isArray(this.host) ? this.host : [this.host]
     const ports = Array.isArray(this.port) ? this.port : [this.port]
+    if (hosts.length === 0) {
+      throw new Error('host must contain at least one entry')
+    }
     if (ports.length !== 1 && ports.length !== hosts.length) {
       throw new Error(`ports must have either 1 entry or the same number of entries as hosts (${hosts.length})`)
     }
