@@ -183,7 +183,7 @@ class Query extends EventEmitter {
   }
 
   hasBeenParsed(connection) {
-    // by presence, not truth: a named statement with an empty text is parsed all the same
+    // check for undefined, not falsy: the text can be empty
     return (
       this.name &&
       (connection.parsedStatements[this.name] !== undefined ||

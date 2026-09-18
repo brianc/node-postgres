@@ -20,8 +20,6 @@ suite.test('callback supported', function (done) {
   })
 })
 
-// the name was recorded as parsed with its empty text, and then read as not parsed at all,
-// so the second run prepared it again and the server refused the duplicate
 suite.test('a named empty statement can run more than once', async function () {
   const client = helper.client()
   try {
