@@ -227,6 +227,35 @@ describe('connection timeout', () => {
     })
   })
 
+  it('does not retain a connection that establishes after the timeout (#3543)', (done) => {
+    const Client = require('pg').Client
+    const orgConnect = Client.prototype.connect
+
+    // Force the first connection to finish establishing only *after* the
+    // connection timeout has already fired (200ms > 100ms).
+    let first = true
+    Client.prototype.connect = function (cb) {
+      if (first) {
+        first = false
+        return setTimeout(() => orgConnect.call(this, cb), 200)
+      }
+      return orgConnect.call(this, cb)
+    }
+
+    const pool = new Pool({ connectionTimeoutMillis: 100, max: 1 })
+    pool.connect((err, client) => {
+      Client.prototype.connect = orgConnect
+      // The checkout must fail with a timeout rather than silently resolving
+      // ~200ms later, and the timed-out connection must not be retained.
+      expect(err).to.be.an(Error)
+      expect(err.message).to.contain('timeout')
+      expect(client).to.be(undefined)
+      expect(pool.totalCount).to.equal(0)
+      expect(pool.idleCount).to.equal(0)
+      pool.end(done)
+    })
+  })
+
   it('should connect if timeout is passed, but native client in connected state', (done) => {
     const Client = require('pg').native.Client
 
