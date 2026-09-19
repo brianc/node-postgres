@@ -183,7 +183,11 @@ class Query extends EventEmitter {
   }
 
   hasBeenParsed(connection) {
-    return this.name && (connection.parsedStatements[this.name] || connection.submittedNamedStatements[this.name])
+    return (
+      this.name &&
+      (connection.parsedStatements[this.name] !== undefined ||
+        connection.submittedNamedStatements[this.name] !== undefined)
+    )
   }
 
   handlePortalSuspended(connection) {
