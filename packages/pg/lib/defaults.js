@@ -52,6 +52,14 @@ module.exports = {
   // SSL negotiation style: 'postgres' (traditional SSLRequest) or 'direct'
   sslnegotiation: undefined,
 
+  // use of SCRAM channel binding: 'require', 'prefer' or 'disable'
+  channel_binding: 'prefer',
+
+  // authentication method(s) the server may ask for, as a comma-separated list of
+  // 'password', 'md5', 'scram-sha-256' and 'none', each optionally negated with '!'.
+  // Undefined accepts any method this client supports.
+  require_auth: undefined,
+
   application_name: undefined,
 
   fallback_application_name: undefined,

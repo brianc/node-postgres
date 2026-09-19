@@ -11,6 +11,11 @@ const assert = require('assert')
  * for the host, port and database with other SCRAM_TEST_ prefixed vars.
  * If the variables are not defined the test will be skipped.
  *
+ * The channel binding tests additionally need a server with SSL configured, since
+ * binding hashes the server's certificate. They are skipped when PGTESTNOSSL is set,
+ * as the SSL tests in test/integration/gh-issues/2085-tests.js are. See LOCAL_DEV.md
+ * for setting up a local server with SSL.
+ *
  * SQL to create test role:
  *
  *     SET password_encryption = 'scram-sha-256';
@@ -45,17 +50,34 @@ if (!config.user || !config.password) {
   return
 }
 
-suite.test('can connect using sasl/scram with channel binding enabled (if using SSL)', async () => {
-  const client = new pg.Client({ ...config, enableChannelBinding: true })
-  let usingChannelBinding = false
-  let hasPeerCert = false
+// Whether SSL is in use decides which mechanisms the server offers, so these tests say
+// so themselves rather than inheriting whatever PGSSLMODE happens to hold.
+const sslConfig = { ...config, ssl: { rejectUnauthorized: false } }
+const noSslConfig = { ...config, ssl: false }
+
+// The SASL session is discarded as soon as authentication finishes, so the mechanism has
+// to be noted while the exchange is still in flight. Returns it alongside whether the
+// connection was encrypted, since a test asserting on one wants to be sure of the other.
+async function authenticate(clientConfig) {
+  const client = new pg.Client(clientConfig)
+  let mechanism = null
   client.connection.once('authenticationSASLContinue', () => {
-    hasPeerCert = client.connection.stream.getPeerCertificate === 'function'
-    usingChannelBinding = client.saslSession.mechanism === 'SCRAM-SHA-256-PLUS'
+    mechanism = client.saslSession.mechanism
   })
   await client.connect()
-  assert.ok(usingChannelBinding || !hasPeerCert, 'Should be using SCRAM-SHA-256-PLUS for authentication if using SSL')
+  const encrypted = Boolean(client.connection.stream.encrypted)
+  const { rows } = await client.query('SELECT 1 AS one')
+  assert.strictEqual(rows[0].one, 1, 'the connection should be usable once authenticated')
   await client.end()
+  return { mechanism, encrypted }
+}
+
+suite.test('sasl/scram authenticates without channel binding when SSL is not in use', async () => {
+  // channel_binding defaults to 'prefer', and a server only offers SCRAM-SHA-256-PLUS
+  // over SSL, so an unbound exchange is the negotiated outcome here.
+  const { mechanism, encrypted } = await authenticate(noSslConfig)
+  assert.strictEqual(encrypted, false, 'this test is meant to run over an unencrypted connection')
+  assert.strictEqual(mechanism, 'SCRAM-SHA-256')
 })
 
 suite.test('can connect using sasl/scram with channel binding disabled', async () => {
@@ -68,6 +90,61 @@ suite.test('can connect using sasl/scram with channel binding disabled', async (
   assert.ok(usingSASLWithoutChannelBinding, 'Should be using SCRAM-SHA-256 (no channel binding) for authentication')
   await client.end()
 })
+
+if (process.env.PGTESTNOSSL) {
+  suite.test('skipping SCRAM channel binding tests (PGTESTNOSSL)', () => {})
+} else {
+  // A bound exchange only completes if the server agrees with the certificate hash the
+  // client computed, so these tests check the binding itself and not merely which
+  // mechanism was chosen.
+  suite.test('sasl/scram binds the channel when channel_binding=require', async () => {
+    const { mechanism, encrypted } = await authenticate({ ...sslConfig, channel_binding: 'require' })
+    assert.ok(encrypted, 'expected the connection to be upgraded to a TLS socket')
+    assert.strictEqual(mechanism, 'SCRAM-SHA-256-PLUS')
+  })
+
+  suite.test('sasl/scram binds the channel by default when SSL is in use', async () => {
+    // channel_binding defaults to 'prefer', which takes the server up on its offer
+    const { mechanism } = await authenticate(sslConfig)
+    assert.strictEqual(mechanism, 'SCRAM-SHA-256-PLUS')
+  })
+
+  suite.test('sasl/scram leaves the channel unbound when channel_binding=disable', async () => {
+    const { mechanism } = await authenticate({ ...sslConfig, channel_binding: 'disable' })
+    assert.strictEqual(mechanism, 'SCRAM-SHA-256')
+  })
+
+  suite.test('channel_binding in a connection string binds the channel', async () => {
+    const user = encodeURIComponent(config.user)
+    const password = encodeURIComponent(config.password)
+    const host = config.host || helper.config.host
+    const port = config.port || helper.config.port
+    const database = config.database || helper.config.database
+    const params = 'sslmode=no-verify&channel_binding=require'
+    const connectionString = `postgres://${user}:${password}@${host}:${port}/${database}?${params}`
+
+    const { mechanism, encrypted } = await authenticate({ connectionString })
+    assert.ok(encrypted, 'expected the connection to be upgraded to a TLS socket')
+    assert.strictEqual(mechanism, 'SCRAM-SHA-256-PLUS')
+  })
+
+  suite.test('the deprecated enableChannelBinding option still governs channel binding', async () => {
+    const enabled = await authenticate({ ...sslConfig, enableChannelBinding: true })
+    assert.strictEqual(enabled.mechanism, 'SCRAM-SHA-256-PLUS')
+
+    const disabled = await authenticate({ ...sslConfig, enableChannelBinding: false })
+    assert.strictEqual(disabled.mechanism, 'SCRAM-SHA-256')
+  })
+
+  suite.test('channel_binding=require is satisfied alongside require_auth=scram-sha-256', async () => {
+    const { mechanism } = await authenticate({
+      ...sslConfig,
+      channel_binding: 'require',
+      require_auth: 'scram-sha-256',
+    })
+    assert.strictEqual(mechanism, 'SCRAM-SHA-256-PLUS')
+  })
+}
 
 suite.test('sasl/scram fails when password is wrong', async () => {
   const client = new pg.Client({
@@ -107,6 +184,47 @@ suite.test('sasl/scram fails when password is empty', async () => {
     'Error code should be for a password error'
   )
   assert.ok(usingSasl, 'Should be using SASL for authentication')
+})
+
+suite.test('require_auth permits the method the server asks for', async () => {
+  const { mechanism } = await authenticate({ ...config, require_auth: 'scram-sha-256' })
+  assert.ok(mechanism, 'expected a SCRAM exchange to have taken place')
+})
+
+suite.test('require_auth permits the method the server asks for when named by exclusion', async () => {
+  const { mechanism } = await authenticate({ ...config, require_auth: '!password,!md5' })
+  assert.ok(mechanism, 'expected a SCRAM exchange to have taken place')
+})
+
+suite.test('require_auth refuses a server asking for a method it does not name', async () => {
+  const client = new pg.Client({ ...config, require_auth: 'md5' })
+  await assert.rejects(() => client.connect(), {
+    message: 'The server requested scram-sha-256 authentication, but require_auth="md5" was set',
+  })
+})
+
+suite.test('require_auth=none refuses a server that demands a password', async () => {
+  const client = new pg.Client({ ...config, require_auth: 'none' })
+  await assert.rejects(() => client.connect(), {
+    message: 'The server requested scram-sha-256 authentication, but require_auth="none" was set',
+  })
+})
+
+suite.test('PGREQUIREAUTH is honored', async () => {
+  const pgRequireAuth = process.env.PGREQUIREAUTH
+  process.env.PGREQUIREAUTH = 'md5'
+  try {
+    const client = new pg.Client(config)
+    await assert.rejects(() => client.connect(), {
+      message: 'The server requested scram-sha-256 authentication, but require_auth="md5" was set',
+    })
+  } finally {
+    if (pgRequireAuth === undefined) {
+      delete process.env.PGREQUIREAUTH
+    } else {
+      process.env.PGREQUIREAUTH = pgRequireAuth
+    }
+  }
 })
 
 /**
