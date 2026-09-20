@@ -97,6 +97,11 @@ class Connection extends EventEmitter {
     const self = this
     const options = {
       socket: self.stream,
+      // tls.connect checks the server identity against `servername`, falling
+      // back to `host` and then to 'localhost'. `servername` must stay unset
+      // for IP addresses (see below), so `host` is needed to keep certificate
+      // validation working when connecting to an IP address.
+      host,
     }
 
     if (self.ssl !== true) {
@@ -113,6 +118,7 @@ class Connection extends EventEmitter {
       options.ALPNProtocols = ['postgresql']
     }
 
+    // SNI must not be set to an IP address (RFC 6066 section 3)
     const net = require('net')
     if (net.isIP && net.isIP(host) === 0) {
       options.servername = host
@@ -195,7 +201,8 @@ class Connection extends EventEmitter {
   }
 
   sync() {
-    this._ending = true
+    // Sync is the extended-query protocol barrier, not a disconnect.
+    // Only end()/Terminate (and connect-timeout teardown) should set _ending.
     this._send(syncBuffer)
   }
 

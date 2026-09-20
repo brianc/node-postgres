@@ -35,6 +35,21 @@ suite.test('pipeline with parameterized queries', async function () {
   await client.end()
 })
 
+suite.test('pipeline preserves row mode for each query', async function () {
+  const client = new helper.Client({ pipeline: true })
+  await client.connect()
+
+  const [arrayResult, objectResult] = await Promise.all([
+    client.query({ text: 'SELECT $1::int AS num', values: [10], rowMode: 'array' }),
+    client.query({ text: 'SELECT $1::int AS num', values: [20] }),
+  ])
+
+  assert.deepStrictEqual(arrayResult.rows, [[10]])
+  assert.deepStrictEqual(objectResult.rows, [{ num: 20 }])
+
+  await client.end()
+})
+
 suite.test('pipeline with named prepared statements', async function () {
   const client = helper.client(undefined, { pipeline: true })
 

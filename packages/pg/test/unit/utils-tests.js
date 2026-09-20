@@ -33,6 +33,41 @@ test('normalizing query configs', function () {
   assert.deepEqual(config, { text: 'TEXT', values: [10], callback: callback })
 })
 
+test('normalizeQueryConfig does not mutate the passed-in config object', function () {
+  // Regression test for https://github.com/brianc/node-postgres/issues/2651.
+  const original = { text: 'TEXT' }
+  const callback = function () {}
+
+  const normalized = utils.normalizeQueryConfig(original, [10], callback)
+
+  assert.equal(original.callback, undefined)
+  assert.equal(original.values, undefined)
+  assert.deepEqual(normalized, { text: 'TEXT', values: [10], callback: callback })
+})
+
+test('normalizeQueryConfig preserves inherited config properties', function () {
+  class QueryConfig {
+    constructor() {
+      this._text = 'TEXT'
+    }
+
+    get text() {
+      return this._text
+    }
+  }
+
+  const original = new QueryConfig()
+  const callback = function () {}
+
+  const normalized = utils.normalizeQueryConfig(original, [10], callback)
+
+  assert.equal(original.callback, undefined)
+  assert.equal(original.values, undefined)
+  assert.equal(normalized.text, 'TEXT')
+  assert.deepEqual(normalized.values, [10])
+  assert.equal(normalized.callback, callback)
+})
+
 test('prepareValues: buffer prepared properly', function () {
   const buf = Buffer.from('quack')
   const out = utils.prepareValue(buf)
@@ -87,6 +122,23 @@ test('prepareValues: 1 BC date prepared properly', function () {
   assert.strictEqual(out, '0001-02-01T11:11:01.007+05:30 BC')
 
   helper.resetTimezoneOffset()
+})
+
+test('prepareValue: invalid date emits deprecation warning', function () {
+  const warningSeen = new Promise((resolve) => {
+    const onWarning = (warning) => {
+      if (warning.code === 'PG_INVALID_DATE') {
+        process.removeListener('warning', onWarning)
+        resolve()
+      }
+    }
+    process.on('warning', onWarning)
+  })
+
+  const out = utils.prepareValue(new Date(NaN))
+  assert.strictEqual(out, '0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN')
+
+  return warningSeen
 })
 
 test('prepareValues: undefined prepared properly', function () {

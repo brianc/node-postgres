@@ -35,6 +35,8 @@ const errorFieldMap = {
   sqlState: 'code',
   statementPosition: 'position',
   messagePrimary: 'message',
+  messageDetail: 'detail',
+  messageHint: 'hint',
   context: 'where',
   schemaName: 'schema',
   tableName: 'table',
@@ -137,7 +139,7 @@ NativeQuery.prototype.submit = function (client) {
 
     // check if the client has already executed this named query
     // if so...just execute it again - skip the planning phase
-    if (client.namedQueries[this.name]) {
+    if (client.namedQueries[this.name] !== undefined) {
       if (this.text && client.namedQueries[this.name] !== this.text) {
         const err = new Error(`Prepared statements must be unique - '${this.name}' was used for a different statement`)
         return after(err)

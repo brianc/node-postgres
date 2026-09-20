@@ -1,7 +1,7 @@
 //binary data writer tuned for encoding binary specific to the postgres binary protocol
 
 export class Writer {
-  private buffer: Buffer
+  public buffer: Buffer
   private offset: number = 5
   private headerPosition: number = 0
   constructor(private size = 256) {
@@ -16,7 +16,7 @@ export class Writer {
       // https://stackoverflow.com/questions/2269063/buffer-growth-strategy
       const newSize = oldBuffer.length + (oldBuffer.length >> 1) + size
       this.buffer = Buffer.allocUnsafe(newSize)
-      oldBuffer.copy(this.buffer)
+      oldBuffer.copy(this.buffer, 0, 0, this.offset)
     }
   }
 
@@ -83,6 +83,16 @@ export class Writer {
     otherBuffer.copy(this.buffer, this.offset)
     this.offset += otherBuffer.length
     return this
+  }
+
+  /**
+   * Appends an uninitialized block of {@link size} bytes to the buffer and returns its offset.
+   */
+  public reserveUnsafe(size: number): number {
+    const offset = this.offset
+    this.ensure(size)
+    this.offset += size
+    return offset
   }
 
   private join(code?: number): Buffer {

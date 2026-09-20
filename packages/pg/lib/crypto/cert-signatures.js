@@ -107,7 +107,7 @@ function signatureAlgorithmHashFromCertificate(data, index) {
       }
       throw x509Error('unknown hash OID ' + hashOID, data)
     }
-    // Ed25519 -- see https: return//github.com/openssl/openssl/issues/15477
+    // Ed25519 -- see https://github.com/openssl/openssl/issues/15477
     case '1.3.101.110':
     case '1.3.101.112': // ph
       return 'SHA-512'

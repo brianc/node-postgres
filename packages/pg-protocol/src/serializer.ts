@@ -110,34 +110,36 @@ type BindOpts = {
   valueMapper?: ValueMapper
 }
 
-const paramWriter = new Writer()
-
 // make this a const enum so typescript will inline the value
 const enum ParamType {
   STRING = 0,
   BINARY = 1,
 }
 
-const writeValues = function (values: any[], valueMapper?: ValueMapper): void {
-  for (let i = 0; i < values.length; i++) {
+const writeValues = function (values: any[], valueMapper: ValueMapper | undefined, formatsOffset: number): void {
+  const len = values.length
+  for (let i = 0; i < len; i++) {
     const mappedVal = valueMapper ? valueMapper(values[i], i) : values[i]
+    let formatByte = ParamType.STRING
+
     if (mappedVal == null) {
-      // add the param type (string) to the writer
-      writer.addInt16(ParamType.STRING)
-      // write -1 to the param writer to indicate null
-      paramWriter.addInt32(-1)
+      // write -1 to indicate null
+      writer.addInt32(-1)
     } else if (mappedVal instanceof Buffer) {
-      // add the param type (binary) to the writer
-      writer.addInt16(ParamType.BINARY)
+      formatByte = ParamType.BINARY
+
       // add the buffer to the param writer
-      paramWriter.addInt32(mappedVal.length)
-      paramWriter.add(mappedVal)
+      writer.addInt32(mappedVal.length)
+      writer.add(mappedVal)
     } else {
-      // add the param type (string) to the writer
-      writer.addInt16(ParamType.STRING)
       // length prefix + UTF-8 bytes in one pass (Buffer.byteLength computed once)
-      paramWriter.addInt32PrefixedString(mappedVal)
+      writer.addInt32PrefixedString(mappedVal)
     }
+
+    // beware: `writer` operations can replace `writer.buffer` with a new buffer
+    const buf = writer.buffer
+    buf[formatsOffset++] = 0
+    buf[formatsOffset++] = formatByte
   }
 }
 
@@ -150,18 +152,22 @@ const bind = (config: BindOpts = {}): Buffer => {
   const len = values.length
 
   writer.addCString(portal).addCString(statement)
+
+  // number of parameter format codes
+  writer.addInt16(len)
+
+  // space for those codes, filled by `writeValues`
+  const formatsOffset = writer.reserveUnsafe(len * 2)
+
+  // number of parameter values
   writer.addInt16(len)
 
   try {
-    writeValues(values, config.valueMapper)
+    writeValues(values, config.valueMapper, formatsOffset)
   } catch (err) {
     writer.clear()
-    paramWriter.clear()
     throw err
   }
-
-  writer.addInt16(len)
-  writer.add(paramWriter.flush())
 
   // all results use the same format code
   writer.addInt16(1)
