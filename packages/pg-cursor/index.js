@@ -27,7 +27,10 @@ class Cursor extends EventEmitter {
   }
 
   _ifNoData() {
-    if (this.state !== 'done' && this.state !== 'error') {
+    // Only start a queued read when the portal is first ready. An in-flight
+    // execute (state === 'busy') must not be interrupted, and closed/failed
+    // cursors must stay closed.
+    if (this.state === 'submitted' || this.state === 'initialized') {
       this.state = 'idle'
       this._shiftQueue()
     }
@@ -108,7 +111,9 @@ class Cursor extends EventEmitter {
 
   handleRowDescription(msg) {
     this._result.addFields(msg.fields)
-    if (this.state !== 'done' && this.state !== 'error') {
+    // If read() already sent Execute (state === 'busy'), keep that in-flight
+    // callback. Resetting to idle here would start a queued read and overwrite _cb.
+    if (this.state === 'submitted' || this.state === 'initialized') {
       this.state = 'idle'
       this._shiftQueue()
     }
@@ -124,23 +129,40 @@ class Cursor extends EventEmitter {
     if (this.state !== 'done') {
       this.state = 'idle'
     }
-    setImmediate(() => {
-      const cb = this._cb
-      // remove callback before calling it
-      // because likely a new one will be added
-      // within the call to this callback
-      this._cb = null
-      if (cb) {
-        this._result.rows = this._rows
-        cb(null, this._rows, this._result)
-      }
-      this._rows = []
-    })
+    const cb = this._cb
+    const rows = this._rows
+    // Drop the callback synchronously so a later ReadyForQuery cannot
+    // deliver the same batch twice after CommandComplete already settled it.
+    this._cb = null
+    this._rows = []
+    if (this.state === 'idle') {
+      this._shiftQueue()
+    }
+    if (cb) {
+      setImmediate(() => {
+        this._result.rows = rows
+        cb(null, rows, this._result)
+      })
+    }
+  }
+
+  _fulfillQueue(err, rows) {
+    const queue = this._queue.splice(0, this._queue.length)
+    for (let i = 0; i < queue.length; i++) {
+      const queuedCallback = queue[i][1]
+      setImmediate(() => queuedCallback.call(this, err, rows))
+    }
   }
 
   handleCommandComplete(msg) {
     this._result.addCommandComplete(msg)
     this._closePortal()
+    // CommandComplete means the portal is exhausted. Settle the in-flight
+    // read with whatever rows remain (possibly fewer than requested, or none)
+    // instead of waiting for ReadyForQuery, which the client may never
+    // dispatch to this cursor.
+    this._sendRows()
+    this._fulfillQueue(null, [])
   }
 
   handlePortalSuspended() {
@@ -150,6 +172,7 @@ class Cursor extends EventEmitter {
   handleReadyForQuery() {
     this._sendRows()
     this.state = 'done'
+    this._fulfillQueue(null, [])
     this.emit('end', this._result)
   }
 
