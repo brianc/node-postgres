@@ -268,6 +268,31 @@ describe('parse', function () {
     })
   })
 
+  it('configuration parameter sslpassword=password', function () {
+    const connectionString = 'pg:///?sslpassword=MySecretPass'
+    const subject = parse(connectionString)
+    subject.ssl?.should.eql({
+      passphrase: 'MySecretPass',
+    })
+  })
+
+  it('configuration parameter sslpassword alongside sslkey', function () {
+    const connectionString = 'pg:///?sslkey=' + __dirname + '/example.key&sslpassword=MySecretPass'
+    const subject = parse(connectionString)
+    subject.ssl?.should.eql({
+      key: 'example key\n',
+      passphrase: 'MySecretPass',
+    })
+  })
+
+  it('configuration parameter sslpassword is url-decoded', function () {
+    const connectionString = 'pg:///?sslpassword=' + encodeURIComponent('pa ss/word?&=')
+    const subject = parse(connectionString)
+    subject.ssl?.should.eql({
+      passphrase: 'pa ss/word?&=',
+    })
+  })
+
   it('configuration parameter sslmode=no-verify', function () {
     const connectionString = 'pg:///?sslmode=no-verify'
     const subject = parse(connectionString)
