@@ -1,6 +1,5 @@
 const expect = require('expect.js')
 const co = require('co')
-const _ = require('lodash')
 
 const describe = require('mocha').describe
 const it = require('mocha').it
@@ -48,10 +47,10 @@ describe('pool size of 1', () => {
       const queryColumn = version < 90200 ? 'current_query' : 'query'
 
       const queryText = 'SELECT COUNT(*) as counts FROM pg_stat_activity WHERE ' + queryColumn + ' = $1'
-      const queries = _.times(20, () => pool.query(queryText, [queryText]))
+      const queries = Array.from({ length: 20 }, () => pool.query(queryText, [queryText]))
       const results = yield Promise.all(queries)
       const counts = results.map((res) => parseInt(res.rows[0].counts, 10))
-      expect(counts).to.eql(_.times(20, (i) => 1))
+      expect(counts).to.eql(Array.from({ length: 20 }, () => 1))
       return yield pool.end()
     })
   )
