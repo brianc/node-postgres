@@ -45,6 +45,11 @@ describe('serializer', () => {
     assert.deepEqual(actual, new BufferList().addString('data').join(true, 'p'))
   })
 
+  it('builds SASLResponseMessage message', function () {
+    const actual = serialize.sendSASLResponseMessage('data')
+    assert.deepEqual(actual, new BufferList().addString('data').join(true, 'p'))
+  })
+
   it('builds query message', function () {
     const txt = 'select * from boom'
     const actual = serialize.query(txt)
