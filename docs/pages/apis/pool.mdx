@@ -204,7 +204,7 @@ assert(pool.totalCount === 0)
 
 ## pool.end
 
-Calling `pool.end` will drain the pool of all active clients, disconnect them, and shut down any internal timers in the pool. It is common to call this at the end of a script using the pool or when your process is attempting to shut down cleanly.
+Calling `pool.end` will drain the pool of all active clients, disconnect them, and shut down any internal timers in the pool. It is common to call this at the end of a script using the pool or when your process is attempting to shut down cleanly. After the returned promise resolves, the same pool can be used again and will create new connections as needed.
 
 ```js
 // again both promises and callbacks are supported:
@@ -240,7 +240,8 @@ The number of queued requests waiting on a client when all clients are checked o
 Whenever the pool establishes a new client connection to the PostgreSQL backend it will emit the `connect` event with the newly connected client.
 
 <Alert>
-  The event listener does not wait for promises or async functions. If you want to run setup commands on each new client, use the `onConnect` option. (See documentation above.)
+  The event listener does not wait for promises or async functions. If you want to run setup commands on each new
+  client, use the `onConnect` option. (See documentation above.)
 </Alert>
 
 ### acquire
