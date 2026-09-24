@@ -37,7 +37,7 @@ await pool.end()
 
 ## Usage with `connectionString`
 
-If you plan to use a combination of a database connection string from the environment and SSL settings in the config object directly, then you must avoid including any of `sslcert`, `sslkey`, `sslrootcert`, or `sslmode` in the connection string. If any of these options are used then the `ssl` object is replaced and any additional options provided there will be lost.
+If you plan to use a combination of a database connection string from the environment and SSL settings in the config object directly, then you must avoid including any of `sslcert`, `sslkey`, `sslrootcert`, `sslpassword`, or `sslmode` in the connection string. If any of these options are used then the `ssl` object is replaced and any additional options provided there will be lost.
 
 ```js
 const config = {

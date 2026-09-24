@@ -74,7 +74,7 @@ function parse(str, options = {}) {
     config.ssl = false
   }
 
-  if (config.sslcert || config.sslkey || config.sslrootcert || config.sslmode) {
+  if (config.sslcert || config.sslkey || config.sslrootcert || config.sslmode || config.sslpassword) {
     config.ssl = {}
   }
 
@@ -97,6 +97,11 @@ function parse(str, options = {}) {
 
   if (config.sslrootcert) {
     config.ssl.ca = fs.readFileSync(config.sslrootcert).toString()
+  }
+
+  // sslpassword is a literal value rather than a path, so it is not read from disk.
+  if (config.sslpassword) {
+    config.ssl.passphrase = config.sslpassword
   }
 
   if (options.useLibpqCompat && config.uselibpqcompat) {
