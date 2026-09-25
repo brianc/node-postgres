@@ -577,6 +577,17 @@ describe('PgPacketStream', function () {
     })
   })
 
+  // the parser moves what is left of a chunk to the front of its buffer before reading the next
+  // one, so a message that kept a view into that buffer would change after being delivered
+  it('keeps a copyData chunk intact after the parser reuses its buffer', async function () {
+    const copyData = buffers.copyData(Buffer.alloc(64, 0xaa))
+    const commandComplete = buffers.commandComplete('COPY 1')
+    const fullBuffer = Buffer.concat([copyData, commandComplete])
+    const messages = await parseBuffers([fullBuffer.subarray(0, fullBuffer.length - 1), fullBuffer.subarray(-1)])
+    assert.strictEqual(messages.length, 2)
+    assert.deepEqual((messages[0] as any).chunk, Buffer.alloc(64, 0xaa))
+  })
+
   it('cleans up the reader after handling a packet', function () {
     const parser = new Parser()
     parser.parse(oneFieldBuf, () => {})
