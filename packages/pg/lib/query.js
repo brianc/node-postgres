@@ -125,6 +125,12 @@ class Query extends EventEmitter {
       err = this._canceledDueToError
       this._canceledDueToError = false
     }
+    // send sync to unstick the connection after an error during
+    // a rows-limited (portal suspension) query; without this,
+    // the server waits for Sync and ReadyForQuery never arrives.
+    if (this.rows) {
+      connection.sync()
+    }
     // if callback supplied do not emit error event as uncaught error
     // events will bubble up to node process
     if (this.callback) {
