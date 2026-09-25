@@ -1,0 +1,58 @@
+name: Benchmark comment
+
+# runs in the base repository with its own token once a Benchmark run of a pull request is done,
+# so the comment can be written also for a pull request from a fork. Nothing from the pull
+# request is checked out or run here, only the summary it produced is read
+on:
+  workflow_run:
+    workflows: [Benchmark]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  comment:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: benchmark-summary
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs')
+            const marker = '<!-- benchmark-comment -->'
+            const body = fs.readFileSync('benchmark_summary.md', 'utf8')
+            const run = context.payload.workflow_run
+            // the pull request comes from the event, not from the artifact, so a branch cannot
+            // pick where its table is posted
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${run.head_repository.owner.login}:${run.head_branch}`,
+            })
+            const pull = pulls.find((p) => p.head.sha === run.head_sha)
+            if (!pull) {
+              core.info(`no open pull request at ${run.head_sha}, nothing to comment`)
+              return
+            }
+            const issue_number = pull.number
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+            })
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker))
+            if (existing) {
+              await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body })
+            } else {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number, body })
+            }
