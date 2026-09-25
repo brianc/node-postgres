@@ -219,7 +219,10 @@ module.exports = {
     // by accident, eg: from calling values.map(utils.prepareValue)
     return prepareValue(value)
   },
-  normalizeQueryConfig,
+  normalizeQueryConfig: nodeUtils.deprecate(
+    normalizeQueryConfig,
+    'normalizeQueryConfig is an unused internal function and will be removed in pg@9.0'
+  ),
   escapeIdentifier,
   escapeLiteral,
 }
