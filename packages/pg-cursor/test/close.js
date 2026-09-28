@@ -58,6 +58,35 @@ describe('close', function () {
     })
   })
 
+  it('can close a cursor after a query error', async function () {
+    const cursor = this.client.query(new Cursor('SELECT 1/0'))
+    // Close only once the error's readyForQuery has been handled, as a caller
+    // closing in a finally block after the rejection usually does.
+    const drained = new Promise((resolve) => this.client.once('drain', resolve))
+    await assert.rejects(cursor.read(10), /division by zero/)
+    await drained
+    await cursor.close()
+    const result = await this.client.query('SELECT 1 AS value')
+    assert.deepStrictEqual(result.rows, [{ value: 1 }])
+  })
+
+  it('can close a cursor after its connection is lost', async function () {
+    const client = this.client
+    client.on('error', () => {})
+    const cursor = client.query(new Cursor(text))
+    await cursor.read(10)
+    const ended = new Promise((resolve) => client.once('end', resolve))
+    const other = new pg.Client()
+    await other.connect()
+    try {
+      await other.query('SELECT pg_terminate_backend($1)', [client.processID])
+    } finally {
+      await other.end()
+    }
+    await ended
+    await cursor.close()
+  })
+
   it('is a no-op to "close" the cursor before submitting it', function (done) {
     const cursor = new Cursor(text)
     cursor.close(done)
