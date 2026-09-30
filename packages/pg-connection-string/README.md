@@ -98,6 +98,8 @@ Query parameters follow a `?` character, including the following special query p
  * `sslcert=<filename>` - reads data from the given file and includes the result as `ssl.cert`
  * `sslkey=<filename>` - reads data from the given file and includes the result as `ssl.key`
  * `sslrootcert=<filename>` - reads data from the given file and includes the result as `ssl.ca`
+ * `channel_binding=<disable|prefer|require>` - sets the `channel_binding` property, which the client acts on. As in libpq, these three values are the only ones accepted.
+ * `require_auth=<method[,method...]>` - sets the `require_auth` property, which the client acts on, naming the authentication method(s) the server is allowed to ask for. The value is passed through unchanged but validated by the client, which accepts libpq's methods (`password`, `md5`, `gss`, `sspi`, `scram-sha-256`, `oauth` and `none`). Optionally, all methods may be negated with `!`, which makes this a block-list instead of an allow-list.
 
 A bare relative URL, such as `salesdata`, will indicate a database name while leaving other properties empty.
 

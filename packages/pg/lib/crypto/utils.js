@@ -63,7 +63,21 @@ async function sha256(text) {
 }
 
 async function hashByName(hashName, text) {
-  return await subtleCrypto.digest(hashName, text)
+  try {
+    return await subtleCrypto.digest(hashName, text)
+  } catch (e1) {
+    try {
+      const altHashName = hashName.toLowerCase().replace(/^sha-/, 'sha') // e.g. SHA-224 -> sha224 (more compatible)
+      const hash = nodeCrypto.createHash(altHashName)
+      hash.update(text)
+      return hash.digest()
+    } catch (e2) {
+      throw new Error(
+        `Could not hash with "${hashName}" during channel binding (SubtleCrypto: ${e1.message}, node:crypto: ${e2.message})`,
+        { cause: e2 }
+      )
+    }
+  }
 }
 
 /**

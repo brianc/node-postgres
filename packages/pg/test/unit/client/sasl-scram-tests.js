@@ -19,8 +19,15 @@ suite.test('sasl/scram', function () {
       )
     })
 
+    // A TLS stream whose peer certificate we can hash, so channel binding is possible
+    const bindableStream = { getPeerCertificate() {} }
+
     suite.test('returns expected session data for SCRAM-SHA-256 (channel binding disabled, offered)', function () {
-      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'])
+      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'], {
+        channelBinding: 'disable',
+        sslInUse: true,
+        stream: bindableStream,
+      })
 
       assert.equal(session.mechanism, 'SCRAM-SHA-256')
       assert.equal(String(session.clientNonce).length, 24)
@@ -30,7 +37,7 @@ suite.test('sasl/scram', function () {
     })
 
     suite.test('returns expected session data for SCRAM-SHA-256 (channel binding enabled, not offered)', function () {
-      const session = sasl.startSession(['SCRAM-SHA-256'], { getPeerCertificate() {} })
+      const session = sasl.startSession(['SCRAM-SHA-256'], { sslInUse: true, stream: bindableStream })
 
       assert.equal(session.mechanism, 'SCRAM-SHA-256')
       assert.equal(String(session.clientNonce).length, 24)
@@ -40,13 +47,80 @@ suite.test('sasl/scram', function () {
     })
 
     suite.test('returns expected session data for SCRAM-SHA-256 (channel binding enabled, offered)', function () {
-      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'], { getPeerCertificate() {} })
+      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'], {
+        sslInUse: true,
+        stream: bindableStream,
+      })
 
       assert.equal(session.mechanism, 'SCRAM-SHA-256-PLUS')
       assert.equal(String(session.clientNonce).length, 24)
       assert.equal(session.message, 'SASLInitialResponse')
 
       assert(session.response.match(/^p=tls-server-end-point,,n=\*,r=.{24}$/))
+    })
+
+    suite.test('uses channel binding when it is required and offered', function () {
+      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'], {
+        channelBinding: 'require',
+        sslInUse: true,
+        stream: bindableStream,
+      })
+
+      assert.equal(session.mechanism, 'SCRAM-SHA-256-PLUS')
+      assert.equal(session.gs2Header, 'p=tls-server-end-point')
+    })
+
+    suite.test('falls back to SCRAM-SHA-256 when the stream cannot provide a certificate', function () {
+      // A stream without getPeerCertificate (as in a Cloudflare Worker) cannot bind the
+      // channel, so it must claim no support with 'n': claiming 'y' while the server
+      // offered SCRAM-SHA-256-PLUS is a downgrade the server rejects.
+      const session = sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'], {
+        sslInUse: true,
+        stream: {},
+      })
+
+      assert.equal(session.mechanism, 'SCRAM-SHA-256')
+      assert.equal(session.gs2Header, 'n')
+      assert(session.response.match(/^n,,n=\*,r=.{24}$/))
+    })
+
+    suite.test('fails when channel binding is required but SSL is not in use', function () {
+      assert.throws(() => sasl.startSession(['SCRAM-SHA-256'], { channelBinding: 'require' }), {
+        message: 'SASL: Channel binding is required, but SSL is not in use',
+      })
+    })
+
+    suite.test('fails when channel binding is required but the stream cannot provide a certificate', function () {
+      assert.throws(
+        () => sasl.startSession(['SCRAM-SHA-256'], { channelBinding: 'require', sslInUse: true, stream: {} }),
+        {
+          message: 'SASL: Channel binding is required, but this connection cannot provide the server certificate',
+        }
+      )
+    })
+
+    suite.test('fails when channel binding is required but not offered by the server', function () {
+      assert.throws(
+        () =>
+          sasl.startSession(['SCRAM-SHA-256'], {
+            channelBinding: 'require',
+            sslInUse: true,
+            stream: bindableStream,
+          }),
+        {
+          message:
+            'SASL: Channel binding is required, but the server did not offer an authentication method that supports it',
+        }
+      )
+    })
+
+    suite.test('fails when SCRAM-SHA-256-PLUS is offered over a non-SSL connection', function () {
+      // Suggests SSL was stripped in transit, whatever the channel binding setting
+      for (const channelBinding of ['disable', 'prefer']) {
+        assert.throws(() => sasl.startSession(['SCRAM-SHA-256', 'SCRAM-SHA-256-PLUS'], { channelBinding }), {
+          message: 'SASL: Server offered SCRAM-SHA-256-PLUS authentication over a non-SSL connection',
+        })
+      }
     })
 
     suite.test('creates random nonces', function () {
@@ -63,7 +137,7 @@ suite.test('sasl/scram', function () {
     })
 
     suite.test('honors a custom scramMaxIterations', function () {
-      const session = sasl.startSession(['SCRAM-SHA-256'], null, 50)
+      const session = sasl.startSession(['SCRAM-SHA-256'], { scramMaxIterations: 50 })
 
       assert.equal(session.scramMaxIterations, 50)
     })
@@ -213,6 +287,7 @@ suite.test('sasl/scram', function () {
       const session = {
         message: 'SASLInitialResponse',
         clientNonce: 'a',
+        gs2Header: 'n',
         scramMaxIterations: 5,
       }
 
@@ -225,6 +300,7 @@ suite.test('sasl/scram', function () {
       const session = {
         message: 'SASLInitialResponse',
         clientNonce: 'a',
+        gs2Header: 'n',
         scramMaxIterations: 0,
       }
 
@@ -237,6 +313,7 @@ suite.test('sasl/scram', function () {
       const session = {
         message: 'SASLInitialResponse',
         clientNonce: 'a',
+        gs2Header: 'n',
       }
 
       await sasl.continueSession(session, 'password', 'r=ab,s=abcd,i=1')
@@ -248,9 +325,12 @@ suite.test('sasl/scram', function () {
     })
 
     suite.test('sets expected session data (SCRAM-SHA-256, channel binding enabled)', async function () {
+      // 'y' is echoed from the session rather than inferred from the stream, so a
+      // connection that could have bound the channel still reports it consistently.
       const session = {
         message: 'SASLInitialResponse',
         clientNonce: 'a',
+        gs2Header: 'y',
       }
 
       await sasl.continueSession(session, 'password', 'r=ab,s=abcd,i=1', { getPeerCertificate() {} })
@@ -263,8 +343,8 @@ suite.test('sasl/scram', function () {
 
     suite.test('SASLprep maps non-ASCII space characters (RFC 3454 C.1.2) to U+0020 SPACE', async function () {
       // SASLprep probably misuses the C.1.2 table; U+200B, in particular, is listed in both the C.1.2 and B.1 tables. We treat it as a space for compatibility with PostgreSQL.
-      const sessionPrepped = { message: 'SASLInitialResponse', clientNonce: 'a' }
-      const sessionRef = { message: 'SASLInitialResponse', clientNonce: 'a' }
+      const sessionPrepped = { message: 'SASLInitialResponse', clientNonce: 'a', gs2Header: 'n' }
+      const sessionRef = { message: 'SASLInitialResponse', clientNonce: 'a', gs2Header: 'n' }
 
       await sasl.continueSession(sessionPrepped, '\u200bfoo\xa0bar', 'r=ab,s=abcd,i=1')
       await sasl.continueSession(sessionRef, ' foo bar', 'r=ab,s=abcd,i=1')
@@ -278,8 +358,8 @@ suite.test('sasl/scram', function () {
       // must produce identical SCRAM output to 'IX'. This proves the prep
       // step is engaged on the SCRAM derivation path. Without the fix the
       // two would diverge and this assertion would fail.
-      const sessionPrepped = { message: 'SASLInitialResponse', clientNonce: 'a' }
-      const sessionRef = { message: 'SASLInitialResponse', clientNonce: 'a' }
+      const sessionPrepped = { message: 'SASLInitialResponse', clientNonce: 'a', gs2Header: 'n' }
+      const sessionRef = { message: 'SASLInitialResponse', clientNonce: 'a', gs2Header: 'n' }
 
       await sasl.continueSession(sessionPrepped, 'I\u00ADX', 'r=ab,s=abcd,i=1')
       await sasl.continueSession(sessionRef, 'IX', 'r=ab,s=abcd,i=1')
@@ -293,8 +373,8 @@ suite.test('sasl/scram', function () {
       // PostgreSQL's server applies SASLprep when computing the verifier, so
       // a role created with U+2168 is stored as if it were 'IX'. The client
       // must do the same.
-      const sessionPrepped = { message: 'SASLInitialResponse', clientNonce: 'a' }
-      const sessionRef = { message: 'SASLInitialResponse', clientNonce: 'a' }
+      const sessionPrepped = { message: 'SASLInitialResponse', clientNonce: 'a', gs2Header: 'n' }
+      const sessionRef = { message: 'SASLInitialResponse', clientNonce: 'a', gs2Header: 'n' }
 
       await sasl.continueSession(sessionPrepped, '\u2168', 'r=ab,s=abcd,i=1')
       await sasl.continueSession(sessionRef, 'IX', 'r=ab,s=abcd,i=1')
@@ -310,7 +390,7 @@ suite.test('sasl/scram', function () {
       // raw password. We snapshot the resulting SCRAM output as a regression
       // guard: if anyone ever swaps the order of operations, removes the
       // NFKC step, or accidentally strips ASCII bytes, this assertion trips.
-      const session = { message: 'SASLInitialResponse', clientNonce: 'a' }
+      const session = { message: 'SASLInitialResponse', clientNonce: 'a', gs2Header: 'n' }
 
       await sasl.continueSession(session, '\u0007abc', 'r=ab,s=abcd,i=1')
 
@@ -324,6 +404,7 @@ suite.test('sasl/scram', function () {
         message: 'SASLInitialResponse',
         mechanism: 'SCRAM-SHA-256-PLUS',
         clientNonce: 'a',
+        gs2Header: 'p=tls-server-end-point',
       }
 
       await sasl.continueSession(session, 'password', 'r=ab,s=abcd,i=1', {

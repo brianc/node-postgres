@@ -76,14 +76,40 @@ Direct negotiation requests the `postgresql` ALPN protocol during the TLS handsh
 
 ## Channel binding
 
-If the PostgreSQL server offers SCRAM-SHA-256-PLUS (i.e. channel binding) for TLS/SSL connections, you can enable this as follows:
+Channel binding ties SCRAM authentication to the TLS connection it takes place on. A server that does not hold both the private key for the certificate it presented _and_ the user's password hash cannot successfully authenticate with channel binding. Channel binding thus authenticates the server to the client even when the certificate itself is not verified. It requires a TLS connection and the SCRAM-SHA-256-PLUS authentication mechanism, which PostgreSQL 11 and newer offer over SSL for roles whose password is stored using `scram-sha-256`.
+
+The `channel_binding` option takes the same three values as [the corresponding libpq parameter](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNECT-CHANNEL-BINDING):
+
+- `'require'` refuses to authenticate at all unless the exchange is bound to the server's certificate
+- `'prefer'` (now the default) uses channel binding whenever the server offers it, and authenticates without it otherwise
+- `'disable'` never uses it
 
 ```js
-const client = new Client({ ...config, enableChannelBinding: true})
+const client = new Client({ ...config, channel_binding: 'require' })
 ```
 
-or
+It can also be supplied via a connection string, or the `PGCHANNELBINDING` environment variable. For example:
 
 ```js
-const pool = new Pool({ ...config, enableChannelBinding: true})
+const config = {
+  connectionString: 'postgres://user-and-password@host:port/db?sslmode=require&channel_binding=require',
+}
 ```
+
+The earlier, boolean `enableChannelBinding` option remains available (`true` maps to `'prefer'` and `false` to `'disable'`), but should be considered deprecated.
+
+## Requiring an authentication method
+
+A server chooses which authentication method to ask the client for, so a server subject to an MITM attack can ask for a weaker method than expected. For example, it might request the user's plaintext password instead of SCRAM, or treat the client as authenticated without asking for anything at all. The `require_auth` option pins down what authentication methods we will accept from the server, exactly like the [libpq parameter of the same name](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNECT-REQUIRE-AUTH):
+
+```js
+const client = new Client({ ...config, require_auth: 'scram-sha-256' })
+```
+
+The value is a comma-separated list of methods, any of which the server may use, or a list in which every entry is negated with `!`, naming methods it may not use. `none` stands for a connection where the server asks for nothing (so `require_auth: 'none'` only accepts access without authentication, and `require_auth: '!none'` insists simply that the server authenticates us somehow).
+
+The methods libpq recognizes are `password`, `md5`, `scram-sha-256`, `gss`, `sspi` and `oauth`. Of these, node-postgres implements the first three. Naming only methods it cannot perform is an error rather than a connection that could never succeed. The native client passes the setting to libpq, which performs the full set (according to its build settings). It can equally be set in a connection string or with the `PGREQUIREAUTH` environment variable.
+
+Setting `channel_binding: 'require'` implies `require_auth: 'scram-sha-256'`, since no other method can be bound. Combining it with a `require_auth` that rules SCRAM out is an error.
+
+Note that both `channel_binding` and `require_auth` keep libpq's snake_cased spelling. A camelCased `channelBinding` or `requireAuth` is not recognized, and throws an error rather than connecting without the protection requested.
