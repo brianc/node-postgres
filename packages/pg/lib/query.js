@@ -235,8 +235,10 @@ class Query extends EventEmitter {
         valueMapper: utils.prepareValue,
       })
     } catch (err) {
-      // we should close parse to avoid leaking connections
-      connection.close({ type: 'S', name: this.name })
+      // only close the unnamed statement. a named one stays prepared and is used again
+      if (!this.name) {
+        connection.close({ type: 'S', name: this.name })
+      }
       connection.sync()
 
       this.handleError(err, connection)
