@@ -125,6 +125,18 @@ describe('parse', function () {
     subject.database?.should.equal(' u%20rl')
   })
 
+  it('keeps percent-encoded characters when the url also contains a space', function () {
+    const subject = parse('postgres://app:s3cr%2Ft%3A@localhost/db?options=-c search_path=app')
+    subject.password?.should.equal('s3cr/t:')
+    subject.options?.should.equal('-c search_path=app')
+  })
+
+  it('keeps lowercase percent-encoded characters when the url also contains a stray percent sign', function () {
+    const subject = parse('postgres://app:s3cr%2bt@localhost/50%off')
+    subject.password?.should.equal('s3cr+t')
+    subject.database?.should.equal('50%off')
+  })
+
   it('relative url sets database', function () {
     const relative = 'different_db_on_default_host'
     const subject = parse(relative)
