@@ -77,33 +77,28 @@ describe('pool error handling', function () {
     })
   })
 
-  describe('using an ended pool', () => {
-    it('rejects all additional promises', (done) => {
+  describe('using a pool after end', () => {
+    it('can be reused with promises', async () => {
       const pool = new Pool()
-      const promises = []
-      pool.end().then(() => {
-        const squash = (promise) => promise.catch((e) => 'okay!')
-        promises.push(squash(pool.connect()))
-        promises.push(squash(pool.query('SELECT NOW()')))
-        promises.push(squash(pool.end()))
-        Promise.all(promises).then((res) => {
-          expect(res).to.eql(['okay!', 'okay!', 'okay!'])
-          done()
-        })
-      })
+      await pool.end()
+
+      const result = await pool.query('SELECT NOW()')
+      expect(result.rows).to.have.length(1)
+      const client = await pool.connect()
+      client.release()
+      await pool.end()
     })
 
-    it('returns an error on all additional callbacks', (done) => {
+    it('can be reused with callbacks', (done) => {
       const pool = new Pool()
       pool.end(() => {
-        pool.query('SELECT *', (err) => {
-          expect(err).to.be.an(Error)
-          pool.connect((err) => {
-            expect(err).to.be.an(Error)
-            pool.end((err) => {
-              expect(err).to.be.an(Error)
-              done()
-            })
+        pool.query('SELECT NOW()', (err, result) => {
+          if (err) return done(err)
+          expect(result.rows).to.have.length(1)
+          pool.connect((err, client) => {
+            if (err) return done(err)
+            client.release()
+            pool.end(done)
           })
         })
       })
