@@ -18,9 +18,23 @@ class IdleItem {
 }
 
 class PendingItem {
-  constructor(callback) {
+  // exclusive wants a connection nobody else is using, which is what pool.connect() gives
+  constructor(callback, exclusive = true) {
     this.callback = callback
+    this.exclusive = exclusive
   }
+}
+
+// queries written on a client whose result has not come back yet
+const inFlight = (client) => client._poolPipelined || 0
+
+const canPipeline = (client, maxPipeline) => {
+  if (inFlight(client) >= maxPipeline) {
+    return false
+  }
+  // streams without writableNeedDrain (pg-cloudflare) count as never backed up
+  const stream = client.connection && client.connection.stream
+  return !(stream && stream.writableNeedDrain)
 }
 
 function throwOnDoubleRelease() {
@@ -56,7 +70,13 @@ function makeIdleListener(pool, client) {
     client.on('error', () => {
       pool.log('additional client error after disconnection due to error', err)
     })
+    const wasPipelining = inFlight(client) > 0
     pool._remove(client)
+    // a pipelined client is not idle: every query on it already gets this error
+    if (wasPipelining) {
+      pool.log('client error while pipelining, reported to the queries in flight', err)
+      return
+    }
     // TODO - document that once the pool emits an error
     // the client has already been closed & purged and is unusable
     pool.emit('error', err, client)
@@ -88,6 +108,14 @@ class Pool extends EventEmitter {
 
     this.options.max = this.options.max || this.options.poolSize || 10
     this.options.min = this.options.min || 0
+    // max stays the number of connections, queries in flight can reach max * maxPipeline
+    this.options.maxPipeline = this.options.maxPipeline || 1
+    // maxPipeline > 1 is what turns pool.query() pipelining on, and it needs pipelining clients.
+    // `pipeline` keeps its own meaning, it is passed to the Client as any other option
+    this._pipeline = this.options.maxPipeline > 1
+    if (this._pipeline) {
+      this.options.pipeline = true
+    }
     this.options.maxUses = this.options.maxUses || Infinity
     this.options.allowExitOnIdle = this.options.allowExitOnIdle || false
     this.options.maxLifetimeSeconds = this.options.maxLifetimeSeconds || 0
@@ -134,6 +162,10 @@ class Pool extends EventEmitter {
       this.log('pulse queue on ending')
       if (this._idle.length) {
         this._idle.slice().map((item) => {
+          // still finishing pipelined queries, the last one to come back pulses again
+          if (inFlight(item.client)) {
+            return
+          }
           this._remove(item.client)
         })
       }
@@ -153,23 +185,64 @@ class Pool extends EventEmitter {
     if (!this._idle.length && this._isFull()) {
       return
     }
-    const pendingItem = this._pendingQueue.shift()
-    if (this._idle.length) {
-      const idleItem = this._idle.pop()
+    const idleItem = this._takeIdleItem(this._pendingQueue[0])
+    if (idleItem) {
       clearTimeout(idleItem.timeoutId)
       const client = idleItem.client
       client.ref && client.ref()
       const idleListener = idleItem.idleListener
 
-      return this._acquireClient(client, pendingItem, idleListener, false)
+      return this._acquireClient(client, this._pendingQueue.shift(), idleListener, false)
     }
     if (!this._isFull()) {
-      return this.newClient(pendingItem)
+      return this.newClient(this._pendingQueue.shift())
     }
-    throw new Error('unexpected condition')
+    // pipelining: every connection is at maxPipeline or backed up, wait for a result
+  }
+
+  // the idle client to serve this item, or undefined to open a new connection
+  _takeIdleItem(pendingItem) {
+    if (!this._idle.length) {
+      return undefined
+    }
+    if (!this._pipeline) {
+      return this._idle.pop()
+    }
+
+    const free = this._idle.findIndex((item) => inFlight(item.client) === 0)
+    if (free !== -1) {
+      return this._idle.splice(free, 1)[0]
+    }
+    // a transaction cannot share a connection, and a query prefers a new one
+    if (pendingItem.exclusive || !this._isFull()) {
+      return undefined
+    }
+
+    let best
+    for (const item of this._idle) {
+      if (
+        canPipeline(item.client, this.options.maxPipeline) &&
+        (!best || inFlight(item.client) < inFlight(best.client))
+      ) {
+        best = item
+      }
+    }
+    return best && this._idle.splice(this._idle.indexOf(best), 1)[0]
+  }
+
+  // a client with pipelined queries on it still owes results, so it stays in _clients and out of
+  // _idle until they arrive: dropping it now would let the pool hold more sockets than max
+  _removeWhenIdle(client) {
+    if (inFlight(client)) {
+      client._poolRemoveWhenIdle = true
+      return
+    }
+    return this._remove(client, this._pulseQueue.bind(this))
   }
 
   _remove(client, callback) {
+    // the deferred removal is done here, don't repeat it when the last answer lands
+    client._poolRemoveWhenIdle = false
     const removed = removeWhere(this._idle, (item) => item.client === client)
 
     if (removed !== undefined) {
@@ -188,6 +261,10 @@ class Pool extends EventEmitter {
   }
 
   connect(cb) {
+    return this._checkout(true, cb)
+  }
+
+  _checkout(exclusive, cb) {
     if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
       return cb ? cb(err) : this.Promise.reject(err)
@@ -204,7 +281,7 @@ class Pool extends EventEmitter {
       }
 
       if (!this.options.connectionTimeoutMillis) {
-        this._pendingQueue.push(new PendingItem(response.callback))
+        this._pendingQueue.push(new PendingItem(response.callback, exclusive))
         return result
       }
 
@@ -213,7 +290,7 @@ class Pool extends EventEmitter {
         response.callback(err, res, done)
       }
 
-      const pendingItem = new PendingItem(queueCallback)
+      const pendingItem = new PendingItem(queueCallback, exclusive)
 
       // set connection timeout on checking out an existing client
       const tid = setTimeout(() => {
@@ -232,7 +309,7 @@ class Pool extends EventEmitter {
       return result
     }
 
-    this.newClient(new PendingItem(response.callback))
+    this.newClient(new PendingItem(response.callback, exclusive))
 
     return result
   }
@@ -389,38 +466,59 @@ class Pool extends EventEmitter {
     this.emit('release', err, client)
 
     // TODO(bmc): expose a proper, public interface _queryable and _ending
-    if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
+    if (
+      err ||
+      this.ending ||
+      !client._queryable ||
+      client._ending ||
+      client._poolUseCount >= this.options.maxUses ||
+      // already condemned by an earlier release, keep it out of _idle or it takes new queries forever
+      client._poolRemoveWhenIdle
+    ) {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
 
-      return this._remove(client, this._pulseQueue.bind(this))
+      return this._removeWhenIdle(client)
     }
 
     const isExpired = this._expired.has(client)
     if (isExpired) {
       this.log('remove expired client')
       this._expired.delete(client)
-      return this._remove(client, this._pulseQueue.bind(this))
+      return this._removeWhenIdle(client)
     }
 
     // idle timeout
     let tid
     if (this.options.idleTimeoutMillis && this._isAboveMin()) {
-      tid = setTimeout(() => {
-        if (this._isAboveMin()) {
+      const armIdleTimeout = () => {
+        const timer = setTimeout(() => {
+          if (!this._isAboveMin()) {
+            return
+          }
+          // pipelined queries are still coming back, this client is not idle yet
+          if (inFlight(client)) {
+            const item = this._idle.find((idleItem) => idleItem.client === client)
+            if (item) {
+              item.timeoutId = armIdleTimeout()
+            }
+            return
+          }
           this.log('remove idle client')
           this._remove(client, this._pulseQueue.bind(this))
-        }
-      }, this.options.idleTimeoutMillis)
+        }, this.options.idleTimeoutMillis)
 
-      if (this.options.allowExitOnIdle) {
-        // allow Node to exit if this is all that's left
-        tid.unref()
+        if (this.options.allowExitOnIdle) {
+          // allow Node to exit if this is all that's left
+          timer.unref()
+        }
+        return timer
       }
+      tid = armIdleTimeout()
     }
 
-    if (this.options.allowExitOnIdle) {
+    if (this.options.allowExitOnIdle && !inFlight(client)) {
       client.unref()
     }
 
@@ -445,6 +543,11 @@ class Pool extends EventEmitter {
     }
     const response = promisify(this.Promise, cb)
     cb = response.callback
+
+    if (this._pipeline) {
+      this._pipelineQuery(text, values, cb)
+      return response.result
+    }
 
     this.connect((err, client) => {
       if (err) {
@@ -483,6 +586,81 @@ class Pool extends EventEmitter {
       }
     })
     return response.result
+  }
+
+  // the connection goes back to the pool as soon as the query is written, so the
+  // next one can be sent behind it instead of waiting for the result
+  _pipelineQuery(text, values, cb) {
+    // a submittable answers on its own object, not through this callback,
+    // so the pool would never learn the query is over and would hold the connection forever
+    if (text != null && typeof text.submit === 'function') {
+      process.nextTick(() =>
+        cb(new Error('pool.query does not take a submittable in pipeline mode, check out a client with pool.connect()'))
+      )
+      return
+    }
+
+    this._checkout(false, (err, client, release) => {
+      if (err) {
+        return cb(err)
+      }
+
+      let released = false
+      const releaseOnce = (err) => {
+        if (!released) {
+          released = true
+          release(err)
+        }
+      }
+
+      client._poolPipelined = inFlight(client) + 1
+      this.log('dispatching query')
+      let written = false
+      let answered = false
+      const answer = (err, res) => {
+        // an error while the query is being written answers on the submit stack. finish the write
+        // first: releasing here would dispatch the next query ahead of this one on the client queue
+        if (!written) {
+          return process.nextTick(answer, err, res)
+        }
+        // a query that fails while it is being written is answered twice by the client
+        if (answered) {
+          return
+        }
+        answered = true
+        this.log('query dispatched')
+        client._poolPipelined--
+        if (this.options.allowExitOnIdle && !inFlight(client)) {
+          // the release ran while this result was still pending, so it could not unref
+          client.unref()
+        }
+        if (!inFlight(client) && client._poolRemoveWhenIdle) {
+          this._remove(client, this._pulseQueue.bind(this))
+        }
+        // no-op unless the query failed before it was written
+        releaseOnce()
+        try {
+          return err ? cb(err) : cb(undefined, res)
+        } finally {
+          // a slot just freed up, and this caller comes before the next one
+          this._pulseQueue()
+        }
+      }
+
+      try {
+        client.query(text, values, answer)
+        written = true
+      } catch (err) {
+        answered = true
+        client._poolPipelined--
+        releaseOnce(err)
+        return cb(err)
+      }
+
+      // on a tick of its own: releasing here would re-enter _pulseQueue and
+      // recurse once per queued query
+      process.nextTick(releaseOnce)
+    })
   }
 
   end(cb) {
