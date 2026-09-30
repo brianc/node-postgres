@@ -106,6 +106,9 @@ class Pool extends EventEmitter {
     this._endCallback = undefined
     this.ending = false
     this.ended = false
+    // bound once so the hot acquire/release paths reuse it instead of allocating
+    // a fresh closure/bound function per query (nextTick scheduling, _remove cbs)
+    this._pulseQueueBound = this._pulseQueue.bind(this)
   }
 
   _promiseTry(f) {
@@ -200,7 +203,7 @@ class Pool extends EventEmitter {
     if (this._isFull() || this._idle.length) {
       // if we have idle clients schedule a pulse immediately
       if (this._idle.length) {
-        process.nextTick(() => this._pulseQueue())
+        process.nextTick(this._pulseQueueBound)
       }
 
       if (!this.options.connectionTimeoutMillis) {
@@ -394,14 +397,14 @@ class Pool extends EventEmitter {
         this.log('remove expended client')
       }
 
-      return this._remove(client, this._pulseQueue.bind(this))
+      return this._remove(client, this._pulseQueueBound)
     }
 
     const isExpired = this._expired.has(client)
     if (isExpired) {
       this.log('remove expired client')
       this._expired.delete(client)
-      return this._remove(client, this._pulseQueue.bind(this))
+      return this._remove(client, this._pulseQueueBound)
     }
 
     // idle timeout
@@ -410,7 +413,7 @@ class Pool extends EventEmitter {
       tid = setTimeout(() => {
         if (this._isAboveMin()) {
           this.log('remove idle client')
-          this._remove(client, this._pulseQueue.bind(this))
+          this._remove(client, this._pulseQueueBound)
         }
       }, this.options.idleTimeoutMillis)
 
@@ -461,7 +464,10 @@ class Pool extends EventEmitter {
         cb(err)
       }
 
-      client.once('error', onError)
+      // `on` rather than `once`: the query callback below always removes this
+      // listener, and `onError` self-guards via `clientReleased`, so we don't
+      // need `once`'s wrapper allocation per query.
+      client.on('error', onError)
       this.log('dispatching query')
       try {
         client.query(text, values, (err, res) => {
