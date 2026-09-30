@@ -7,7 +7,7 @@ const Result = require('./result')
 const utils = require('./utils')
 const Pool = require('pg-pool')
 const TypeOverrides = require('./type-overrides')
-const { DatabaseError } = require('pg-protocol')
+const { DatabaseError } = require('pg-protocol/dist/index.js')
 const { escapeIdentifier, escapeLiteral } = require('./utils')
 
 const poolFactory = (Client) => {
