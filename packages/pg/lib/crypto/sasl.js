@@ -32,14 +32,46 @@ function saslprep(password) {
 
 const DEFAULT_MAX_SCRAM_ITERATIONS = 100000
 
-function startSession(mechanisms, stream, scramMaxIterations = DEFAULT_MAX_SCRAM_ITERATIONS) {
-  const candidates = ['SCRAM-SHA-256']
-  if (stream) candidates.unshift('SCRAM-SHA-256-PLUS') // higher-priority, so placed first
+function startSession(mechanisms, stream, options) {
+  const candidates = []
+  const isOptionsObject = options !== null && typeof options === 'object'
+  const oauthBearerToken = isOptionsObject ? options.oauthBearerToken : undefined
+  const scramMaxIterations =
+    typeof options === 'number'
+      ? options
+      : isOptionsObject && 'scramMaxIterations' in options
+      ? options.scramMaxIterations
+      : DEFAULT_MAX_SCRAM_ITERATIONS
+
+  if (oauthBearerToken !== undefined && oauthBearerToken !== null) {
+    // OAUTHBEARER is preferred when a token is explicitly provided, even over SCRAM-SHA-256-PLUS.
+    candidates.push('OAUTHBEARER')
+  }
+
+  if (stream) candidates.push('SCRAM-SHA-256-PLUS')
+  candidates.push('SCRAM-SHA-256')
 
   const mechanism = candidates.find((candidate) => mechanisms.includes(candidate))
 
   if (!mechanism) {
+    if (mechanisms.includes('OAUTHBEARER')) {
+      throw new Error('SASL: OAUTHBEARER requires an oauthBearerToken')
+    }
     throw new Error('SASL: Only mechanism(s) ' + candidates.join(' and ') + ' are supported')
+  }
+
+  if (mechanism === 'OAUTHBEARER') {
+    if (typeof oauthBearerToken !== 'string') {
+      throw new Error('SASL: OAUTHBEARER token must be a string')
+    }
+    if (oauthBearerToken === '') {
+      throw new Error('SASL: OAUTHBEARER token must be a non-empty string')
+    }
+    return {
+      mechanism,
+      response: 'n,,\x01auth=Bearer ' + oauthBearerToken + '\x01\x01',
+      message: 'SASLInitialResponse',
+    }
   }
 
   if (mechanism === 'SCRAM-SHA-256-PLUS' && typeof stream.getPeerCertificate !== 'function') {
@@ -62,6 +94,21 @@ function startSession(mechanisms, stream, scramMaxIterations = DEFAULT_MAX_SCRAM
 async function continueSession(session, password, serverData, stream) {
   if (session.message !== 'SASLInitialResponse') {
     throw new Error('SASL: Last message was not SASLInitialResponse')
+  }
+  if (session.mechanism === 'OAUTHBEARER') {
+    if (typeof serverData !== 'string') {
+      throw new Error('SASL: OAUTHBEARER serverData must be a string')
+    }
+    // PostgreSQL sends a JSON challenge when OAUTHBEARER authentication fails.
+    // The client must still send the RFC 7628 dummy response ("\x01") before the
+    // server can finish the failed authentication exchange, so record the payload
+    // for the caller to surface after it sends session.response.
+    if (serverData.length > 0) {
+      session.oauthError = serverData
+    }
+    session.message = 'SASLResponse'
+    session.response = '\x01'
+    return
   }
   if (typeof password !== 'string') {
     throw new Error('SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string')
@@ -127,6 +174,12 @@ async function continueSession(session, password, serverData, stream) {
 }
 
 function finalizeSession(session, serverData) {
+  if (session.mechanism === 'OAUTHBEARER') {
+    // OAUTHBEARER auth ends after continueSession (client sends \x01, server replies with
+    // AuthenticationOk). AuthenticationSASLFinal is never sent for this mechanism, so
+    // reaching here means a misbehaving server or a protocol bug.
+    throw new Error('SASL: OAUTHBEARER does not support server final messages')
+  }
   if (session.message !== 'SASLResponse') {
     throw new Error('SASL: Last message was not SASLResponse')
   }

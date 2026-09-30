@@ -78,6 +78,16 @@ class Pool extends EventEmitter {
         value: options.password,
       })
     }
+    if (options != null && 'oauthBearerToken' in options) {
+      // "hiding" the OAuth bearer token so it doesn't show up in stack traces
+      // or if the pool is console.logged
+      Object.defineProperty(this.options, 'oauthBearerToken', {
+        configurable: true,
+        enumerable: false,
+        writable: true,
+        value: options.oauthBearerToken,
+      })
+    }
     if (options != null && options.ssl && options.ssl.key) {
       // "hiding" the ssl->key so it doesn't show up in stack traces
       // or if the client is console.logged

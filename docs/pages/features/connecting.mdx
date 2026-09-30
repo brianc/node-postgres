@@ -114,6 +114,26 @@ const pool = new Pool({
 })
 ```
 
+PostgreSQL servers configured for OAuth can authenticate with a bearer token using the SASL `OAUTHBEARER` mechanism.
+Pass the token directly, or provide a synchronous or asynchronous callback that resolves to a token string.
+When `oauthBearerToken` is set, `OAUTHBEARER` takes precedence over `SCRAM-SHA-256-PLUS` even when TLS channel binding is available.
+`pg` does not perform the OAuth authorization flow; your application is responsible for fetching and caching tokens from your OAuth provider.
+Using a callback is recommended for short-lived tokens, as it is invoked for each new connection with the connection parameters and must return a non-empty token string.
+
+```js
+import pg from 'pg'
+const { Pool } = pg
+
+const pool = new Pool({
+  user: 'api-user',
+  host: 'database.server.com',
+  database: 'my-db',
+  oauthBearerToken: async () => {
+    return getAccessToken()
+  },
+})
+```
+
 ### Unix Domain Sockets
 
 Connections to unix sockets can also be made. This can be useful on distros like Ubuntu, where authentication is managed via the socket connection instead of a password.
