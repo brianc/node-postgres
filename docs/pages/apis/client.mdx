@@ -12,8 +12,8 @@ Every field of the `config` object is entirely optional. A `Client` instance wil
 type Config = {
   user?: string, // default process.env.PGUSER || process.env.USER
   password?: string or function, //default process.env.PGPASSWORD
-  host?: string, // default process.env.PGHOST
-  port?: number, // default process.env.PGPORT
+  host?: string | string[], // default process.env.PGHOST; array enables multi-host failover
+  port?: number | number[], // default process.env.PGPORT; one value or one per host
   database?: string, // default process.env.PGDATABASE || user
   connectionString?: string, // e.g. postgres://user:password@host:5432/database
   ssl?: any, // passed directly to node.TLSSocket, supports all tls.connect options
@@ -31,6 +31,7 @@ type Config = {
   fallback_application_name?: string, // provide an application name to use if application_name is not set
   options?: string, // command-line options to be sent to the server
   pipeline?: boolean // when true, enables query pipelining. See /features/pipelining for details. Default false.
+  targetSessionAttrs?: 'any' | 'read-write' | 'read-only' | 'primary' | 'standby' | 'prefer-standby', // default 'any'
 }
 ```
 
