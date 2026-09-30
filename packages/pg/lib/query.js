@@ -18,6 +18,7 @@ class Query extends EventEmitter {
     this.name = config.name
     this.queryMode = config.queryMode
     this.binary = config.binary
+    this.signal = config.signal
     // use unique portal name each time
     this.portal = config.portal || ''
     this.callback = config.callback

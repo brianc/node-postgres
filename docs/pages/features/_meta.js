@@ -1,6 +1,7 @@
 export default {
   connecting: 'Connecting',
   queries: 'Queries',
+  'query-cancellation': 'Query cancellation',
   pipelining: 'Pipelining',
   pooling: 'Pooling',
   transactions: 'Transactions',

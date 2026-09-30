@@ -92,6 +92,9 @@ type QueryConfig {
   // custom type parsers just for this query result
   types?: Types;
 
+  // cancel queued or active work when this signal aborts
+  signal?: AbortSignal;
+
   // TODO: document
   queryMode?: string;
 }
@@ -149,6 +152,53 @@ const result = await client.query(query)
 console.log(result.rows) // ['brianc']
 
 await client.end()
+```
+
+### Query cancellation
+
+Pass an `AbortSignal` in a query config object to cancel queued or active work:
+
+```js
+const controller = new AbortController()
+const query = client.query({
+  text: 'SELECT pg_sleep(30)',
+  signal: controller.signal,
+})
+
+controller.abort()
+await query // rejects with PostgreSQL error code 57014 if cancellation wins
+```
+
+A query aborted before submission rejects with `signal.reason` and sends nothing. Once submitted, cancellation races with normal completion: PostgreSQL may return error `57014`, or the query may finish normally first. An aborted transaction remains failed until you issue `ROLLBACK`.
+
+For explicit cancellation, use the exported helper with the client that owns the query:
+
+```js
+import { cancelQuery } from 'pg'
+
+const query = client.query('SELECT pg_sleep(30)')
+const cancellation = cancelQuery(client)
+
+await Promise.allSettled([query, cancellation])
+```
+
+`cancelQuery(client)` resolves `true` after the cancellation connection finishes and the target client reaches `ReadyForQuery`. It resolves `false` when there is no active query and rejects if the cancel request cannot be completed. A `true` result does not guarantee that cancellation won the race.
+
+See [Query cancellation](/features/query-cancellation) for the separate-connection design, completion barrier, and race outcomes.
+
+Cancellation uses a separate connection to the selected PostgreSQL endpoint. A custom `stream` must therefore be a factory; a concrete custom stream instance cannot support cancellation. AbortSignal and explicit cancellation are not supported in pipeline mode.
+
+With a pool, check out a client so the query and cancellation target are unambiguous. Do not use a `PoolClient` after `release()`:
+
+```js
+const client = await pool.connect()
+try {
+  const query = client.query('SELECT pg_sleep(30)')
+  const cancellation = cancelQuery(client)
+  await Promise.allSettled([query, cancellation])
+} finally {
+  client.release()
+}
 ```
 
 **client.query with a `Submittable`**
