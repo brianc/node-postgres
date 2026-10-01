@@ -37,7 +37,6 @@
     "bluebird": "3.7.2",
     "co": "4.6.0",
     "expect.js": "0.3.1",
-    "lodash": "^4.17.11",
     "mocha": "^11.7.5"
   },
   "peerDependencies": {

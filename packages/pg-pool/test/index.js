@@ -1,6 +1,5 @@
 'use strict'
 const expect = require('expect.js')
-const _ = require('lodash')
 
 const describe = require('mocha').describe
 const it = require('mocha').it
@@ -176,7 +175,7 @@ describe('pool', function () {
 
     it('properly pools clients', function () {
       const pool = new Pool({ poolSize: 9 })
-      const promises = _.times(30, function () {
+      const promises = Array.from({ length: 30 }, function () {
         return pool.connect().then(function (client) {
           return client.query('select $1::text as name', ['hi']).then(function (res) {
             client.release()
@@ -196,7 +195,7 @@ describe('pool', function () {
       const text = 'select $1::text as name'
       const values = ['hi']
       const query = { text: text, values: values }
-      const promises = _.times(30, () => pool.query(query))
+      const promises = Array.from({ length: 30 }, () => pool.query(query))
       return Promise.all(promises).then(function (queries) {
         expect(queries).to.have.length(30)
         return pool.end()
@@ -234,7 +233,7 @@ describe('pool', function () {
       const pool = new Pool()
 
       const errors = []
-      const promises = _.times(30, () => {
+      const promises = Array.from({ length: 30 }, () => {
         return pool.query('SELECT asldkfjasldkf').catch(function (e) {
           errors.push(e)
         })
