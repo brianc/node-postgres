@@ -25,6 +25,9 @@ TypeOverrides.prototype.setTypeParser = function (oid, format, parseFn) {
     format = 'text'
   }
   this.getOverrides(format)[oid] = parseFn
+  // Invalidates any per-query-shape field metadata cached against this instance
+  // (see result.js's addFields).
+  this.__typeParserVersion = (this.__typeParserVersion || 0) + 1
 }
 
 TypeOverrides.prototype.getTypeParser = function (oid, format) {
