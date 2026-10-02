@@ -21,6 +21,8 @@
     "fuzz:wire": "node fuzz/wire.js",
     "fuzz:modes": "node fuzz/modes.js",
     "fuzz:native": "node fuzz/native.js"
+    "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}' 'benchmark/*.js'",
+    "benchmark": "node benchmark/compare.js"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",

@@ -27,8 +27,10 @@ class Cursor extends EventEmitter {
   }
 
   _ifNoData() {
-    this.state = 'idle'
-    this._shiftQueue()
+    if (this.state !== 'done' && this.state !== 'error') {
+      this.state = 'idle'
+      this._shiftQueue()
+    }
     if (this.connection) {
       this.connection.removeListener('rowDescription', this._rowDescription)
     }
@@ -106,8 +108,10 @@ class Cursor extends EventEmitter {
 
   handleRowDescription(msg) {
     this._result.addFields(msg.fields)
-    this.state = 'idle'
-    this._shiftQueue()
+    if (this.state !== 'done' && this.state !== 'error') {
+      this.state = 'idle'
+      this._shiftQueue()
+    }
   }
 
   handleDataRow(msg) {
@@ -117,7 +121,9 @@ class Cursor extends EventEmitter {
   }
 
   _sendRows() {
-    this.state = 'idle'
+    if (this.state !== 'done') {
+      this.state = 'idle'
+    }
     setImmediate(() => {
       const cb = this._cb
       // remove callback before calling it
