@@ -101,11 +101,11 @@ jobs:
   # into a test: replay it locally with `node fuzz/<tool>.js --seed N --rounds 1`.
   #
   # What the first runs found, each fixed in its own pull request: #3776 (a copyData chunk
-  # changing under whoever kept it), #3777 (binary results losing every byte utf8 cannot
-  # carry), #3778 (pg-native reporting NaN and '' for a missing row count or command), #3780
-  # (native errors without detail and hint), #3781 (a named empty statement failing from its
-  # second run). And one it cannot fix here: a Buffer parameter reaches libpq as a C string,
-  # #980, so the native arm draws none.
+  # changing under whoever kept it), #3778 (pg-native reporting NaN and '' for a missing row
+  # count or command), #3780 (native errors without detail and hint), #3781 (a named empty
+  # statement failing from its second run). And two it does not fix here: a binary result is
+  # decoded as utf8 first, #3496, so the binary arm draws only types whose bytes are valid utf8;
+  # a Buffer parameter reaches libpq as a C string, #980, so the native arm draws none.
   fuzz:
     timeout-minutes: 15
     needs: lint

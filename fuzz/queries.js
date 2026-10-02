@@ -59,14 +59,16 @@ const hex = (rng) => `\\x${bytes(rng, 8).toString('hex')}`
 
 // one entry per type family. `literal` is a SQL expression, `param` a JS value pg sends for it,
 // `binary` says whether the binary result format gives the same JS value as the text one, which
-// is only true for the types pg-types has a binary parser for, or decodes as utf8 anyway
+// is only true for the types pg-types has a binary parser for, or decodes as utf8 anyway. The
+// parser decodes a binary value as utf8 before pg-types sees it (#3496), so a type whose bytes
+// can be invalid utf8 (numbers, oid, an array header) is false too
 const TYPES = [
-  { type: 'int2', binary: true, literal: (rng) => `${ints(rng, 16)}::int2`, param: (rng) => ints(rng, 16) },
-  { type: 'int4', binary: true, literal: (rng) => `${ints(rng, 32)}::int4`, param: (rng) => ints(rng, 32) },
-  { type: 'int8', binary: true, literal: (rng) => `${ints(rng, 53)}::int8`, param: (rng) => String(ints(rng, 53)) },
+  { type: 'int2', binary: false, literal: (rng) => `${ints(rng, 16)}::int2`, param: (rng) => ints(rng, 16) },
+  { type: 'int4', binary: false, literal: (rng) => `${ints(rng, 32)}::int4`, param: (rng) => ints(rng, 32) },
+  { type: 'int8', binary: false, literal: (rng) => `${ints(rng, 53)}::int8`, param: (rng) => String(ints(rng, 53)) },
   {
     type: 'float8',
-    binary: true,
+    binary: false,
     literal: (rng) => `${quote(String(floats(rng)))}::float8`,
     param: (rng) => floats(rng),
   },
@@ -136,7 +138,7 @@ const TYPES = [
   { type: 'uuid', binary: false, literal: () => `${quote(uuid())}::uuid`, param: () => uuid() },
   {
     type: 'oid',
-    binary: true,
+    binary: false,
     literal: (rng) => `${int(rng, 0, 2147483647)}::oid`,
     param: (rng) => int(rng, 0, 2147483647),
   },
@@ -160,7 +162,7 @@ const TYPES = [
   },
   {
     type: 'text[]',
-    binary: true,
+    binary: false,
     literal: (rng) => `${quote(arrayLiteral(arrayOf(rng, texts)))}::text[]`,
     param: (rng) => arrayOf(rng, texts),
   },
@@ -199,7 +201,7 @@ const TYPES = [
   { type: 'unknown', binary: true, literal: (rng) => quote(texts(rng)) },
   { type: 'null', binary: true, literal: () => 'NULL', param: () => null },
   // something that changes with the row, so a result is not one value repeated
-  { type: 'row', binary: true, literal: () => 'g' },
+  { type: 'row', binary: false, literal: () => 'g' },
   { type: 'rowtext', binary: true, literal: () => `'r' || g::text` },
 ]
 

@@ -245,20 +245,6 @@ const observed = (parsed, expect) => {
   return out
 }
 
-// what each message must parse to, in the sequence it is in: a column the last row description
-// declared binary comes back as its bytes, the others as text
-const expectations = (messages) => {
-  let binaryColumns = []
-  return messages.map(({ expect }) => {
-    if (expect.name === 'rowDescription') binaryColumns = expect.fields.map((f) => f.format === 'binary')
-    if (expect.name !== 'dataRow') return expect
-    const fields = expect.fields.map((field, i) =>
-      field !== null && binaryColumns[i] ? Buffer.from(field, 'utf8') : field
-    )
-    return { ...expect, fields }
-  })
-}
-
 const parseAll = (chunks, expects) => {
   const parser = new Parser()
   const out = []
@@ -268,7 +254,7 @@ const parseAll = (chunks, expects) => {
 
 const run = async (plan) => {
   const whole = Buffer.concat(plan.messages.map((m) => m.bytes))
-  const expects = expectations(plan.messages)
+  const expects = plan.messages.map((m) => m.expect)
   const chunks = []
   let from = 0
   for (const at of [...plan.cuts, whole.length]) {
