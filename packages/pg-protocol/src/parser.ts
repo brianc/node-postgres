@@ -83,9 +83,6 @@ export class Parser {
   private bufferOffset: number = 0
   private reader = new BufferReader()
   private mode: Mode
-  // which columns of the rows to come are in the binary format, from the last row description:
-  // a binary value is bytes, and decoding it as text would lose every byte utf8 cannot carry
-  private binaryColumns: boolean[] | null = null
 
   constructor(opts?: StreamOptions) {
     if (opts?.mode === 'binary') {
@@ -191,7 +188,7 @@ export class Parser {
         message = emptyQuery
         break
       case MessageCodes.DataRow:
-        message = parseDataRowMessage(reader, this.binaryColumns)
+        message = parseDataRowMessage(reader)
         break
       case MessageCodes.CommandComplete:
         message = parseCommandCompleteMessage(reader)
@@ -219,7 +216,6 @@ export class Parser {
         break
       case MessageCodes.RowDescriptionMessage:
         message = parseRowDescriptionMessage(reader)
-        this.binaryColumns = binaryColumnsOf(message as RowDescriptionMessage)
         break
       case MessageCodes.ParameterDescriptionMessage:
         message = parseParameterDescriptionMessage(reader)
@@ -280,12 +276,6 @@ const parseNotificationMessage = (reader: BufferReader) => {
   return new NotificationResponseMessage(LATEINIT_LENGTH, processId, channel, payload)
 }
 
-// null when every column is text, which is nearly always, so the row parser has one check to make
-const binaryColumnsOf = (message: RowDescriptionMessage): boolean[] | null => {
-  const formats = message.fields.map((field) => field.format === 'binary')
-  return formats.includes(true) ? formats : null
-}
-
 const parseRowDescriptionMessage = (reader: BufferReader) => {
   const fieldCount = reader.int16()
   const message = new RowDescriptionMessage(LATEINIT_LENGTH, fieldCount)
@@ -316,13 +306,13 @@ const parseParameterDescriptionMessage = (reader: BufferReader) => {
   return message
 }
 
-const parseDataRowMessage = (reader: BufferReader, binaryColumns: boolean[] | null) => {
+const parseDataRowMessage = (reader: BufferReader) => {
   const fieldCount = reader.int16()
   const fields: any[] = new Array(fieldCount)
   for (let i = 0; i < fieldCount; i++) {
     const len = reader.int32()
     // a -1 for length means the value of the field is null
-    fields[i] = len === -1 ? null : binaryColumns && binaryColumns[i] ? reader.bytes(len) : reader.string(len)
+    fields[i] = len === -1 ? null : reader.string(len)
   }
   return new DataRowMessage(LATEINIT_LENGTH, fields)
 }
