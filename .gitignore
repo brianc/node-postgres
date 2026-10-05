@@ -11,3 +11,6 @@ dist
 .vscode/
 manually-test-on-heroku.js
 tsconfig.tsbuildinfo
+
+coverage/
+.nyc_output/

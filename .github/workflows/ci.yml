@@ -48,7 +48,7 @@ jobs:
           - { node: '16', postgres: &stable_postgres '18' }
           - { node: '18', postgres: *stable_postgres }
           - { node: '20', postgres: *stable_postgres }
-          - { node: '22', postgres: *stable_postgres }
+          - { node: '22', postgres: *stable_postgres, coverage: true }
           - { node: '24', postgres: *stable_postgres }
           # Latest Node.js version tested against multiple PostgreSQL versions
           - { node: &latest_node '26', postgres: '13' }
@@ -92,4 +92,8 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
       - run: yarn install --frozen-lockfile
-      - run: yarn test
+      - run: yarn ${{ matrix.coverage && 'coverage' || 'test' }}
+      - uses: coverallsapp/github-action@v2
+        if: ${{ matrix.coverage }}
+        with:
+          file: coverage/lcov.info
