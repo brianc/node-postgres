@@ -16,11 +16,6 @@ jobs:
   benchmark:
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      # the comment on the pull request. Read-only on a pull request from a fork, where the
-      # job summary is the only output
-      pull-requests: write
     env:
       # the PostgreSQL that comes with the runner image, over its unix socket: no container
       # and no TCP between the client and the server, so the numbers are the client's.
@@ -33,17 +28,17 @@ jobs:
           sudo systemctl start postgresql.service
           sudo -u postgres createuser "$USER"
           sudo -u postgres createdb -O "$USER" benchmark
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: head
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: base
           ref: ${{ github.event.pull_request.base.sha || inputs.base }}
           persist-credentials: false
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 26
           cache: yarn
@@ -60,28 +55,9 @@ jobs:
         run: node benchmark/compare.js --base ../base --head . --rounds 4 --duration 3 --output ../benchmark_summary.md
       - name: Publish the summary
         run: cat benchmark_summary.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      # the comment on the pull request is posted by benchmark-comment.yml from this artifact:
+      # the token of a pull request from a fork cannot write comments
+      - uses: actions/upload-artifact@v7
         with:
           name: benchmark-summary
           path: benchmark_summary.md
-      - name: Comment on the pull request
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs')
-            const marker = '<!-- benchmark-comment -->'
-            const body = fs.readFileSync('benchmark_summary.md', 'utf8')
-            const issue_number = context.payload.pull_request.number
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number,
-            })
-            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker))
-            if (existing) {
-              await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body })
-            } else {
-              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number, body })
-            }
