@@ -55,4 +55,23 @@ describe('pg-cloudflare', () => {
       socket.end()
     })
   })
+
+  it('should stop listening without an error when end() closes the socket', async () => {
+    const socket = new CloudflareSocket()
+    let rejectRead
+    socket._cfReader = {
+      read: () =>
+        new Promise((resolve, reject) => {
+          rejectRead = reject
+        }),
+    }
+    socket._cfSocket = {
+      close: async () => rejectRead(new TypeError('This socket has been closed.')),
+    }
+
+    const listening = socket._listen()
+    socket.end()
+
+    await listening
+  })
 })
