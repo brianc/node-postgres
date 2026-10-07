@@ -151,6 +151,17 @@ class Cursor extends EventEmitter {
     this._sendRows()
     this.state = 'done'
     this.emit('end', this._result)
+    this._finish(null, this._result)
+  }
+
+  // Call the Submittable callback the client set on this cursor, at most once. The client wraps it
+  // to clear its `query_timeout` timer, which otherwise fires after the cursor is done.
+  _finish(err, result) {
+    const callback = this.callback
+    this.callback = null
+    if (typeof callback === 'function') {
+      callback(err, result)
+    }
   }
 
   handleEmptyQuery() {
@@ -185,6 +196,7 @@ class Cursor extends EventEmitter {
       queuedCallback.call(this, msg)
     }
     this._queue.length = 0
+    this._finish(msg)
 
     if (this.listenerCount('error') > 0) {
       // only dispatch error events if we have a listener
