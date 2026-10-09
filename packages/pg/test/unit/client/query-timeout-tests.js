@@ -32,3 +32,23 @@ test('query timeout with Submittable with callback delivers error via callback',
     done()
   })
 })
+
+test('handleError emits error even when callback is present', function (done) {
+  const query = new Query({ text: 'SELECT 1' })
+  const err = new Error('boom')
+  let emitted = false
+  let called = false
+
+  query.on('error', (emittedErr) => {
+    assert.equal(emittedErr, err)
+    emitted = true
+    if (called) done()
+  })
+  query.callback = (callbackErr) => {
+    assert.equal(callbackErr, err)
+    called = true
+    if (emitted) done()
+  }
+
+  query.handleError(err)
+})

@@ -125,12 +125,10 @@ class Query extends EventEmitter {
       err = this._canceledDueToError
       this._canceledDueToError = false
     }
-    // if callback supplied do not emit error event as uncaught error
-    // events will bubble up to node process
-    if (this.callback) {
-      return this.callback(err)
+    if (this.listenerCount('error') > 0) {
+      this.emit('error', err)
     }
-    this.emit('error', err)
+    if (this.callback) return this.callback(err)
   }
 
   handleReadyForQuery(con) {
