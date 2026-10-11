@@ -56,6 +56,14 @@ client.release()
   future requests to check out a client from the pool will wait forever.
 </Alert>
 
+With `max: 1`, a second caller waits while the only client is checked out. Releasing a healthy client makes it available to the waiting caller:
+
+![Caller A checks out the pool’s only client. Caller B requests a client and waits until A releases it. B receives the same client, uses it, and releases it.](/images/pool-client-handoff.png)
+
+This example assumes a healthy client, no connection timeout, and no configured lifetime or usage limit that removes it. A release with an error removes the client instead of returning it for reuse. Always release checked-out clients, including when a query fails.
+
+[Download SVG](/images/pool-client-handoff.svg). Diagram created with [svgdiagram.ai](https://svgdiagram.ai).
+
 ### Single query
 
 If you don't need a transaction or you just need to run a single query, the pool has a convenience method to run a query on any available client in the pool. This is the preferred way to query with node-postgres if you can as it removes the risk of leaking a client.
