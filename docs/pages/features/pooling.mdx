@@ -56,13 +56,13 @@ client.release()
   future requests to check out a client from the pool will wait forever.
 </Alert>
 
-With `max: 1`, a second caller waits while the only client is checked out. Releasing a healthy client makes it available to the waiting caller:
+With `max: 1`, a second caller waits while the only client is checked out. How the first caller releases that client determines whether the waiting caller receives the same client or a replacement:
 
-![Caller A checks out the pool’s only client. Caller B requests a client and waits until A releases it. B receives the same client, uses it, and releases it.](/images/pool-client-handoff.png)
+![Caller A holds the sole pool client while B waits. When A calls release without an error, the healthy client is reused and B receives the same client. When A passes an error to release, the pool removes that client and connects a replacement for B.](/images/pool-release-outcomes.png)
 
-This example assumes a healthy client, no connection timeout, and no configured lifetime or usage limit that removes it. A release with an error removes the client instead of returning it for reuse. Always release checked-out clients, including when a query fails.
+This example assumes an active pool, a successful replacement connection, no connection timeout, and no lifetime or usage limit that removes an otherwise healthy client. Passing an error to `client.release(error)` discards that client; the figure describes this explicit release choice, rather than prescribing it for every query error. The replacement still needs to be released after use. `max: 1` makes the example easy to follow, rather than recommending a pool size.
 
-[Download SVG](/images/pool-client-handoff.svg). Diagram created with [svgdiagram.ai](https://svgdiagram.ai).
+[Download editable SVG](/images/pool-release-outcomes.svg).
 
 ### Single query
 
