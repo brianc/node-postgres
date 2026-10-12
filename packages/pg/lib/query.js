@@ -30,6 +30,7 @@ class Query extends EventEmitter {
     // potential for multiple results
     this._results = this._result
     this._canceledDueToError = false
+    this.onEndRead = null
   }
 
   requiresPreparation() {
@@ -125,6 +126,7 @@ class Query extends EventEmitter {
       err = this._canceledDueToError
       this._canceledDueToError = false
     }
+    if (this.onEndRead) this.onEndRead()
     // if callback supplied do not emit error event as uncaught error
     // events will bubble up to node process
     if (this.callback) {
@@ -146,6 +148,7 @@ class Query extends EventEmitter {
         })
       }
     }
+    if (this.onEndRead) this.onEndRead()
     this.emit('end', this._results)
   }
 

@@ -12,6 +12,7 @@ const NativeQuery = (module.exports = function (config, values, callback) {
   this.name = config.name
   this.queryMode = config.queryMode
   this.callback = config.callback
+  this.onEndRead = null
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
 
@@ -57,6 +58,7 @@ NativeQuery.prototype.handleError = function (err) {
       err[normalizedFieldName] = fields[key]
     }
   }
+  if (this.onEndRead) this.onEndRead()
   if (this.callback) {
     this.callback(err)
   } else {
@@ -116,6 +118,7 @@ NativeQuery.prototype.submit = function (client) {
       }
     }
 
+    if (self.onEndRead) self.onEndRead()
     // handle successful result
     self.state = 'end'
     self.emit('end', results)

@@ -190,20 +190,15 @@ Client.prototype.query = function (config, values, callback) {
   }
 
   if (readTimeout) {
-    queryCallback = query.callback || (() => {})
-
     readTimeoutTimer = setTimeout(() => {
       const error = new Error('Query read timeout')
 
       process.nextTick(() => {
         query.handleError(error, this.connection)
+        // we already returned an error,
+        // just do nothing if query completes
+        query.callback = () => {}
       })
-
-      queryCallback(error)
-
-      // we already returned an error,
-      // just do nothing if query completes
-      query.callback = () => {}
 
       // Remove from queue
       const index = this._queryQueue.indexOf(query)
@@ -214,9 +209,14 @@ Client.prototype.query = function (config, values, callback) {
       this._pulseQueryQueue()
     }, readTimeout)
 
-    query.callback = (err, res) => {
-      clearTimeout(readTimeoutTimer)
-      queryCallback(err, res)
+    if (query.onEndRead === null) {
+      query.onEndRead = () => clearTimeout(readTimeoutTimer)
+    } else {
+      queryCallback = query.callback || (() => {})
+      query.callback = (err, res) => {
+        clearTimeout(readTimeoutTimer)
+        queryCallback(err, res)
+      }
     }
   }
 
