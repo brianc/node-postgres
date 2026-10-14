@@ -64,7 +64,7 @@ function parse(str, options = {}) {
   }
 
   const pathname = result.pathname.slice(1) || null
-  config.database = pathname ? decodeURI(pathname) : null
+  config.database = pathname ? decodeURIComponent(pathname) : null
 
   if (config.ssl === 'true' || config.ssl === '1') {
     config.ssl = true
