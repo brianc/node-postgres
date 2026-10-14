@@ -3,6 +3,9 @@ const EventEmitter = require('events').EventEmitter
 
 const NOOP = function () {}
 
+// setTimeout() treats a delay above 2^31-1 ms (about 24.8 days) as 1 ms, so larger values must be clamped
+const MAX_TIMEOUT = 2147483647
+
 const removeWhere = (list, predicate) => {
   const i = list.findIndex(predicate)
 
@@ -216,13 +219,14 @@ class Pool extends EventEmitter {
       const pendingItem = new PendingItem(queueCallback)
 
       // set connection timeout on checking out an existing client
+      const timeout = Math.min(this.options.connectionTimeoutMillis, MAX_TIMEOUT)
       const tid = setTimeout(() => {
         // remove the callback from pending waiters because
         // we're going to call it with a timeout error
         removeWhere(this._pendingQueue, (i) => i.callback === queueCallback)
         pendingItem.timedOut = true
         response.callback(new Error('timeout exceeded when trying to connect'))
-      }, this.options.connectionTimeoutMillis)
+      }, timeout)
 
       if (tid.unref) {
         tid.unref()
@@ -248,6 +252,7 @@ class Pool extends EventEmitter {
     let tid
     let timeoutHit = false
     if (this.options.connectionTimeoutMillis) {
+      const timeout = Math.min(this.options.connectionTimeoutMillis, MAX_TIMEOUT)
       tid = setTimeout(() => {
         if (client.connection) {
           this.log('ending client due to timeout')
@@ -259,7 +264,7 @@ class Pool extends EventEmitter {
           // force kill the node driver, and let libpq do its teardown
           client.end()
         }
-      }, this.options.connectionTimeoutMillis)
+      }, timeout)
     }
 
     this.log('connecting new client')
@@ -310,6 +315,7 @@ class Pool extends EventEmitter {
 
   _afterConnect(client, pendingItem, idleListener) {
     if (this.options.maxLifetimeSeconds !== 0) {
+      const lifetime = Math.min(this.options.maxLifetimeSeconds * 1000, MAX_TIMEOUT)
       const maxLifetimeTimeout = setTimeout(() => {
         this.log('ending client due to expired lifetime')
         this._expired.add(client)
@@ -322,7 +328,7 @@ class Pool extends EventEmitter {
             false
           )
         }
-      }, this.options.maxLifetimeSeconds * 1000)
+      }, lifetime)
 
       maxLifetimeTimeout.unref()
       client.once('end', () => clearTimeout(maxLifetimeTimeout))
@@ -407,12 +413,13 @@ class Pool extends EventEmitter {
     // idle timeout
     let tid
     if (this.options.idleTimeoutMillis && this._isAboveMin()) {
+      const idleTimeout = Math.min(this.options.idleTimeoutMillis, MAX_TIMEOUT)
       tid = setTimeout(() => {
         if (this._isAboveMin()) {
           this.log('remove idle client')
           this._remove(client, this._pulseQueue.bind(this))
         }
-      }, this.options.idleTimeoutMillis)
+      }, idleTimeout)
 
       if (this.options.allowExitOnIdle) {
         // allow Node to exit if this is all that's left
