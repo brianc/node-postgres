@@ -239,7 +239,10 @@ class Query extends EventEmitter {
       connection.close({ type: 'S', name: this.name })
       connection.sync()
 
-      this.handleError(err, connection)
+      // Settle once the server answers that Sync with ReadyForQuery, the same way a
+      // failing type parser does. Reporting the error here would leave this query as
+      // the active one, and the ReadyForQuery would then also fire the success path.
+      this._canceledDueToError = err
       return
     }
 

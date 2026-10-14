@@ -31,6 +31,8 @@ const setupClient = function () {
   }
   con.sync = function () {
     calls.sync++
+    // the server answers the Sync with ReadyForQuery
+    setImmediate(() => con.emit('readyForQuery'))
   }
 
   return { client, con, calls }
@@ -83,4 +85,70 @@ suite.test('send close when bind throws', function (done) {
       },
     })
   )
+})
+
+suite.test('calls callback exactly once when bind throws', function (done) {
+  const { client, con } = setupClient()
+  con.emit('readyForQuery')
+  const results = []
+  client.query(
+    new Query({
+      text: 'select $1',
+      values: ['x'],
+      callback: function (err, res) {
+        results.push(err || res)
+      },
+    })
+  )
+  // the ReadyForQuery that answers the Sync must not call back a second time
+  setTimeout(() => {
+    assert.deepEqual(results, [bindError])
+    done()
+  }, 20)
+})
+
+suite.test('does not emit end after error when bind throws', function (done) {
+  const { client, con } = setupClient()
+  con.emit('readyForQuery')
+  const events = []
+  const query = new Query({
+    text: 'select $1',
+    values: ['x'],
+  })
+  query.on('error', (err) => events.push(err))
+  query.on('end', () => events.push('end'))
+  client.query(query)
+  setTimeout(() => {
+    assert.deepEqual(events, [bindError])
+    done()
+  }, 20)
+})
+
+suite.test('runs the next query after bind throws', function (done) {
+  const { client, con } = setupClient()
+  con.emit('readyForQuery')
+  const order = []
+  client.query(
+    new Query({
+      text: 'select $1',
+      values: ['x'],
+      callback: function (err) {
+        order.push(err)
+      },
+    })
+  )
+  client.query(
+    new Query({
+      text: 'select 1',
+      callback: function (err) {
+        order.push(err || 'ok')
+      },
+    })
+  )
+  // ReadyForQuery for the second (simple) query
+  setImmediate(() => setImmediate(() => con.emit('readyForQuery')))
+  setTimeout(() => {
+    assert.deepEqual(order, [bindError, 'ok'])
+    done()
+  }, 20)
 })
