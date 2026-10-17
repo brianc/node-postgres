@@ -74,4 +74,32 @@ describe('pg-cloudflare', () => {
 
     await listening
   })
+
+  it('should stop listening without an error when the read fails after the socket closed', async () => {
+    const socket = new CloudflareSocket()
+    let rejectRead
+    socket._cfReader = {
+      read: () =>
+        new Promise((resolve, reject) => {
+          rejectRead = reject
+        }),
+    }
+    const underlyingSocket = { closed: Promise.resolve() }
+    socket._cfSocket = underlyingSocket
+    socket._addClosedHandler()
+
+    const listening = socket._listen()
+    await underlyingSocket.closed
+    assert.equal(socket._cfSocket, null)
+    rejectRead(new TypeError('This socket has been closed.'))
+
+    await listening
+  })
+
+  it('should still fail listening when a read fails before end()', async () => {
+    const socket = new CloudflareSocket()
+    socket._cfReader = { read: () => Promise.reject(new Error('Network connection lost.')) }
+
+    await assert.rejects(socket._listen(), /Network connection lost/)
+  })
 })
