@@ -27,7 +27,7 @@ class Cursor extends EventEmitter {
   }
 
   _ifNoData() {
-    if (this.state !== 'done' && this.state !== 'error') {
+    if (this.state !== 'done' && this.state !== 'error' && this.state !== 'busy') {
       this.state = 'idle'
       this._shiftQueue()
     }
@@ -108,7 +108,7 @@ class Cursor extends EventEmitter {
 
   handleRowDescription(msg) {
     this._result.addFields(msg.fields)
-    if (this.state !== 'done' && this.state !== 'error') {
+    if (this.state !== 'done' && this.state !== 'error' && this.state !== 'busy') {
       this.state = 'idle'
       this._shiftQueue()
     }
@@ -135,6 +135,12 @@ class Cursor extends EventEmitter {
         cb(null, this._rows, this._result)
       }
       this._rows = []
+      // the active read just settled; start any read queued behind it.
+      // the callback above may have started a new read itself, so only
+      // shift when the cursor is idle again.
+      if (this.state === 'idle') {
+        this._shiftQueue()
+      }
     })
   }
 
