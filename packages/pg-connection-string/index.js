@@ -18,8 +18,9 @@ function parse(str, options = {}) {
   let result
   let dummyHost = false
   if (/ |%[^a-f0-9]|%[a-f0-9][^a-f0-9]/i.test(str)) {
-    // Ensure spaces are encoded as %20
-    str = encodeURI(str).replace(/%25(\d\d)/g, '%$1')
+    // Ensure spaces are encoded as %20, and undo the double encoding of
+    // existing percent-escapes (e.g. %2F, %3a) that encodeURI also produces
+    str = encodeURI(str).replace(/%25([0-9a-f]{2})/gi, '%$1')
   }
 
   try {
