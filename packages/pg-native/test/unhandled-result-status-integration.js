@@ -35,7 +35,7 @@ describe('unhandled libpq result statuses (integration)', function () {
     // COPY FROM STDIN returns PGRES_COPY_IN from libpq.
     // We use a deliberately invalid COPY so the callback is hit
     // without actually needing to pipe data into the stream.
-    this.client.query("COPY (VALUES (1)) TO STDOUT", function (err) {
+    this.client.query('COPY (VALUES (1)) TO STDOUT', function (err) {
       assert.ifError(err)
       done()
     })
