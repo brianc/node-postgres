@@ -188,23 +188,23 @@ Client.prototype._emitResult = function (pq) {
     case 'PGRES_TUPLES_OK':
     case 'PGRES_COMMAND_OK':
     case 'PGRES_EMPTY_QUERY':
+    case 'PGRES_COPY_OUT':
+    case 'PGRES_COPY_IN':
+    case 'PGRES_COPY_BOTH':
       {
         const result = this._consumeQueryResults(this.pq)
         this.emit('result', result)
       }
       break
 
-    case 'PGRES_COPY_OUT':
-    case 'PGRES_COPY_BOTH': {
-      break
-    }
-
     case 'PGRES_PIPELINE_SYNC':
     case 'PGRES_PIPELINE_ABORTED':
       break
 
     default:
-      this._readError('unrecognized command status: ' + status)
+      this._queryError = new Error(
+        this.pq.resultErrorMessage() || this.pq.errorMessage() || 'unrecognized command status: ' + status
+      )
       break
   }
   return status
@@ -233,8 +233,10 @@ Client.prototype._read = function () {
     const resultStatus = this._emitResult(this.pq)
 
     // if the command initiated copy mode we need to break out of the read loop
-    // so a substream can begin to read copy data
-    if (resultStatus === 'PGRES_COPY_BOTH' || resultStatus === 'PGRES_COPY_OUT') {
+    // so a substream can begin to read or write copy data. Without the
+    // PGRES_COPY_IN case the loop keeps polling PQgetResult while the server
+    // waits for copy data that only the substream can send.
+    if (resultStatus === 'PGRES_COPY_BOTH' || resultStatus === 'PGRES_COPY_OUT' || resultStatus === 'PGRES_COPY_IN') {
       break
     }
 
