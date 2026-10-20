@@ -343,7 +343,7 @@ To run tests clone the repo, `npm i` in the working dir, and then run `npm test`
 
 ## contributions
 
-I love contributions. Please make sure they have tests, and submit a PR. If you're not sure if the issue is worth it or will be accepted it never hurts to open an issue to begin the conversation. If you're interested in keeping up with node-postgres releated stuff, you can follow me on twitter at [@briancarlson](https://twitter.com/briancarlson) - I generally announce any noteworthy updates there.
+I love contributions. Please make sure they have tests, and submit a PR. If you're not sure if the issue is worth it or will be accepted it never hurts to open an issue to begin the conversation. If you're interested in keeping up with node-postgres related stuff, you can follow me on twitter at [@briancarlson](https://twitter.com/briancarlson) - I generally announce any noteworthy updates there.
 
 ## license
 

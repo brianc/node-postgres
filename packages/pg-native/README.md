@@ -78,7 +78,7 @@ client.connect(function(err) {
 
 ### sync
 
-Because `pg-native` is bound to [libpq](https://github.com/brianc/node-libpq) it is able to provide _sync_ operations for both connecting and queries. This is a bad idea in _non-blocking systems_ like web servers, but is exteremly convienent in scripts and bootstrapping applications - much the same way `fs.readFileSync` comes in handy.
+Because `pg-native` is bound to [libpq](https://github.com/brianc/node-libpq) it is able to provide _sync_ operations for both connecting and queries. This is a bad idea in _non-blocking systems_ like web servers, but is extremely convenient in scripts and bootstrapping applications - much the same way `fs.readFileSync` comes in handy.
 
 ```js
 const Client = require('pg-native')
@@ -207,7 +207,7 @@ client.connect(function(err) {
     client.execute('i_like_beans', ['Brak'], function(err, rows) {
       if(err) throw err
       
-      console.log(rows) // [{ "i_like_beans": "Brak" }]
+      console.log(rows) // [{ "beans": "Brak" }]
       client.end()
     })
   })
