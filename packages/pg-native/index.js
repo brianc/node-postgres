@@ -233,8 +233,10 @@ Client.prototype._read = function () {
     const resultStatus = this._emitResult(this.pq)
 
     // if the command initiated copy mode we need to break out of the read loop
-    // so a substream can begin to read copy data
-    if (resultStatus === 'PGRES_COPY_BOTH' || resultStatus === 'PGRES_COPY_OUT') {
+    // so a substream can begin to read or write copy data. Without the
+    // PGRES_COPY_IN case the loop keeps polling PQgetResult while the server
+    // waits for copy data that only the substream can send.
+    if (resultStatus === 'PGRES_COPY_BOTH' || resultStatus === 'PGRES_COPY_OUT' || resultStatus === 'PGRES_COPY_IN') {
       break
     }
 
