@@ -153,6 +153,55 @@ describe('serializer', () => {
     })
   })
 
+  describe('parameter count limits', function () {
+    const maxParameterCount = 0xffff
+    const errorMessage = `PostgreSQL supports a maximum of ${maxParameterCount} parameters, but ${
+      maxParameterCount + 1
+    } were supplied`
+
+    it('supports the maximum parameter count in a bind message', function () {
+      const actual = serialize.bind({ values: new Array(maxParameterCount).fill(null) })
+      const valueCountOffset = 9 + maxParameterCount * 2
+
+      assert.equal(actual.readUInt16BE(7), maxParameterCount)
+      assert.equal(actual.readUInt16BE(valueCountOffset), maxParameterCount)
+    })
+
+    it('rejects too many bind parameters before mapping values', function () {
+      let mapped = false
+
+      assert.throws(
+        () =>
+          serialize.bind({
+            values: new Array(maxParameterCount + 1),
+            valueMapper: () => {
+              mapped = true
+              return null
+            },
+          }),
+        { name: 'RangeError', message: errorMessage }
+      )
+      assert.equal(mapped, false)
+
+      const actual = serialize.query('select 1')
+      const expected = new BufferList().addCString('select 1').join(true, 'Q')
+      assert.deepEqual(actual, expected)
+    })
+
+    it('supports the maximum parameter type count in a parse message', function () {
+      const actual = serialize.parse({ text: '', types: new Array(maxParameterCount).fill(0) })
+
+      assert.equal(actual.readUInt16BE(7), maxParameterCount)
+    })
+
+    it('rejects too many parameter types in a parse message', function () {
+      assert.throws(() => serialize.parse({ text: '', types: new Array(maxParameterCount + 1) }), {
+        name: 'RangeError',
+        message: errorMessage,
+      })
+    })
+  })
+
   it('with custom valueMapper', function () {
     const actual = serialize.bind({
       portal: 'bang',

@@ -6,6 +6,7 @@ const EventEmitter = require('events').EventEmitter
 const util = require('util')
 
 let nextUniqueID = 1 // concept borrowed from org.postgresql.core.v3.QueryExecutorImpl
+const maxParameterCount = 0xffff
 
 class Cursor extends EventEmitter {
   constructor(text, values, config) {
@@ -43,6 +44,12 @@ class Cursor extends EventEmitter {
   }
 
   submit(connection) {
+    if (this.values && this.values.length > maxParameterCount) {
+      return new RangeError(
+        `PostgreSQL supports a maximum of ${maxParameterCount} parameters, but ${this.values.length} were supplied`
+      )
+    }
+
     this.state = 'submitted'
     this.connection = connection
     this._portal = 'C_' + nextUniqueID++

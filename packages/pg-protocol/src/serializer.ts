@@ -17,6 +17,13 @@ const enum code {
 }
 
 const writer = new Writer()
+const maxParameterCount = 0xffff
+
+const checkParameterCount = (count: number): void => {
+  if (count > maxParameterCount) {
+    throw new RangeError(`PostgreSQL supports a maximum of ${maxParameterCount} parameters, but ${count} were supplied`)
+  }
+}
 
 const startup = (opts: Record<string, string>): Buffer => {
   // protocol version
@@ -86,6 +93,7 @@ const parse = (query: ParseOpts): Buffer => {
   const types = query.types || emptyArray
 
   const len = types.length
+  checkParameterCount(len)
 
   const buffer = writer
     .addCString(name) // name of query
@@ -150,6 +158,7 @@ const bind = (config: BindOpts = {}): Buffer => {
   const binary = config.binary || false
   const values = config.values || emptyArray
   const len = values.length
+  checkParameterCount(len)
 
   writer.addCString(portal).addCString(statement)
 
