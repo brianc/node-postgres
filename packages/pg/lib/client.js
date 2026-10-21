@@ -438,6 +438,9 @@ class Client extends EventEmitter {
     if (activeQuery.name) {
       delete this.connection.submittedNamedStatements[activeQuery.name]
     }
+    if (msg.severity === 'FATAL' || msg.severity === 'PANIC') {
+      this._queryable = false
+    }
     activeQuery.handleError(msg, this.connection)
   }
 
