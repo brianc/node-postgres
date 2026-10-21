@@ -223,7 +223,10 @@ class Cursor extends EventEmitter {
       })
     }
 
-    if (!this.connection || this.state === 'done') {
+    // After an error the portal is already gone: the server discards it at the
+    // Sync handleError sends, or the connection itself is dead. There is nothing
+    // left to close, and no readyForQuery will follow a Close sent now.
+    if (!this.connection || this.state === 'done' || this.state === 'error') {
       setImmediate(cb)
       return promise
     }
