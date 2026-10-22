@@ -337,6 +337,10 @@ describe('PgPacketStream', function () {
         value: 'ERROR',
       },
       {
+        type: 'V',
+        value: 'UNLOCALIZED_ERROR',
+      },
+      {
         type: 'C',
         value: 'code',
       },
@@ -389,6 +393,7 @@ describe('PgPacketStream', function () {
     testForMessage(buffer, {
       name: 'error',
       severity: 'ERROR',
+      severityNonLocalized: 'UNLOCALIZED_ERROR',
       code: 'code',
       message: 'message',
       detail: 'details',

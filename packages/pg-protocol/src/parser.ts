@@ -395,6 +395,7 @@ const parseErrorMessage = (reader: BufferReader, name: MessageName) => {
       : new DatabaseError(messageValue, LATEINIT_LENGTH, name)
 
   message.severity = fields.S
+  message.severityNonLocalized = fields.V
   message.code = fields.C
   message.detail = fields.D
   message.hint = fields.H
