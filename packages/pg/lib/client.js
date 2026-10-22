@@ -437,6 +437,16 @@ class Client extends EventEmitter {
     this._activeQuery = null
     if (activeQuery.name) {
       delete this.connection.submittedNamedStatements[activeQuery.name]
+      // pipelined queries already on the wire skipped their own Parse relying on this one.
+      // If it failed before parseComplete the backend will answer them with
+      // 'prepared statement does not exist', so hand them the original error instead.
+      if (!this.connection.parsedStatements[activeQuery.name]) {
+        for (const query of this._sentQueryQueue) {
+          if (query.name === activeQuery.name) {
+            query._pipelineParseError = msg
+          }
+        }
+      }
     }
     activeQuery.handleError(msg, this.connection)
   }
