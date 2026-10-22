@@ -77,6 +77,7 @@ export const copyDone: BackendMessage = {
 interface NoticeOrError {
   message: string | undefined
   severity: string | undefined
+  severityNonLocalized: string | undefined
   code: string | undefined
   detail: string | undefined
   hint: string | undefined
@@ -96,6 +97,7 @@ interface NoticeOrError {
 
 export class DatabaseError extends Error implements NoticeOrError {
   public severity: string | undefined
+  public severityNonLocalized: string | undefined
   public code: string | undefined
   public detail: string | undefined
   public hint: string | undefined
@@ -244,6 +246,7 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
   ) {}
   public readonly name = 'notice'
   public severity: string | undefined
+  public severityNonLocalized: string | undefined
   public code: string | undefined
   public detail: string | undefined
   public hint: string | undefined
