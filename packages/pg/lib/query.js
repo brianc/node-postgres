@@ -239,7 +239,10 @@ class Query extends EventEmitter {
       connection.close({ type: 'S', name: this.name })
       connection.sync()
 
-      this.handleError(err, connection)
+      // defer the error until readyForQuery so the query settles exactly
+      // once; reporting it here would let handleReadyForQuery settle the
+      // same query again as a success when the server answers our sync
+      this._canceledDueToError = err
       return
     }
 

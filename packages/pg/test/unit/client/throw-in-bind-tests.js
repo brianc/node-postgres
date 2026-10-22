@@ -52,6 +52,8 @@ suite.test('calls callback with error when bind throws', function (done) {
       },
     })
   )
+  // the server answers the sync sent after the failed bind
+  con.emit('readyForQuery')
 })
 
 suite.test('emits error event when bind throws (no callback)', function (done) {
@@ -67,6 +69,7 @@ suite.test('emits error event when bind throws (no callback)', function (done) {
     done()
   })
   client.query(query)
+  con.emit('readyForQuery')
 })
 
 suite.test('send close when bind throws', function (done) {
@@ -83,4 +86,24 @@ suite.test('send close when bind throws', function (done) {
       },
     })
   )
+  con.emit('readyForQuery')
+})
+
+suite.test('settles the query exactly once when bind throws', function (done) {
+  const { client, con } = setupClient()
+  con.emit('readyForQuery')
+  let calls = 0
+  client.query(
+    new Query({
+      text: 'select $1',
+      values: ['x'],
+      callback: function () {
+        calls++
+      },
+    })
+  )
+  // the server answers the sync sent after the failed bind
+  con.emit('readyForQuery')
+  assert.equal(calls, 1, 'callback should be called exactly once')
+  done()
 })
