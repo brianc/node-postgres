@@ -10,6 +10,7 @@ export class CloudflareSocket extends EventEmitter {
 
   private _upgrading = false
   private _upgraded = false
+  private _ending = false
   private _cfSocket: Socket | null = null
   private _cfWriter: WritableStreamDefaultWriter | null = null
   private _cfReader: ReadableStreamDefaultReader | null = null
@@ -110,6 +111,7 @@ export class CloudflareSocket extends EventEmitter {
 
   end(data = Buffer.alloc(0), encoding: BufferEncoding = 'utf8', callback: (...args: unknown[]) => void = () => {}) {
     log('ending CF socket')
+    this._ending = true
     this.write(data, encoding, (err) => {
       const socket = this._cfSocket
       const closePromise = socket?.close()
@@ -120,7 +122,14 @@ export class CloudflareSocket extends EventEmitter {
             this.emit('close')
           }
         })
-        .catch((e) => this.emit('error', e))
+        .catch(() => {
+          // The socket was being closed anyway; still surface 'close' so
+          // consumers waiting on it (like Connection.end()) resolve.
+          if (this._cfSocket === socket) {
+            this._cfSocket = null
+            this.emit('close')
+          }
+        })
       if (callback) callback(err)
     })
     return this
@@ -150,20 +159,31 @@ export class CloudflareSocket extends EventEmitter {
 
   _addClosedHandler() {
     const socket = this._cfSocket!
-    socket.closed
-      .then(() => {
-        if (!this._upgrading) {
-          log('CF socket closed')
-          if (this._cfSocket === socket) {
-            this._cfSocket = null
-            this.emit('close')
-          }
-        } else {
-          this._upgrading = false
-          this._upgraded = true
+    const handleClosed = () => {
+      if (!this._upgrading) {
+        log('CF socket closed')
+        if (this._cfSocket === socket) {
+          this._cfSocket = null
+          this.emit('close')
         }
-      })
-      .catch((e) => this.emit('error', e))
+      } else {
+        this._upgrading = false
+        this._upgraded = true
+      }
+    }
+    socket.closed.then(
+      () => handleClosed(),
+      (e) => {
+        // workerd can reject `closed` even for a normal shutdown
+        // (cloudflare/workerd#6479). Match net.Socket and still emit 'close'
+        // so consumers waiting on it resolve. A rejection after end() is the
+        // expected shutdown path, so the spurious 'error' is skipped then.
+        if (!this._ending) {
+          this.emit('error', e)
+        }
+        handleClosed()
+      }
+    )
   }
 }
 
