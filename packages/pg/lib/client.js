@@ -438,6 +438,12 @@ class Client extends EventEmitter {
     if (activeQuery.name) {
       delete this.connection.submittedNamedStatements[activeQuery.name]
     }
+    // a FATAL error ends the session; the backend closes the socket and
+    // the client must not be handed out from a pool again. Set the flag
+    // before reporting so error handlers that release() see the dead client
+    if (msg.severity === 'FATAL' || msg.severityNonLocalized === 'FATAL') {
+      this._queryable = false
+    }
     activeQuery.handleError(msg, this.connection)
   }
 
