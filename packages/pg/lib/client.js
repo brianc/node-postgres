@@ -701,20 +701,14 @@ class Client extends EventEmitter {
 
     const readTimeout = config.query_timeout || this.connectionParameters.query_timeout
     if (readTimeout) {
-      const queryCallback = query.callback || (() => {})
-
       const readTimeoutTimer = setTimeout(() => {
         const error = new Error('Query read timeout')
-
         process.nextTick(() => {
           query.handleError(error, this.connection)
+          // we already returned an error,
+          // just do nothing if query completes
+          query.callback = () => {}
         })
-
-        queryCallback(error)
-
-        // we already returned an error,
-        // just do nothing if query completes
-        query.callback = () => {}
 
         // Remove from queue (only safe if not yet sent)
         const index = this._queryQueue.indexOf(query)
@@ -729,10 +723,15 @@ class Client extends EventEmitter {
 
         this._pulseQueryQueue()
       }, readTimeout)
-
-      query.callback = (err, res) => {
-        clearTimeout(readTimeoutTimer)
-        queryCallback(err, res)
+      //if there is onEndRead === null, use it, otherwise fallback to overriding callback
+      if (query.onEndRead === null) {
+        query.onEndRead = () => clearTimeout(readTimeoutTimer)
+      } else {
+        const queryCallback = query.callback || (() => {})
+        query.callback = (err, res) => {
+          clearTimeout(readTimeoutTimer)
+          queryCallback(err, res)
+        }
       }
     }
 
