@@ -9,6 +9,7 @@ const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
+const { queryChannel, connectChannel, shouldTrace } = require('./diagnostics')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
@@ -231,12 +232,12 @@ class Client extends EventEmitter {
 
   connect(callback) {
     if (callback) {
-      this._connect(callback)
+      this._tracedConnect(callback)
       return
     }
 
     return new this._Promise((resolve, reject) => {
-      this._connect((error) => {
+      this._tracedConnect((error) => {
         if (error) {
           reject(error)
         } else {
@@ -244,6 +245,17 @@ class Client extends EventEmitter {
         }
       })
     })
+  }
+
+  _tracedConnect(callback) {
+    if (!shouldTrace(connectChannel)) {
+      this._connect(callback)
+      return
+    }
+    const context = {
+      connection: { database: this.database, host: this.host, port: this.port, user: this.user, ssl: !!this.ssl },
+    }
+    connectChannel.traceCallback((tracedCb) => this._connect(tracedCb), 0, context, null, callback)
   }
 
   _attachListeners(con) {
@@ -697,6 +709,30 @@ class Client extends EventEmitter {
       } else if (typeof query.callback !== 'function') {
         throw new TypeError('callback is not a function')
       }
+    }
+
+    // Trace before the read timeout wraps the callback, since a timeout calls the
+    // callback it captured here and then discards query.callback.
+    if (shouldTrace(queryChannel) && query.callback) {
+      const context = {
+        query: { text: query.text, name: query.name },
+        client: {
+          database: this.database,
+          host: this.host,
+          port: this.port,
+          user: this.user,
+          ssl: !!this.ssl,
+        },
+      }
+      queryChannel.traceCallback(
+        (tracedCb) => {
+          query.callback = tracedCb
+        },
+        0,
+        context,
+        null,
+        query.callback
+      )
     }
 
     const readTimeout = config.query_timeout || this.connectionParameters.query_timeout

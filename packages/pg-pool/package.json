@@ -45,6 +45,7 @@
   },
   "files": [
     "index.js",
+    "diagnostics.js",
     "esm"
   ]
 }

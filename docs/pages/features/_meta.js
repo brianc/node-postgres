@@ -9,4 +9,5 @@ export default {
   native: 'Native',
   esm: 'ESM',
   callbacks: 'Callbacks',
+  tracing: 'Tracing Channels',
 }
