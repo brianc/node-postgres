@@ -116,7 +116,7 @@ const pool = new Pool({
 
 ### Unix Domain Sockets
 
-Connections to unix sockets can also be made. This can be useful on distros like Ubuntu, where authentication is managed via the socket connection instead of a password.
+Connections to unix sockets can also be made by setting `host` to the directory that contains the PostgreSQL socket (commonly `/run/postgresql` or `/tmp`). Unix sockets can support [peer authentication](https://www.postgresql.org/docs/current/auth-peer.html) without a password.
 
 ```js
 import pg from 'pg'
