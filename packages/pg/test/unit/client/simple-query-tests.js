@@ -243,6 +243,52 @@ test('executing query', function () {
         }
       )
     })
+
+    test('keeps client queryable after an ERROR message during a query', function (done) {
+      const errorClient = helper.client()
+      const con = errorClient.connection
+      con.emit('readyForQuery')
+
+      errorClient.query('SELECT 1', function (err) {
+        assert.ok(err)
+        assert.equal(errorClient._queryable, true)
+        done()
+      })
+
+      const err = new Error('division by zero')
+      err.severity = 'ERROR'
+      con.emit('errorMessage', err)
+      con.emit('readyForQuery')
+    })
+
+    test('marks client not queryable after a FATAL or PANIC message during a query', function (done) {
+      const fatalClient = helper.client()
+      const con = fatalClient.connection
+      con.emit('readyForQuery')
+
+      fatalClient.query('SELECT pg_sleep(30)', function (err) {
+        assert.ok(err)
+        assert.equal(fatalClient._queryable, false)
+
+        const panicClient = helper.client()
+        const panicCon = panicClient.connection
+        panicCon.emit('readyForQuery')
+
+        panicClient.query('SELECT 1', function (panicErr) {
+          assert.ok(panicErr)
+          assert.equal(panicClient._queryable, false)
+          done()
+        })
+
+        const panicMsg = new Error('server panic')
+        panicMsg.severity = 'PANIC'
+        panicCon.emit('errorMessage', panicMsg)
+      })
+
+      const fatalMsg = new Error('terminating connection due to administrator command')
+      fatalMsg.severity = 'FATAL'
+      con.emit('errorMessage', fatalMsg)
+    })
   })
 
   test('reusing a config object across calls', function () {
