@@ -163,7 +163,15 @@ export class CloudflareSocket extends EventEmitter {
           this._upgraded = true
         }
       })
-      .catch((e) => this.emit('error', e))
+      .catch((e) => {
+        // workerd can reject `closed` with `undefined`
+        this.emit('error', e ?? new Error('Socket closed with an error'))
+        // like net.Socket, follow the error with 'close' so the connection ends
+        if (this._cfSocket === socket) {
+          this._cfSocket = null
+          this.emit('close')
+        }
+      })
   }
 }
 

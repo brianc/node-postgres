@@ -19,6 +19,29 @@ describe('pg-cloudflare', () => {
     assert.doesNotThrow(() => socket.end())
   })
 
+  it('should emit error then close when the closed promise rejects', async () => {
+    const socket = new CloudflareSocket()
+    const underlyingSocket = { closed: Promise.reject(undefined) }
+    socket._cfSocket = underlyingSocket
+
+    const events = []
+    socket.on('error', (error) => events.push(error))
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('close event was not emitted')), 100)
+      socket.once('close', () => {
+        clearTimeout(timer)
+        events.push('close')
+        resolve()
+      })
+      socket._addClosedHandler()
+    })
+
+    assert.equal(events.length, 2)
+    assert.ok(events[0] instanceof Error)
+    assert.equal(events[1], 'close')
+    assert.equal(socket._cfSocket, null)
+  })
+
   it('should call the write(data, callback) callback exactly once', async () => {
     const socket = new CloudflareSocket()
     socket._cfWriter = { write: () => Promise.resolve() }
