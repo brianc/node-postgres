@@ -169,7 +169,36 @@ describe('parse', function () {
     subject.user?.should.equal('user')
     subject.password?.should.equal('pass')
     subject.host?.should.equal('localhost')
-    subject.database?.should.equal('%2Fdbname')
+    subject.database?.should.equal('/dbname')
+  })
+
+  it('decodes percent-encoded reserved characters in the database name', function () {
+    const cases: Array<[string, string]> = [
+      ['my%23db', 'my#db'],
+      ['my%2Bdb', 'my+db'],
+      ['my%3Fdb', 'my?db'],
+      ['my%2Fdb', 'my/db'],
+      ['my%3Adb', 'my:db'],
+      ['my%40db', 'my@db'],
+      ['my%26db', 'my&db'],
+      ['my%3Ddb', 'my=db'],
+      ['my%2523db', 'my%23db'],
+    ]
+    for (const [encoded, expected] of cases) {
+      const subject = parse(`postgres://user:pass@localhost/${encoded}`)
+      subject.database?.should.equal(expected, encoded)
+    }
+  })
+
+  it('keeps unescaped reserved characters in the database name', function () {
+    const subject = parse('postgres://user:pass@localhost/my+db:x@y&z=1')
+    subject.database?.should.equal('my+db:x@y&z=1')
+  })
+
+  it('decodes percent-encoded characters in the database name before the query string', function () {
+    const subject = parse('postgres://user:pass@localhost/my%23db?application_name=app')
+    subject.database?.should.equal('my#db')
+    subject.application_name?.should.equal('app')
   })
 
   it('configuration parameter host treats encoded host as part of the db name', function () {
@@ -177,7 +206,7 @@ describe('parse', function () {
     subject.user?.should.equal('user')
     subject.password?.should.equal('pass')
     subject.host?.should.equal('localhost')
-    subject.database?.should.equal('%2Funix%2Fsocket/dbname')
+    subject.database?.should.equal('/unix/socket/dbname')
   })
 
   it('configuration parameter application_name', function () {
