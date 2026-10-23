@@ -30,6 +30,9 @@ class Query extends EventEmitter {
     // potential for multiple results
     this._results = this._result
     this._canceledDueToError = false
+    // set when _getRows pipelines Flush instead of Sync, cleared by whichever
+    // of handleCommandComplete / handleEmptyQuery / handleError sends that Sync
+    this._syncOwed = false
   }
 
   requiresPreparation() {
@@ -104,9 +107,7 @@ class Query extends EventEmitter {
     this._result.addCommandComplete(msg)
     // need to sync after each command complete of a prepared statement
     // if we were using a row count which results in multiple calls to _getRows
-    if (this.rows) {
-      connection.sync()
-    }
+    this._sendOwedSync(connection)
   }
 
   // if a named prepared statement is created with empty query text
@@ -114,13 +115,17 @@ class Query extends EventEmitter {
   // since we pipeline sync immediately after execute we don't need to do anything here
   // unless we have rows specified, in which case we did not pipeline the initial sync call
   handleEmptyQuery(connection) {
-    if (this.rows) {
-      connection.sync()
-    }
+    this._sendOwedSync(connection)
   }
 
   handleError(err, connection) {
-    // need to sync after error during a prepared statement
+    // after an ErrorResponse the backend discards messages until it sees a Sync
+    // and withholds ReadyForQuery. In rows-mode no Sync was pipelined (_getRows
+    // flushed instead), so send the one we owe or the client never leaves the
+    // 'awaiting ReadyForQuery' state and every later query on the connection
+    // queues forever.
+    // http://developer.postgresql.org/pgdocs/postgres/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
+    this._sendOwedSync(connection)
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
@@ -204,8 +209,25 @@ class Query extends EventEmitter {
     if (!rows) {
       connection.sync()
     } else {
-      // otherwise flush the call out to read more rows
+      // otherwise flush the call out to read more rows; the backend stays in
+      // the middle of an extended-protocol sequence until CommandComplete (or
+      // an ErrorResponse / EmptyQuery — see _sendOwedSync) sends the Sync that
+      // terminates it
+      this._syncOwed = true
       connection.flush()
+    }
+  }
+
+  // send the terminating Sync for a rows-limited portal, exactly once. In
+  // rows-mode the Sync is not pipelined with Execute, so whoever observes the
+  // end of the extended-protocol sequence owes the backend one Sync before it
+  // will answer ReadyForQuery. An ErrorResponse can follow a CommandComplete
+  // (e.g. a timed-out query on some backends), which is why the flag guards
+  // against a second Sync — and a second ReadyForQuery — being sent.
+  _sendOwedSync(connection) {
+    if (this._syncOwed) {
+      this._syncOwed = false
+      connection.sync()
     }
   }
 
