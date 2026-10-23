@@ -120,7 +120,7 @@ class Connection extends EventEmitter {
 
     // SNI must not be set to an IP address (RFC 6066 section 3)
     const net = require('net')
-    if (net.isIP && net.isIP(host) === 0) {
+    if (!options.servername && net.isIP && net.isIP(host) === 0) {
       options.servername = host
     }
     try {

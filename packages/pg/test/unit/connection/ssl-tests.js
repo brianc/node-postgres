@@ -68,6 +68,33 @@ suite.test(
   }
 )
 
+suite.test('SSL upgrade preserves an explicitly configured servername', function (done) {
+  const streamModule = require('../../../lib/stream')
+  const originalGetSecureStream = streamModule.getSecureStream
+
+  let capturedOptions = null
+  streamModule.getSecureStream = function (options) {
+    capturedOptions = options
+    return options.socket
+  }
+
+  try {
+    const con = new Connection({
+      stream: new MemoryStream(),
+      ssl: { servername: 'database.example.com' },
+    })
+    con.connect(1234, 'proxy.internal')
+    con.stream.emit('data', Buffer.from('S'))
+
+    assert(capturedOptions, 'getSecureStream should have been called')
+    assert.equal(capturedOptions.host, 'proxy.internal')
+    assert.equal(capturedOptions.servername, 'database.example.com')
+    done()
+  } finally {
+    streamModule.getSecureStream = originalGetSecureStream
+  }
+})
+
 suite.test('TLS verifies the server certificate against the IP address being connected to', function (done) {
   const tlsDir = path.join(__dirname, '..', '..', 'tls')
   const serverKey = fs.readFileSync(path.join(tlsDir, 'test-server.key'))
@@ -111,5 +138,82 @@ suite.test('TLS verifies the server certificate against the IP address being con
       })
     })
     con.requestSsl()
+  })
+})
+
+suite.test('TLS uses an explicitly configured servername during the handshake', function (done) {
+  const tlsDir = path.join(__dirname, '..', '..', 'tls')
+  const serverKey = fs.readFileSync(path.join(tlsDir, 'test-server.key'))
+  const serverCert = fs.readFileSync(path.join(tlsDir, 'test-server.crt'))
+  const serverCa = fs.readFileSync(path.join(tlsDir, 'test-server-ca.crt'))
+  const expectedServername = 'database.example.com'
+  const secureContext = tls.createSecureContext({ key: serverKey, cert: serverCert })
+
+  let receivedServername = null
+  let verifiedHost = null
+  let con
+  let serverSocket
+  let finished = false
+
+  const server = tls.createServer({
+    key: serverKey,
+    cert: serverCert,
+    SNICallback: function (servername, callback) {
+      receivedServername = servername
+      callback(null, secureContext)
+    },
+  })
+
+  const finish = function (err) {
+    if (finished) {
+      return
+    }
+    finished = true
+    if (con && con.stream) {
+      con.stream.destroy()
+    }
+    if (serverSocket) {
+      serverSocket.destroy()
+    }
+    server.close(function () {
+      done(err)
+    })
+  }
+
+  server.on('secureConnection', function (socket) {
+    serverSocket = socket
+  })
+  server.on('tlsClientError', function (err, socket) {
+    serverSocket = socket
+    finish(err)
+  })
+  server.once('error', done)
+
+  server.listen(0, '127.0.0.1', function () {
+    const socket = net.connect(server.address().port, '127.0.0.1')
+    socket.once('error', finish)
+    socket.once('connect', function () {
+      con = new Connection({
+        stream: socket,
+        ssl: {
+          ca: serverCa,
+          servername: expectedServername,
+          checkServerIdentity: function (host) {
+            verifiedHost = host
+            return undefined
+          },
+        },
+      })
+      con.upgradeToSSL('proxy.internal', finish)
+      con.stream.once('secureConnect', function () {
+        try {
+          assert.equal(receivedServername, expectedServername)
+          assert.equal(verifiedHost, expectedServername)
+          finish()
+        } catch (err) {
+          finish(err)
+        }
+      })
+    })
   })
 })
