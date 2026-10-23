@@ -249,7 +249,7 @@ Example:
 const Pool = require('pg-pool')
 const pool = new Pool()
 
-const count = 0
+let count = 0
 
 pool.on('connect', (client) => {
   client.count = count++
@@ -278,12 +278,12 @@ This allows you to count the number of clients which have ever been acquired fro
 const Pool = require('pg-pool')
 const pool = new Pool()
 
-const acquireCount = 0
+let acquireCount = 0
 pool.on('acquire', function (client) {
   acquireCount++
 })
 
-const connectCount = 0
+let connectCount = 0
 pool.on('connect', function () {
   connectCount++
 })
