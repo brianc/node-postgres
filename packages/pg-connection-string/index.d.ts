@@ -11,6 +11,7 @@ interface SSLConfig {
   ca?: string
   cert?: string | null
   key?: string
+  passphrase?: string
   rejectUnauthorized?: boolean
 }
 

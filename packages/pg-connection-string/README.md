@@ -98,6 +98,7 @@ Query parameters follow a `?` character, including the following special query p
  * `sslcert=<filename>` - reads data from the given file and includes the result as `ssl.cert`
  * `sslkey=<filename>` - reads data from the given file and includes the result as `ssl.key`
  * `sslrootcert=<filename>` - reads data from the given file and includes the result as `ssl.ca`
+ * `sslpassword=<password>` - sets `ssl.passphrase`, used to decrypt an encrypted `ssl.key`
 
 A bare relative URL, such as `salesdata`, will indicate a database name while leaving other properties empty.
 
