@@ -438,6 +438,12 @@ class Client extends EventEmitter {
     if (activeQuery.name) {
       delete this.connection.submittedNamedStatements[activeQuery.name]
     }
+    // A paged query drives the portal with flush instead of sync, so on error
+    // the backend is still ignoring everything until a sync arrives. Send it
+    // here or ReadyForQuery never comes and the connection stays wedged.
+    if (activeQuery.rows) {
+      this.connection.sync()
+    }
     activeQuery.handleError(msg, this.connection)
   }
 
