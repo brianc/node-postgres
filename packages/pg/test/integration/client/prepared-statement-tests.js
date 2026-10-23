@@ -228,3 +228,60 @@ const suite = new helper.Suite()
 
   suite.test('cleanup', () => client.end())
 })()
+;(function () {
+  const name = 'bind-throw'
+  const text = 'SELECT $1::text AS v'
+  const badValue = {
+    toPostgres() {
+      throw new Error('bad value')
+    },
+  }
+
+  suite.test(
+    'a named statement still runs after its values fail to serialize',
+    !helper.args.native &&
+      async function () {
+        const client = helper.client()
+        try {
+          await assert.rejects(client.query({ name, text, values: [badValue] }), /bad value/)
+          const result = await client.query({ name, text, values: ['ok'] })
+          assert.equal(result.rows[0].v, 'ok')
+        } finally {
+          await client.end()
+        }
+      }
+  )
+
+  suite.test(
+    'an already prepared statement still runs after its values fail to serialize',
+    !helper.args.native &&
+      async function () {
+        const client = helper.client()
+        try {
+          await client.query({ name, text, values: ['first'] })
+          await assert.rejects(client.query({ name, text, values: [badValue] }), /bad value/)
+          const result = await client.query({ name, text, values: ['ok'] })
+          assert.equal(result.rows[0].v, 'ok')
+        } finally {
+          await client.end()
+        }
+      }
+  )
+
+  suite.test(
+    'a pipelined query with the same name still runs after the first fails to serialize',
+    !helper.args.native &&
+      async function () {
+        const client = helper.client(undefined, { pipeline: true })
+        try {
+          const failed = client.query({ name, text, values: [badValue] })
+          const next = client.query({ name, text, values: ['ok'] })
+          await assert.rejects(failed, /bad value/)
+          const result = await next
+          assert.equal(result.rows[0].v, 'ok')
+        } finally {
+          await client.end()
+        }
+      }
+  )
+})()
