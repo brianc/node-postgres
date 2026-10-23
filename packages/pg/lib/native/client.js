@@ -15,6 +15,9 @@ const ConnectionParameters = require('../connection-parameters')
 
 const NativeQuery = require('./query')
 
+// setTimeout() treats a delay above 2^31-1 ms (about 24.8 days) as 1 ms, so larger values must be clamped
+const MAX_TIMEOUT = 2147483647
+
 const queryQueueLengthDeprecationNotice = nodeUtils.deprecate(
   () => {},
   'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.'
@@ -192,6 +195,7 @@ Client.prototype.query = function (config, values, callback) {
   if (readTimeout) {
     queryCallback = query.callback || (() => {})
 
+    const readTimeoutDelay = Math.min(readTimeout, MAX_TIMEOUT)
     readTimeoutTimer = setTimeout(() => {
       const error = new Error('Query read timeout')
 
@@ -212,7 +216,7 @@ Client.prototype.query = function (config, values, callback) {
       }
 
       this._pulseQueryQueue()
-    }, readTimeout)
+    }, readTimeoutDelay)
 
     query.callback = (err, res) => {
       clearTimeout(readTimeoutTimer)

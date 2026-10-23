@@ -10,6 +10,9 @@ const defaults = require('./defaults')
 const Connection = require('./connection')
 const crypto = require('./crypto/utils')
 
+// setTimeout() treats a delay above 2^31-1 ms (about 24.8 days) as 1 ms, so larger values must be clamped
+const MAX_TIMEOUT = 2147483647
+
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
   () => {},
   'Client.activeQuery is deprecated and will be removed in pg@9.0'
@@ -165,10 +168,11 @@ class Client extends EventEmitter {
     this._connecting = true
 
     if (this._connectionTimeoutMillis > 0) {
+      const connectionTimeout = Math.min(this._connectionTimeoutMillis, MAX_TIMEOUT)
       this.connectionTimeoutHandle = setTimeout(() => {
         con._ending = true
         con.stream.destroy(new Error('timeout expired'))
-      }, this._connectionTimeoutMillis)
+      }, connectionTimeout)
 
       if (this.connectionTimeoutHandle.unref) {
         this.connectionTimeoutHandle.unref()
@@ -703,6 +707,7 @@ class Client extends EventEmitter {
     if (readTimeout) {
       const queryCallback = query.callback || (() => {})
 
+      const readTimeoutDelay = Math.min(readTimeout, MAX_TIMEOUT)
       const readTimeoutTimer = setTimeout(() => {
         const error = new Error('Query read timeout')
 
@@ -728,7 +733,7 @@ class Client extends EventEmitter {
         }
 
         this._pulseQueryQueue()
-      }, readTimeout)
+      }, readTimeoutDelay)
 
       query.callback = (err, res) => {
         clearTimeout(readTimeoutTimer)
