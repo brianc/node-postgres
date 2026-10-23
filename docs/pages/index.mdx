@@ -77,6 +77,11 @@ try {
 }
 ```
 
+Errors reported by the PostgreSQL server are [`DatabaseError`](/apis/errors) instances. They carry
+the server's SQLSTATE `code`, plus `detail`, `constraint`, and the other
+[error fields](/apis/errors), which is what you branch on to handle an expected failure such as a
+unique violation.
+
 ### Pooling
 
 In most applications you'll want to use a [connection pool](/features/pooling) to manage your connections. This is a more advanced topic, but here's a simple example of how to use it:

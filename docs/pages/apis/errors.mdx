@@ -1,0 +1,134 @@
+---
+title: pg.DatabaseError
+slug: /apis/errors
+---
+
+Any error the PostgreSQL server reports is surfaced as a `DatabaseError`. It extends the built-in
+`Error`, so `err.message` is always the server's primary message, and it carries the rest of the
+[error report](https://www.postgresql.org/docs/current/protocol-error-fields.html) as additional
+properties.
+
+`DatabaseError` is exported from `pg`, so you can tell a server-side failure apart from a
+client-side one (a bad connection string, a socket error, a timeout) with `instanceof`:
+
+```js
+import pg from 'pg'
+const { Client, DatabaseError } = pg
+
+const client = new Client()
+await client.connect()
+
+try {
+  await client.query('INSERT INTO users (email) VALUES ($1)', ['taken@example.com'])
+} catch (err) {
+  if (err instanceof DatabaseError) {
+    // the server rejected the statement
+    console.error(err.code) // '23505'
+    console.error(err.constraint) // 'users_email_key'
+    console.error(err.detail) // 'Key (email)=(taken@example.com) already exists.'
+  } else {
+    // connection, TLS, or timeout failure - the statement never ran
+    throw err
+  }
+} finally {
+  await client.end()
+}
+```
+
+Branching on `err.code` is the usual way to handle an expected failure such as a unique violation
+or a serialization failure. The codes are stable and listed in
+[Appendix A of the PostgreSQL manual](https://www.postgresql.org/docs/current/errcodes-appendix.html).
+
+<div className="alert alert-info">
+  note: you cannot instantiate this directly - it is created by the driver when the server sends an error response
+</div>
+
+## properties
+
+Every property except `message`, `length`, and `name` is optional: PostgreSQL only sends the fields
+that apply to a given error, so anything not reported is `undefined`. Do not assume a field is
+present without checking.
+
+### `error.message: string`
+
+The primary human-readable error message from the server. Protocol field `M`.
+
+### `error.length: number`
+
+The byte length of the error message the server sent. Rarely useful in application code.
+
+### `error.name: 'error' | 'notice'`
+
+Which backend message produced this object. Note this shadows the usual `Error.name`, so it is
+`'error'` rather than `'DatabaseError'`.
+
+### `error.severity: string | undefined`
+
+`ERROR`, `FATAL`, or `PANIC`, or a localized translation of one of those. Protocol field `S`.
+
+### `error.code: string | undefined`
+
+The five-character SQLSTATE code, for example `'23505'` for a unique violation. This is the field
+to branch on - it is stable across server versions and locales, unlike `message`. Protocol field `C`.
+
+### `error.detail: string | undefined`
+
+An optional secondary message carrying more detail about the problem, such as which key value
+collided. Protocol field `D`.
+
+### `error.hint: string | undefined`
+
+An optional suggestion of what to do about the problem. This is advice rather than fact, and may
+be inaccurate. Protocol field `H`.
+
+### `error.position: string | undefined`
+
+A 1-based character index into the original query string, pointing at the token the error refers
+to. Sent as a string, not a number. Protocol field `P`.
+
+### `error.internalPosition: string | undefined`
+
+The same as `position`, but for an internally generated command rather than the one you submitted -
+for example a query inside a PL/pgSQL function. Protocol field `p`.
+
+### `error.internalQuery: string | undefined`
+
+The text of the internally generated command that failed. Protocol field `q`.
+
+### `error.where: string | undefined`
+
+A call-stack traceback of the context the error occurred in - for example the PL/pgSQL functions
+that were active. Protocol field `W`.
+
+### `error.schema: string | undefined`
+
+The schema of the object the error relates to, if any. Protocol field `s`.
+
+### `error.table: string | undefined`
+
+The table the error relates to, if any. Protocol field `t`.
+
+### `error.column: string | undefined`
+
+The column the error relates to, if any. Protocol field `c`.
+
+### `error.dataType: string | undefined`
+
+The name of the data type the error relates to, if any. Protocol field `d`.
+
+### `error.constraint: string | undefined`
+
+The name of the constraint the error relates to, if any. Useful together with `code` for mapping a
+violation back to a specific index or check. Protocol field `n`.
+
+### `error.file: string | undefined`
+
+The PostgreSQL source file the error was reported from. Protocol field `F`.
+
+### `error.line: string | undefined`
+
+The line number in that source file. Sent as a string. Protocol field `L`.
+
+### `error.routine: string | undefined`
+
+The name of the PostgreSQL source routine that reported the error. Protocol field `R`.
