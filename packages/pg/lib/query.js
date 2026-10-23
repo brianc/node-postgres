@@ -5,6 +5,8 @@ const { EventEmitter } = require('events')
 const Result = require('./result')
 const utils = require('./utils')
 
+const maxParameterCount = 0xffff
+
 class Query extends EventEmitter {
   constructor(config, values, callback) {
     super()
@@ -161,6 +163,11 @@ class Query extends EventEmitter {
       return new Error('Query values must be an array')
     }
     if (this.requiresPreparation()) {
+      if (this.values && this.values.length > maxParameterCount) {
+        return new RangeError(
+          `PostgreSQL supports a maximum of ${maxParameterCount} parameters, but ${this.values.length} were supplied`
+        )
+      }
       // If we're using the extended query protocol we fire off several separate commands
       // to the backend. On some versions of node & some operating system versions
       // the network stack writes each message separately instead of buffering them together
