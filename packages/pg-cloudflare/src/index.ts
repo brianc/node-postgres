@@ -10,6 +10,8 @@ export class CloudflareSocket extends EventEmitter {
 
   private _upgrading = false
   private _upgraded = false
+  private _ending = false
+  private _closed = false
   private _cfSocket: Socket | null = null
   private _cfWriter: WritableStreamDefaultWriter | null = null
   private _cfReader: ReadableStreamDefaultReader | null = null
@@ -65,7 +67,16 @@ export class CloudflareSocket extends EventEmitter {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       log('awaiting receive from CF socket')
-      const { done, value } = await this._cfReader!.read()
+      let result: ReadableStreamReadResult<Uint8Array>
+      try {
+        result = await this._cfReader!.read()
+      } catch (e) {
+        // closing the socket in end() rejects the read that is still pending,
+        // and after the peer closed it, 'close' has already reported the end
+        if (this._ending || this._closed) break
+        throw e
+      }
+      const { done, value } = result
       log('CF socket received:', done, value)
       if (done) {
         log('done')
@@ -110,6 +121,7 @@ export class CloudflareSocket extends EventEmitter {
 
   end(data = Buffer.alloc(0), encoding: BufferEncoding = 'utf8', callback: (...args: unknown[]) => void = () => {}) {
     log('ending CF socket')
+    this._ending = true
     this.write(data, encoding, (err) => {
       const socket = this._cfSocket
       const closePromise = socket?.close()
@@ -156,6 +168,7 @@ export class CloudflareSocket extends EventEmitter {
           log('CF socket closed')
           if (this._cfSocket === socket) {
             this._cfSocket = null
+            this._closed = true
             this.emit('close')
           }
         } else {
