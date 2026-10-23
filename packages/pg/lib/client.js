@@ -8,6 +8,7 @@ const ConnectionParameters = require('./connection-parameters')
 const Query = require('./query')
 const defaults = require('./defaults')
 const Connection = require('./connection')
+const connectMultiHost = require('./multihost')
 const crypto = require('./crypto/utils')
 
 const activeQueryDeprecationNotice = nodeUtils.deprecate(
@@ -86,16 +87,22 @@ class Client extends EventEmitter {
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.scramMaxIterations = coerceNumberOrDefault(c.scramMaxIterations, sasl.DEFAULT_MAX_SCRAM_ITERATIONS)
-    this.connection =
-      c.connection ||
-      new Connection({
-        stream: c.stream,
-        ssl: this.connectionParameters.ssl,
-        sslNegotiation: this.connectionParameters.sslnegotiation,
-        keepAlive: c.keepAlive || false,
-        keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
-        encoding: this.connectionParameters.client_encoding || 'utf8',
-      })
+    const targetSessionAttrs = this.connectionParameters.targetSessionAttrs
+    const connectionConfig = {
+      stream: c.stream,
+      ssl: this.connectionParameters.ssl,
+      sslNegotiation: this.connectionParameters.sslnegotiation,
+      keepAlive: c.keepAlive || false,
+      keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
+      encoding: this.connectionParameters.client_encoding || 'utf8',
+    }
+    const needsMultiHost =
+      Array.isArray(this.host) ||
+      Array.isArray(this.port) ||
+      Boolean(targetSessionAttrs && targetSessionAttrs !== 'any')
+
+    this.connection = c.connection || new Connection(connectionConfig)
+    this._multiHostConfig = !c.connection && needsMultiHost ? connectionConfig : null
     this._queryQueue = []
     this._sentQueryQueue = []
     this.pipeline = Boolean(c.pipeline)
@@ -151,8 +158,6 @@ class Client extends EventEmitter {
   }
 
   _connect(callback) {
-    const self = this
-    const con = this.connection
     this._connectionCallback = callback
 
     if (this._connecting || this._connected) {
@@ -166,8 +171,8 @@ class Client extends EventEmitter {
 
     if (this._connectionTimeoutMillis > 0) {
       this.connectionTimeoutHandle = setTimeout(() => {
-        con._ending = true
-        con.stream.destroy(new Error('timeout expired'))
+        this.connection._ending = true
+        this.connection.stream.destroy(new Error('timeout expired'))
       }, this._connectionTimeoutMillis)
 
       if (this.connectionTimeoutHandle.unref) {
@@ -175,10 +180,33 @@ class Client extends EventEmitter {
       }
     }
 
-    if (this.host && this.host.indexOf('/') === 0) {
-      con.connect(this.host + '/.s.PGSQL.' + this.port)
+    if (this._multiHostConfig) {
+      connectMultiHost(this, this._multiHostConfig).then(
+        (message) => {
+          if (!this._connectionError && !this._ended) {
+            this._handleReadyForQuery(message)
+          }
+        },
+        (err) => {
+          this._handleErrorWhileConnecting(err)
+          this._handleConnectionEnd()
+        }
+      )
+      return
+    }
+
+    this._connectHost(this.port, this.host)
+    this._attachListeners(this.connection)
+  }
+
+  _connectHost(port, host) {
+    const self = this
+    const con = this.connection
+
+    if (typeof host === 'string' && host.startsWith('/')) {
+      con.connect(host.replace(/\/+$/, '') + '/.s.PGSQL.' + port)
     } else {
-      con.connect(this.port, this.host)
+      con.connect(port, host)
     }
 
     // once connection is established send startup message
@@ -198,34 +226,43 @@ class Client extends EventEmitter {
       con.startup(self.getStartupConf())
     })
 
-    this._attachListeners(con)
+    // password request handling
+    con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
+    // password request handling
+    con.on('authenticationMD5Password', this._handleAuthMD5Password.bind(this))
+    // password request handling (SASL)
+    con.on('authenticationSASL', this._handleAuthSASL.bind(this))
+    con.on('authenticationSASLContinue', this._handleAuthSASLContinue.bind(this))
+    con.on('authenticationSASLFinal', this._handleAuthSASLFinal.bind(this))
+    con.on('backendKeyData', this._handleBackendKeyData.bind(this))
+    con.on('notice', this._handleNotice.bind(this))
+  }
 
-    con.once('end', () => {
-      const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
+  _handleConnectionEnd() {
+    const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
 
-      clearTimeout(this.connectionTimeoutHandle)
-      this._errorAllQueries(error)
-      this._ended = true
+    clearTimeout(this.connectionTimeoutHandle)
+    this._errorAllQueries(error)
+    this._ended = true
 
-      if (!this._ending) {
-        // if the connection is ended without us calling .end()
-        // on this client then we have an unexpected disconnection
-        // treat this as an error unless we've already emitted an error
-        // during connection.
-        if (this._connecting && !this._connectionError) {
-          if (this._connectionCallback) {
-            this._connectionCallback(error)
-          } else {
-            this._handleErrorEvent(error)
-          }
-        } else if (!this._connectionError) {
+    if (!this._ending) {
+      // if the connection is ended without us calling .end()
+      // on this client then we have an unexpected disconnection
+      // treat this as an error unless we've already emitted an error
+      // during connection.
+      if (this._connecting && !this._connectionError) {
+        if (this._connectionCallback) {
+          this._connectionCallback(error)
+        } else {
           this._handleErrorEvent(error)
         }
+      } else if (!this._connectionError) {
+        this._handleErrorEvent(error)
       }
+    }
 
-      process.nextTick(() => {
-        this.emit('end')
-      })
+    process.nextTick(() => {
+      this.emit('end')
     })
   }
 
@@ -247,19 +284,10 @@ class Client extends EventEmitter {
   }
 
   _attachListeners(con) {
-    // password request handling
-    con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
-    // password request handling
-    con.on('authenticationMD5Password', this._handleAuthMD5Password.bind(this))
-    // password request handling (SASL)
-    con.on('authenticationSASL', this._handleAuthSASL.bind(this))
-    con.on('authenticationSASLContinue', this._handleAuthSASLContinue.bind(this))
-    con.on('authenticationSASLFinal', this._handleAuthSASLFinal.bind(this))
-    con.on('backendKeyData', this._handleBackendKeyData.bind(this))
+    con.once('end', this._handleConnectionEnd.bind(this))
     con.on('error', this._handleErrorEvent.bind(this))
     con.on('errorMessage', this._handleErrorMessage.bind(this))
     con.on('readyForQuery', this._handleReadyForQuery.bind(this))
-    con.on('notice', this._handleNotice.bind(this))
     con.on('rowDescription', this._handleRowDescription.bind(this))
     con.on('dataRow', this._handleDataRow.bind(this))
     con.on('portalSuspended', this._handlePortalSuspended.bind(this))
@@ -574,11 +602,13 @@ class Client extends EventEmitter {
   cancel(client, query) {
     if (client.activeQuery === query) {
       const con = this.connection
+      const host = client._multiHostConfig ? client.host : this.host
+      const port = client._multiHostConfig ? client.port : this.port
 
-      if (this.host && this.host.indexOf('/') === 0) {
-        con.connect(this.host + '/.s.PGSQL.' + this.port)
+      if (typeof host === 'string' && host.startsWith('/')) {
+        con.connect(host.replace(/\/+$/, '') + '/.s.PGSQL.' + port)
       } else {
-        con.connect(this.port, this.host)
+        con.connect(port, host)
       }
 
       // once connection is established send cancel message
