@@ -16,6 +16,8 @@
     "docs:build": "cd docs && yarn build",
     "docs:start": "cd docs && yarn dev",
     "pretest": "yarn build",
+    "precoverage": "yarn build",
+    "coverage": "nyc --silent lerna exec --concurrency 1 --ignore pg-connection-string -- yarn test && nyc --no-clean yarn workspace pg-connection-string mocha",
     "prepublish": "yarn build",
     "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}' 'benchmark/*.js'",
     "benchmark": "node benchmark/compare.js"
@@ -30,6 +32,7 @@
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.1.2",
     "lerna": "^3.19.0",
+    "nyc": "^15",
     "prettier": "3.0.3",
     "typescript": "^6.0.3"
   },

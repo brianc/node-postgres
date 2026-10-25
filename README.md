@@ -1,6 +1,7 @@
 # node-postgres
 
 ![Build Status](https://github.com/brianc/node-postgres/actions/workflows/ci.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/brianc/node-postgres/badge.svg?branch=master)](https://coveralls.io/github/brianc/node-postgres?branch=master)
 <span class="badge-npmversion"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/v/pg.svg" alt="NPM version" /></a></span>
 <span class="badge-npmdownloads"><a href="https://npmjs.org/package/pg" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/pg.svg" alt="NPM downloads" /></a></span>
 
