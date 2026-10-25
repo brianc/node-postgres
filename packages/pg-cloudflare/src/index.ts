@@ -126,9 +126,11 @@ export class CloudflareSocket extends EventEmitter {
     return this
   }
 
-  destroy(reason: string) {
-    log('destroying CF socket', reason)
+  destroy(error?: Error) {
+    log('destroying CF socket', error)
     this.destroyed = true
+    // Like net.Socket#destroy(error): 'error' with the reason, then 'close'.
+    if (error) queueMicrotask(() => this.emit('error', error))
     return this.end()
   }
 

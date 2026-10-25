@@ -38,6 +38,47 @@ describe('pg-cloudflare', () => {
     await promise
   })
 
+  it('should emit the destroy error before close', async () => {
+    const socket = new CloudflareSocket()
+    socket._cfSocket = {
+      closed: new Promise(() => {}),
+      close: async () => {},
+    }
+    socket._addClosedHandler()
+
+    const events = []
+    const error = new Error('timeout expired')
+    socket.on('error', (emitted) => events.push(emitted))
+    await new Promise((resolve) => {
+      socket.once('close', () => {
+        events.push('close')
+        resolve()
+      })
+      socket.destroy(error)
+    })
+
+    assert.ok(socket.destroyed)
+    assert.deepEqual(events, [error, 'close'])
+  })
+
+  it('should not emit an error when destroyed without one', async () => {
+    const socket = new CloudflareSocket()
+    socket._cfSocket = {
+      closed: new Promise(() => {}),
+      close: async () => {},
+    }
+    socket._addClosedHandler()
+
+    const errors = []
+    socket.on('error', (error) => errors.push(error))
+    await new Promise((resolve) => {
+      socket.once('close', resolve)
+      socket.destroy()
+    })
+
+    assert.deepEqual(errors, [])
+  })
+
   it('should emit close when ending a socket whose closed promise never settles', async () => {
     const socket = new CloudflareSocket()
     socket._cfSocket = {
