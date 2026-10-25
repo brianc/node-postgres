@@ -14,8 +14,11 @@ class Result {
   }
 
   consumeCommand(pq) {
-    this.command = pq.cmdStatus().split(' ')[0]
-    this.rowCount = parseInt(pq.cmdTuples(), 10)
+    // null when there is none, as pg reports it: BEGIN has no row count, an empty query no command
+    const status = pq.cmdStatus()
+    this.command = status ? status.split(' ')[0] : null
+    const tuples = pq.cmdTuples()
+    this.rowCount = tuples ? parseInt(tuples, 10) : null
   }
 
   consumeFields(pq) {
