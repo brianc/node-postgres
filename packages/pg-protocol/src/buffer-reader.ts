@@ -51,7 +51,9 @@ export class BufferReader {
   }
 
   public bytes(length: number): Buffer {
-    const result = this.buffer.slice(this.offset, this.offset + length)
+    // a copy, not a view: the parser reuses its buffer for the next chunk, and a view would
+    // change under a message that was already delivered
+    const result = Buffer.from(this.buffer.subarray(this.offset, this.offset + length))
     this.offset += length
     return result
   }

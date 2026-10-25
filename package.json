@@ -17,8 +17,11 @@
     "docs:start": "cd docs && yarn dev",
     "pretest": "yarn build",
     "prepublish": "yarn build",
-    "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}' 'benchmark/*.js'",
-    "benchmark": "node benchmark/compare.js"
+    "lint": "eslint --cache 'packages/**/*.{js,ts,tsx}' 'benchmark/*.js' 'fuzz/*.js'",
+    "benchmark": "node benchmark/compare.js",
+    "fuzz:wire": "node fuzz/wire.js",
+    "fuzz:modes": "node fuzz/modes.js",
+    "fuzz:native": "node fuzz/native.js"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
