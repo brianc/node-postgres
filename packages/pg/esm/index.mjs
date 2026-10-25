@@ -10,6 +10,7 @@ export const Query = pg.Query
 export const DatabaseError = pg.DatabaseError
 export const escapeIdentifier = pg.escapeIdentifier
 export const escapeLiteral = pg.escapeLiteral
+export const cancelQuery = pg.cancelQuery
 export const Result = pg.Result
 export const TypeOverrides = pg.TypeOverrides
 
