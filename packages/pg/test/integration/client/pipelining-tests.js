@@ -138,6 +138,29 @@ suite.test(
     }
 )
 
+// Two pipelined queries share a statement name and the parse fails: the second skipped
+// its own Parse, so the backend answers 'prepared statement does not exist'. The client
+// must report the original parse error to it instead.
+suite.test(
+  'named statement parse failure reports the real error to the queries behind it',
+  !helper.args.native &&
+    async function () {
+      const client = helper.client(undefined, { pipeline: true })
+
+      const results = await Promise.allSettled([
+        client.query({ name: 'shared-bad', text: 'SELECT no_such_column_xyz' }),
+        client.query({ name: 'shared-bad', text: 'SELECT no_such_column_xyz' }),
+      ])
+
+      assert.equal(results[0].status, 'rejected')
+      assert.equal(results[1].status, 'rejected')
+      assert.ok(results[0].reason.message.includes('no_such_column_xyz'), results[0].reason.message)
+      assert.ok(results[1].reason.message.includes('no_such_column_xyz'), results[1].reason.message)
+
+      await client.end()
+    }
+)
+
 // #14: query_timeout with pipelining
 // When an already-sent pipelined query times out, the connection is destroyed
 // to unblock the pipeline — subsequent queries error rather than hanging.

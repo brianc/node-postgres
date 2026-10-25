@@ -120,6 +120,10 @@ class Query extends EventEmitter {
   }
 
   handleError(err, connection) {
+    // the named statement this query relied on was never created (26000): report why
+    if (this._pipelineParseError && err && err.code === '26000') {
+      err = this._pipelineParseError
+    }
     // need to sync after error during a prepared statement
     if (this._canceledDueToError) {
       err = this._canceledDueToError
