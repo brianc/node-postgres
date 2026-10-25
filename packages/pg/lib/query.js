@@ -120,7 +120,12 @@ class Query extends EventEmitter {
   }
 
   handleError(err, connection) {
-    // need to sync after error during a prepared statement
+    // rows-mode uses Flush instead of pipelining Sync in _getRows. After an
+    // ErrorResponse the backend ignores messages until Sync, so send one here
+    // to ensure ReadyForQuery arrives and the client can process later queries.
+    if (this.rows) {
+      connection.sync()
+    }
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
