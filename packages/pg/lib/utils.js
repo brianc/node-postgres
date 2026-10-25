@@ -93,7 +93,15 @@ function prepareObject(val, seen) {
 }
 
 function dateToString(date) {
-  let offset = -date.getTimezoneOffset()
+  let offset = Math.trunc(-date.getTimezoneOffset()) * 60
+  // getTimezoneOffset() omits the seconds in historical offsets. Keep the
+  // local clock fields and recover those seconds only when they differ from UTC.
+  if (date.getSeconds() !== date.getUTCSeconds()) {
+    const localDate = new Date(date.getTime())
+    localDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
+    localDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds())
+    offset += ((localDate.getTime() - date.getTime()) / 1000) % 60
+  }
 
   let year = date.getFullYear()
   const isBCYear = year < 1
@@ -121,7 +129,9 @@ function dateToString(date) {
     ret += '+'
   }
 
-  ret += String(Math.floor(offset / 60)).padStart(2, '0') + ':' + String(offset % 60).padStart(2, '0')
+  ret +=
+    String(Math.floor(offset / 3600)).padStart(2, '0') + ':' + String(Math.floor(offset / 60) % 60).padStart(2, '0')
+  if (offset % 60) ret += ':' + String(offset % 60).padStart(2, '0')
   if (isBCYear) ret += ' BC'
   return ret
 }
