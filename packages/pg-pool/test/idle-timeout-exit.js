@@ -6,6 +6,7 @@ if (module === require.main) {
   const pool = new Pool({
     maxLifetimeSeconds: 2,
     idleTimeoutMillis: 200,
+    ...(process.env.PIPELINE === '1' ? { maxPipeline: 10 } : {}),
     ...(allowExitOnIdle ? { allowExitOnIdle: true } : {}),
   })
   pool.query('SELECT NOW()', (err, res) => console.log('completed first'))
