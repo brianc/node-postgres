@@ -315,6 +315,26 @@ describe('PgPacketStream', function () {
         fields: ['test'],
       })
     })
+
+    it('decodes values of any length and encoding', function () {
+      // short ascii values take a different decoding path than long or
+      // multi byte ones, so check both sides of it
+      const values = [
+        ...Array.from({ length: 20 }, (_, i) => 'x'.repeat(i)),
+        '\u00e9',
+        'citt\u00e0',
+        '\u00fcn\u00efc\u00f6d\u00e9 w\u00f6rld',
+        '\u4e2d\u6587\u5b57\u7b26\u4e32',
+        '\ud83c\udf89',
+        'a\ud83c\udf89b',
+        null,
+      ]
+      const fields: (string | null)[] = []
+      new Parser().parse(buffers.dataRow(values), (msg) => {
+        fields.push(...(msg as any).fields)
+      })
+      assert.deepStrictEqual(fields, values)
+    })
   })
 
   describe('notice message', function () {
