@@ -105,5 +105,6 @@ pool has drained
 ```
 
 <Info>
-  The pool will return errors when attempting to check out a client after you've called pool.end() on the pool.
+  The pool will return errors when attempting to check out a client while `pool.end()` is still draining. After the
+  returned promise resolves, the pool can create connections again.
 </Info>

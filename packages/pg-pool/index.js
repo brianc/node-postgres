@@ -103,6 +103,7 @@ class Pool extends EventEmitter {
     this._idle = []
     this._expired = new WeakSet()
     this._pendingQueue = []
+    this._pendingEnds = 0
     this._endCallback = undefined
     this.ending = false
     this.ended = false
@@ -132,12 +133,25 @@ class Pool extends EventEmitter {
     }
     if (this.ending) {
       this.log('pulse queue on ending')
+      if (this._pendingQueue.length) {
+        const pendingItem = this._pendingQueue.shift()
+        if (this._idle.length) {
+          const idleItem = this._idle.pop()
+          clearTimeout(idleItem.timeoutId)
+          return this._acquireClient(idleItem.client, pendingItem, idleItem.idleListener, false)
+        }
+        if (!this._isFull()) {
+          return this.newClient(pendingItem)
+        }
+        this._pendingQueue.unshift(pendingItem)
+        return
+      }
       if (this._idle.length) {
         this._idle.slice().map((item) => {
-          this._remove(item.client)
+          this._remove(item.client, this._pulseQueue.bind(this))
         })
       }
-      if (!this._clients.length) {
+      if (!this._clients.length && !this._pendingEnds) {
         this.ended = true
         this._endCallback()
       }
@@ -178,17 +192,25 @@ class Pool extends EventEmitter {
 
     this._clients = this._clients.filter((c) => c !== client)
     const context = this
+    this._pendingEnds++
     client.end(() => {
+      context._pendingEnds--
       context.emit('remove', client)
 
       if (typeof callback === 'function') {
         callback()
+      } else if (context.ending) {
+        context._pulseQueue()
       }
     })
   }
 
   connect(cb) {
-    if (this.ending) {
+    if (this.ended) {
+      this.ending = false
+      this.ended = false
+      this._endCallback = undefined
+    } else if (this.ending) {
       const err = new Error('Cannot use a pool after calling end on the pool')
       return cb ? cb(err) : this.Promise.reject(err)
     }
@@ -389,7 +411,13 @@ class Pool extends EventEmitter {
     this.emit('release', err, client)
 
     // TODO(bmc): expose a proper, public interface _queryable and _ending
-    if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
+    if (
+      err ||
+      (this.ending && !this._pendingQueue.length) ||
+      !client._queryable ||
+      client._ending ||
+      client._poolUseCount >= this.options.maxUses
+    ) {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }
@@ -402,6 +430,11 @@ class Pool extends EventEmitter {
       this.log('remove expired client')
       this._expired.delete(client)
       return this._remove(client, this._pulseQueue.bind(this))
+    }
+
+    if (this.ending) {
+      this._idle.push(new IdleItem(client, idleListener, undefined))
+      return this._pulseQueue()
     }
 
     // idle timeout
