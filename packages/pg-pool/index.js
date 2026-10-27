@@ -1,5 +1,6 @@
 'use strict'
 const EventEmitter = require('events').EventEmitter
+const { AsyncResource } = require('async_hooks')
 
 const NOOP = function () {}
 
@@ -18,8 +19,65 @@ class IdleItem {
 }
 
 class PendingItem {
-  constructor(callback) {
+  constructor(callback, asyncResource) {
     this.callback = callback
+    this.asyncResource = asyncResource
+  }
+}
+
+// Passed to `handle.asyncReset()` purely as diagnostic info describing what
+// kind of handle is being reset; mirrors Node's own `http.Agent`, which
+// resets a pooled socket's handle the same way when reusing it for a new
+// request (see `ReusedHandle` in `lib/_http_agent.js`).
+class ReusedHandle {
+  constructor(type, handle) {
+    this.type = type
+    this.handle = handle
+  }
+}
+
+// A client's underlying socket is a native resource: whatever async context
+// (and anything an `AsyncLocalStorage` consumer, e.g. APM instrumentation,
+// stored in it -- such as a whole in-flight trace) was active the moment it
+// connected stays reachable from it for as long as the socket itself is
+// alive, because that's what later events on it get dispatched with. That's
+// fine for a one-shot connection, but a pooled client is deliberately reused
+// across many unrelated logical operations over its lifetime, so without
+// this, whichever one happened to be active when the connection was first
+// opened would stay pinned in memory for the life of the pool.
+//
+// `asyncReset` is the API Node provides for exactly this situation -- handing
+// a long-lived native resource to a new, unrelated logical operation -- and
+// it's what `http.Agent` uses when handing a pooled, already-connected
+// socket to a new request. Call it here, at the equivalent moment for a
+// pooled `pg` connection, so the socket forgets the previous operation's
+// context instead of carrying it forward indefinitely.
+//
+// `asyncReset` alone is not quite enough on every Node version still in
+// support, though: on Node <24, `AsyncLocalStorage` additionally stamps a
+// resource with an internal `kResourceStore` symbol at creation time (used
+// to drive `executionAsyncResource()`-style APIs), and `asyncReset` does
+// not itself refresh that symbol -- confirmed via heap snapshot, even
+// though it does correctly fix which context *later events* dispatch into.
+// The stale value just sits there, unrelated to dispatch, reachable for as
+// long as the socket exists. Node 24+'s newer context-tracking does not
+// have this property at all. There is no public API for clearing it, so
+// this reaches for the symbol directly -- undesirable in general, but the
+// only way to avoid this version-dependent retention until Node exposes
+// one.
+function resetClientAsyncContext(client) {
+  const handle = client && client.connection && client.connection.stream && client.connection.stream._handle
+  if (!handle || typeof handle.asyncReset !== 'function') {
+    return
+  }
+
+  handle.asyncReset(new ReusedHandle(handle.getProviderType(), handle))
+
+  const resourceStoreSymbol = Object.getOwnPropertySymbols(handle).find((symbol) =>
+    symbol.toString().includes('kResourceStore')
+  )
+  if (resourceStoreSymbol) {
+    handle[resourceStoreSymbol] = undefined
   }
 }
 
@@ -196,6 +254,15 @@ class Pool extends EventEmitter {
     const response = promisify(this.Promise, cb)
     const result = response.result
 
+    // Captures the context that's active right now, at the moment this
+    // call was made. A request serviced immediately (or via a same-tick
+    // `process.nextTick`) naturally keeps this context without any help,
+    // but one that has to wait in `_pendingQueue` until a connection is
+    // freed by a later, unrelated `release()` would otherwise be serviced
+    // in *that* release's context instead of its own caller's -- see
+    // `_acquireClient`.
+    const asyncResource = new AsyncResource('pg-pool.connect')
+
     // if we don't have to connect a new client, don't do so
     if (this._isFull() || this._idle.length) {
       // if we have idle clients schedule a pulse immediately
@@ -204,7 +271,7 @@ class Pool extends EventEmitter {
       }
 
       if (!this.options.connectionTimeoutMillis) {
-        this._pendingQueue.push(new PendingItem(response.callback))
+        this._pendingQueue.push(new PendingItem(response.callback, asyncResource))
         return result
       }
 
@@ -213,7 +280,7 @@ class Pool extends EventEmitter {
         response.callback(err, res, done)
       }
 
-      const pendingItem = new PendingItem(queueCallback)
+      const pendingItem = new PendingItem(queueCallback, asyncResource)
 
       // set connection timeout on checking out an existing client
       const tid = setTimeout(() => {
@@ -232,7 +299,7 @@ class Pool extends EventEmitter {
       return result
     }
 
-    this.newClient(new PendingItem(response.callback))
+    this.newClient(new PendingItem(response.callback, asyncResource))
 
     return result
   }
@@ -333,36 +400,69 @@ class Pool extends EventEmitter {
 
   // acquire a client for a pending work item
   _acquireClient(client, pendingItem, idleListener, isNew) {
-    if (isNew) {
-      this.emit('connect', client)
-    }
+    // Drop pg-pool's own reference to the captured resource as soon as
+    // it's no longer needed, rather than leaving it reachable from
+    // `pendingItem` for however long something else (e.g. a callback
+    // closure kept around by the client's own connection) happens to keep
+    // that object alive -- it's only needed for the synchronous dispatch
+    // below.
+    const asyncResource = pendingItem.asyncResource
+    pendingItem.asyncResource = null
 
-    this.emit('acquire', client)
+    const dispatch = () => {
+      // Handing an already-connected client to a (possibly different)
+      // logical operation than the one that last used it -- reset its
+      // socket's native handle so it stops propagating whatever async
+      // context was active the last time it was used.
+      if (!isNew) {
+        resetClientAsyncContext(client)
+      }
 
-    client.release = this._releaseOnce(client, idleListener)
+      if (isNew) {
+        this.emit('connect', client)
+      }
 
-    client.removeListener('error', idleListener)
+      this.emit('acquire', client)
 
-    if (!pendingItem.timedOut) {
-      if (isNew && this.options.verify) {
-        this.options.verify(client, (err) => {
-          if (err) {
-            client.release(err)
-            return pendingItem.callback(err, undefined, NOOP)
-          }
+      client.release = this._releaseOnce(client, idleListener)
 
+      client.removeListener('error', idleListener)
+
+      if (!pendingItem.timedOut) {
+        if (isNew && this.options.verify) {
+          this.options.verify(client, (err) => {
+            if (err) {
+              client.release(err)
+              return pendingItem.callback(err, undefined, NOOP)
+            }
+
+            pendingItem.callback(undefined, client, client.release)
+          })
+        } else {
           pendingItem.callback(undefined, client, client.release)
-        })
+        }
       } else {
-        pendingItem.callback(undefined, client, client.release)
-      }
-    } else {
-      if (isNew && this.options.verify) {
-        this.options.verify(client, client.release)
-      } else {
-        client.release()
+        if (isNew && this.options.verify) {
+          this.options.verify(client, client.release)
+        } else {
+          client.release()
+        }
       }
     }
+
+    if (isNew || !asyncResource) {
+      return dispatch()
+    }
+
+    // `_acquireClient` can run inside a completely unrelated call stack --
+    // e.g. triggered by a different client's `release()` -- rather than the
+    // call stack of whichever caller is actually receiving this client.
+    // Dispatch inside the context captured when that caller originally
+    // called `connect()`/`query()`, so `resetClientAsyncContext` above (and
+    // the `pendingItem.callback` it leads to) see the right context, the
+    // same way `http.Agent` replays a queued request's original async
+    // context when handing it a freed socket.
+    return asyncResource.runInAsyncScope(dispatch)
   }
 
   // returns a function that wraps _release and throws if called more than once
