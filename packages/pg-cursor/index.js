@@ -115,7 +115,16 @@ class Cursor extends EventEmitter {
   }
 
   handleDataRow(msg) {
-    const row = this._result.parseRow(msg.fields)
+    if (this._error) return
+
+    let row
+    try {
+      row = this._result.parseRow(msg.fields)
+    } catch (err) {
+      // Drain the current batch before closing the portal and reporting the error.
+      this._error = err
+      return
+    }
     this.emit('row', row, this._result)
     this._rows.push(row)
   }
@@ -144,10 +153,17 @@ class Cursor extends EventEmitter {
   }
 
   handlePortalSuspended() {
+    if (this._error) {
+      return this._closePortal()
+    }
     this._sendRows()
   }
 
   handleReadyForQuery() {
+    if (this._error) {
+      this.state = 'done'
+      return this._reportError(this._error)
+    }
     this._sendRows()
     this.state = 'done'
     this.emit('end', this._result)
@@ -174,10 +190,19 @@ class Cursor extends EventEmitter {
     }
 
     this.state = 'error'
+    this._reportError(this._error || msg)
+  }
+
+  _reportError(msg) {
+    // A timeout can report the error before ReadyForQuery.
+    if (this._errorReported) return
+    this._errorReported = true
     this._error = msg
     // satisfy any waiting callback
     if (this._cb) {
-      this._cb(msg)
+      const cb = this._cb
+      this._cb = null
+      cb(msg)
     }
     // dispatch error to all waiting callbacks
     for (let i = 0; i < this._queue.length; i++) {
@@ -250,7 +275,7 @@ class Cursor extends EventEmitter {
       this._getRows(rows, cb)
     } else if (this.state === 'busy' || this.state === 'initialized') {
       this._queue.push([rows, cb])
-    } else if (this.state === 'error') {
+    } else if (this.state === 'error' || (this.state === 'done' && this._error)) {
       setImmediate(() => cb(this._error))
     } else if (this.state === 'done') {
       setImmediate(() => cb(null, []))

@@ -51,6 +51,43 @@ describe('error handling', function () {
 
     client.end()
   })
+
+  it('reports a read timeout once after the server finishes the query', async () => {
+    const client = new pg.Client()
+    await client.connect()
+    try {
+      await client.query('BEGIN')
+      const cursor = new Cursor('SELECT 1 AS value')
+      const queryTimeout = 20
+      cursor.query_timeout = queryTimeout
+      const errors = []
+      const callbackErrors = []
+      cursor.on('error', (error) => errors.push(error))
+
+      // Hold server messages so the timeout precedes protocol completion.
+      client.connection.stream.pause()
+      client.query(cursor)
+      const timeoutError = await new Promise((resolve) => {
+        cursor.read(1, (error) => {
+          callbackErrors.push(error)
+          resolve(error)
+        })
+      })
+      assert.strictEqual(timeoutError.message, 'Query read timeout')
+      const completed = new Promise((resolve) => client.connection.once('readyForQuery', resolve))
+      client.connection.stream.resume()
+      await completed
+
+      const result = await client.query('SELECT 42 AS answer')
+      assert.deepStrictEqual(result.rows, [{ answer: 42 }])
+      assert.deepStrictEqual(callbackErrors, [timeoutError])
+      assert.deepStrictEqual(errors, [timeoutError])
+      await client.query('ROLLBACK')
+    } finally {
+      client.connection.stream.resume()
+      await client.end()
+    }
+  })
 })
 
 describe('read callback does not fire sync', () => {
