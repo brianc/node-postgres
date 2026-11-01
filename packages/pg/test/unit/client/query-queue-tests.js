@@ -14,6 +14,9 @@ test('drain', function () {
   }
   con.query = function () {}
   client.connect()
+  // a real server finishes authentication (AuthenticationOk) before its
+  // first ReadyForQuery
+  con.emit('authenticationOk')
 
   let raisedDrain = false
   client.on('drain', function () {

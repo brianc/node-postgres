@@ -30,6 +30,7 @@ suite.test('emits end when not in query', function () {
   assert.emits(client, 'end')
   client.connection.emit('connect')
   process.nextTick(function () {
+    client.connection.emit('authenticationOk')
     client.connection.emit('readyForQuery')
     process.nextTick(function () {
       stream.emit('close')

@@ -29,6 +29,9 @@ const makeClient = function (config) {
   const client = new Client({ connection: connection, ...config })
   client.connect()
   client.connection.emit('connect')
+  // the fake connection skips the startup handshake, so report the
+  // AuthenticationOk a real server sends before its first ReadyForQuery
+  client.connection.emit('authenticationOk')
   return client
 }
 
