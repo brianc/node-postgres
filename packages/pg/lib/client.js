@@ -79,6 +79,7 @@ class Client extends EventEmitter {
     this._ended = false
     this._connecting = false
     this._connected = false
+    this._authenticated = false
     this._connectionError = false
     this._queryable = true
     this._activeQuery = null
@@ -247,6 +248,7 @@ class Client extends EventEmitter {
   }
 
   _attachListeners(con) {
+    con.on('authenticationOk', this._handleAuthenticationOk.bind(this))
     // password request handling
     con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
@@ -370,8 +372,21 @@ class Client extends EventEmitter {
     this.secretKey = msg.secretKey
   }
 
+  _handleAuthenticationOk() {
+    this._authenticated = true
+  }
+
   _handleReadyForQuery(msg) {
     if (this._connecting) {
+      if (!this._authenticated) {
+        // The server must finish authentication with AuthenticationOk before
+        // its first ReadyForQuery. A ReadyForQuery here means the peer is not
+        // following the protocol, so refuse the connection instead of
+        // treating it as established - the same behavior as libpq.
+        this._handleErrorWhileConnecting(new Error('expected authentication request from server, but received Z'))
+        this.connection.end()
+        return
+      }
       this._connecting = false
       this._connected = true
       clearTimeout(this.connectionTimeoutHandle)
