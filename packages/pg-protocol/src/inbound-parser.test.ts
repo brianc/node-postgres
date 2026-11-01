@@ -582,4 +582,30 @@ describe('PgPacketStream', function () {
     parser.parse(oneFieldBuf, () => {})
     assert.strictEqual((parser as any).reader.buffer.byteLength, 0)
   })
+
+  it('fails the stream instead of throwing when the parser throws', async function () {
+    const stream = new PassThrough()
+    const msgs: BackendMessage[] = []
+    const errors: Error[] = []
+    stream.on('error', (err) => errors.push(err))
+    parse(stream, (msg) => msgs.push(msg))
+    // AuthenticationGSS (code 7) is not supported by the parser
+    const gss = new BufferList().addInt32(7).join(true, 'R')
+    stream.write(Buffer.concat([authOkBuffer, gss]))
+    await new Promise((resolve) => stream.once('close', resolve))
+    assert.strictEqual(msgs.length, 1)
+    assert.strictEqual(errors.length, 1)
+    assert.match(errors[0].message, /Unknown authenticationOk message type 7/)
+  })
+
+  it('does not swallow errors thrown by the callback', function () {
+    const stream = new PassThrough()
+    const errors: Error[] = []
+    stream.on('error', (err) => errors.push(err))
+    parse(stream, () => {
+      throw new Error('boom')
+    })
+    assert.throws(() => stream.emit('data', authOkBuffer), /boom/)
+    assert.strictEqual(errors.length, 0)
+  })
 })
