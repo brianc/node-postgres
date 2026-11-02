@@ -124,6 +124,24 @@ class Query extends EventEmitter {
     if (this._canceledDueToError) {
       err = this._canceledDueToError
       this._canceledDueToError = false
+    } else if (this.rows) {
+      // An ErrorResponse from the backend terminates the current Execute/Sync
+      // pipeline without sending ReadyForQuery. For a rows-limited (portal
+      // suspension) query we pipeline Flush instead of Sync between page
+      // requests (see _getRows), so unlike a plain prepared statement, the
+      // backend has not already been sent a Sync for this cycle. Per the
+      // extended query protocol, the backend discards messages until it
+      // receives Sync, so without this call the connection would wedge:
+      // ReadyForQuery never arrives and every later query queues forever.
+      //
+      // This branch only runs for a "real" ErrorResponse reaching handleError
+      // directly - not for the _canceledDueToError path above, which is
+      // replayed from handleReadyForQuery after ReadyForQuery has already
+      // been received for this query, i.e. after a Sync has already round
+      // tripped. Syncing again there would be a protocol-correct but
+      // redundant second Sync/ReadyForQuery pair, so it's intentionally
+      // excluded here.
+      connection.sync()
     }
     // if callback supplied do not emit error event as uncaught error
     // events will bubble up to node process
