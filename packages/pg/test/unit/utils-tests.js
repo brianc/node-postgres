@@ -181,6 +181,31 @@ test('prepareValue: complex array prepared properly', function () {
   assert.strictEqual(out, '{"{\\"x\\":42}","{\\"y\\":84}"}')
 })
 
+test('prepareValue: nullish custom array elements prepared as SQL NULL', function () {
+  for (const value of [null, undefined]) {
+    let calls = 0
+    const customType = {
+      toPostgres: function () {
+        calls++
+        return value
+      },
+    }
+    assert.strictEqual(utils.prepareValue([customType, 'NULL', '', 0, false]), '{NULL,"NULL","","0","false"}')
+    assert.strictEqual(calls, 1)
+    assert.strictEqual(utils.prepareValue([[customType], [customType]]), '{{NULL},{NULL}}')
+    assert.strictEqual(calls, 3)
+  }
+})
+
+test('prepareValue: chained nullish custom array elements prepared as SQL NULL', function () {
+  const customType = {
+    toPostgres: function () {
+      return { toPostgres: () => null }
+    },
+  }
+  assert.strictEqual(utils.prepareValue([customType]), '{NULL}')
+})
+
 test('prepareValue: date array prepared properly', function () {
   helper.setTimezoneOffset(-330)
 

@@ -37,7 +37,8 @@ function arrayString(val) {
       }
       result += '\\\\x' + item.toString('hex')
     } else {
-      result += escapeElement(prepareValue(item))
+      const prepared = prepareValue(item)
+      result += prepared == null ? 'NULL' : escapeElement(prepared)
     }
   }
   result += '}'
