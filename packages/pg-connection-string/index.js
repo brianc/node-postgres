@@ -36,8 +36,9 @@ function parse(str, options = {}) {
     throw err
   }
 
-  // We'd like to use Object.fromEntries() here but Node.js 10 does not support it
-  for (const entry of result.searchParams.entries()) {
+  // Like libpq, only percent-decode the query values: URLSearchParams would turn a literal
+  // `+` into a space. We'd like to use Object.fromEntries() here but Node.js 10 does not support it
+  for (const entry of new URLSearchParams(result.search.replace(/\+/g, '%2B')).entries()) {
     config[entry[0]] = entry[1]
   }
 
