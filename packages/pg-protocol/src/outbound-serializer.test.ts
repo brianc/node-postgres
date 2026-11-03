@@ -1,4 +1,6 @@
 import assert from 'assert'
+import fs from 'fs'
+import path from 'path'
 import { serialize } from './serializer'
 import BufferList from './testing/buffer-list'
 
@@ -22,6 +24,12 @@ describe('serializer', () => {
         .addCString('')
         .join(true)
     )
+  })
+
+  it('emits declarations that do not need a generic Buffer', function () {
+    // older @types/node releases declare a non-generic Buffer; see #3699
+    const declarations = fs.readFileSync(path.join(__dirname, 'serializer.d.ts'), 'utf8')
+    assert.ok(!declarations.includes('Buffer<'), declarations)
   })
 
   it('builds password message', function () {
