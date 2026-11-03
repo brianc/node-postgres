@@ -192,6 +192,15 @@ describe('parse', function () {
     subject.fallback_application_name?.should.equal('TheAppFallback')
   })
 
+  it('configuration parameters keep a literal plus sign', function () {
+    const connectionString = 'pg:///?application_name=a+b&user=c+d&password=e+f&options=g%2Bh%20i'
+    const subject = parse(connectionString)
+    subject.application_name?.should.equal('a+b')
+    subject.user?.should.equal('c+d')
+    subject.password?.should.equal('e+f')
+    subject.options?.should.equal('g+h i')
+  })
+
   it('configuration parameter options', function () {
     const connectionString = 'pg:///?options=-c geqo=off'
     const subject = parse(connectionString)
