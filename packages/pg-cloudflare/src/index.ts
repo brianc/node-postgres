@@ -87,22 +87,24 @@ export class CloudflareSocket extends EventEmitter {
   write(
     data: Uint8Array | string,
     encodingOrCallback: BufferEncoding | ((error?: unknown) => void) = 'utf8',
-    callback: (error?: unknown) => void = () => {}
+    callback?: (error?: unknown) => void
   ): true | void {
     const encoding = typeof encodingOrCallback === 'function' ? 'utf8' : encodingOrCallback
     if (typeof encodingOrCallback === 'function') callback = encodingOrCallback
-    if (data.length === 0) return callback()
+    if (data.length === 0) return callback?.()
     if (typeof data === 'string') data = Buffer.from(data, encoding)
 
     log('sending data direct:', data)
     this._cfWriter!.write(data).then(
       () => {
         log('data sent')
-        callback()
+        callback?.()
       },
       (err) => {
         log('send error', err)
-        callback(err)
+        // pg calls write() without a callback, so emit the error the way a net.Socket would
+        if (callback) callback(err)
+        else this.emit('error', err)
       }
     )
     return true
