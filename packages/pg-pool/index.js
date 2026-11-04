@@ -221,7 +221,9 @@ class Pool extends EventEmitter {
         // we're going to call it with a timeout error
         removeWhere(this._pendingQueue, (i) => i.callback === queueCallback)
         pendingItem.timedOut = true
-        response.callback(new Error('timeout exceeded when trying to connect'))
+        response.callback(
+          Object.assign(new Error('timeout exceeded when trying to connect'), { code: 'ERR_PG_POOL_CHECKOUT_TIMEOUT' })
+        )
       }, this.options.connectionTimeoutMillis)
 
       if (tid.unref) {
@@ -273,7 +275,9 @@ class Pool extends EventEmitter {
         // remove the dead client from our list of clients
         this._clients = this._clients.filter((c) => c !== client)
         if (timeoutHit) {
-          err = new Error('Connection terminated due to connection timeout', { cause: err })
+          err = Object.assign(new Error('Connection terminated due to connection timeout', { cause: err }), {
+            code: 'ERR_PG_POOL_CONNECT_TIMEOUT',
+          })
         }
 
         // this client won’t be released, so move on immediately

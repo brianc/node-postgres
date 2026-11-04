@@ -65,18 +65,21 @@ const SSLNegotiationPacketTests = [
   {
     testName: 'connection does not emit ECONNRESET errors during disconnect also when using SSL',
     errorMessage: null,
+    errorCode: null,
     response: 'S',
     responseType: 'sslconnect',
   },
   {
     testName: 'connection emits an error when SSL is not supported',
     errorMessage: 'The server does not support SSL connections',
+    errorCode: 'ERR_PG_SSL_NOT_SUPPORTED',
     response: 'N',
     responseType: 'error',
   },
   {
     testName: 'connection emits an error when postmaster responds to SSL negotiation packet',
     errorMessage: 'There was an error establishing an SSL connection',
+    errorCode: 'ERR_PG_SSL_NEGOTIATION_FAILED',
     response: 'E',
     responseType: 'error',
   },
@@ -170,6 +173,7 @@ for (const tc of SSLNegotiationPacketTests) {
       assert.emits(con, tc.responseType, function (err) {
         if (tc.errorMessage !== null || err) {
           assert.equal(err.message, tc.errorMessage)
+          assert.equal(err.code, tc.errorCode)
         }
         con.end()
         socket.destroy()

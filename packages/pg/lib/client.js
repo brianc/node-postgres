@@ -167,7 +167,7 @@ class Client extends EventEmitter {
     if (this._connectionTimeoutMillis > 0) {
       this.connectionTimeoutHandle = setTimeout(() => {
         con._ending = true
-        con.stream.destroy(new Error('timeout expired'))
+        con.stream.destroy(Object.assign(new Error('timeout expired'), { code: 'ERR_PG_CONNECTION_TIMEOUT' }))
       }, this._connectionTimeoutMillis)
 
       if (this.connectionTimeoutHandle.unref) {
@@ -201,7 +201,9 @@ class Client extends EventEmitter {
     this._attachListeners(con)
 
     con.once('end', () => {
-      const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
+      const error = this._ending
+        ? Object.assign(new Error('Connection terminated'), { code: 'ERR_PG_CONNECTION_ENDED' })
+        : Object.assign(new Error('Connection terminated unexpectedly'), { code: 'ERR_PG_CONNECTION_TERMINATED' })
 
       clearTimeout(this.connectionTimeoutHandle)
       this._errorAllQueries(error)
@@ -704,7 +706,7 @@ class Client extends EventEmitter {
       const queryCallback = query.callback || (() => {})
 
       const readTimeoutTimer = setTimeout(() => {
-        const error = new Error('Query read timeout')
+        const error = Object.assign(new Error('Query read timeout'), { code: 'ERR_PG_QUERY_TIMEOUT' })
 
         process.nextTick(() => {
           query.handleError(error, this.connection)

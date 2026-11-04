@@ -13,6 +13,7 @@ test('query timeout with Submittable without callback delivers error via handleE
   const query = new Query({ text: 'SELECT 1' })
   query.handleError = (err) => {
     assert.equal(err.message, 'Query read timeout')
+    assert.equal(err.code, 'ERR_PG_QUERY_TIMEOUT')
     done()
   }
 
@@ -29,6 +30,7 @@ test('query timeout with Submittable with callback delivers error via callback',
 
   client.query(query, (err) => {
     assert.equal(err.message, 'Query read timeout')
+    assert.equal(err.code, 'ERR_PG_QUERY_TIMEOUT')
     done()
   })
 })

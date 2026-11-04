@@ -242,6 +242,31 @@ try {
 await client.end()
 ```
 
+## error codes
+
+Errors sent by the PostgreSQL server have the server's [SQLSTATE](https://www.postgresql.org/docs/current/errcodes-appendix.html) in `err.code`, and network errors keep Node's own codes such as `ECONNREFUSED`. Errors that the client creates itself have a code starting with `ERR_PG_`, so you can check `err.code` instead of the message:
+
+| code                            | when                                                                        |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `ERR_PG_CONNECTION_TIMEOUT`     | the connection was not established within `connectionTimeoutMillis`         |
+| `ERR_PG_CONNECTION_TERMINATED`  | the connection ended unexpectedly, for example because the server closed it |
+| `ERR_PG_CONNECTION_ENDED`       | a query was still pending when `client.end()` was called                    |
+| `ERR_PG_QUERY_TIMEOUT`          | a query did not finish within `query_timeout`                               |
+| `ERR_PG_SSL_NOT_SUPPORTED`      | `ssl` is enabled but the server does not support SSL connections            |
+| `ERR_PG_SSL_NEGOTIATION_FAILED` | the server answered the SSL request with something other than yes or no     |
+
+With the [native bindings](/features/native), connection and SSL errors come from libpq and have no code; `ERR_PG_QUERY_TIMEOUT` and `ERR_PG_CONNECTION_ENDED` are set by both clients.
+
+```js
+try {
+  await client.query('SELECT pg_sleep(10)')
+} catch (err) {
+  if (err.code === 'ERR_PG_QUERY_TIMEOUT') {
+    // retry, or report a timeout
+  }
+}
+```
+
 ## events
 
 ### error

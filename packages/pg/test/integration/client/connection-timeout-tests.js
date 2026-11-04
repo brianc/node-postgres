@@ -82,6 +82,10 @@ suite.test('expired connection timeout', (done) => {
       .catch((err) => {
         assert(err instanceof Error)
         assert(/timeout expired\s*/.test(err.message))
+        // the native client gets this error from libpq, without a code
+        if (!helper.args.native) {
+          assert.equal(err.code, 'ERR_PG_CONNECTION_TIMEOUT')
+        }
         closeServer(done)
       })
       .then(() => clearTimeout(timeoutId))

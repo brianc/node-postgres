@@ -229,6 +229,15 @@ The number of clients which are not checked out but are currently idle in the po
 
 The number of queued requests waiting on a client when all clients are checked out. It can be helpful to monitor this number to see if you need to adjust the size of the pool.
 
+## error codes
+
+Besides the [client's error codes](/apis/client#error-codes), the pool sets these codes on the errors it creates itself:
+
+| code                           | when                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `ERR_PG_POOL_CONNECT_TIMEOUT`  | a new client did not connect within `connectionTimeoutMillis`; the client's error is in `err.cause`    |
+| `ERR_PG_POOL_CHECKOUT_TIMEOUT` | no client was released to the waiting request within `connectionTimeoutMillis` while the pool was full |
+
 ## events
 
 `Pool` instances are also instances of [`EventEmitter`](https://nodejs.org/api/events.html).

@@ -21,7 +21,8 @@ suite.test('emits end when not in query', function () {
       client.query(
         'SELECT NOW()',
         assert.calls(function (err, result) {
-          assert(err)
+          assert.equal(err.message, 'Connection terminated unexpectedly')
+          assert.equal(err.code, 'ERR_PG_CONNECTION_TERMINATED')
         })
       )
     })
