@@ -35,6 +35,7 @@ describe('connection timeout', () => {
     pool.connect((err, client, release) => {
       expect(err).to.be.an(Error)
       expect(err.message).to.contain('timeout')
+      expect(err.code).to.equal('ERR_PG_POOL_CONNECT_TIMEOUT')
       expect(client).to.equal(undefined)
       expect(pool.idleCount).to.equal(0)
       done()
@@ -46,7 +47,19 @@ describe('connection timeout', () => {
     pool.connect().catch((err) => {
       expect(err).to.be.an(Error)
       expect(err.message).to.contain('timeout')
+      expect(err.code).to.equal('ERR_PG_POOL_CONNECT_TIMEOUT')
       expect(pool.idleCount).to.equal(0)
+      done()
+    })
+  })
+
+  it('should give a checkout timeout its own code when the pool is full', (done) => {
+    const pool = new Pool({ connectionTimeoutMillis: 50, max: 1, port: this.port, host: 'localhost' })
+    pool.connect(() => {}) // takes the only slot; never finishes connecting to the silent server
+    pool.connect((err, client) => {
+      expect(err.message).to.equal('timeout exceeded when trying to connect')
+      expect(err.code).to.equal('ERR_PG_POOL_CHECKOUT_TIMEOUT')
+      expect(client).to.equal(undefined)
       done()
     })
   })

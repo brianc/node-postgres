@@ -83,11 +83,21 @@ class Connection extends EventEmitter {
           break
         case 'N': // Server does not support SSL connections
           self.stream.end()
-          return self.emit('error', new Error('The server does not support SSL connections'))
+          return self.emit(
+            'error',
+            Object.assign(new Error('The server does not support SSL connections'), {
+              code: 'ERR_PG_SSL_NOT_SUPPORTED',
+            })
+          )
         default:
           // Any other response byte, including 'E' (ErrorResponse) indicating a server error
           self.stream.end()
-          return self.emit('error', new Error('There was an error establishing an SSL connection'))
+          return self.emit(
+            'error',
+            Object.assign(new Error('There was an error establishing an SSL connection'), {
+              code: 'ERR_PG_SSL_NEGOTIATION_FAILED',
+            })
+          )
       }
       self.upgradeToSSL(host, reportStreamError)
     })

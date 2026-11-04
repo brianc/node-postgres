@@ -193,7 +193,7 @@ Client.prototype.query = function (config, values, callback) {
     queryCallback = query.callback || (() => {})
 
     readTimeoutTimer = setTimeout(() => {
-      const error = new Error('Query read timeout')
+      const error = Object.assign(new Error('Query read timeout'), { code: 'ERR_PG_QUERY_TIMEOUT' })
 
       process.nextTick(() => {
         query.handleError(error, this.connection)
@@ -267,7 +267,7 @@ Client.prototype.end = function (cb) {
     self.native.end(function () {
       self._connected = false
 
-      self._errorAllQueries(new Error('Connection terminated'))
+      self._errorAllQueries(Object.assign(new Error('Connection terminated'), { code: 'ERR_PG_CONNECTION_ENDED' }))
 
       process.nextTick(() => {
         self.emit('end')
