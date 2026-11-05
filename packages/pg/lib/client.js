@@ -81,6 +81,7 @@ class Client extends EventEmitter {
     this._connected = false
     this._connectionError = false
     this._queryable = true
+    this._unqueryableReason = null
     this._activeQuery = null
     this._txStatus = null
 
@@ -418,6 +419,7 @@ class Client extends EventEmitter {
       return this._handleErrorWhileConnecting(err)
     }
     this._queryable = false
+    this._unqueryableReason = this._unqueryableReason || err
     this._errorAllQueries(err)
     this.emit('error', err)
   }
@@ -764,7 +766,12 @@ class Client extends EventEmitter {
 
     if (!this._queryable) {
       process.nextTick(() => {
-        query.handleError(new Error('Client has encountered a connection error and is not queryable'), this.connection)
+        query.handleError(
+          new Error('Client has encountered a connection error and is not queryable', {
+            cause: this._unqueryableReason,
+          }),
+          this.connection
+        )
       })
       return result
     }
