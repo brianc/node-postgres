@@ -36,6 +36,7 @@ const Client = (module.exports = function (config) {
   this._connecting = false
   this._connected = false
   this._queryable = true
+  this._unqueryableReason = null
   this.pipeline = Boolean(config.pipeline)
   this._pipelineInFlight = false
 
@@ -110,6 +111,7 @@ Client.prototype._connect = function (cb) {
       // handle connection errors from the native layer
       self.native.on('error', function (err) {
         self._queryable = false
+        self._unqueryableReason = self._unqueryableReason || err
         self._errorAllQueries(err)
         self.emit('error', err)
       })
@@ -223,7 +225,11 @@ Client.prototype.query = function (config, values, callback) {
   if (!this._queryable) {
     query.native = this.native
     process.nextTick(() => {
-      query.handleError(new Error('Client has encountered a connection error and is not queryable'))
+      query.handleError(
+        new Error('Client has encountered a connection error and is not queryable', {
+          cause: this._unqueryableReason,
+        })
+      )
     })
     return result
   }
@@ -358,6 +364,7 @@ Client.prototype._pulsePipelinedQueryQueue = function () {
       // for the life of the process.
       self._connected = false
       self._queryable = false
+      self._unqueryableReason = self._unqueryableReason || err
       for (let i = 0; i < nativeQueries.length; i++) {
         const q = nativeQueries[i]
         q.native = self.native
