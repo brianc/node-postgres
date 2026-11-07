@@ -3,7 +3,7 @@
 const defaults = require('./defaults')
 const nodeUtils = require('util')
 
-const { isDate } = require('util/types')
+const { isDate, isArrayBuffer } = require('util/types')
 
 const invalidDateDeprecationNotice = nodeUtils.deprecate(
   () => {},
@@ -36,6 +36,8 @@ function arrayString(val) {
         item = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
       }
       result += '\\\\x' + item.toString('hex')
+    } else if (isArrayBuffer(item)) {
+      result += '\\\\x' + Buffer.from(item).toString('hex')
     } else {
       result += escapeElement(prepareValue(item))
     }
@@ -59,6 +61,9 @@ const prepareValue = function (val, seen) {
     }
     if (ArrayBuffer.isView(val)) {
       return Buffer.from(val.buffer, val.byteOffset, val.byteLength)
+    }
+    if (isArrayBuffer(val)) {
+      return Buffer.from(val)
     }
     if (isDate(val)) {
       if (isNaN(val.getTime())) {

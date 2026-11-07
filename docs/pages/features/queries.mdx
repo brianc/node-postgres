@@ -44,6 +44,10 @@ Custom conversion to a UTC date string.
 
 Buffer instances are unchanged.
 
+**ArrayBuffer and ArrayBuffer views**
+
+Converted to a Buffer. An ArrayBuffer includes all of its bytes; typed arrays and DataView values include only the bytes within the view.
+
 **Array**
 
 Converted to a string that describes a Postgres array. Each array item is recursively converted using the rules described here.
