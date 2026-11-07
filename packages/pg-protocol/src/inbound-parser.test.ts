@@ -577,6 +577,24 @@ describe('PgPacketStream', function () {
     })
   })
 
+  it('reads the fields of a lazy row', function () {
+    const values = ['a', null, '', 'è€😀']
+    const msgs: any[] = []
+    new Parser({ lazyRows: true }).parse(buffers.dataRow(values), (msg: any) => {
+      msgs.push({ name: msg.name, length: msg.length, fieldCount: msg.fieldCount, fields: msg.fields })
+    })
+    new Parser().parse(buffers.dataRow(values), (msg: any) => {
+      msgs.push({ name: msg.name, length: msg.length, fieldCount: msg.fieldCount, fields: msg.fields })
+    })
+    assert.deepStrictEqual(msgs[0], msgs[1])
+    assert.deepStrictEqual(msgs[0].fields, values)
+  })
+
+  it('keeps rows eager by default', async function () {
+    const [msg] = await parseBuffers([oneFieldBuf])
+    assert.strictEqual('buffer' in msg, false)
+  })
+
   it('cleans up the reader after handling a packet', function () {
     const parser = new Parser()
     parser.parse(oneFieldBuf, () => {})

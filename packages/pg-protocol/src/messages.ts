@@ -260,3 +260,34 @@ export class NoticeMessage implements BackendMessage, NoticeOrError {
   public line: string | undefined
   public routine: string | undefined
 }
+
+// A data row still in the socket buffer, it is valid only while the parser callback runs.
+export class RawDataRowMessage {
+  public readonly name: MessageName = 'dataRow'
+  private decoded: any[] | null = null
+  constructor(
+    public length: number,
+    public readonly fieldCount: number,
+    public readonly buffer: Buffer,
+    public readonly offset: number
+  ) {}
+
+  public get fields(): any[] {
+    if (this.decoded === null) {
+      const fields = new Array(this.fieldCount)
+      let offset = this.offset
+      for (let i = 0; i < this.fieldCount; i++) {
+        const len = this.buffer.readInt32BE(offset)
+        offset += 4
+        if (len === -1) {
+          fields[i] = null
+        } else {
+          fields[i] = this.buffer.toString('utf-8', offset, offset + len)
+          offset += len
+        }
+      }
+      this.decoded = fields
+    }
+    return this.decoded
+  }
+}

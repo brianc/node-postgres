@@ -95,6 +95,7 @@ class Client extends EventEmitter {
         keepAlive: c.keepAlive || false,
         keepAliveInitialDelayMillis: c.keepAliveInitialDelayMillis || 0,
         encoding: this.connectionParameters.client_encoding || 'utf8',
+        lazyRows: true,
       })
     this._queryQueue = []
     this._sentQueryQueue = []

@@ -87,7 +87,7 @@ class Query extends EventEmitter {
     }
 
     try {
-      row = this._result.parseRow(msg.fields)
+      row = this._result.parseDataRow(msg)
     } catch (err) {
       this._canceledDueToError = err
       return
