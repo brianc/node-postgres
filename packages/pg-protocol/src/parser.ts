@@ -18,6 +18,7 @@ import {
   ParameterDescriptionMessage,
   Field,
   DataRowMessage,
+  RawDataRowMessage,
   ParameterStatusMessage,
   BackendKeyDataMessage,
   DatabaseError,
@@ -47,7 +48,8 @@ export type Packet = {
 const emptyBuffer = Buffer.allocUnsafe(0)
 
 type StreamOptions = TransformOptions & {
-  mode: Mode
+  mode?: Mode
+  lazyRows?: boolean
 }
 
 const enum MessageCodes {
@@ -83,12 +85,14 @@ export class Parser {
   private bufferOffset: number = 0
   private reader = new BufferReader()
   private mode: Mode
+  private lazyRows: boolean
 
   constructor(opts?: StreamOptions) {
     if (opts?.mode === 'binary') {
       throw new Error('Binary mode not supported yet')
     }
     this.mode = opts?.mode || 'text'
+    this.lazyRows = opts?.lazyRows === true
   }
 
   public parse(buffer: Buffer, callback: MessageCallback) {
@@ -188,7 +192,9 @@ export class Parser {
         message = emptyQuery
         break
       case MessageCodes.DataRow:
-        message = parseDataRowMessage(reader)
+        message = this.lazyRows
+          ? new RawDataRowMessage(LATEINIT_LENGTH, bytes.readInt16BE(offset), bytes, offset + 2)
+          : parseDataRowMessage(reader)
         break
       case MessageCodes.CommandComplete:
         message = parseCommandCompleteMessage(reader)

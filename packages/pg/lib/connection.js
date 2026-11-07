@@ -29,6 +29,7 @@ class Connection extends EventEmitter {
     this.sslNegotiation = config.sslNegotiation || 'postgres'
     this._ending = false
     this._emitMessage = false
+    this.lazyRows = config.lazyRows === true
     const self = this
     this.on('newListener', function (eventName) {
       if (eventName === 'message') {
@@ -135,13 +136,21 @@ class Connection extends EventEmitter {
   }
 
   attachListeners(stream) {
-    parse(stream, (msg) => {
-      const eventName = msg.name === 'error' ? 'errorMessage' : msg.name
-      if (this._emitMessage) {
-        this.emit('message', msg)
-      }
-      this.emit(eventName, msg)
-    })
+    parse(
+      stream,
+      (msg) => {
+        // The client reads a lazy row at once, other listeners may keep it after the buffer is reused.
+        if (this.lazyRows && msg.name === 'dataRow' && (this._emitMessage || this.listenerCount('dataRow') > 1)) {
+          void msg.fields
+        }
+        const eventName = msg.name === 'error' ? 'errorMessage' : msg.name
+        if (this._emitMessage) {
+          this.emit('message', msg)
+        }
+        this.emit(eventName, msg)
+      },
+      { lazyRows: this.lazyRows }
+    )
   }
 
   requestSsl() {
