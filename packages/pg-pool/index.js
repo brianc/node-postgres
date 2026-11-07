@@ -130,7 +130,7 @@ class Pool extends EventEmitter {
       this.log('pulse queue ended')
       return
     }
-    if (this.ending) {
+    if (this.ending && !this._pendingQueue.length) {
       this.log('pulse queue on ending')
       if (this._idle.length) {
         this._idle.slice().map((item) => {
@@ -389,7 +389,8 @@ class Pool extends EventEmitter {
     this.emit('release', err, client)
 
     // TODO(bmc): expose a proper, public interface _queryable and _ending
-    if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
+    const draining = this.ending && !this._pendingQueue.length
+    if (err || draining || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses) {
       if (client._poolUseCount >= this.options.maxUses) {
         this.log('remove expended client')
       }

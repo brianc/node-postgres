@@ -38,6 +38,21 @@ describe('pool ending', () => {
     })
   )
 
+  it('finishes queries waiting for a client when the pool ends', async () => {
+    const pool = new Pool({ max: 1 })
+    const client = await pool.connect()
+    const queries = [1, 2, 3].map((n) => pool.query('SELECT $1::int AS n', [n]))
+    const ended = pool.end()
+    client.release()
+
+    const results = await Promise.all(queries)
+    await ended
+
+    expect(results.map((x) => x.rows[0].n)).to.eql([1, 2, 3])
+    expect(pool.totalCount).to.equal(0)
+    expect(pool.ended).to.equal(true)
+  })
+
   it('pool.end() - finish pending queries', async () => {
     const pool = new Pool({ max: 20 })
     let completed = 0
