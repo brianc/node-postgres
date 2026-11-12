@@ -38,6 +38,37 @@ describe('pg-cloudflare', () => {
     await promise
   })
 
+  it('should emit an error when a write without a callback fails', async () => {
+    const socket = new CloudflareSocket()
+    const writeError = new Error('write failed')
+    socket._cfWriter = { write: () => Promise.reject(writeError) }
+
+    const error = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('error event was not emitted')), 100)
+      socket.once('error', (err) => {
+        clearTimeout(timer)
+        resolve(err)
+      })
+      socket.write(Buffer.from('x'))
+    })
+    assert.equal(error, writeError)
+  })
+
+  it('should pass a failed write to the callback instead of emitting an error', async () => {
+    const socket = new CloudflareSocket()
+    const writeError = new Error('write failed')
+    socket._cfWriter = { write: () => Promise.reject(writeError) }
+    let emitted = false
+    socket.on('error', () => {
+      emitted = true
+    })
+
+    const error = await new Promise((resolve) => socket.write(Buffer.from('x'), resolve))
+    assert.equal(error, writeError)
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    assert.equal(emitted, false)
+  })
+
   it('should emit close when ending a socket whose closed promise never settles', async () => {
     const socket = new CloudflareSocket()
     socket._cfSocket = {
