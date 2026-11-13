@@ -49,6 +49,23 @@ const config = {
 }
 ```
 
+To keep the CA certificate in the `ssl` object, use a connection string without those SSL query parameters:
+
+```js
+import fs from 'node:fs'
+import { Pool } from 'pg'
+
+const pool = new Pool({
+  connectionString: 'postgres://user:password@localhost:5432/db?application_name=example',
+  ssl: {
+    ca: fs.readFileSync('/path/to/server-certificates/root.crt'),
+    rejectUnauthorized: true,
+  },
+})
+```
+
+Here TLS is enabled by the `ssl` object, and the server certificate is verified against the supplied CA. Other query parameters, such as `application_name`, can remain in the connection string. If your provider supplies a URL containing SSL parameters, remove those parameters before using this configuration and keep all required TLS settings in the `ssl` object.
+
 ## Direct SSL negotiation
 
 By default node-postgres uses the traditional PostgreSQL SSL negotiation: it sends an `SSLRequest` packet, waits for the server to acknowledge it, and only then starts the TLS handshake. PostgreSQL 17 and newer also support _direct_ SSL negotiation, where the TLS handshake begins immediately on connect (similar to HTTPS), saving one network round-trip.
