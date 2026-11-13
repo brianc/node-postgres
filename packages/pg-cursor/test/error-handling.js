@@ -115,4 +115,85 @@ describe('proper cleanup', function () {
       })
     })
   })
+
+  it('rejects a pending read when the error arrives after CommandComplete', async () => {
+    const client = new pg.Client()
+    await client.connect()
+    try {
+      await client.query('CREATE TEMP TABLE cursor_parent (id int PRIMARY KEY)')
+      await client.query(
+        'CREATE TEMP TABLE cursor_child (id int, pid int REFERENCES cursor_parent (id) DEFERRABLE INITIALLY DEFERRED)'
+      )
+      await client.query(
+        'CREATE FUNCTION pg_temp.cursor_insert_child(i int) RETURNS int LANGUAGE plpgsql AS $$ BEGIN INSERT INTO cursor_child VALUES (i, 999); RETURN i; END $$'
+      )
+      const settleWithin = (promise, ms) => {
+        let timer
+        const timeout = new Promise((resolve) => {
+          timer = setTimeout(() => resolve('timeout'), ms)
+        })
+        return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+      }
+      const outcome = (promise) =>
+        promise.then(
+          () => 'rows',
+          (err) => err
+        )
+      const cursor = client.query(new Cursor('SELECT pg_temp.cursor_insert_child(g) FROM generate_series(1, 3) g'))
+      const result = await settleWithin(outcome(cursor.read(100)), 1500)
+      assert.notStrictEqual(result, 'timeout', 'read never settled')
+      assert.notStrictEqual(result, 'rows', 'expected the commit-time error')
+      assert(result instanceof Error)
+      const second = await outcome(cursor.read(100))
+      assert.strictEqual(second, result, 'a later read should get the same error')
+      await cursor.close()
+      const { rows } = await client.query('SELECT 1 AS one')
+      assert.strictEqual(rows[0].one, 1)
+    } finally {
+      await client.end()
+    }
+  })
+
+  it('rejects queued reads when the error arrives after CommandComplete', async () => {
+    const client = new pg.Client()
+    await client.connect()
+    try {
+      await client.query('CREATE TEMP TABLE cursor_parent (id int PRIMARY KEY)')
+      await client.query(
+        'CREATE TEMP TABLE cursor_child (id int, pid int REFERENCES cursor_parent (id) DEFERRABLE INITIALLY DEFERRED)'
+      )
+      await client.query(
+        'CREATE FUNCTION pg_temp.cursor_insert_child(i int) RETURNS int LANGUAGE plpgsql AS $$ BEGIN INSERT INTO cursor_child VALUES (i, 999); RETURN i; END $$'
+      )
+      const settleWithin = (promise, ms) => {
+        let timer
+        const timeout = new Promise((resolve) => {
+          timer = setTimeout(() => resolve('timeout'), ms)
+        })
+        return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+      }
+      const outcome = (promise) =>
+        promise.then(
+          () => 'rows',
+          (err) => err
+        )
+      // a query ahead of the cursor keeps it in the 'initialized' state, so both reads are queued
+      const blocker = client.query('SELECT 1')
+      const cursor = client.query(new Cursor('SELECT pg_temp.cursor_insert_child(g) FROM generate_series(1, 3) g'))
+      const r1 = outcome(cursor.read(100))
+      const r2 = outcome(cursor.read(100))
+      const results = await settleWithin(Promise.all([r1, r2]), 1500)
+      assert.notStrictEqual(results, 'timeout', 'queued reads never settled')
+      results.forEach((result) => {
+        assert.notStrictEqual(result, 'rows', 'expected the commit-time error')
+        assert(result instanceof Error)
+      })
+      await blocker
+      await cursor.close()
+      const { rows } = await client.query('SELECT 1 AS one')
+      assert.strictEqual(rows[0].one, 1)
+    } finally {
+      await client.end()
+    }
+  })
 })
