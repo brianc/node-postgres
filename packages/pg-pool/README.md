@@ -50,37 +50,15 @@ const pgNativePool = new Pool({ Client: PgNativeClient })
 
 ##### Note:
 
-The Pool constructor does not support passing a Database URL as the parameter. To use pg-pool on heroku, for example, you need to parse the URL into a config object. Here is an example of how to parse a Database URL.
+The Pool constructor does not support passing a Database URL as the parameter. To connect with a Database URL, for example on heroku, pass it as the `connectionString` option instead. It is passed to each client, which parses it.
 
 ```js
 const Pool = require('pg-pool')
-const url = require('url')
 
-const params = url.parse(process.env.DATABASE_URL)
-const auth = params.auth.split(':')
-
-const config = {
-  user: auth[0],
-  password: auth[1],
-  host: params.hostname,
-  port: params.port,
-  database: params.pathname.split('/')[1],
-  ssl: true,
-}
-
-const pool = new Pool(config)
-
-/*
-  Transforms, 'postgres://DBuser:secret@DBHost:#####/myDB', into
-  config = {
-    user: 'DBuser',
-    password: 'secret',
-    host: 'DBHost',
-    port: '#####',
-    database: 'myDB',
-    ssl: true
-  }
-*/
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+})
 ```
 
 ### acquire clients with a promise
