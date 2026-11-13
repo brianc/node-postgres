@@ -159,7 +159,28 @@ class Cursor extends EventEmitter {
 
   handleError(msg) {
     // If this cursor has already closed, don't try to handle the error.
-    if (this.state === 'done') return
+    if (this.state === 'done') {
+      // An error can still arrive after CommandComplete (for example a deferred
+      // constraint failing when the implicit transaction commits on Sync). A
+      // pending read is only answered on ReadyForQuery, which the client does
+      // not forward after an error, so settle it here. Later reads get the
+      // error too instead of an empty result.
+      this._error = msg
+      if (this._cb) {
+        const cb = this._cb
+        this._cb = null
+        this._rows = []
+        cb(msg)
+      }
+      for (let i = 0; i < this._queue.length; i++) {
+        this._queue[i][1].call(this, msg)
+      }
+      this._queue.length = 0
+      if (this.listenerCount('error') > 0) {
+        this.emit('error', msg)
+      }
+      return
+    }
 
     // If we're in an initialized state we've never been submitted
     // and don't have a connection instance reference yet.
@@ -253,7 +274,11 @@ class Cursor extends EventEmitter {
     } else if (this.state === 'error') {
       setImmediate(() => cb(this._error))
     } else if (this.state === 'done') {
-      setImmediate(() => cb(null, []))
+      if (this._error) {
+        setImmediate(() => cb(this._error))
+      } else {
+        setImmediate(() => cb(null, []))
+      }
     } else {
       throw new Error('Unknown state: ' + this.state)
     }
