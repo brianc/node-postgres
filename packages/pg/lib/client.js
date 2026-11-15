@@ -2,6 +2,7 @@ const EventEmitter = require('events').EventEmitter
 const utils = require('./utils')
 const nodeUtils = require('util')
 const sasl = require('./crypto/sasl')
+const { GssSession, authenticationError } = require('./crypto/gss')
 const TypeOverrides = require('./type-overrides')
 
 const ConnectionParameters = require('./connection-parameters')
@@ -83,6 +84,10 @@ class Client extends EventEmitter {
     this._queryable = true
     this._activeQuery = null
     this._txStatus = null
+    this._gssSession = null
+    this._gssVerified = false
+    this._gssReadyPending = false
+    this._nonGssAuthenticationStarted = false
 
     this.enableChannelBinding = Boolean(c.enableChannelBinding) // set true to use SCRAM-SHA-256-PLUS when offered
     this.scramMaxIterations = coerceNumberOrDefault(c.scramMaxIterations, sasl.DEFAULT_MAX_SCRAM_ITERATIONS)
@@ -162,6 +167,12 @@ class Client extends EventEmitter {
       })
       return
     }
+    if (this.connectionParameters.gssencmode === 'require') {
+      const err = new Error('GSS transport encryption is not supported by the JavaScript driver')
+      err.code = 'PG_GSS_ENCRYPTION_UNSUPPORTED'
+      process.nextTick(() => callback(err))
+      return
+    }
     this._connecting = true
 
     if (this._connectionTimeoutMillis > 0) {
@@ -201,6 +212,7 @@ class Client extends EventEmitter {
     this._attachListeners(con)
 
     con.once('end', () => {
+      this._gssSession?.dispose()
       const error = this._ending ? new Error('Connection terminated') : new Error('Connection terminated unexpectedly')
 
       clearTimeout(this.connectionTimeoutHandle)
@@ -247,6 +259,10 @@ class Client extends EventEmitter {
   }
 
   _attachListeners(con) {
+    con.on('authenticationGSS', () => this._handleAuthGSS('GSSAPI'))
+    con.on('authenticationSSPI', () => this._handleAuthGSS('SSPI'))
+    con.on('authenticationGSSContinue', this._handleAuthGSSContinue.bind(this))
+    con.on('authenticationOk', this._handleAuthOk.bind(this))
     // password request handling
     con.on('authenticationCleartextPassword', this._handleAuthCleartextPassword.bind(this))
     // password request handling
@@ -311,12 +327,16 @@ class Client extends EventEmitter {
   }
 
   _handleAuthCleartextPassword(msg) {
+    if (!this._allowNonGssAuthentication()) return
+    this._nonGssAuthenticationStarted = true
     this._getPassword(() => {
       this.connection.password(this.password)
     })
   }
 
   _handleAuthMD5Password(msg) {
+    if (!this._allowNonGssAuthentication()) return
+    this._nonGssAuthenticationStarted = true
     this._getPassword(async () => {
       try {
         const hashedPassword = await crypto.postgresMd5PasswordHash(this.user, this.password, msg.salt)
@@ -328,6 +348,8 @@ class Client extends EventEmitter {
   }
 
   _handleAuthSASL(msg) {
+    if (!this._allowNonGssAuthentication()) return
+    this._nonGssAuthenticationStarted = true
     this._getPassword(() => {
       try {
         this.saslSession = sasl.startSession(
@@ -343,6 +365,7 @@ class Client extends EventEmitter {
   }
 
   async _handleAuthSASLContinue(msg) {
+    if (!this._allowNonGssAuthentication()) return
     try {
       await sasl.continueSession(
         this.saslSession,
@@ -357,6 +380,7 @@ class Client extends EventEmitter {
   }
 
   _handleAuthSASLFinal(msg) {
+    if (!this._allowNonGssAuthentication()) return
     try {
       sasl.finalizeSession(this.saslSession, msg.data)
       this.saslSession = null
@@ -365,12 +389,67 @@ class Client extends EventEmitter {
     }
   }
 
+  _allowNonGssAuthentication() {
+    if (!this._gssSession) return true
+    this._failGSS(authenticationError('The server changed authentication methods during GSS negotiation'))
+    return false
+  }
+
+  _handleAuthGSS(method) {
+    if (!this._connecting || this._gssSession || this._nonGssAuthenticationStarted) {
+      this._failGSS(authenticationError('Unexpected GSS authentication request'))
+      return
+    }
+    this._gssSession = new GssSession(this.connectionParameters, method, (token) =>
+      this.connection.sendGSSResponse(token)
+    )
+    this._gssSession.start().catch((error) => this._failGSS(error))
+  }
+
+  _handleAuthGSSContinue(message) {
+    if (!this._gssSession) {
+      this._failGSS(authenticationError('GSS continuation received before authentication started'))
+      return
+    }
+    this._gssSession.continue(message.data).catch((error) => this._failGSS(error))
+  }
+
+  _handleAuthOk() {
+    if (this._gssSession) {
+      this._gssSession.accept().catch((error) => this._failGSS(error))
+    }
+  }
+
+  _failGSS(error) {
+    if (this._ending || this._ended || this._connectionError) return
+    this._gssSession?.dispose()
+    this.connection.stream.destroy(
+      error instanceof Error ? error : authenticationError('GSS authentication failed', error)
+    )
+  }
+
   _handleBackendKeyData(msg) {
     this.processID = msg.processID
     this.secretKey = msg.secretKey
   }
 
   _handleReadyForQuery(msg) {
+    if (this._connecting && this._gssSession && !this._gssVerified) {
+      if (this._gssReadyPending) {
+        this._failGSS(authenticationError('Duplicate ReadyForQuery during GSS authentication'))
+        return
+      }
+      this._gssReadyPending = true
+      this._gssSession
+        .ready()
+        .then(() => {
+          if (this._ending || this._ended || this._connectionError) return
+          this._gssVerified = true
+          this._handleReadyForQuery(msg)
+        })
+        .catch((error) => this._failGSS(error))
+      return
+    }
     if (this._connecting) {
       this._connecting = false
       this._connected = true
@@ -398,6 +477,7 @@ class Client extends EventEmitter {
   // if we receive an error event or error message
   // during the connection process we handle it here
   _handleErrorWhileConnecting(err) {
+    this._gssSession?.dispose()
     if (this._connectionError) {
       // TODO(bmc): this is swallowing errors - we shouldn't do this
       return
@@ -414,6 +494,7 @@ class Client extends EventEmitter {
   // this means the socket is dead - do a hard abort of all queries and emit
   // the socket error on the client as well
   _handleErrorEvent(err) {
+    this._gssSession?.dispose()
     if (this._connecting) {
       return this._handleErrorWhileConnecting(err)
     }
@@ -797,6 +878,10 @@ class Client extends EventEmitter {
   }
 
   end(cb) {
+    if (this._connecting && this._gssSession && !this._connectionError) {
+      this._handleErrorWhileConnecting(authenticationError('Connection terminated during GSS authentication'))
+    }
+    this._gssSession?.dispose()
     this._ending = true
 
     // if we have never connected, then end is a noop, callback immediately

@@ -168,6 +168,10 @@ class Connection extends EventEmitter {
     this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
   }
 
+  sendGSSResponse(token) {
+    return this._send(serialize.sendGSSResponse(token))
+  }
+
   _send(buffer) {
     if (!this.stream.writable) {
       return false

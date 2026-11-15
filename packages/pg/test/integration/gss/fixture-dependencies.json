@@ -1,0 +1,19 @@
+{
+  "name": "disposable-node-postgres-gss-fixture",
+  "private": true,
+  "dependencies": {
+    "@types/node": "^16",
+    "@types/mocha": "^10",
+    "@types/chai": "^4",
+    "async": "2.6.4",
+    "chai": "4.2.0",
+    "kerberos": "2.2.2",
+    "mocha": "11.7.5",
+    "pg-connection-string": "2.14.1",
+    "pg-cursor": "2.22.0",
+    "pg-pool": "3.14.0",
+    "pg-types": "2.2.0",
+    "pgpass": "1.0.5",
+    "typescript": "6.0.3"
+  }
+}

@@ -24,6 +24,7 @@ import {
   BackendMessage,
   MessageName,
   AuthenticationMD5Password,
+  AuthenticationGSSContinue,
   NoticeMessage,
 } from './messages'
 import { BufferReader } from './buffer-reader'
@@ -330,6 +331,9 @@ const parseBackendKeyData = (reader: BufferReader) => {
 }
 
 const parseAuthenticationResponse = (reader: BufferReader, length: number) => {
+  if (length < 8) {
+    throw new Error('Invalid PostgreSQL authentication message length')
+  }
   const code = reader.int32()
   // TODO(bmc): maybe better types here
   const message: BackendMessage & any = {
@@ -352,6 +356,18 @@ const parseAuthenticationResponse = (reader: BufferReader, length: number) => {
         return new AuthenticationMD5Password(LATEINIT_LENGTH, salt)
       }
       break
+    case 7: // AuthenticationGSS
+    case 9: // AuthenticationSSPI
+      if (length !== 8) {
+        throw new Error('Invalid PostgreSQL GSS authentication message length')
+      }
+      message.name = code === 7 ? 'authenticationGSS' : 'authenticationSSPI'
+      break
+    case 8: // AuthenticationGSSContinue
+      if (length > 8 + 65535) {
+        throw new Error('PostgreSQL GSS authentication token exceeds the protocol limit')
+      }
+      return new AuthenticationGSSContinue(length, Buffer.from(reader.bytes(length - 8)))
     case 10: // AuthenticationSASL
       {
         message.name = 'authenticationSASL'

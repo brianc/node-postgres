@@ -45,6 +45,13 @@ describe('serializer', () => {
     assert.deepEqual(actual, new BufferList().addString('data').join(true, 'p'))
   })
 
+  it('serializes a binary GSS token without a C-string terminator or text conversion', function () {
+    const token = Buffer.from([0, 128, 255, 1, 0])
+    const actual = serialize.sendGSSResponse(token)
+    assert.deepStrictEqual(actual, new BufferList().add(token).join(true, 'p'))
+    assert.strictEqual(actual.readInt32BE(1), token.length + 4)
+  })
+
   it('builds query message', function () {
     const txt = 'select * from boom'
     const actual = serialize.query(txt)

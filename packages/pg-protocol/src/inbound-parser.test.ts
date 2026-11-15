@@ -621,4 +621,40 @@ describe('PgPacketStream', function () {
     assert.strictEqual(stream.destroyed, false)
     stream.destroy()
   })
+
+  for (const [code, name] of [
+    [7, 'authenticationGSS'],
+    [9, 'authenticationSSPI'],
+  ] as const) {
+    it(`parses the ${name} initiation message`, async function () {
+      const messages = await parseBuffers([new BufferList().addInt32(code).join(true, 'R')])
+      assert.deepStrictEqual(messages, [{ name, length: 8 }])
+    })
+  }
+
+  it('preserves non-UTF8 binary continuation tokens across every packet split', async function () {
+    const token = Buffer.from([0, 128, 255, 1, 0])
+    const response = new BufferList().addInt32(8).add(token).join(true, 'R')
+    for (let split = 1; split < response.length; split++) {
+      const messages = await parseBuffers([response.subarray(0, split), response.subarray(split)])
+      assert.strictEqual(messages.length, 1)
+      assert.strictEqual(messages[0].name, 'authenticationGSSContinue')
+      assert.strictEqual(messages[0].length, token.length + 8)
+      assert.ok('data' in messages[0])
+      assert.deepStrictEqual(messages[0].data, token)
+    }
+  })
+
+  it('fails a malformed GSS initiation packet without reporting authentication success', async function () {
+    const stream = new PassThrough()
+    const errors: Error[] = []
+    const messages: BackendMessage[] = []
+    stream.on('error', (error) => errors.push(error))
+    const closed = new Promise<void>((resolve) => stream.once('close', resolve))
+    parse(stream, (message) => messages.push(message))
+    stream.write(new BufferList().addInt32(7).addInt32(0).join(true, 'R'))
+    await closed
+    assert.strictEqual(messages.length, 0)
+    assert.match(errors[0].message, /Invalid PostgreSQL GSS authentication message length/)
+  })
 })
