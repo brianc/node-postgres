@@ -582,4 +582,43 @@ describe('PgPacketStream', function () {
     parser.parse(oneFieldBuf, () => {})
     assert.strictEqual((parser as any).reader.buffer.byteLength, 0)
   })
+
+  for (const code of [2, 1234]) {
+    it(`closes the stream on unsupported authentication ${code}, including a split packet`, async function () {
+      const stream = new PassThrough()
+      const messages: BackendMessage[] = []
+      const errors: Error[] = []
+      stream.on('error', (error) => errors.push(error))
+      const closed = new Promise<void>((resolve) => stream.once('close', resolve))
+      parse(stream, (message) => messages.push(message))
+      const response = new BufferList().addInt32(code).join(true, 'R')
+
+      stream.write(Buffer.concat([authOkBuffer, response.subarray(0, 3)]))
+      stream.write(Buffer.concat([response.subarray(3), readyForQueryBuffer]))
+      await closed
+
+      assert.strictEqual(messages.length, 1)
+      assert.strictEqual(errors.length, 1)
+      assert.match(errors[0].message, new RegExp(`Unknown authenticationOk message type ${code}`))
+      assert.strictEqual(stream.destroyed, true)
+    })
+  }
+
+  it('does not catch exceptions thrown by the message callback', function () {
+    const stream = new PassThrough()
+    const failure = new Error('caller callback failed')
+    const errors: Error[] = []
+    stream.on('error', (error) => errors.push(error))
+    parse(stream, () => {
+      throw failure
+    })
+
+    assert.throws(
+      () => stream.emit('data', authOkBuffer),
+      (error) => error === failure
+    )
+    assert.strictEqual(errors.length, 0)
+    assert.strictEqual(stream.destroyed, false)
+    stream.destroy()
+  })
 })
