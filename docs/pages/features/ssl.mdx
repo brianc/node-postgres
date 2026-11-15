@@ -59,7 +59,6 @@ const pool = new Pool({
   connectionString: 'postgres://user:password@localhost:5432/db?application_name=example',
   ssl: {
     ca: fs.readFileSync('/path/to/server-certificates/root.crt'),
-    rejectUnauthorized: true,
   },
 })
 ```
