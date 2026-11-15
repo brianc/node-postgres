@@ -197,49 +197,50 @@ for (const kind of ['end', 'timeout']) {
       await client.end()
       await peer.close()
     }
+  })
+}
 
-    suite.test('a missing optional binding rejects connect without an uncaught exception', async () => {
-      const peer = await fixture(authentication(7))
-      const client = new Client(peer.options)
-      try {
-        await withBinding(undefined, async () => {
-          await assert.rejects(
-            client.connect(),
-            (error) => error.code === 'PG_GSS_AUTHENTICATION_FAILED' && /optional kerberos package/.test(error.message)
-          )
-        })
-      } finally {
-        await client.end()
-        await peer.close()
-      }
+suite.test('a missing optional binding rejects connect without an uncaught exception', async () => {
+  const peer = await fixture(authentication(7))
+  const client = new Client(peer.options)
+  try {
+    await withBinding(undefined, async () => {
+      await assert.rejects(
+        client.connect(),
+        (error) => error.code === 'PG_GSS_AUTHENTICATION_FAILED' && /optional kerberos package/.test(error.message)
+      )
     })
+  } finally {
+    await client.end()
+    await peer.close()
+  }
+})
 
-    for (const source of ['profile', 'environment']) {
-      suite.test(`required GSS encryption is rejected without starting authentication (${source})`, async () => {
-        const peer = await fixture(authentication(7))
-        const saved = process.env.PGGSSENCMODE
-        if (source === 'environment') process.env.PGGSSENCMODE = 'require'
-        const options = source === 'profile' ? { ...peer.options, gssencmode: 'require' } : peer.options
-        const client = new Client(options)
-        let initialized = false
-        try {
-          await withBinding(
-            binding(async () => {
-              initialized = true
-            }),
-            async () => {
-              await assert.rejects(client.connect(), (error) => error.code === 'PG_GSS_ENCRYPTION_UNSUPPORTED')
-              assert.strictEqual(initialized, false)
-              assert.deepStrictEqual(peer.tokens, [])
-            }
-          )
-        } finally {
-          if (saved === undefined) delete process.env.PGGSSENCMODE
-          else process.env.PGGSSENCMODE = saved
-          await client.end()
-          await peer.close()
+for (const source of ['profile', 'environment']) {
+  suite.test(`required GSS encryption is rejected before opening a socket (${source})`, async () => {
+    const peer = await fixture(authentication(7))
+    const saved = process.env.PGGSSENCMODE
+    if (source === 'environment') process.env.PGGSSENCMODE = 'require'
+    const options = source === 'profile' ? { ...peer.options, gssencmode: 'require' } : peer.options
+    const client = new Client(options)
+    client.connection.connect = () => assert.fail('Required GSS encryption must not open a socket')
+    let initialized = false
+    try {
+      await withBinding(
+        binding(async () => {
+          initialized = true
+        }),
+        async () => {
+          await assert.rejects(client.connect(), (error) => error.code === 'PG_GSS_ENCRYPTION_UNSUPPORTED')
+          assert.strictEqual(initialized, false)
+          assert.deepStrictEqual(peer.tokens, [])
         }
-      })
+      )
+    } finally {
+      if (saved === undefined) delete process.env.PGGSSENCMODE
+      else process.env.PGGSSENCMODE = saved
+      await client.end()
+      await peer.close()
     }
   })
 }

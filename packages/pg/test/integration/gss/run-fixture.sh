@@ -68,12 +68,16 @@ kdc_pid=
 sshd_pid=
 tunnel_pid=
 cleanup() {
+  local status=$?
+  trap - EXIT
   if [ -n "$tunnel_pid" ]; then kill "$tunnel_pid" 2>/dev/null || true; wait "$tunnel_pid" 2>/dev/null || true; fi
   if [ -n "$sshd_pid" ]; then kill "$sshd_pid" 2>/dev/null || true; wait "$sshd_pid" 2>/dev/null || true; fi
   if ! runuser -u postgres -- "$pgbin/pg_ctl" -D "$root/pgdata" stop -m fast -w >> "$root/postgres-setup.log" 2>&1; then
     printf 'PostgreSQL fixture teardown failed; inspect postgres-setup.log\n' >&2
+    status=1
   fi
   if [ -n "$kdc_pid" ]; then kill "$kdc_pid" 2>/dev/null || true; wait "$kdc_pid" 2>/dev/null || true; fi
+  exit "$status"
 }
 trap cleanup EXIT
 runuser -u postgres -- psql -h "$root/socket" -p 55439 -d postgres -v ON_ERROR_STOP=1 \
