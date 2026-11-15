@@ -50,7 +50,7 @@ const pgNativePool = new Pool({ Client: PgNativeClient })
 
 ##### Note:
 
-The Pool constructor does not support passing a Database URL as the parameter. To connect with a Database URL, for example on heroku, pass it as the `connectionString` option instead. It is passed to each client, which parses it.
+To connect with a [connection URI](https://node-postgres.com/features/connecting#connection-uri), pass it as the `connectionString` client option.
 
 ```js
 const Pool = require('pg-pool')
