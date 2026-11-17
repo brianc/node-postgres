@@ -1,18 +1,33 @@
 'use strict'
 
-let user
-try {
-  user = process.platform === 'win32' ? process.env.USERNAME : process.env.USER
-} catch {
-  // ignore, e.g., Deno without --allow-env
+// the operating system user, read on the first access of `user` rather than at module load
+const readUser = function () {
+  try {
+    return process.platform === 'win32' ? process.env.USERNAME : process.env.USER
+  } catch {
+    // ignore, e.g., Deno without --allow-env
+    return undefined
+  }
 }
 
-module.exports = {
+// a plain data property, as the object literal entry `user` would have created
+const defineUser = function (target, value) {
+  Object.defineProperty(target, 'user', { value, writable: true, enumerable: true, configurable: true })
+}
+
+const defaults = (module.exports = {
   // database host. defaults to localhost
   host: 'localhost',
 
-  // database user's name
-  user,
+  // database user's name (read on first access, then a plain data property)
+  get user() {
+    const value = readUser()
+    defineUser(defaults, value)
+    return value
+  },
+  set user(value) {
+    defineUser(this, value)
+  },
 
   // name of database to connect
   database: undefined,
@@ -80,7 +95,7 @@ module.exports = {
   keepalives: 1,
 
   keepalives_idle: 0,
-}
+})
 
 const pgTypes = require('pg-types')
 // save default parsers
