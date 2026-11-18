@@ -93,7 +93,8 @@ resolving `connect()`. It does not request credential delegation.
 ## Errors and cancellation
 
 Unsupported or malformed protocol messages fail the connection, not the process.
-Errors raised by application message callbacks remain application errors.
+Errors raised by application message callbacks, `connect()` callbacks or `connect`
+event listeners remain application errors.
 
 Use `connectionTimeoutMillis` to bound connection waiting. Ending or failing a
 connecting client invalidates the GSS session, closes the socket, and suppresses

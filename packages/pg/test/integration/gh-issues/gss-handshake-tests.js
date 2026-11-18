@@ -1,9 +1,10 @@
 'use strict'
 
 const assert = require('assert')
+const { execFile } = require('child_process')
 const net = require('net')
 const Module = require('module')
-const { Client } = require('../../../lib')
+const { Client, Pool } = require('../../../lib')
 const { Suite } = require('../../test-helper')
 
 function authentication(code, data = Buffer.alloc(0)) {
@@ -91,8 +92,12 @@ function binding(initializeClient) {
   }
 }
 
-for (const code of [7, 9]) {
-  suite.test(`authentication ${code} waits for the final security step before connect resolves`, async () => {
+for (const [code, backpressure] of [
+  [7, false],
+  [9, false],
+  [7, true],
+]) {
+  suite.test(`authentication ${code} waits for the final security step (backpressure: ${backpressure})`, async () => {
     const peer = await fixture(authentication(code), (socket) => {
       socket.write(Buffer.concat([authentication(8, challenge), authentication(0), ready]))
     })
@@ -111,6 +116,15 @@ for (const code of [7, 9]) {
       return context
     })
     const client = new Client(peer.options)
+    if (backpressure) {
+      client.connection.once('connect', () => {
+        const write = client.connection.stream.write.bind(client.connection.stream)
+        client.connection.stream.write = (...args) => {
+          write(...args)
+          return false
+        }
+      })
+    }
     try {
       await withBinding(library, async () => {
         await client.connect()
@@ -148,8 +162,10 @@ for (const order of ['gss-first', 'password-first']) {
       order === 'gss-first'
         ? Buffer.concat([authentication(7), authentication(3)])
         : Buffer.concat([authentication(3), authentication(7)])
-    const peer = await fixture(reply)
+    const peer = await fixture(Buffer.concat([reply, authentication(0), ready]))
     const client = new Client({ ...peer.options, password: async () => 'must-not-be-sent' })
+    const errors = []
+    client.on('error', (error) => errors.push(error))
     try {
       await withBinding(
         binding(async () => ({ contextComplete: false, step: async () => response })),
@@ -157,10 +173,80 @@ for (const order of ['gss-first', 'password-first']) {
           await assert.rejects(client.connect(), /changed authentication|Unexpected GSS/)
           await new Promise((resolve) => setTimeout(resolve, 20))
           assert.deepStrictEqual(peer.tokens, [])
+          assert.strictEqual(client._connected, false)
+          assert.deepStrictEqual(errors, [])
         }
       )
     } finally {
       await client.end()
+      await peer.close()
+    }
+  })
+}
+
+for (const api of ['client-promise', 'client-callback', 'pool']) {
+  suite.test(`${api} rejects an unsolicited GSS continuation followed by server success`, async () => {
+    const peer = await fixture(Buffer.concat([authentication(8, challenge), authentication(0), ready]))
+    const target = api === 'pool' ? new Pool(peer.options) : new Client(peer.options)
+    const errors = []
+    target.on('error', (error) => errors.push(error))
+    try {
+      const connecting =
+        api === 'client-callback'
+          ? new Promise((resolve, reject) => target.connect((error) => (error ? reject(error) : resolve())))
+          : target.connect()
+      await assert.rejects(connecting, /GSS continuation received before authentication started/)
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      assert.deepStrictEqual(errors, [])
+      assert.deepStrictEqual(peer.tokens, [])
+      if (api === 'pool') {
+        assert.strictEqual(target.totalCount, 0)
+        assert.strictEqual(target.idleCount, 0)
+      } else {
+        assert.strictEqual(target._connected, false)
+      }
+    } finally {
+      await target.end()
+      await peer.close()
+    }
+  })
+}
+
+for (const kind of ['callback', 'listener']) {
+  suite.test(`does not classify a throwing connect ${kind} as a GSS authentication failure`, async () => {
+    const peer = await fixture(authentication(7), (socket) => {
+      socket.write(Buffer.concat([authentication(0), ready]))
+    })
+    const message = `application connect ${kind} failed`
+    const script = `
+      const { Client } = require(${JSON.stringify(require.resolve('../../../lib'))})
+      const { GssSession } = require(${JSON.stringify(require.resolve('../../../lib/crypto/gss'))})
+      GssSession.prototype.loadBinding = () => (${binding.toString()})(async () => ({
+        contextComplete: true,
+        step: async () => ${JSON.stringify(response)},
+      }))
+      const client = new Client(${JSON.stringify(peer.options)})
+      client.on('error', () => process.exit(2))
+      const fail = () => { throw new Error(${JSON.stringify(message)}) }
+      if (${JSON.stringify(kind)} === 'callback') {
+        client.connect((error) => {
+          if (error) process.exit(3)
+          fail()
+        })
+      } else {
+        client.once('connect', fail)
+        client.connect().catch(() => process.exit(3))
+      }
+    `
+    try {
+      const result = await new Promise((resolve) => {
+        execFile(process.execPath, ['-e', script], { timeout: 3000 }, (error, stdout, stderr) => {
+          resolve({ error, stderr })
+        })
+      })
+      assert.strictEqual(result.error?.code, 1, result.stderr)
+      assert.match(result.stderr, new RegExp(message))
+    } finally {
       await peer.close()
     }
   })

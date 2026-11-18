@@ -434,6 +434,7 @@ class Client extends EventEmitter {
   }
 
   _handleReadyForQuery(msg) {
+    if (this._connectionError || this.connection.stream.destroyed) return
     if (this._connecting && this._gssSession && !this._gssVerified) {
       if (this._gssReadyPending) {
         this._failGSS(authenticationError('Duplicate ReadyForQuery during GSS authentication'))
@@ -443,9 +444,11 @@ class Client extends EventEmitter {
       this._gssSession
         .ready()
         .then(() => {
-          if (this._ending || this._ended || this._connectionError) return
-          this._gssVerified = true
-          this._handleReadyForQuery(msg)
+          process.nextTick(() => {
+            if (this._ending || this._ended || this._connectionError || this.connection.stream.destroyed) return
+            this._gssVerified = true
+            this._handleReadyForQuery(msg)
+          })
         })
         .catch((error) => this._failGSS(error))
       return
