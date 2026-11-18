@@ -103,6 +103,7 @@ class Pool extends EventEmitter {
     this._idle = []
     this._expired = new WeakSet()
     this._pendingQueue = []
+    this._closingClients = 0
     this._endCallback = undefined
     this.ending = false
     this.ended = false
@@ -137,10 +138,7 @@ class Pool extends EventEmitter {
           this._remove(item.client)
         })
       }
-      if (!this._clients.length) {
-        this.ended = true
-        this._endCallback()
-      }
+      this._finishEnding()
       return
     }
 
@@ -169,6 +167,13 @@ class Pool extends EventEmitter {
     throw new Error('unexpected condition')
   }
 
+  _finishEnding() {
+    if (this.ending && !this.ended && !this._clients.length && !this._closingClients) {
+      this.ended = true
+      this._endCallback()
+    }
+  }
+
   _remove(client, callback) {
     const removed = removeWhere(this._idle, (item) => item.client === client)
 
@@ -177,12 +182,16 @@ class Pool extends EventEmitter {
     }
 
     this._clients = this._clients.filter((c) => c !== client)
+    this._closingClients++
     const context = this
     client.end(() => {
       context.emit('remove', client)
+      context._closingClients--
 
       if (typeof callback === 'function') {
         callback()
+      } else {
+        context._finishEnding()
       }
     })
   }

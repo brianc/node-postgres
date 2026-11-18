@@ -1,6 +1,7 @@
 'use strict'
 const co = require('co')
 const expect = require('expect.js')
+const { EventEmitter } = require('events')
 
 const describe = require('mocha').describe
 const it = require('mocha').it
@@ -16,6 +17,41 @@ describe('pool ending', () => {
   it('ends with a promise', () => {
     return new Pool().end()
   })
+
+  for (const idle of [true, false]) {
+    it(`waits for both ${idle ? 'idle' : 'checked-out'} clients to close`, async () => {
+      class Client extends EventEmitter {
+        constructor() {
+          super()
+          this._queryable = true
+        }
+
+        connect(cb) {
+          process.nextTick(cb)
+        }
+
+        end(cb) {
+          this.finishClosing = cb
+        }
+      }
+
+      const pool = new Pool({ Client, max: 2, idleTimeoutMillis: 0 })
+      const clients = await Promise.all([pool.connect(), pool.connect()])
+      const events = []
+      pool.on('remove', (client) => events.push(client))
+
+      if (idle) clients.forEach((client) => client.release())
+      const ending = pool.end().then(() => events.push('ended'))
+      if (!idle) clients.forEach((client) => client.release())
+
+      clients[0].finishClosing()
+      await new Promise(setImmediate)
+      clients[1].finishClosing()
+      await ending
+
+      expect(events).to.eql([...clients, 'ended'])
+    })
+  }
 
   it(
     'ends with clients',
