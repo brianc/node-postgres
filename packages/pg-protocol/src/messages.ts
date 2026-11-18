@@ -23,6 +23,9 @@ export type MessageName =
   | 'authenticationOk'
   | 'authenticationMD5Password'
   | 'authenticationCleartextPassword'
+  | 'authenticationGSS'
+  | 'authenticationGSSContinue'
+  | 'authenticationSSPI'
   | 'authenticationSASL'
   | 'authenticationSASLContinue'
   | 'authenticationSASLFinal'
@@ -188,6 +191,14 @@ export class AuthenticationMD5Password implements BackendMessage {
   constructor(
     public readonly length: number,
     public readonly salt: Buffer
+  ) {}
+}
+
+export class AuthenticationGSSContinue implements BackendMessage {
+  public readonly name: MessageName = 'authenticationGSSContinue'
+  constructor(
+    public readonly length: number,
+    public readonly data: Buffer
   ) {}
 }
 

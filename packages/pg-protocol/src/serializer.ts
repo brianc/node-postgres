@@ -251,6 +251,8 @@ const copyData = (chunk: Buffer): Buffer => {
   return writer.add(chunk).flush(code.copyFromChunk)
 }
 
+const sendGSSResponse = (token: Buffer): Buffer => writer.add(token).flush(code.startup)
+
 const copyFail = (message: string): Buffer => {
   return cstringMessage(code.copyFail, message)
 }
@@ -268,6 +270,7 @@ const serialize = {
   requestSsl,
   sendSASLInitialResponseMessage,
   sendSCRAMClientFinalMessage,
+  sendGSSResponse,
   query,
   parse,
   bind,

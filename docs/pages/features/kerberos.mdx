@@ -1,0 +1,102 @@
+---
+title: Kerberos and GSS authentication
+---
+
+The JavaScript driver can answer PostgreSQL GSSAPI and SSPI authentication requests
+using the optional native `kerberos` package. The server selects the authentication
+method; a database password is not required for ticket-based authentication.
+
+This is **authentication support, not GSS transport encryption**. Configure TLS
+with certificate verification to protect queries and results.
+
+## Requirements
+
+The `kerberos` native binding must be installed and loadable in the application
+runtime. Linux and macOS use the system GSSAPI implementation; Windows uses SSPI.
+If the package or native binding is unavailable, the connection rejects with an
+actionable error. Ordinary password connections do not load the binding.
+
+The OS must have appropriate credentials, such as a ticket acquired with `kinit`
+on a GSSAPI system or the logged-in identity on Windows. PostgreSQL must map the
+authenticated identity to the requested database role.
+
+## Connection
+
+```js
+import fs from 'node:fs'
+import pg from 'pg'
+
+const client = new pg.Client({
+  host: 'database.example.test',
+  user: 'database_role',
+  database: 'app',
+  ssl: {
+    ca: fs.readFileSync('trusted-ca.pem', 'utf8'),
+    rejectUnauthorized: true,
+  },
+  connectionTimeoutMillis: 5000,
+})
+
+await client.connect()
+console.log(await client.query('SELECT current_database()'))
+await client.end()
+```
+
+Clients and pools use the same authentication implementation. Connections that
+are already authenticated remain associated with that identity; new connections
+use the credentials available when authentication starts. Close or replace a pool
+when switching identities.
+
+## Service identity and options
+
+| Option       | Environment default             | Behavior                                                                                                                                                                         |
+| ------------ | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `krbsrvname` | `PGKRBSRVNAME`, then `postgres` | Kerberos service name.                                                                                                                                                           |
+| `gssHost`    | Connection `host`               | Database hostname used for the service identity.                                                                                                                                 |
+| `gsslib`     | `PGGSSLIB`                      | Only the platform's binding is available: `sspi` on Windows and `gssapi` elsewhere. Alternate libraries are rejected.                                                            |
+| `gssencmode` | `PGGSSENCMODE`                  | `require` rejects before connecting because the JavaScript driver does not implement GSS encryption. `prefer` does not enable GSS encryption; configure verified TLS separately. |
+
+Explicit connection options override their environment defaults. This does not
+implement all libpq environment variables, service files, or host-resolution
+rules.
+
+For an SSH tunnel or TCP proxy, the socket endpoint may be loopback while the
+database service identity is not:
+
+```js
+const client = new pg.Client({
+  host: '127.0.0.1',
+  port: 15432,
+  gssHost: 'database.example.test',
+  user: 'database_role',
+  ssl: {
+    ca: fs.readFileSync('trusted-ca.pem', 'utf8'),
+    servername: 'database.example.test',
+    rejectUnauthorized: true,
+  },
+})
+```
+
+The binding receives the platform-specific service identity derived from the
+database hostname, not the tunnel address.
+
+## GSSAPI versus SSPI
+
+PostgreSQL AuthenticationGSS selects the Kerberos mechanism. AuthenticationSSPI
+selects SPNEGO/Negotiate, which may negotiate Kerberos or NTLM on Windows. These
+are distinct methods; SSPI success alone is not proof that Kerberos was used.
+
+The driver serializes opaque binary continuation tokens and waits for both the
+security context to finish and the server to accept authentication before
+resolving `connect()`. It does not request credential delegation.
+
+## Errors and cancellation
+
+Unsupported or malformed protocol messages fail the connection, not the process.
+Errors raised by application message callbacks, `connect()` callbacks or `connect`
+event listeners remain application errors.
+
+Use `connectionTimeoutMillis` to bound connection waiting. Ending or failing a
+connecting client invalidates the GSS session, closes the socket, and suppresses
+late authentication results. The native binding does not expose cancellation of
+an OS security call already running; that work may finish later.

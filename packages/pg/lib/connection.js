@@ -168,6 +168,12 @@ class Connection extends EventEmitter {
     this._send(serialize.sendSCRAMClientFinalMessage(additionalData))
   }
 
+  sendGSSResponse(token) {
+    this._send(serialize.sendGSSResponse(token))
+    // Backpressure still accepts the token; only a closed stream is a failure.
+    return this.stream.writable
+  }
+
   _send(buffer) {
     if (!this.stream.writable) {
       return false

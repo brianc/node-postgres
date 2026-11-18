@@ -69,6 +69,13 @@ class ConnectionParameters {
 
     this.port = parseInt(val('port', config), 10)
     this.host = val('host', config)
+    this.krbsrvname = val('krbsrvname', config, 'PGKRBSRVNAME')
+    this.gssHost = config.gssHost || this.host
+    this.gsslib = val('gsslib', config, 'PGGSSLIB')
+    this.gssencmode = val('gssencmode', config, 'PGGSSENCMODE')
+    if (this.gssencmode !== undefined && !['disable', 'prefer', 'require'].includes(this.gssencmode)) {
+      throw new Error('Invalid gssencmode: expected disable, prefer, or require')
+    }
 
     // "hiding" the password so it doesn't show up in stack traces
     // or if the client is console.logged
@@ -157,6 +164,9 @@ class ConnectionParameters {
     add(params, ssl, 'sslcert')
     add(params, ssl, 'sslrootcert')
     add(params, this, 'sslnegotiation')
+    add(params, this, 'krbsrvname')
+    add(params, this, 'gsslib')
+    add(params, this, 'gssencmode')
 
     if (this.database) {
       params.push('dbname=' + quoteParamValue(this.database))
