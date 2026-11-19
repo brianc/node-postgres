@@ -124,3 +124,43 @@ suite.test('query killed during query execution of prepared statement', function
     })
   )
 })
+
+// The client-side prepared-statement cache this guards against only exists in
+// the pure-JS driver; pg-native prepares statements through libpq, so this is
+// a JS-only test.
+if (!helper.args.native) {
+  suite.test('reusing a named statement after a parameter fails to serialize', function (done) {
+    // A value that throws while being serialized makes the client close the
+    // prepared statement on the server. The client must drop it from its
+    // statement cache too, otherwise every later use of the same name fails
+    // with "prepared statement does not exist". Uses the promise API so the
+    // first query settles exactly once regardless of issue #3820.
+    const client = new Client()
+    client
+      .connect()
+      .then(async () => {
+        const bad = {
+          toPostgres() {
+            throw new Error('serialization failed')
+          },
+        }
+
+        await assert.rejects(
+          () => client.query({ name: 'reused-after-error', text: 'select $1::int as v', values: [bad] }),
+          /serialization failed/
+        )
+
+        // the same name, now with a value that serializes fine
+        const res = await client.query({
+          name: 'reused-after-error',
+          text: 'select $1::int as v',
+          values: [42],
+        })
+        assert.equal(res.rows[0].v, 42)
+
+        await client.end()
+        done()
+      })
+      .catch(done)
+  })
+}

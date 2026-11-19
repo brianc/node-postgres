@@ -239,6 +239,18 @@ class Query extends EventEmitter {
       connection.close({ type: 'S', name: this.name })
       connection.sync()
 
+      if (this.name) {
+        // The statement is being closed on the server, so the client must not
+        // keep it in its parsed-statement cache. Drop any existing entry (reuse
+        // of an already-parsed name) and flag the query so the ParseComplete for
+        // the Parse we just sent (first use of the name) is not recorded either.
+        // Otherwise every later use of this name fails with "prepared statement
+        // does not exist".
+        this._statementClosedDueToError = true
+        delete connection.parsedStatements[this.name]
+        delete connection.submittedNamedStatements[this.name]
+      }
+
       this.handleError(err, connection)
       return
     }

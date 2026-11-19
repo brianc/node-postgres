@@ -506,7 +506,7 @@ class Client extends EventEmitter {
     // if a prepared statement has a name and properly parses
     // we track that its already been executed so we don't parse
     // it again on the same client
-    if (activeQuery.name) {
+    if (activeQuery.name && !activeQuery._statementClosedDueToError) {
       this.connection.parsedStatements[activeQuery.name] = activeQuery.text
       delete this.connection.submittedNamedStatements[activeQuery.name]
     }
