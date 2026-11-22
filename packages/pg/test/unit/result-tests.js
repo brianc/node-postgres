@@ -109,3 +109,31 @@ test('multiple dangerous column names handled safely', function () {
   assert.strictEqual(row['__defineGetter__'], 'd')
   assert.strictEqual(row.id, 1)
 })
+
+test('array rows do not build the prebuilt row object', function () {
+  const result = new Result('array')
+  result.addFields([
+    { name: 'id', dataTypeID: 23, format: 'text' },
+    { name: 'name', dataTypeID: 25, format: 'text' },
+  ])
+
+  assert.strictEqual(result._prebuiltEmptyResultObject, null)
+  assert.deepStrictEqual(result.parseRow(['1', 'a']), [1, 'a'])
+  assert.deepStrictEqual(result.parseRow([null, 'b']), [null, 'b'])
+
+  // a later result set replaces the parsers
+  result.addFields([{ name: 'ok', dataTypeID: 16, format: 'text' }])
+  assert.strictEqual(result._prebuiltEmptyResultObject, null)
+  assert.deepStrictEqual(result.parseRow(['t']), [true])
+})
+
+test('object rows still start from the prebuilt row object', function () {
+  const result = new Result()
+  result.addFields([
+    { name: 'id', dataTypeID: 23, format: 'text' },
+    { name: 'name', dataTypeID: 25, format: 'text' },
+  ])
+
+  assert.deepStrictEqual(result._prebuiltEmptyResultObject, { id: null, name: null })
+  assert.deepStrictEqual(result.parseRow(['1', null]), { id: 1, name: null })
+})
