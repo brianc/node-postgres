@@ -9,10 +9,18 @@ class Query extends EventEmitter {
   constructor(config, values, callback) {
     super()
 
-    config = utils.normalizeQueryConfig(config, values, callback)
+    // Read the config as given instead of normalizing a copy of it. Values or a
+    // callback passed as arguments win, as in utils.normalizeQueryConfig.
+    if (typeof config === 'string') {
+      config = { text: config }
+    }
+    if (typeof values === 'function') {
+      callback = callback || values
+      values = undefined
+    }
 
     this.text = config.text
-    this.values = config.values
+    this.values = values || config.values
     this.rows = config.rows
     this.types = config.types
     this.name = config.name
@@ -20,10 +28,10 @@ class Query extends EventEmitter {
     this.binary = config.binary
     // use unique portal name each time
     this.portal = config.portal || ''
-    this.callback = config.callback
+    this.callback = callback || config.callback
     this._rowMode = config.rowMode
-    if (process.domain && config.callback) {
-      this.callback = process.domain.bind(config.callback)
+    if (process.domain && this.callback) {
+      this.callback = process.domain.bind(this.callback)
     }
     this._result = new Result(this._rowMode, this.types)
 

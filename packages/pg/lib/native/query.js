@@ -6,12 +6,20 @@ const utils = require('../utils')
 
 const NativeQuery = (module.exports = function (config, values, callback) {
   EventEmitter.call(this)
-  config = utils.normalizeQueryConfig(config, values, callback)
+  // Read the config as given instead of normalizing a copy of it. Values or a
+  // callback passed as arguments win, as in utils.normalizeQueryConfig.
+  if (typeof config === 'string') {
+    config = { text: config }
+  }
+  if (typeof values === 'function') {
+    callback = callback || values
+    values = undefined
+  }
   this.text = config.text
-  this.values = config.values
+  this.values = values || config.values
   this.name = config.name
   this.queryMode = config.queryMode
-  this.callback = config.callback
+  this.callback = callback || config.callback
   this.state = 'new'
   this._arrayMode = config.rowMode === 'array'
 

@@ -89,11 +89,14 @@ class Result {
       this._parsers = new Array(fieldDescriptions.length)
     }
 
-    const row = Object.create(null)
+    // only object rows start from the prebuilt object; array rows don't need it
+    const row = this.rowAsArray ? null : Object.create(null)
 
     for (let i = 0; i < fieldDescriptions.length; i++) {
       const desc = fieldDescriptions[i]
-      row[desc.name] = null
+      if (row !== null) {
+        row[desc.name] = null
+      }
 
       if (this._types) {
         this._parsers[i] = this._types.getTypeParser(desc.dataTypeID, desc.format || 'text')
@@ -102,7 +105,7 @@ class Result {
       }
     }
 
-    this._prebuiltEmptyResultObject = { ...row }
+    this._prebuiltEmptyResultObject = row === null ? null : { ...row }
   }
 }
 
