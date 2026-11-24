@@ -26,18 +26,14 @@ function arrayString(val) {
     if (i > 0) {
       result += ','
     }
-    let item = val[i]
+    const item = val[i]
     if (item == null) {
       result += 'NULL'
     } else if (Array.isArray(item)) {
       result += arrayString(item)
-    } else if (ArrayBuffer.isView(item)) {
-      if (!(item instanceof Buffer)) {
-        item = Buffer.from(item.buffer, item.byteOffset, item.byteLength)
-      }
-      result += '\\\\x' + item.toString('hex')
     } else {
-      result += escapeElement(prepareValue(item))
+      const prepared = prepareValue(item)
+      result += prepared instanceof Buffer ? '\\\\x' + prepared.toString('hex') : escapeElement(prepared)
     }
   }
   result += '}'

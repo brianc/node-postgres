@@ -220,6 +220,39 @@ test('prepareValue: Uint8Array array prepared properly', function () {
   assert.strictEqual(out, '{\\\\xdead,\\\\xbeef}')
 })
 
+test('prepareValue: direct and custom binary array elements prepared properly', function () {
+  const cases = [
+    [Buffer.from([0, 128, 255]), '0080ff'],
+    [Buffer.alloc(0), ''],
+    [new Uint8Array([1, 128, 255, 2]).subarray(1, 3), '80ff'],
+    [new DataView(Uint8Array.from([1, 128, 255, 2]).buffer, 1, 2), '80ff'],
+  ]
+
+  for (const [value, hex] of cases) {
+    let calls = 0
+    const customType = {
+      toPostgres: function () {
+        calls++
+        return value
+      },
+    }
+    assert.strictEqual(utils.prepareValue([value, customType]), `{\\\\x${hex},\\\\x${hex}}`)
+    assert.strictEqual(calls, 1)
+  }
+})
+
+test('prepareValue: chained custom binary elements in nested arrays prepared properly', function () {
+  const buffer = Buffer.from([0, 128, 255])
+  const customType = { toPostgres: () => ({ toPostgres: () => buffer }) }
+  assert.strictEqual(
+    utils.prepareValue([
+      [customType, null],
+      [buffer, undefined],
+    ]),
+    '{{\\\\x0080ff,NULL},{\\\\x0080ff,NULL}}'
+  )
+})
+
 test('prepareValue: objects with complex toPostgres prepared properly', function () {
   const customType = {
     toPostgres: function () {
