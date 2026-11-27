@@ -582,4 +582,24 @@ describe('PgPacketStream', function () {
     parser.parse(oneFieldBuf, () => {})
     assert.strictEqual((parser as any).reader.buffer.byteLength, 0)
   })
+
+  describe('error and notice messages with an empty body', function () {
+    for (const code of [0x45, 0x4e]) {
+      it('returns for code ' + String.fromCharCode(code) + ' at the end of the buffer', function () {
+        const messages: BackendMessage[] = []
+        new Parser().parse(Buffer.from([code, 0, 0, 0, 4]), (msg) => messages.push(msg))
+        assert.strictEqual(messages.length, 1)
+        assert.strictEqual(messages[0].name, 'error')
+      })
+
+      it('returns an error for code ' + String.fromCharCode(code) + ' and keeps parsing', function () {
+        const empty = Buffer.from([code, 0, 0, 0, 4])
+        const messages: BackendMessage[] = []
+        new Parser().parse(Buffer.concat([empty, readyForQueryBuffer]), (msg) => messages.push(msg))
+        assert.strictEqual(messages.length, 2)
+        assert.strictEqual(messages[0].name, 'error')
+        assert.strictEqual(messages[1].name, 'readyForQuery')
+      })
+    }
+  })
 })

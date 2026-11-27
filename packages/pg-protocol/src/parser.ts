@@ -209,9 +209,11 @@ export class Parser {
         message = parseBackendKeyData(reader)
         break
       case MessageCodes.ErrorMessage:
+        reader.setBuffer(0, packetBody(bytes, offset, length))
         message = parseErrorMessage(reader, 'error')
         break
       case MessageCodes.NoticeMessage:
+        reader.setBuffer(0, packetBody(bytes, offset, length))
         message = parseErrorMessage(reader, 'notice')
         break
       case MessageCodes.RowDescriptionMessage:
@@ -379,10 +381,26 @@ const parseAuthenticationResponse = (reader: BufferReader, length: number) => {
   return message
 }
 
+// `length` includes the int32 length field and excludes the message code.
+// Clamp ErrorResponse/NoticeResponse reads to that body so a short frame
+// cannot consume the next message or run off the end of the buffer.
+const packetBody = (bytes: Buffer, offset: number, length: number): Buffer => {
+  const bodyLength = length - 4
+  if (bodyLength <= 0) {
+    return emptyBuffer
+  }
+  return bytes.slice(offset, offset + bodyLength)
+}
+
 const parseErrorMessage = (reader: BufferReader, name: MessageName) => {
   const fields: Record<string, string> = {}
   let fieldType = reader.string(1)
   while (fieldType !== '\0') {
+    // Past the declared body, BufferReader.string returns '' rather than NUL.
+    // Continuing would spin forever.
+    if (fieldType === '') {
+      return new DatabaseError('unterminated error or notice message', LATEINIT_LENGTH, 'error')
+    }
     fields[fieldType] = reader.cstring()
     fieldType = reader.string(1)
   }
